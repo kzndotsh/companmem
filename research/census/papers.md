@@ -1,7 +1,7 @@
 # Friend paper list
 
 Index for the 41 papers in `research/papers/registry.json`. Observed 2026-09-11 from arXiv Atom.
-Full-text extracts live at `research/papers/arxiv/<id>.md` (symlink to the arXiv MCP cache). BibTeX is `research/papers/refs.bib`.
+Full-text extracts are vendored at `research/papers/arxiv/<id>.md`. BibTeX is `research/papers/refs.bib`.
 Bands are a judgment on companion-memory fit, not paper quality.
 
 Core cards are in Slice G markdown.

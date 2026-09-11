@@ -26,7 +26,7 @@ Same schema as `research/_contracts/card.schema.json`. `kind` is `academic`.
 
 Primary sources only, in this order.
 
-1. Local extract `research/papers/arxiv/<id>.md` (arXiv MCP cache, HTML first, PDF if HTML is missing).
+1. Local extract `research/papers/arxiv/<id>.md` (vendored in repo; refresh from arXiv HTML/PDF when updating).
 2. The paper's GitHub, named file and symbol.
 3. The eval they publish numbers on, plus what that eval actually scores.
 
