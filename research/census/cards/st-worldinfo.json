@@ -1,0 +1,89 @@
+{
+  "id": "st-worldinfo",
+  "name": "SillyTavern World Info",
+  "kind": "roleplay-client",
+  "repo": "https://github.com/SillyTavern/SillyTavern",
+  "docs": "https://docs.sillytavern.app/usage/worldinfo.md",
+  "license": "AGPL-3.0",
+  "stars_observed": 33251,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Lorebook entries: keys, optional filter keys, content, insertion order/position, constant vs keyword vs vectorized strategy, inclusion groups, character filter, timed sticky/cooldown/delay. Sources: global, character, persona, chat. Entry Title/Memo is not inserted. No relationship type. Content is a string.",
+  "dimensions": {
+    "ontology": {
+      "score": "partial",
+      "evidence": "world-info.js entries are untyped content blobs with match metadata. convertAgnaiMemoryBook/convertRisuLorebook import other clients' books into the same shape. Docs: 'insert ANYTHING'.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "User authors entries. Automation ID can run STscript on activation. Recursive scan can activate further entries from content text. Model does not extract WI facts unless a user script does.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "checkWorldInfo scans Scan Depth messages (0 = recurse+AN only). Constant (blue) always try first. Keyword/regex + selective AND ANY/ALL/NOT. Budget: world_info_budget percent of maxContext, then world_info_budget_cap. Exhausted budget stops further activations. Outlet position stores named {{outlet::Name}} instead of auto-inject.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "partial",
+      "evidence": "Inclusion groups pick one of several triggered entries (random Group Weight or Prioritize Inclusion by Order). Timed cooldown blocks re-trigger. Does not replace an old fact with a new one in a store.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "partial",
+      "evidence": "WorldInfoTimedEffects: sticky N messages, cooldown N, delay until chat has N messages. Effects are per-chat, inherited by branches, dropped on swipe/delete of last message. Not 'last Tuesday'.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "partial",
+      "evidence": "Chat Lore, Persona Lore, Character Lore, Global Lore with Sorted Evenly / Character First / Global First (docs). Additional matching sources include character description/personality/scenario and persona description. Still one content string per entry.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "partial",
+      "evidence": "Disable entry, Probability 0, Character Filter exclude, Prevent further recursion, Non-recursable. Vector matching can still fire a vectorized entry without keywords. No spoiler/trauma tag.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "absent",
+      "evidence": "Activated content is concatenated into the prompt. Recursive mention of keys can pull unrelated lore. No trust tag. Overflow only alerts if Alert on overflow is on.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "partial",
+      "evidence": "Delete/disable entry, or wait out sticky then cooldown. Changing an in-effect entry forcibly removes the timed effect. No cross-chat forget API.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "Zero LLM calls for keyword path. Token cost is the WI budget subtracted from maxContext. Default world_info_budget=25 in world-info.js. Recursive and Min Activations can scan deeper into history. Vector WI matching adds embedding query (see st-vectors).",
+      "label": "measured"
+    },
+    "local": {
+      "score": "present",
+      "evidence": "Keyword engine is fully local in the browser/ST server. AGPL-3.0.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "World Info is not an MCP server. Slash commands /wi-set-timed-effect exist inside ST.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "yes",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "Keyword lore with a hard token budget is the right tool for world facts the character should not always see. It is not relationship memory. Docs state insertion does not guarantee the model uses the text.",
+  "published_eval": {
+    "name": null,
+    "claimed_score": null,
+    "what_it_actually_scores": null,
+    "source": null
+  },
+  "sources": [
+    "https://docs.sillytavern.app/usage/worldinfo.md",
+    "https://github.com/SillyTavern/SillyTavern/blob/release/public/scripts/world-info.js"
+  ],
+  "open_unknowns": [
+    "Default Scan Depth in a stock UI install (overridable per entry)."
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "id": "persona-vectors",
+  "name": "Persona Vectors (Chen et al.)",
+  "kind": "academic",
+  "repo": "https://github.com/safety-research/persona_vectors",
+  "docs": "https://arxiv.org/abs/2507.21509",
+  "license": "Apache-2.0",
+  "stars_observed": 462,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Not a memory store. A persona vector is a residual-stream difference for one named trait (evil, sycophancy, hallucination, plus appendix traits such as optimism and humor). The object is a direction in one model's activation space, not a typed table of user, character, or relationship facts.",
+  "dimensions": {
+    "ontology": {
+      "score": "absent",
+      "evidence": "Paper §2 extracts one vector per natural-language trait. generate_vec.py save_persona_vector writes pos-minus-neg hidden-state diffs. No user bio, character autobiography, or relationship types.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "Pipeline generates 40 eval questions, rolls out positive and negative system prompts, keeps trait scores >50 vs <50, then difference-of-means on response tokens (paper §2.2, generate_vec.py get_persona_effective). Traits are also written by SFT (sft.py / training.py) and blocked during SFT by preventative steering toward the vector (paper §5).",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "Inference-time steering h_l <- h_l + alpha * v_l at a chosen layer every decode step (paper §3.2). activation_steer.py ActivationSteerer hooks transformer.h / model.layers. Projection of the last prompt token monitors the trait before generation (paper §3.3).",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "absent",
+      "evidence": "No stored fact is replaced. A new steer coefficient overwrites the previous activation add. Conflicting traits are not typed or invalidated.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "absent",
+      "evidence": "No validity windows, session timestamps, or last-Tuesday queries. Monitoring is a projection on the current residual stream.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "absent",
+      "evidence": "Vectors describe traits of one Assistant (evil, sycophancy, hallucination). They do not split user vs character vs relationship, and they do not name Assistant vs other character archetypes as reusable types.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "Steering can suppress a trait in generation. It does not skip a high-score memory hit for trauma, kink, or spoilers. There is no retrieve-nothing gate.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "partial",
+      "evidence": "Paper §6 screens finetune samples by projection onto persona vectors and catches some items LLM filters miss. Preventative steering during SFT limits unwanted trait acquisition (paper §5). This is a training-data defense, not provenance or trust tags on stored companion text.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "absent",
+      "evidence": "No user forget-that, decay, or deletion of stored rows. Post-hoc inhibition subtracts a vector at inference. The finetuned weights still hold the trait.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "Extraction is offline LLM rollouts plus one judge (GPT-4.1-mini). Online cost is a forward hook at one layer per token (ActivationSteerer). Paper §5 reports MMLU as the capability tax of inference-time vs preventative steering. No companion prompt token budget.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "present",
+      "evidence": "Apache-2.0 LICENSE. Experiments run on Qwen2.5-7B-Instruct and Llama-3.1-8B-Instruct with local hooks. Judge and some data generation use GPT-4.1-mini, which is optional for steering once vectors exist.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "Research repo. No MCP server in the tree.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "no",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "Stealable control for hole 1 and hole 7. Monitor and steer character traits in activation space, including preventative steering against finetune overwrite. Complements a typed store. It is not one. No user vs character vs relationship tables, no silence of recall, no companion eval.",
+  "published_eval": {
+    "name": "Authors' GPT-4.1-mini trait expression scores (0-100) on evil, sycophancy, and hallucination, plus MMLU",
+    "claimed_score": "Last-prompt-token projection vs later trait score r=0.75-0.83 (paper §3.3). Finetune shift along the vector vs trait score r=0.76-0.97 (paper §4.2). Multi-layer preventative steering limits traits to near baseline without extra MMLU drop vs ordinary SFT (paper §5, Appendix J.3).",
+    "what_it_actually_scores": "Whether an LLM judge says the reply expresses a named trait after steering or finetune, and whether MMLU holds. Not months of companion identity, social silence, or poisoned relationship state.",
+    "source": "https://arxiv.org/html/2507.21509 §3-§6; https://github.com/safety-research/persona_vectors"
+  },
+  "sources": [
+    "https://arxiv.org/abs/2507.21509",
+    "https://arxiv.org/html/2507.21509",
+    "https://github.com/safety-research/persona_vectors",
+    "https://github.com/safety-research/persona_vectors/blob/main/generate_vec.py",
+    "https://github.com/safety-research/persona_vectors/blob/main/activation_steer.py",
+    "https://github.com/safety-research/persona_vectors/blob/main/LICENSE"
+  ],
+  "open_unknowns": [
+    "Whether preventative steering still holds on a companion stack where the 'trait' is a character card rather than evil/sycophancy/hallucination.",
+    "Exact MMLU deltas per steering coefficient, unread as numbers from Figure 7."
+  ]
+}

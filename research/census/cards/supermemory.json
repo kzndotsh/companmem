@@ -1,0 +1,96 @@
+{
+  "id": "supermemory",
+  "name": "SuperMemory",
+  "kind": "agent-memory-lib",
+  "repo": "https://github.com/supermemoryai/supermemory",
+  "docs": "https://supermemory.ai/docs/llms.txt",
+  "license": "MIT",
+  "stars_observed": 29626,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Documents (raw ingest) vs memories (extracted facts) vs user profiles (static + dynamic) vs SuperRAG chunks. Memory relations are updates, extends, derives. Isolation is containerTag (user, project, org, or anything). No character autobiography or relationship-state type. Profile is one bag per containerTag.",
+  "dimensions": {
+    "ontology": {
+      "score": "partial",
+      "evidence": "docs/concepts/how-it-works.md and graph-memory.md: documents vs memories vs graph edges. user-profiles.md: static and dynamic profile per containerTag. Graph memory types in the table are Facts, Preferences, Episodes. Companion roles are not types.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "client.add sends raw content under containerTag. learner-1 / dreaming extracts facts. dreaming=dynamic (default) groups related docs; instant dreams one doc now. MCP memory tool lets the model save or forget. No documented refusal of intimate text.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "client.search is hybrid RAG + memory. client.profile returns always-on static/dynamic facts (~50ms) plus optional search. MCP recall and /context inject the profile. Search can return no hits; the profile still injects if the app calls it.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "present",
+      "evidence": "graph-memory.md Updates: new fact replaces the old for search; history can remain; isLatest marks current. Extends adds detail. Contradiction: updates win for what is true now.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "present",
+      "evidence": "README and graph-memory.md: temporal vector-graph, time-based expiry of temporary facts, knowledge-update handling. LongMemEval category scores include Temporal Reasoning 91%.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "absent",
+      "evidence": "containerTag is one namespace. user-profiles.md: a profile can be a user, agent, or organization. There is no user vs character vs relationship split unless the app invents multiple tags.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "Search ranks by relevance. Profile is designed to always ride along, including name and tone prefs. No skip of a relevant memory for social reasons.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "partial",
+      "evidence": "graph-memory.md noise filtering says casual chatter is less likely to become durable memory. Derives can be reviewed as low-confidence. No trust tags. MCP write is model-initiated.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "present",
+      "evidence": "Automatic forgetting: time-based expiry, contradiction updates, noise filter. README MCP memory tool save or forget. Forget & update docs are linked from graph-memory.md.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "Add queues extract/chunk/embed/index then dreaming (extra operation if instant). profile() is one cheap call. search is hybrid. LongMemEval claim: 95% Recall@15 with ~720 tokens, 99.4% context reduction. Cloud bills operations; self-host is a local binary.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "present",
+      "evidence": "MIT. README self-host: single binary, local embeddings, API on localhost:6767, including offline. Managed cloud is the other path.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "present",
+      "evidence": "Official https://mcp.supermemory.ai/mcp. README tools memory, recall, context. Source under apps/mcp. Requires a Supermemory account for the hosted URL; OSS MCP lives in the repo.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "yes",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "Profiles plus temporal updates/forgetting are useful for a long-lived person. The unit of isolation is still one containerTag bag. No character vs relationship ontology and no silence. The product loop is extract, then profile/search into the prompt.",
+  "published_eval": {
+    "name": "LongMemEval, LoCoMo, ConvoMem",
+    "claimed_score": "README claims #1 on all three. LongMemEval 95% Recall@15 at ~720 tokens (99.4% context reduction). Category recall: Knowledge Updates 99%, Assistant 100%, User 97%, Multi-session 93%, Temporal 91%, Preference 90%.",
+    "what_it_actually_scores": "Long-horizon assistant memory QA, fact recall, and preference learning. Not character identity drift, socially wrong recall, or persona poisoning.",
+    "source": "https://github.com/supermemoryai/supermemory/blob/main/README.md"
+  },
+  "sources": [
+    "https://supermemory.ai/llms.txt",
+    "https://supermemory.ai/docs/llms.txt",
+    "https://supermemory.ai/docs/overview/what-is-supermemory.md",
+    "https://supermemory.ai/docs/concepts/how-it-works.md",
+    "https://supermemory.ai/docs/concepts/graph-memory.md",
+    "https://supermemory.ai/docs/concepts/user-profiles.md",
+    "https://github.com/supermemoryai/supermemory/blob/main/README.md"
+  ],
+  "open_unknowns": [
+    "Whether the self-host binary includes dreaming/learner-1 or only search/profiles.",
+    "Exact hosted vs OSS feature split for forget and memory review.",
+    "How ConvoMem #1 was measured (model, split) beyond the README badge."
+  ]
+}

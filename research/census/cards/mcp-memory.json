@@ -1,0 +1,92 @@
+{
+  "id": "mcp-memory",
+  "name": "MCP Knowledge Graph Memory",
+  "kind": "mcp-server",
+  "repo": "https://github.com/modelcontextprotocol/servers/tree/main/src/memory",
+  "docs": "https://github.com/modelcontextprotocol/servers/blob/main/src/memory/README.md",
+  "license": "Apache-2.0 and MIT (servers repo LICENSE is dual during relicensing)",
+  "stars_observed": 90242,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Types in KnowledgeGraphManager are Entity {name, entityType, observations:string[]}, Relation {from, to, relationType}, and KnowledgeGraph. entityType is a free string (person, organization, event in the README). There is no user bio, character autobiography, relationship state, lore, or session working-memory type. Stars are for the parent modelcontextprotocol/servers repo, not this package alone. Package is @modelcontextprotocol/server-memory.",
+  "dimensions": {
+    "ontology": {
+      "score": "partial",
+      "evidence": "src/memory/index.ts exports Entity, Relation, KnowledgeGraph. Observations are untyped strings on an entity. README Core Concepts names those three records only.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "Tools create_entities, create_relations, add_observations. The model decides what to store. create_entities ignores existing names. README System Prompt tells the host to extract identity, behaviors, preferences, goals, and relations. No write refusal.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "searchNodes in src/memory/index.ts is case-insensitive substring over name, entityType, and observations. Also read_graph, open_nodes, and MCP resource memory://knowledge-graph. Retrieval is a model tool call. Empty search returns no nodes.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "absent",
+      "evidence": "add_observations appends contents not already in entity.observations. create_entities ignores duplicate names. There is no overwrite or invalidate. Replacement is delete then add.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "absent",
+      "evidence": "Entity and Relation have no timestamp fields in src/memory/index.ts. searchNodes has no date parse. JSONL lines are type/name/observations only.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "absent",
+      "evidence": "One JSONL file (MEMORY_FILE_PATH). README System Prompt assumes a single default_user. No user vs character vs relationship namespaces.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "No tag, filter, or skip path in searchNodes. Matching substring always returns.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "absent",
+      "evidence": "No provenance, trust tag, or content filter. Stored observation text is returned verbatim on search.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "present",
+      "evidence": "delete_entities, delete_observations, delete_relations. delete_entities also drops incident relations. Exact string match. No decay.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "Server does no LLM or embedding calls. Cost is host tool calls plus the tokens of whatever graph the model reads. read_graph injects the whole file.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "present",
+      "evidence": "JSONL on disk. npx @modelcontextprotocol/server-memory. No vendor API. README License section says MIT; repo LICENSE is Apache-2.0 plus remaining MIT.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "present",
+      "evidence": "Official reference server listed at modelcontextprotocol.io/examples and published as @modelcontextprotocol/server-memory.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "yes",
+  "companion_fit": "MISFIT",
+  "companion_fit_reason": "Substring graph of free-text observations with no identity split, no time, no silence, and no write filter. The host prompt is told to retrieve then act as if that is memory.",
+  "published_eval": {
+    "name": null,
+    "claimed_score": null,
+    "what_it_actually_scores": null,
+    "source": null
+  },
+  "sources": [
+    "https://github.com/modelcontextprotocol/servers/blob/main/src/memory/index.ts",
+    "https://github.com/modelcontextprotocol/servers/blob/main/src/memory/README.md",
+    "https://github.com/modelcontextprotocol/servers/blob/main/LICENSE",
+    "https://modelcontextprotocol.io/examples"
+  ],
+  "open_unknowns": [
+    "Star count is for modelcontextprotocol/servers as a whole, not the memory package.",
+    "How often Claude Desktop actually calls search vs read_graph in real chats."
+  ]
+}

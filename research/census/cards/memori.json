@@ -1,0 +1,96 @@
+{
+  "id": "memori",
+  "name": "Memori",
+  "kind": "agent-memory-lib",
+  "repo": "https://github.com/MemoriLabs/Memori",
+  "docs": "https://memorilabs.ai/llms.txt",
+  "license": "Apache-2.0",
+  "stars_observed": 16607,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Attribution is entity_id (who), process_id (which agent), session_id (thread). Extracted types are Facts, Preferences, Skills, Rules, Events, plus Agent Trace. Memories class in memori/memory/_struct.py holds Conversation summary, Entity facts/triples, Process attributes. Knowledge graph is semantic triples per entity. No character vs relationship vs lore types.",
+  "dimensions": {
+    "ontology": {
+      "score": "partial",
+      "evidence": "docs/memori-byodb/concepts/how-memory-works.mdx tables Facts, Preferences, Skills, Rules, Events, Agent Trace. _struct.py Entity/Process/Conversation/SemanticTriple. multi-user-support.mdx: facts/preferences/skills/KG are per entity; attributes per process; conversations per entity+process+session.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "Wrapped LLM client captures the turn. Advanced Augmentation (advanced-augmentation.mdx) async-extracts facts and triples. attribution() must be set before calls. No documented write refusal.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "how-memory-works.mdx Automatic Recall: on every LLM call, semantic search injects top facts into the system prompt. Manual mem.recall(query, limit). recall_relevance_threshold default 0.1 can drop all hits.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "absent",
+      "evidence": "how-memory-works.mdx lifecycle is capture, extract, store, recall. No update/invalidate/isLatest language. New facts accumulate on the entity. Triple extraction can duplicate rather than close old facts.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "partial",
+      "evidence": "Each recalled fact has date_created. LoCoMo temporal category 90.3% in results.mdx. No validity-window query API in how-memory-works.mdx.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "partial",
+      "evidence": "entity_id vs process_id is user vs agent/workflow. Facts are shared across processes for the same entity (multi-user-support.mdx). That leaks a support-bot fact into a sales-bot. Not user vs character vs relationship.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "Automatic recall injects whatever passes the similarity threshold. No social skip.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "partial",
+      "evidence": "Attribution tags who/what/when. Extracted assistant text can become entity facts. No trust tags or jailbreak filter in how-memory-works.mdx.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "unknown",
+      "evidence": "how-memory-works.mdx and README document capture, recall, and MCP, not a forget/delete API. Open until a primary page names erasure.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "results.mdx: mean 721 added tokens per LoCoMo query (2.8% of full context). Augmentation is async extra LLM. Automatic recall embeds the query and injects facts every turn (fastembed all-MiniLM-L6-v2 default).",
+      "label": "measured"
+    },
+    "local": {
+      "score": "present",
+      "evidence": "Apache-2.0 LICENSE. BYODB SQLite/Postgres/MySQL/MongoDB. README OpenAI default. Intimate chat can stay on one machine with a local DB and local LLM if registered.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "present",
+      "evidence": "Official hosted MCP at https://api.memorilabs.ai/mcp/. README claude mcp add. memorilabs.ai/llms.txt MCP overview and client setup.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "yes",
+  "companion_fit": "MISFIT",
+  "companion_fit_reason": "Entity vs process is multi-agent CRM isolation, not companion identity. Facts about the user are one bag shared across processes. Automatic system-prompt inject is the shared premise. No relationship type, no silence, supersession not specified, forget API not found in the pages read.",
+  "published_eval": {
+    "name": "LoCoMo",
+    "claimed_score": "Overall 87.0% LLM-as-judge (single-hop 88.5, multi-hop 83.7, open-domain 72.9, temporal 90.3). Mean 721 added tokens (2.8% of 26031 full-context).",
+    "what_it_actually_scores": "LoCoMo fact/temporal/multi-hop QA on long assistant conversations, compared to Zep/LangMem/Mem0. Not character drift or social silence.",
+    "source": "https://github.com/MemoriLabs/Memori/blob/main/docs/memori-cloud/benchmark/results.mdx"
+  },
+  "sources": [
+    "https://memorilabs.ai/llms.txt",
+    "https://github.com/MemoriLabs/Memori/blob/main/README.md",
+    "https://github.com/MemoriLabs/Memori/blob/main/LICENSE",
+    "https://github.com/MemoriLabs/Memori/blob/main/docs/memori-byodb/concepts/how-memory-works.mdx",
+    "https://github.com/MemoriLabs/Memori/blob/main/docs/memori-byodb/concepts/multi-user-support.mdx",
+    "https://github.com/MemoriLabs/Memori/blob/main/docs/memori-cloud/benchmark/results.mdx",
+    "https://github.com/MemoriLabs/Memori/blob/main/memori/memory/_struct.py"
+  ],
+  "open_unknowns": [
+    "Whether OSS/BYODB exposes delete-memory equivalent to Cloud dashboard.",
+    "How triples for a superseded fact are marked, if at all.",
+    "Hosted MCP vs local MCP for BYODB."
+  ]
+}

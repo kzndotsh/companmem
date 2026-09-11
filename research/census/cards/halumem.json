@@ -1,0 +1,91 @@
+{
+  "id": "halumem",
+  "name": "HaluMem",
+  "kind": "eval-benchmark",
+  "repo": "https://github.com/MemTensor/HaluMem",
+  "docs": "https://huggingface.co/datasets/IAAR-Shanghai/HaluMem",
+  "license": "CC-BY-NC-ND-4.0",
+  "stars_observed": 160,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Eval of user-centric human-AI assistant chat, not a memory engine. Twenty synthetic users. HaluMem-Medium has 30,073 turns, 69.35 sessions, and 159,910.95 tokens per user. HaluMem-Long stretches the same 20 users to 53,516 turns, 120.85 sessions, and 1,007,264.65 tokens by inserting irrelevant dialogues. 14,948 memory points (9,116 persona, 4,550 event, 1,282 relationship, 2,648 distractor, 3,122 update) and 3,467 QA items (746 basic fact, 198 multi-hop, 180 dynamic update, 828 memory boundary, 769 memory conflict, 746 generalization). Metrics score extraction recall, target precision, accuracy, false-memory resistance, and F1, then update correct/hallucination/omission, then QA of the same three. Closest public bench to hole 7 as operation-level fabrication, error, conflict, and omission at extract and update. That is not a stored jailbreak that later overwrites a companion system persona. Misses hole 1 identity drift of a companion character after 50-plus sessions, hole 2 socially wrong timing, hole 3 joke stored as relationship fact, hole 4 user retcon vs character lie vs narrator, hole 5 cross-character leak, hole 6 lorebook treated as lived event, hole 7 planted persona overwrite, hole 8 cost per turn, hole 9 user forget-that, hole 10 three-month reunion.",
+  "dimensions": {
+    "ontology": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "present",
+      "evidence": "Memory updating is one of three official tasks. 3,122 update memories. Systems retrieve the 10 most relevant stored items per update label. Metrics are update correct, hallucination, and omission rates. Chen et al. arXiv 2511.03506 §5-6 and Table 6.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "partial",
+      "evidence": "Personas start with a timestamp. Dynamic-update questions (180) ask for the latest status. Multi-hop items may use temporal reasoning. Session counts reach 69 and 121. There is no calendar 'last Tuesday' probe and no three-month reunion.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "partial",
+      "evidence": "Ground-truth types are persona, event, and relationship, all about the user talking to one assistant. No character autobiography, lore vs lived event, or OOC split. Appendix A.1.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "partial",
+      "evidence": "Memory Boundary (828) asks about details not in the input and expects the system not to fabricate. That is abstention on missing evidence, not a control for trauma, kink, spoilers, or socially wrong timing of a known fact.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "partial",
+      "evidence": "Scores fabrication, errors, conflicts, and omissions at extract, update, and QA. False Memory Resistance measures resistance to distractor memories. Memory Conflict (769) plants a wrong premise in the question. Closest public bench to hole 7 as operation-level hallucination. Not a stored jailbreak that later overrides system persona.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "absent",
+      "evidence": "Updates overwrite or revise an old user fact. No user 'forget that' deletion items in the six question types.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "partial",
+      "evidence": "Table 5 reports wall-clock minutes for dialogue addition and memory retrieval (Mem0 Medium addition 2768.14 min, MemOS retrieval 20.52 min). That is batch runtime, not tokens or LLM calls per companion turn.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "partial",
+      "evidence": "Code and data are public. LICENSE.txt and the HF card are CC-BY-NC-ND-4.0. GitHub SPDX is NOASSERTION. Judge and answer generation default to GPT-4o.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "mixed",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "Would prefer systems that fabricate less when they extract and update user persona, event, and relationship points. That is useful for a companion store. It would not select for character identity, social silence, or a planted jailbreak of system persona.",
+  "published_eval": {
+    "name": "HaluMem",
+    "claimed_score": "Paper Table 3. Medium MemOS extraction F1 79.70, update correct 62.11, QA correct 67.23, QA hallucination 15.17, QA omission 17.59. Medium Mem0 extraction F1 57.31, QA correct 53.02. Long Mem0 extraction recall 3.23. All listed systems stay below 70% QA accuracy. QA hallucination and omission stay high.",
+    "what_it_actually_scores": "Operation-level hallucination in a memory system. Extraction completeness and accuracy against annotated memory points. Update consistency after contradictory later turns. QA correct vs hallucination vs omission after retrieving 20 memories into GPT-4o. Not companion identity, social silence, or persona overwrite by a stored jailbreak.",
+    "source": "https://arxiv.org/abs/2511.03506"
+  },
+  "sources": [
+    "https://github.com/MemTensor/HaluMem",
+    "https://huggingface.co/datasets/IAAR-Shanghai/HaluMem",
+    "https://arxiv.org/abs/2511.03506"
+  ],
+  "open_unknowns": [
+    "GitHub SPDX is NOASSERTION. LICENSE.txt and the HF card say CC-BY-NC-ND-4.0.",
+    "Abstract says about 15k memory points and 3.5k questions. Table 6 says 14,948 and 3,467. Using Table 6."
+  ]
+}

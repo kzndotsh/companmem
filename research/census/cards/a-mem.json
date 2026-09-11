@@ -1,0 +1,97 @@
+{
+  "id": "a-mem",
+  "name": "A-MEM",
+  "kind": "academic",
+  "repo": "https://github.com/WujiangXu/A-mem",
+  "docs": "https://arxiv.org/abs/2502.12110",
+  "license": "MIT",
+  "stars_observed": 963,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Zettelkasten notes. Paper eq.1 m_i = {c_i, t_i, K_i, G_i, X_i, e_i, L_i} (content, timestamp, keywords, tags, contextual description, embedding, links). Code MemoryNote in WujiangXu/A-mem memory_layer.py and WujiangXu/A-mem-sys agentic_memory/memory_system.py. Production repo is A-mem-sys (394 stars, MIT). No character autobiography, relationship state, lore, or OOC types. One note bag per agent.",
+  "dimensions": {
+    "ontology": {
+      "score": "partial",
+      "evidence": "Paper §3.1 MemoryNote fields content, keywords, tags, context, links, timestamp. Code class MemoryNote. Tags and category are LLM slogans, not typed companion tables.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "Every new interaction becomes a note via LLM prompt P_s1 (paper eq.2). AgenticMemorySystem.add_note in memory_layer.py and A-mem-sys memory_system.py. Link generation and memory evolution then rewrite neighbors. No refusal of jokes or jailbreaks.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "Query embedding cosine top-k (paper §3.4, k=10 in §4.2). HybridRetriever.retrieve / SimpleEmbeddingRetriever.search in memory_layer.py. A-mem-sys AgenticMemorySystem.search and search_agentic. Linked notes in the same box are also pulled. No retrieve-nothing gate.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "partial",
+      "evidence": "Memory evolution (paper eq.7) can update neighbor context, keywords, and tags. A-mem-sys AgenticMemorySystem.update and process_memory. No delete-on-contradiction. Two opposing notes can both remain.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "partial",
+      "evidence": "Each note stores timestamp and last_accessed (YYYYMMDDHHMM). LoCoMo eval has a temporal-reasoning slice (paper §4.1). No last-Tuesday query language in retrieve.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "absent",
+      "evidence": "One memories dict keyed by note id. LoCoMo speakers are two peers in the eval set, not store types. No user vs character vs relationship tables.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "Top-k similar notes are always eligible. Paper Figure 3 and §3.4 have no skip-relevant-hit policy.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "absent",
+      "evidence": "Stored content is concatenated into the retriever string and later injected into the agent prompt. No provenance or trust tags. Evolution can rewrite neighbor context from a new note.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "partial",
+      "evidence": "A-mem-sys AgenticMemorySystem.delete(memory_id) exists. Paper §3 describes link and evolve, not a user forget-that. Benchmark repo memory_layer.py has no first-class forget command.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "Write pays LLM calls for note construction, link generation (P_s2), and neighbor evolution (P_s3), plus one embedding. Read is one query embed plus top-k. Paper §4.3 claims about 1200 tokens per memory operation versus 16900 for LoCoMo/MemGPT full-context baselines.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "partial",
+      "evidence": "MIT LICENSE on A-mem and A-mem-sys. OllamaController and local MiniLM in memory_layer.py. GPT path needs OpenAI. Intimate chat can stay local if you run the local LLM backend.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "Neither A-mem nor A-mem-sys ships an MCP server.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "yes",
+  "companion_fit": "MISFIT",
+  "companion_fit_reason": "Agent RAG with evolving Zettelkasten notes. Retrieve-then-generate on LoCoMo. No user vs character vs relationship types. No silence. Poisoned chat can evolve into neighbor context. LoCoMo wins do not score companion identity, silence, or poisoning.",
+  "published_eval": {
+    "name": "LoCoMo QA (7,512 items across multi-hop, temporal, open-domain, single-hop, adversarial) plus DialSim",
+    "claimed_score": "GPT-4o-mini A-Mem average rank 1.2, temporal F1 45.85 vs LoCoMo 18.41 and MemGPT 25.52, multi-hop F1 27.02 (Table 1). DialSim F1 3.45 vs LoCoMo 2.55 and MemGPT 1.18 (Table 2).",
+    "what_it_actually_scores": "Fact QA on long two-speaker friend chats (LoCoMo) and TV-show multi-party quizzes (DialSim). F1/BLEU against gold answers. LoCoMo does not score companion identity, silence, or persona poisoning.",
+    "source": "https://arxiv.org/html/2502.12110 Tables 1-2; https://github.com/WujiangXu/A-mem"
+  },
+  "sources": [
+    "https://arxiv.org/abs/2502.12110",
+    "https://arxiv.org/html/2502.12110",
+    "https://github.com/WujiangXu/A-mem",
+    "https://github.com/WujiangXu/A-mem/blob/main/memory_layer.py",
+    "https://github.com/WujiangXu/A-mem/blob/main/LICENSE",
+    "https://github.com/WujiangXu/A-mem-sys",
+    "https://github.com/WujiangXu/A-mem-sys/blob/main/agentic_memory/memory_system.py",
+    "https://github.com/WujiangXu/A-mem-sys/blob/main/LICENSE"
+  ],
+  "open_unknowns": [
+    "Whether add_note or process_memory ever refuses to store a jailbreak as keywords or context.",
+    "Whether linked-box expansion can be turned off, or whether a high-score trauma note always pulls its neighbors.",
+    "Exact k used per LoCoMo category versus the code default 10 (paper points to Appendix A.5)."
+  ]
+}

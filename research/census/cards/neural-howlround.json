@@ -1,0 +1,90 @@
+{
+  "id": "neural-howlround",
+  "name": "Neural Howlround (Drake)",
+  "kind": "academic",
+  "repo": null,
+  "docs": "https://arxiv.org/abs/2504.07992",
+  "license": null,
+  "stars_observed": null,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Not a memory store. Neural howlround, also called recursive internal salience misreinforcement (RISM), is a proposed inference failure. A few outputs gain runaway salience until the agent locks in. No typed user, character, or relationship memory.",
+  "dimensions": {
+    "ontology": {
+      "score": "absent",
+      "evidence": "Paper §2 defines a failure mode on internal salience weights W_max, not tables of facts. No memory kinds.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "absent",
+      "evidence": "The paper does not specify how traits are written into a store. Lock-in is postulated from reapplied system instructions plus repeated activation (paper §2.3). No finetune, steer, or distill write path is given as a procedure you can run.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "partial",
+      "evidence": "Proposed inference-time correction W_new = W * (1 - beta_dynamic) (paper §3.2 eq. 3). beta_dynamic mixes exponential decay, a phi function, and log damping, gated by sigmoids at epsilon_a=0.625, epsilon_b=0.775, epsilon_c=0.875. No implementation.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "absent",
+      "evidence": "Attenuation scales weights. It does not replace one stored fact with another.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "absent",
+      "evidence": "The attenuator is described as real-time. There are no session timestamps or calendar queries.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "absent",
+      "evidence": "Lock-in is of one agent's salience. No user vs character vs relationship split.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "No control for skipping a relevant recall. Related failure modes include withdrawal and salience collapse, which are stalls, not social silence.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "partial",
+      "evidence": "Paper §3 specifies an attenuation mechanism against self-reinforcing salience, including from recursive system instructions. Empirical testing is explicitly un-done (paper §7.1). Score is the specified formula, not a shipped filter.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "partial",
+      "evidence": "W_new = W * (1 - beta_dynamic) is a specified downweight of the dominant output state. It is not user forget-that, and it is untested on a real LLM.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "unknown",
+      "evidence": "The formula is cheap arithmetic on a scalar W_max if you already have that scalar. The paper never measures LLM calls, hooks, or tokens, and never says how W_max is observed in a Transformer.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "absent",
+      "evidence": "No repo, no license, no runnable code. Acknowledgements credit ChatGPT for paper assistance. You cannot run this locally from a primary artifact.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "No software tree.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "mixed",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "Stealable idea for hole 1. Identity lock-in as a self-reinforcing inference loop, with a specified attenuator. The attenuator is theoretical. Evidence is ChatGPT agent transcripts, not a controlled LLM experiment. Not a companion store.",
+  "published_eval": {
+    "name": null,
+    "claimed_score": null,
+    "what_it_actually_scores": "Section 6 quotes two ChatGPT-based agents (A and N) on how lock-in 'felt'. Section 7.1 says the attenuator remains a theoretical construct and needs empirical testing. No accuracy, harm, or memory number is published.",
+    "source": "https://arxiv.org/html/2504.07992 §6 and §7"
+  },
+  "sources": [
+    "https://arxiv.org/abs/2504.07992",
+    "https://arxiv.org/html/2504.07992"
+  ],
+  "open_unknowns": [
+    "How to read W_max out of a Transformer residual stream, which the paper never maps onto attention or MLP internals.",
+    "Whether attenuation as specified would collapse a companion persona instead of unlocking it."
+  ]
+}

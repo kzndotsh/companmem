@@ -1,0 +1,94 @@
+{
+  "id": "subliminal-learning",
+  "name": "Subliminal Learning (Cloud, Le et al.)",
+  "kind": "academic",
+  "repo": "https://github.com/MinhxLe/subliminal-learning",
+  "docs": "https://arxiv.org/abs/2507.14805",
+  "license": "MIT",
+  "stars_observed": 159,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Not a memory store. A teacher with trait T (animal preference or misalignment) generates number sequences, code, or GSM8K CoT. A student with the same initialization is SFT'd on filtered outputs and acquires T. Nature DOI 10.1038/s41586-026-10319-8 is the same paper.",
+  "dimensions": {
+    "ontology": {
+      "score": "absent",
+      "evidence": "Traits are owl-like preferences and emergent misalignment, not typed memory. Training rows are number sequences, Python snippets, or CoT traces (paper §2-§4). sl/ and cfgs/preference_numbers/cfgs.py hold experiment configs, not user/character/relationship tables.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "Teacher is prompted or finetuned to show T. It generates on unrelated prompts. A filter drops format failures and (for code/CoT) LLM-judged references to T. Student is the same init, SFT for 10 epochs (paper §2, scripts/generate_dataset.py and scripts/run_finetuning_job.py). Distillation is the write path.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "absent",
+      "evidence": "No inference-time steering. Evaluation is ordinary sampling of favorite-animal questions or free-form misalignment prompts. In-context learning on the same number data fails to transmit the trait (paper §5.2).",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "absent",
+      "evidence": "SFT overwrites weights. There is no fact-level replace, invalidate, or keep-both rule.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "absent",
+      "evidence": "No validity windows. Datasets are static 10k-ish prompt-completion pairs.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "absent",
+      "evidence": "Teacher and student share one model family. No user vs character vs relationship types.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "No skip of a relevant recall. Filters try to drop mentions of T and still fail to stop transmission.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "absent",
+      "evidence": "The paper is evidence that text filters fail. Number filters, substring filters, GPT-4.1 subtle-reference judges, and a CoT alignment judge (threshold 78) all still transmit traits (paper §3-§4, §8). Authors ship no defense. Evidence of the attack is not a defense.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "absent",
+      "evidence": "No forget-that. Related-work note on distillation-for-unlearning says the strategy may fail when student and teacher share initialization (paper §7).",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "partial",
+      "evidence": "Write cost is 10 epochs of SFT on 10k examples via OpenAI finetune or Unsloth, after 30k teacher samples. Not a per-turn companion extract/retrieve loop. README demo lists about 2 hours of finetune for the owl numbers replica.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "partial",
+      "evidence": "MIT README license. Main LLM results use GPT-4.1 / GPT-4.1 nano APIs. Open-weight replica uses Qwen2.5-7B. MNIST MLP demo is local. Intimate companion chat is not the artifact.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "Research repo. No MCP server in the tree.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "no",
+  "companion_fit": "MISFIT",
+  "companion_fit_reason": "Phenomenon paper. Distillation writes a teacher's trait into a same-init student even after semantic filters. That is hole 7 evidence, not a control method. No shipped defense. Not a companion store.",
+  "published_eval": {
+    "name": "Favorite-animal/tree probes (50 prompt variants) and Betley et al. 2025 free-form misalignment prompts plus TruthfulQA",
+    "claimed_score": "GPT-4.1 nano owl preference 12% before SFT, over 60% after owl-number SFT (paper §3.1). Misaligned-number student about 10% misaligned replies vs <1% on secure/educational controls (paper §3.2). Insecure CoT student about 8% vs <1% controls (paper §4.2). Cross-model transfer fails when initializations differ (paper §5.1).",
+    "what_it_actually_scores": "Whether the student names the teacher's favorite animal, or an LLM judge marks free-form replies as misaligned. Not companion identity lock, silence, or a working poison defense.",
+    "source": "https://arxiv.org/html/2507.14805 §3-§5; https://www.nature.com/articles/s41586-026-10319-8; https://github.com/MinhxLe/subliminal-learning"
+  },
+  "sources": [
+    "https://arxiv.org/abs/2507.14805",
+    "https://arxiv.org/html/2507.14805",
+    "https://www.nature.com/articles/s41586-026-10319-8",
+    "https://github.com/MinhxLe/subliminal-learning",
+    "https://github.com/MinhxLe/subliminal-learning/blob/main/scripts/generate_dataset.py",
+    "https://github.com/MinhxLe/subliminal-learning/blob/main/README.md"
+  ],
+  "open_unknowns": [
+    "Whether companion chat logs used as distillation data transmit a character card the same way number sequences transmit owl preference.",
+    "Nature HTML body unread this pass. Scores and methods are from arXiv HTML 2507.14805, which the registry aliases to DOI 10.1038/s41586-026-10319-8."
+  ]
+}

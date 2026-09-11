@@ -1,0 +1,93 @@
+{
+  "id": "agnai",
+  "name": "Agnai",
+  "kind": "roleplay-client",
+  "repo": "https://github.com/agnaistic/agnai",
+  "docs": "https://github.com/agnaistic/agnai/blob/dev/instructions/memory.md",
+  "license": "AGPL-3.0",
+  "stars_observed": 782,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "MemoryBook kind:'memory' with MemoryEntry {name, entry, keywords, priority, weight, enabled} in common/types/memory.ts. Character persona/scenario/sampleChat are always-on card fields. Chat.memoryId, Chat.userEmbedId, UserEmbed and ChatEmbed types exist. V2 lorebook fields (constant, selective, recursiveScanning) are stored but buildMemoryPrompt does not implement them. No relationship type. Chat.mode can be 'companion'.",
+  "dimensions": {
+    "ontology": {
+      "score": "partial",
+      "evidence": "common/types/memory.ts MemoryBook/MemoryEntry plus UserEmbed/ChatEmbed. common/memory.ts CharacterBook maps V2 keys/content/insertion_order but recursive_scanning has 'no agnai equivalent'. ScenarioBook is a separate event system, not relationship state.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "partial",
+      "evidence": "User authors MemoryBook.entries (common/types/memory.ts). Chat.userEmbedId and UserEmbed/ChatEmbed types exist. common/memory.ts buildMemoryPrompt only keyword-matches books. No fact extractor in that file. Chat-embed ingest implementation was not fully read.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "buildMemoryPrompt in common/memory.ts: scan last memoryDepth lines (presetDefaults.memoryDepth=50), keyword regex via createRegexForKeyword, sort byPriorityThenAge, fill memoryContextLimit (default 500 tokens), then byWeightThenAge. Depth<=0 skips memory. Keyword miss injects nothing.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "absent",
+      "evidence": "getMatchesWithinBudget keeps adding until budget. No delete of an older contradicting entry. enabled=false is manual.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "partial",
+      "evidence": "Match.messageAge is recency of the triggering chat line. UserEmbed has a date field. No 'last Tuesday' query in buildMemoryPrompt. Logged-in clients only receive 100 messages until scroll-up (instructions/memory.md).",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "partial",
+      "evidence": "Character vs Profile handle vs MemoryBook.userId vs chat.userEmbedId. Relationship is prose in entries. BOT_REPLACE/SELF_REPLACE substitute names in entry text.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "partial",
+      "evidence": "Disable entry or do not mention keywords. memoryDepth 0 disables the book. No silence ontology.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "absent",
+      "evidence": "Matched entry text is concatenated into the memory prompt. No trust tags. Wildcard keyword '*' matches anything if depth allows (instructions/memory.md).",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "partial",
+      "evidence": "enabled flag, delete book, or User.disableLTM on the user record (schema.ts) whose runtime effect was not fully traced this pass.",
+      "label": "inferred"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "Keyword path is local. presetDefaults.memoryContextLimit is 500 tokens in common/default-preset.ts. User.useLocalPipeline exists on the user schema. Per-turn embed call count depends on an ingest path not fully read.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "present",
+      "evidence": "AGPL-3.0. Memory matching 'all happens in your browser' for logged-in keyword scan of loaded lines. Self-host supported. Guest users get full history in the client (instructions/memory.md).",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "No official MCP memory server in the repo snapshot used for this card.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "yes",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "Same keyword-lore plus optional embeds pattern as ST, with a small explicit token budget. Alive public repo (stars 782, pushed 2026-06-15). Still no typed relationship state. V2 recursive/constant flags are carried, not executed, in buildMemoryPrompt.",
+  "published_eval": {
+    "name": null,
+    "claimed_score": null,
+    "what_it_actually_scores": null,
+    "source": null
+  },
+  "sources": [
+    "https://github.com/agnaistic/agnai/blob/dev/common/memory.ts",
+    "https://github.com/agnaistic/agnai/blob/dev/common/types/memory.ts",
+    "https://github.com/agnaistic/agnai/blob/dev/common/default-preset.ts",
+    "https://github.com/agnaistic/agnai/blob/dev/instructions/memory.md",
+    "https://github.com/agnaistic/agnai/blob/dev/common/types/schema.ts"
+  ],
+  "open_unknowns": [
+    "ChatEmbed retrieval implementation file (UserEmbed/ChatEmbed types exist in common/types/memory.ts).",
+    "What User.disableLTM actually gates at runtime."
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "id": "honcho-sillytavern",
+  "name": "Honcho SillyTavern integration",
+  "kind": "roleplay-client",
+  "repo": "https://github.com/plastic-labs/sillytavern-honcho",
+  "docs": "https://honcho.dev/docs/v3/guides/integrations/sillytavern.md",
+  "license": null,
+  "stars_observed": 8,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "No new store. Uses Honcho peers and sessions. Default is that only the user peer is derived. Character persona stays on the SillyTavern character card. Group chats register one peer per character. Peer mode can be one user peer for all personas or a separate peer per persona. Session naming is auto hash, per character, or custom.",
+  "dimensions": {
+    "ontology": {
+      "score": "partial",
+      "evidence": "sillytavern.md Peer Observability. Only the user peer accumulates derived memory. AI character persona comes from its character card, not peer derivation. Group chats register one peer per character. No relationship-state or lore types beyond Honcho conclusions plus ST card.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "partial",
+      "evidence": "Client hooks ST events and writes messages through a Node plugin to Honcho. Tool-call mode exposes honcho_save_conclusion for the LLM to pin a biographical detail. Default path is background deriver on user messages, not character autobiography.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "Every generation injects session.context() (peer representation plus session summary) with stale-while-revalidate. Enrichment modes are Context only, Reasoning (default, peer.chat() on a cadence), and Tool call (honcho_query_memory, honcho_save_conclusion, honcho_search_history). Injection position After/Before main prompt or in-chat at depth. Context-only is session-scoped and can be empty on a fresh session.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "partial",
+      "evidence": "Inherits Honcho dreaming supersession. Reset orphans the current Honcho session (messages stay, chat unlinks) and starts a new session on the next message. Session IDs freeze once assigned so renaming does not fragment history.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "partial",
+      "evidence": "Honcho timestamps plus ST chat identity. No extra last-Tuesday query. Cadence knobs are Refresh every N turns and Reason every N turns.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "partial",
+      "evidence": "User vs character is split in ST, but Honcho derivation is user-only by default. Separate peer per persona isolates user memory across personas. Group chats keep per-character peers so derived representations stay distinct. Relationship state is not a type.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "Panel knobs are token budget, cadence, injection position, prompt template {{text}}, and reasoning queries {{message}}. No silence, trauma, or spoiler control in the guide.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "absent",
+      "evidence": "honcho_save_conclusion lets the chat model write biographical details into Honcho. No trust tags. Character card is not protected from later derived user conclusions leaking into the prompt.",
+      "label": "inferred"
+    },
+    "forgetting": {
+      "score": "partial",
+      "evidence": "Reset orphans the session. Full forget requires Honcho conclusion/session delete. No ST-native forget-that.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "First turn of a session blocks on context() to fill cache. Later turns serve cache and refresh in background. Reasoning mode adds peer.chat() every N turns. Tool-call mode adds LLM tool latency only when the model calls. Honcho stores memory. It does not generate the companion text.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "partial",
+      "evidence": "ST runs locally. Docs require a Honcho API key from app.honcho.dev. Self-hosted Honcho can be pointed at via SDK, but the published install assumes hosted. GitHub repo plastic-labs/sillytavern-honcho is archived as of this observation. Docs still point at that install.sh.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "This integration is a SillyTavern client extension plus Node plugin, not an MCP server. Honcho MCP is a separate product (mcp.md).",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "mixed",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "This is the companion wiring for Honcho. It injects user memory into SillyTavern and can isolate personas. Default does not derive the character as a peer, so the companion does not remember itself the way it remembers the user. Hosted key, archived extension repo, no silence.",
+  "published_eval": {
+    "name": null,
+    "claimed_score": null,
+    "what_it_actually_scores": null,
+    "source": null
+  },
+  "sources": [
+    "https://honcho.dev/docs/v3/guides/integrations/sillytavern.md",
+    "https://github.com/plastic-labs/sillytavern-honcho",
+    "https://github.com/plastic-labs/sillytavern-honcho/blob/main/index.js",
+    "https://docs.honcho.dev/llms.txt"
+  ],
+  "open_unknowns": [
+    "Whether the live SillyTavern extension still matches the archived GitHub tree or has moved.",
+    "Whether observe_others can be enabled from the ST panel for character peers.",
+    "License of sillytavern-honcho. GitHub reports none."
+  ]
+}

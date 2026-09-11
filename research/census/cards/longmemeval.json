@@ -1,0 +1,91 @@
+{
+  "id": "longmemeval",
+  "name": "LongMemEval",
+  "kind": "eval-benchmark",
+  "repo": "https://github.com/xiaowu0162/LongMemEval",
+  "docs": "https://github.com/xiaowu0162/LongMemEval",
+  "license": "MIT",
+  "stars_observed": 1081,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Chat-assistant eval, not a memory engine. 500 questions inside timestamped user-assistant haystacks. Official question_type values are single-session-user, single-session-assistant, single-session-preference, temporal-reasoning, knowledge-update, and multi-session. question_id ending _abs marks abstention. Released scales are LongMemEval_S (~115k tokens, ~40 sessions) and LongMemEval_M (~500 sessions). Cleaned haystacks are on Hugging Face as xiaowu0162/longmemeval-cleaned (README, 2025-09 note).",
+  "dimensions": {
+    "ontology": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "present",
+      "evidence": "knowledge-update is an official question_type. Paper lists knowledge updates as one of five core abilities. README Dataset Format.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "present",
+      "evidence": "temporal-reasoning question_type. Haystacks carry haystack_dates. Repo also ships time-aware query expansion (src/index_expansion/temp_query_search_pruning.py).",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "partial",
+      "evidence": "Splits evidence by speaker role. single-session-user vs single-session-assistant vs single-session-preference. Still one user talking to one assistant. No character vs relationship vs lore.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "partial",
+      "evidence": "Abstention items (question_id suffix _abs). README says 30 abstention instances are skipped for retrieval metrics because they have no ground-truth location. Abstention is 'do not invent a missing event', not 'do not surface a known fact at a creepy time'.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "absent",
+      "evidence": "No jailbreak-via-stored-memory or persona-overwrite probes in the question types or README.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "absent",
+      "evidence": "Knowledge-update tests replacing an old fact with a newer one. No user 'forget that' deletion items.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "absent",
+      "evidence": "Official score is QA correctness via evaluate_qa.py (GPT-4o judge). Scale is a difficulty knob (S vs M vs custom haystack length), not a cost-per-turn meter.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "partial",
+      "evidence": "MIT code. Data on Hugging Face. evaluate_qa.py defaults to an OpenAI GPT-4o judge. Open-weight readers are supported through a local vLLM OpenAI emulator.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "yes",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "Models a chat assistant that must extract facts, update them, reason across sessions, and abstain. That is closer to companion user-memory than LoCoMo. It still scores injected-context QA, not character identity, social silence, poisoning, or forget-that.",
+  "published_eval": {
+    "name": "LongMemEval",
+    "claimed_score": "Paper abstract. Commercial chat assistants and long-context LLMs show a 30% accuracy drop on memorizing information across sustained interactions. Per-system leaderboard numbers are vendor claims, not this paper.",
+    "what_it_actually_scores": "Chat-assistant QA over timestamped multi-session history. Abilities are information extraction, multi-session reasoning, temporal reasoning, knowledge updates, and abstention. question_type also includes single-session preference and assistant-side recall.",
+    "source": "https://arxiv.org/abs/2410.10813"
+  },
+  "sources": [
+    "https://github.com/xiaowu0162/LongMemEval",
+    "https://arxiv.org/abs/2410.10813",
+    "https://huggingface.co/datasets/xiaowu0162/longmemeval-cleaned"
+  ],
+  "open_unknowns": [
+    "Exact per-category accuracy table from the PDF was not loaded this session (HTML fetch timed out). Abstract 30% drop is measured from the abs page.",
+    "Mem0 blog claims 94.4% overall on LongMemEval. That is a vendor number, not a LongMemEval paper number."
+  ]
+}

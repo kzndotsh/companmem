@@ -1,0 +1,95 @@
+{
+  "id": "hindsight",
+  "name": "Hindsight",
+  "kind": "temporal-graph",
+  "repo": "https://github.com/vectorize-io/hindsight",
+  "docs": "https://hindsight.vectorize.io/llms.txt",
+  "license": "MIT",
+  "stars_observed": 23449,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Canonical repo is vectorize-io/hindsight. Memory types in README Core Concepts: world facts, experiences, observations (consolidated beliefs), mental models. llms.txt also names opinion facts. Units have fact_type world|experience|observation and state valid|invalidated. Banks isolate stores. TEMPR recall is semantic + BM25 + graph + temporal fused with RRF then rerank. Paper https://arxiv.org/abs/2512.12818.",
+  "dimensions": {
+    "ontology": {
+      "score": "present",
+      "evidence": "README Memory Types. API memories/list fact_type world|experience|observation. Mental models and knowledge pages. Not companion-specific (no character autobiography or OOC).",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "retain() LLM-extracts facts, entities, time, relations. LLM wrapper wrap_openai auto-retains after calls. document_id upserts a conversation. MCP tools retain, recall, reflect. Directives and bank mission shape extract. Curation edit/invalidate APIs exist.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "recall() TEMPR four-way search, RRF, rerank, token budget. reflect() is an agentic loop over those tools plus disposition. prefer_observations can drop raw facts superseded by observations. Tags filter. Wrapper recalls before each LLM call. Empty recall is possible.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "present",
+      "evidence": "Invalidate moves a unit out of memory_units into an archive so recall skips it. document_id retain replaces the previous version. Observations are refined rather than silently overwritten (README Observations). Contradictions keep temporal markers.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "present",
+      "evidence": "retain timestamp. Temporal retrieval arm parses last spring into date ranges (developer/rag-vs-hindsight). occurred dates on units. HINDSIGHT_API_ENABLE_TEMPORAL_RETRIEVAL.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "partial",
+      "evidence": "Banks are isolated. Docs cookbook per-user-memory is one bank per user. World vs experience splits fact kind, not user vs character vs relationship.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "No trauma/kink/spoiler skip on embedding-relevant hits. Tags can filter if the app tags first. Disposition traits change reflect tone, not whether a fact is retrieved.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "partial",
+      "evidence": "disposition_skepticism 1-5 shapes reflect interpretation. Gemini safety settings exist. No provenance/trust tags that block a jailbreak write from later overriding persona. Stored content is otherwise retrieved.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "present",
+      "evidence": "Invalidate, DELETE memories/documents, clear_memories, delete_bank. Consolidation can drop ephemeral observations. No NLP forget-that. Deletions do not mark knowledge pages stale.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "retain is an LLM extract plus embeds and graph writes. recall runs four searches, optional rerank (300 candidate cap), token trim. reflect is a multi-step LLM tool loop. Wrapper does recall every call plus retain after.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "present",
+      "evidence": "MIT. Docker, pip hindsight-api, embedded hindsight-all with local pg0. Ollama/lmstudio listed. Cloud is optional. Intimate chat can stay on one machine if the LLM is local.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "present",
+      "evidence": "Built-in MCP per bank at http://localhost:8888/mcp/{bank_id}/. Also pip hindsight-mcp-server. Tools retain, recall, reflect, bank/document/mental-model ops. llms.txt MCP Integration.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "mixed",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "Strongest engine in this slice: typed facts, temporal recall, invalidate, local MIT, official MCP. Still agent memory. Banks are not user/character/relationship. Silence is missing. Wrapper path still retrieves text then generates.",
+  "published_eval": {
+    "name": "Agent Memory Benchmark (LongMemEval S and others) on benchmarks.hindsight.vectorize.io",
+    "claimed_score": "LongMemEval S 94.6%; LoComo 10 92%; PersonaMem 32K 86.6%; BEAM 100K 75% (page fetched 2026-09-11)",
+    "what_it_actually_scores": "Conversational long-term fact/retrieval benches (LongMemEval, LoCoMo-style, PersonaMem, BEAM, LifeBench). Not companion silence, poisoning, or identity drift.",
+    "source": "https://benchmarks.hindsight.vectorize.io/"
+  },
+  "sources": [
+    "https://github.com/vectorize-io/hindsight/blob/main/README.md",
+    "https://hindsight.vectorize.io/llms.txt",
+    "https://hindsight.vectorize.io/llms-full.txt",
+    "https://hindsight.vectorize.io/developer/rag-vs-hindsight",
+    "https://benchmarks.hindsight.vectorize.io/",
+    "https://arxiv.org/abs/2512.12818",
+    "https://github.com/vectorize-io/hindsight/blob/main/LICENSE"
+  ],
+  "open_unknowns": [
+    "Paper HTML at arxiv.org/abs/2512.12818 timed out this session; scores taken from the live benchmarks site.",
+    "Exact opinion vs observation type split between llms.txt and README."
+  ]
+}

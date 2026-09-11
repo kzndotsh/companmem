@@ -1,0 +1,90 @@
+{
+  "id": "memorylace",
+  "name": "MemoryLACE / MemLACE",
+  "kind": "academic",
+  "repo": null,
+  "docs": "https://arxiv.org/html/2609.03201",
+  "license": null,
+  "stars_observed": null,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "One bag of atomic natural-language notes. Each memory is m_i = (x_i, tau_i, z_i, p_i, a_i, R_i). x_i restates one explicit dialogue claim. tau_i is event time or validity period. z_i holds entities, keywords, topics, locations. p_i is supporting turn ids. a_i is active. R_i holds sparse merge, supersession, and contradiction links. Extraction categories named in §III-B1 are fact, preference, plan, correction, decision, event, or state. Speaker attribution is preserved inside x_i as stated. Writers are not typed as user, character, or narrator.",
+  "dimensions": {
+    "ontology": {
+      "score": "partial",
+      "evidence": "Paper §III-A. Atomic notes plus merge, supersession, contradiction on a sparse graph G=(M,E). Content kinds are untyped English. No character autobiography, relationship phase, lore, or OOC table.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "§III-B. Sliding 20-turn windows with 2-turn overlap (SimpleMem-style B(D_t)). Consolidation g chooses exactly one of merge, update, contradict, no_action. No refusal of jokes or hypotheticals. No public builder module. Paper only.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "§III-C. Hybrid retrieval over active set A, RRF k=60, lifecycle expansion E_q = A_q union L(A_q), evidence-unit grouping, cross-encoder rerank, pack up to 64 memories, then generate. No retrieve-nothing silence gate.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "present",
+      "evidence": "§III-B3. Update sets a_o=0, a_n=1, edges supersedes and superseded_by. Default linked-merge keeps both texts. Compact-merge synthesizes one active memory and drops originals. Contradictions stay active and linked.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "present",
+      "evidence": "tau_i stores event times and validity periods. Consolidation is chronological. Ablation without temporal awareness drops BEAM overall 51.9 to 46.9 (Table IV). No last-Tuesday query language.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "absent",
+      "evidence": "§III-B1 preserves speaker attribution inside the restated sentence. z_i is entities and topics. R_i is relation labels on one note bag. Not three named writers with different supersession rules.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "Active-anchor retrieval plus lifecycle expansion packs whatever ranks. No trauma, kink, or spoiler skip in §III-C.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "partial",
+      "evidence": "p_i records supporting dialogue-turn ids. No trust tag or filter that blocks a jailbreak write from later retrieval. Packed units go into the answer prompt.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "partial",
+      "evidence": "Default does not delete. Superseded notes leave active set A and return only via lineage expansion. Compact-merge discards source text. No user forget-that command. Derived conclusions are not a separate store.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "Table II BEAM 100K Qwen3.5-9B. MemLACE 7 h 31 min vs Hindsight 22 h 30 min, 66.6% less runtime. Construction uses bounded candidates (12 semantic, 8 entity, batch 24). Query packs 64 memories.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "unknown",
+      "evidence": "No official GitHub, LICENSE, or runtime in the paper HTML or a GitHub repo search on 2026-09-11. Experiments use Qwen3.5 and GPT-5.5. Local feasibility unobserved.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "Paper describes a research pipeline. No MCP server is named.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "mixed",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "Closest paper in this slice to hole 4 (retcon) and hole 9 (forget). Merge, supersession, and contradiction are real, with provenance and inactive historical notes. Writers are relation labels on one bag, not user vs character vs narrator types. Serving still packs evidence units into the generator. BEAM and StructMemEval are assistant memory benches, not companion silence or identity drift.",
+  "published_eval": {
+    "name": "BEAM 100K (20 conversations, 400 questions) and StructMemEval 51-scenario main set",
+    "claimed_score": "BEAM overall MemLACE 45.4% Qwen3.5-4B, 51.9% Qwen3.5-9B vs Hindsight 40.1% / 50.3% (Table I). StructMemEval GPT-5.5 overall 52.08% (state 100, tree 100, count 0, recsys 8.33) vs Mem-Agent 35.00% (Table III). BEAM runtime 66.6% below Hindsight (Table II).",
+    "what_it_actually_scores": "BEAM is LLM-judge nugget scoring of ten assistant abilities (abstention, contradiction, event order, info extract, instruction, knowledge update, multi-hop, preference, summarization, temporal). StructMemEval scores whether stored evidence supports state tracking, tree reasoning, counting, and recommendation. Not character drift, social silence, or typed-writer retcon.",
+    "source": "https://arxiv.org/html/2609.03201 Tables I-III, §IV, §V"
+  },
+  "sources": [
+    "https://arxiv.org/html/2609.03201",
+    "https://arxiv.org/abs/2609.03201"
+  ],
+  "open_unknowns": [
+    "No released code. Symbols B, g, R_hybrid, L(A_q) are paper notation only.",
+    "Whether speaker attribution is a structured field or only wording inside x_i. The HTML states it is preserved as stated in the restatement."
+  ]
+}

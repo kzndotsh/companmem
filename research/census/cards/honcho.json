@@ -1,0 +1,107 @@
+{
+  "id": "honcho",
+  "name": "Honcho",
+  "kind": "companion-native",
+  "repo": "https://github.com/plastic-labs/honcho",
+  "docs": "https://docs.honcho.dev/llms.txt",
+  "license": "AGPL-3.0",
+  "stars_observed": 7114,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "SQLAlchemy tables Workspace, Peer, Session, Message, Collection(observer, observed), Document with DocumentLevel explicit|deductive|inductive|contradiction, plus session summaries and peer cards (list[str] biographical facts, max 40). Not typed companion kinds such as character autobiography, relationship state, lore, or OOC. Peers can be users, agents, or NPCs.",
+  "dimensions": {
+    "ontology": {
+      "score": "partial",
+      "evidence": "src/models.py defines Workspace, Peer, Session, Message, Collection(observer, observed), Document.level DocumentLevel=explicit|deductive|inductive|contradiction (src/utils/types.py). Peer cards are list[str] biographical facts (honcho.dev/docs/v3/documentation/features/advanced/peer-card.md). No tables for character lore, relationship state, or OOC.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "Write path is synchronous message insert plus enqueue (architecture.md). Deriver extracts explicit and deductive conclusions per message; Dreamer consolidates and writes inductive conclusions and peer-card facts; Create Conclusions and peer.set_card are manual. observe_me=false skips derivation for a peer. Messages themselves are not filtered for jokes or hypotheticals.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "session.context() injects summary plus recent messages (40/60 token split) and optional peer_representation/peer_card when peer_target is set (get-context.md). peer.chat() and honcho.chat() spawn a Dialectic agent that searches conclusions and may return content=null when nothing relevant is found. Search can be scoped by session, scope, or semantic top_k.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "partial",
+      "evidence": "Dreaming deduction specialist deletes outdated conclusions when a fact changes (for example works at A then B) and resolves contradictions (dreaming.md). Session delete removes explicit session-tied conclusions but derived workspace-level conclusions survive (deleting-data.md). No user-facing retcon vs lie vs narrator types.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "partial",
+      "evidence": "Messages and Documents have created_at. Summaries fire every 20 (short) and 60 (long) messages. Scopes and session allowlists bound recall by provenance. LoCoMo temporal category is scored at 77.1% on their blog. No first-class validity windows or last-Tuesday query type.",
+      "label": "inferred"
+    },
+    "identity_split": {
+      "score": "present",
+      "evidence": "Peers are first-class. Collections are unique on (observer, observed, workspace_name) in src/models.py Collection. Directional representations and directional peer cards via target= (directional-representations.md, peer-card.md). Sessions group multi-peer chats. This can model user vs character as two peers.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "partial",
+      "evidence": "Peer cards may include INSTRUCTION strings such as Never mention her ex-boyfriend (peer-card.md). Scopes bound recall by session membership, not by topic (scopes.md Provenance, Not Topic). No trauma/kink/spoiler filter on embedding rank.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "absent",
+      "evidence": "Messages are stored and reasoned over without provenance trust tags. SECURITY.md exists for the product, not for stored-text jailbreaks. Derived conclusions can outlive the session that produced them (deleting-data.md), so a poisoned write can persist after session delete.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "partial",
+      "evidence": "DELETE conclusion is immediate 204. Session delete cascades messages and explicit conclusions asynchronously. Peers and individual messages cannot be deleted (deleting-data.md). No user forget-that API that also retracts derived conclusions automatically.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "Write does not wait on an LLM. Deriver plus summarizer run per message. Dreamer runs after 50 new conclusions, 8h cooldown, 60min idle (dreaming.md). Dialectic chat is an inline tool-loop with reasoning_level minimal|low|medium|high|max. context() is retrieval plus token budget, no extra generation unless chat is used.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "partial",
+      "evidence": "Self-host via honcho start --setup or docker compose (self-hosting.md). LICENSE is AGPL-3.0 in repo LICENSE. Server will not start without an LLM provider. Defaults are openai gpt-5.4-mini and text-embedding-3-small. Ollama/OpenAI-compatible endpoints are supported. Intimate chat can stay on one machine if the operator supplies a local model and accepts AGPL.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "present",
+      "evidence": "Official MCP at https://mcp.honcho.dev and mcp/ package in the repo (mcp.md). Compose includes an mcp service on port 3000.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "mixed",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "Closest engine in this slice. Peers, directional representations, scopes, dialectic chat, and peer cards can model a user and a character. Default product and published evals still treat memory as user-insight RAG for agents. No silence or poisoning controls. SillyTavern path derives only the user peer. AGPL plus a required LLM vendor or local proxy.",
+  "published_eval": {
+    "name": "LoCoMo (also LongMem S, BEAM)",
+    "claimed_score": "89.9% LoCoMo LLM-as-judge; 90.4% LongMem S (92.6% with Gemini 3 Pro). Haiku alone 83.9% on LoCoMo.",
+    "what_it_actually_scores": "Assistant-chat fact QA over stored conversations (LoCoMo ~16k tokens per dialogue). They use LLM-as-judge, not LoCoMo token F1. Does not score character drift, social silence, joke-as-fact, or poisoned persona overwrite.",
+    "source": "https://plasticlabs.ai/blog/research/Benchmarking-Honcho"
+  },
+  "sources": [
+    "https://docs.honcho.dev/llms.txt",
+    "https://honcho.dev/docs/v3/documentation/core-concepts/architecture.md",
+    "https://honcho.dev/docs/v3/documentation/core-concepts/reasoning.md",
+    "https://honcho.dev/docs/v3/documentation/core-concepts/representation.md",
+    "https://honcho.dev/docs/v3/documentation/features/chat.md",
+    "https://honcho.dev/docs/v3/documentation/features/get-context.md",
+    "https://honcho.dev/docs/v3/documentation/features/advanced/peer-card.md",
+    "https://honcho.dev/docs/v3/documentation/features/advanced/directional-representations.md",
+    "https://honcho.dev/docs/v3/documentation/features/advanced/dreaming.md",
+    "https://honcho.dev/docs/v3/documentation/features/advanced/scopes.md",
+    "https://honcho.dev/docs/v3/documentation/features/advanced/deleting-data.md",
+    "https://honcho.dev/docs/v3/guides/integrations/mcp.md",
+    "https://honcho.dev/docs/v3/contributing/self-hosting.md",
+    "https://honcho.dev/docs/v3/contributing/license.md",
+    "https://github.com/plastic-labs/honcho/blob/main/src/models.py",
+    "https://github.com/plastic-labs/honcho/blob/main/src/utils/types.py",
+    "https://github.com/plastic-labs/honcho/blob/main/LICENSE",
+    "https://plasticlabs.ai/blog/research/Benchmarking-Honcho"
+  ],
+  "open_unknowns": [
+    "Exact deriver LLM call count and token cost per message on the hosted API versus self-host.",
+    "Whether hosted Honcho retains customer chat for model training; not specified in the pages read.",
+    "Whether contradiction DocumentLevel is exposed to callers as a first-class API filter."
+  ]
+}

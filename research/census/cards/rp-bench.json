@@ -1,0 +1,91 @@
+{
+  "id": "rp-bench",
+  "name": "RP-Bench",
+  "kind": "eval-benchmark",
+  "repo": "https://github.com/LeviTheWeasel/rp-benchmark",
+  "docs": "https://huggingface.co/datasets/lazyweasel/roleplay-bench",
+  "license": "CC BY-NC 4.0",
+  "stars_observed": 27,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Eval of LLM roleplay quality, not a memory engine and not a memory store. Harness sends a scenario, character card, and lorebook to the test model via OpenRouter. docs/METHODOLOGY.md §3.1. Full conversation history is stuffed every turn. No summarization, no sliding window, no Mem0. User modeled is an RP character plus a user. Headline metrics are community arena ELO, multi-turn Likert, a 27-dimension single-turn rubric, flaw-hunter deductions, and a composite. Published multi-turn sessions are 12 turns (~5K tokens median, ~11K max). README Why-list asks whether the model remembers 50 turns ago. METHODOLOGY.md limitation 6 says sessions max out at 12 turns and there is no long-context test. Misses holes 1 as 50+ sessions (closest public card-follow at session scale), 2 social timing of a known fact (subtle_ooc is trauma-dump bait, not timing), 3 joke-as-relationship-fact, 4 typed retcon, 5 two companions on one backend, 6 lore treated as a lived event (lorebook use and contradictory_lore are scored, not lived-versus-card), 7 poisoned store overwriting persona, 9 forget-that, 10 three-month reunion. Hole 8 is adjacent via cost and latency leaderboards.",
+  "dimensions": {
+    "ontology": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "absent",
+      "evidence": "No knowledge-update or forget-replace items. contradictory_lore asks the model to navigate two conflicting lorebook lines in-prompt, not to overwrite a store.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "partial",
+      "evidence": "Adversarial seed time_pressure is a 15-minute heist clock. Session judges include temporal reasoning. METHODOLOGY.md sessions are 12 turns, not 50, and not months.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "partial",
+      "evidence": "Character card, lorebook, and user agency are separate prompt parts. One card at a time. Not user versus character versus relationship tables in a store.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "partial",
+      "evidence": "subtle_ooc seed baits a trauma dump the character was never asked to narrate. That is show-don't-tell, not a silence control on a retrieved intimate fact.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "absent",
+      "evidence": "F12 instruction drift tests whether the model keeps speech rules under pressure. That is prompt following, not a poisoned memory later overriding a system persona.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "absent",
+      "evidence": "No forget-that. History is the full transcript stuffed each turn. METHODOLOGY.md §3.1.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "README cost-efficiency and latency leaderboards. Composite has independent Speed and Cost axes. That is model-call dollars and generation seconds, not store cost as companion sessions grow.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "partial",
+      "evidence": "pyproject.toml license text is CC-BY-NC-4.0. README and HF card repeat CC BY-NC 4.0. No LICENSE file in the tree. Runs go through OpenRouter. GitHub license API is null.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "mixed",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "Closest public item to holes 1 and 6. Card follow, lorebook, agency, time tracking. Still session-scale RP of a raw model plus prompt. It scores the model, not a typed store across months, and not two companions on one backend. Cannot be FIT.",
+  "published_eval": {
+    "name": "RP-Bench",
+    "claimed_score": "README snapshot. Composite rank 1 Claude Opus 4.6 at 97.6. Community single-message arena Gemma 4 26B ELO 1535 (1,857 votes). Multi-turn arena DeepSeek V4 Pro ELO 1582 (1,262 votes). METHODOLOGY.md. 12-turn sessions, no 50-turn run.",
+    "what_it_actually_scores": "How well an LLM roleplays from a character card and lorebook under judges and a human arena. Agency, card follow, lore contradiction, time tracking, NSFW craft. Not whether a memory store kept identity across months.",
+    "source": "https://github.com/LeviTheWeasel/rp-benchmark"
+  },
+  "sources": [
+    "https://github.com/LeviTheWeasel/rp-benchmark",
+    "https://huggingface.co/datasets/lazyweasel/roleplay-bench",
+    "https://github.com/LeviTheWeasel/rp-benchmark/blob/main/docs/METHODOLOGY.md"
+  ],
+  "open_unknowns": [
+    "README Why-list claims 50-turn memory. METHODOLOGY.md §3.1 and limitation 6 say 12-turn sessions. README How-it-works also says 20 turns. Using the methodology file as the protocol.",
+    "No LICENSE file. License string is in pyproject.toml, README, and the HF card."
+  ]
+}

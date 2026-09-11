@@ -1,0 +1,100 @@
+{
+  "id": "zep",
+  "name": "Zep Cloud",
+  "kind": "temporal-graph",
+  "repo": null,
+  "docs": "https://help.getzep.com/llms.txt",
+  "license": null,
+  "stars_observed": null,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Closed core on Graphiti. Public types are Context Graph artifacts: facts (edges with validity), entities, episodes, thread summaries, document summaries, observations (Flex Plus/Enterprise), and user summary. User graph vs standalone graph. Threads of messages ingest into the user graph by default. Custom entity/edge types exist. Not companion lore vs experienced vs OOC.",
+  "dimensions": {
+    "ontology": {
+      "score": "partial",
+      "evidence": "help.getzep.com/context-types.md lists facts, entities, episodes, thread summaries, observations, user summary. graph-overview.md stores facts on edges. These are agent-memory primitives, not companion autobiography/relationship/lore tables.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "concepts.md: thread.add_messages and graph.add ingest chat and business data. Memory MCP add_memory writes when the connection allows writes. memory-security.md says the application must validate content and not give the model an unrestricted client. Zep itself extracts the graph.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "thread.get_user_context assembles a Context Block (Smart Context Assembly over the last four messages). graph.search with scope=auto composes a character-budgeted block (default max_characters 2500, cap 50000). ABAC can deny reads. The app still injects the block into the model.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "present",
+      "evidence": "concepts.md Fact Invalidation: when new data invalidates a prior fact, the invalid time is stored on that fact's edge. graph-overview.md: edge timestamps record when a fact becomes valid or invalid. Matches Graphiti invalidate-not-delete.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "present",
+      "evidence": "Facts are time-scoped. Auto search interprets relative phrases (yesterday, last week) as retrieval windows using the user timezone. Explicit datetime filters exist for edge search. Paper and product both stress bi-temporal graphs.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "partial",
+      "evidence": "A User has one user graph and many threads. Standalone graphs hold shared/business knowledge. That splits user vs reference data, not user vs character vs relationship. Custom types can model more if the app defines them.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "Governance ABAC and episode_metadata_filters restrict source and action, not socially wrong-but-relevant recall (kink, trauma, spoilers). search.md has no silence API.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "partial",
+      "evidence": "memory-security.md is explicit about memory poisoning. Rule: memory is evidence, not an instruction. Place Context Blocks in untrusted data channels. Episode metadata projects onto derived facts for source filters. ABAC on API keys. Write-time jailbreak classifiers are not documented as a Zep feature; the app owns that boundary.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "present",
+      "evidence": "memory-security.md: delete episode, thread, user, node, or edge APIs. Metadata exclusion can hide content without deletion. MCP connection can be switched read-only. User-facing forget-that still depends on the app calling those APIs.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "Product claims sub-200ms retrieval and token-efficient Context Blocks. Auto search packs to max_characters (default 2500). Extraction LLM cost is server-side and unpublished per episode. Paper LongMemEval used about 1.6k context tokens vs 115k full context.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "absent",
+      "evidence": "Closed core. README contrast: Zep is managed or in-your-cloud on a proprietary Context Graph Engine. Graphiti is the self-hosted OSS engine. Intimate chat cannot stay on one machine with only Zep Cloud.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "present",
+      "evidence": "Official Memory MCP at https://api.getzep.com/mcp (memory-mcp-server.md) plus docs MCP at help.getzep.com/_mcp/server. Memory MCP tools include search_graph, add_memory, get_user_summary.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "yes",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "Best-in-slice temporal invalidation, user graphs, and written poisoning guidance. Still enterprise agent memory. Closed internals. Context Block into the prompt is retrieve-equals-remember. No companion ontology or silence. Local intimate chat is Graphiti, not Zep Cloud.",
+  "published_eval": {
+    "name": "DMR (MSC subset), LongMemEval-s, plus Graphiti LoCoMo/LongMemEval claims",
+    "claimed_score": "Paper: DMR 94.8% gpt-4-turbo / 98.2% gpt-4o-mini (top-10 nodes+edges). LongMemEval-s 63.8% gpt-4o-mini and 71.2% gpt-4o vs 55.4%/60.2% full-context, ~1.6k vs 115k tokens. Product Graphiti overview also cites LoCoMo 94.7% / LongMemEval 90.2%.",
+    "what_it_actually_scores": "Multi-session chat fact QA (DMR/MSC) and LongMemEval assistant memory questions (preference, temporal, knowledge-update, multi-session). Not companion identity drift or socially wrong recall.",
+    "source": "https://arxiv.org/abs/2501.13956 and https://help.getzep.com/graphiti/getting-started/overview.md"
+  },
+  "sources": [
+    "https://help.getzep.com/llms.txt",
+    "https://help.getzep.com/concepts.md",
+    "https://help.getzep.com/graph-overview.md",
+    "https://help.getzep.com/context-types.md",
+    "https://help.getzep.com/searching-the-graph.md",
+    "https://help.getzep.com/memory-security.md",
+    "https://help.getzep.com/governance.md",
+    "https://help.getzep.com/policy-based-access-control.md",
+    "https://help.getzep.com/memory-mcp-server.md",
+    "https://github.com/getzep/graphiti/blob/main/README.md",
+    "https://arxiv.org/html/2501.13956"
+  ],
+  "open_unknowns": [
+    "Closed Context Graph Engine internals (extraction prompts, invalidation heuristics, observation deriver).",
+    "Whether BYOC can run without sending chat text off the operator's machines beyond the chosen LLM.",
+    "How Zep maps a companion character if two characters share one user_id."
+  ]
+}

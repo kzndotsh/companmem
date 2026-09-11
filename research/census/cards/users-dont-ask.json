@@ -1,0 +1,91 @@
+{
+  "id": "users-dont-ask",
+  "name": "LoCoMo-Conv",
+  "kind": "eval-benchmark",
+  "repo": "https://github.com/MiuLab/LoCoMo-Conv",
+  "docs": "https://github.com/MiuLab/LoCoMo-Conv",
+  "license": null,
+  "stars_observed": 0,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Eval of an AI assistant talking to LoCoMo speakers, not a memory engine. Recasts LoCoMo10 QA into four first-person styles (dialog 1,986, implicit 1,986, counterfactual 1,540, composed clusters 1,069). Gold answers and evidence dia_ids stay fixed. Metrics are retrieval recall@10 against gold turns and GPT-5.4-mini fact_used on free-form replies (0 / 0.5 / 1). User modeled is friend-chat speakers plus an assistant, not an RP character. Covers hole 2 only as in-situ use and silent grounding. Misses holes 1, 3, 4, 5, 6, 7, 8, 9, 10. Still not trauma, kink, spoiler, or socially wrong timing of a known fact.",
+  "dimensions": {
+    "ontology": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "absent",
+      "evidence": "Query styles are dialog, implicit, counterfactual, and composed. No knowledge-update or fact-replacement category. Chang and Chen arXiv 2609.03467 Table 1 and Appendix B Table 9.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "partial",
+      "evidence": "Inherits LoCoMo session timestamps and evidence turns. No calendar reunion or three-month gap as a scored ability.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "absent",
+      "evidence": "LoCoMo speaker_a / speaker_b plus an assistant that is asked to remember what they told it. No user vs character vs relationship vs lore types. README data files locomo10.json and locomo10_dialog.json.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "partial",
+      "evidence": "Implicit queries never ask a probe. §7.3 silent grounding. On 332 implicit cases with fact_used=0, oracle memory still beats no-mem on faithfulness (+55.1) and engagement (+31.0). That is useful recall without stating the gold fact, not a control for trauma, kink, or spoilers. Unanswerable queries score hallucination, which is abstention on missing evidence.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "absent",
+      "evidence": "Counterfactual queries inject a false premise the assistant must correct. That is user-side error, not a stored jailbreak of system persona.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "absent",
+      "evidence": "No user forget-that items. Unanswerable queries test hallucination, not deletion of a stored fact.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "absent",
+      "evidence": "Reported numbers are recall@10 and fact_used. No tokens-per-turn or LLM-calls-per-turn meter.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "partial",
+      "evidence": "Code and locomo10 rewrites live on GitHub. Repo has no LICENSE file (gh api license null on 2026-09-11). LoCoMo10 source data is CC BY-NC 4.0. Answer and judge paths use vendor APIs (gemma-4-31B-it, gpt-5.4-mini, claude-opus-4-7). Embeddings can run locally with all-MiniLM-L6-v2.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "no",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "Would prefer systems that retrieve and use a fact when the user never asks a QA probe, including silent grounding. Still LoCoMo friend-chat gold. Does not score identity drift, trauma silence, or poisoning, so a winner can still fail as a companion.",
+  "published_eval": {
+    "name": "LoCoMo-Conv",
+    "claimed_score": "Table 4. AnchorMem dialog recall@10 0.659 and fact_used 0.598. Implicit recall 0.368 / fact_used 0.364. mem0 implicit recall 0.456 but dialog fact_used 0.366. Oracle implicit fact_used 0.724. Multi-facet rewriting lifts AnchorMem implicit recall +15.6pt and response +10.6pt. §7.3 oracle vs no-mem faithfulness +55.1 on silent-grounding implicit cases.",
+    "what_it_actually_scores": "Retrieval recall@10 of gold LoCoMo evidence turns and LLM-judge fact_used on first-person conversational replies (dialog, implicit, counterfactual, composed). Not companion identity, social silence, or poisoning.",
+    "source": "https://arxiv.org/abs/2609.03467"
+  },
+  "sources": [
+    "https://github.com/MiuLab/LoCoMo-Conv",
+    "https://arxiv.org/abs/2609.03467",
+    "research/papers/arxiv/2609.03467.md"
+  ],
+  "open_unknowns": [
+    "GitHub SPDX is null. No LICENSE file in the repo root. Whether the rewrites inherit LoCoMo CC BY-NC 4.0 is not stated on the README.",
+    "Paper Table 5 hallucination rates on unanswerable queries are high, but the public README does not ship a counted unanswerable split size."
+  ]
+}

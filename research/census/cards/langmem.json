@@ -1,0 +1,93 @@
+{
+  "id": "langmem",
+  "name": "LangMem",
+  "kind": "agent-memory-lib",
+  "repo": "https://github.com/langchain-ai/langmem",
+  "docs": "https://langchain-ai.github.io/langmem/concepts/conceptual_guide/",
+  "license": "MIT",
+  "stars_observed": 1659,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Library primitives, not a product ontology. Conceptual guide names semantic (profile or collection), episodic (Episode schema with observation/thoughts/action/result), and procedural (prompt rules). Default collection item is Memory(content=str). Callers pass Pydantic schemas to create_memory_manager. Namespaces are tuples such as (\"memories\", \"{langgraph_user_id}\"). Official docs llms.txt at langchain-ai.github.io/langmem/llms.txt returned 404 on 2026-09-11.",
+  "dimensions": {
+    "ontology": {
+      "score": "partial",
+      "evidence": "Conceptual guide Types of Memory. create_memory_manager(schemas=[UserProfile]) or Episode. Default is unstructured Memory. No built-in character vs user vs relationship tables.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "Hot path: create_manage_memory_tool (agent create/update/delete). Background: create_memory_store_manager extracts after the turn. Instructions default to remember preferences and explicit remember requests. enable_inserts default True.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "create_search_memory_tool calls BaseStore.search(query, limit, offset, filter). Hot-path quickstart also embeds new messages and injects hits into the system prompt. Agent may retrieve nothing if it skips the tool.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "partial",
+      "evidence": "manage_memory action update overwrites by id. Collection managers reconcile insert/update/delete via LLM. enable_deletes defaults to False on create_memory_store_manager (docs reference/memory). Profile mode uses enable_inserts=False so one document is updated.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "absent",
+      "evidence": "BaseStore items have created_at/updated_at in the tools example, but search is semantic plus optional metadata filter. No last-Tuesday query path in the conceptual guide or tools.py.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "partial",
+      "evidence": "NamespaceTemplate can include {langgraph_user_id}. That is one user bag unless the app adds more namespace levels. No first-class character or relationship id.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "search_memory has no social skip. Hits are dumped into the prompt in the create_react_agent example.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "absent",
+      "evidence": "No trust tags. Extracted Memory.content is whatever the LLM writes. Prompt optimizer can change system behavior from trajectories.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "partial",
+      "evidence": "manage_memory action delete calls store.delete. Store manager enable_deletes defaults False so background extract will not delete unless set. No user-facing forget-that.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "Hot path: tool-call LLM plus embed on search. Background manager: extra LLM extract (optional query_model) plus store upsert. Short-term summarize_messages is a separate LLM pass when tokens exceed max_tokens_before_summary.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "present",
+      "evidence": "MIT. InMemoryStore or self-hosted Postgres BaseStore. Needs an LLM API or local model. No LangMem cloud required. LangGraph Platform store is optional.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "README and conceptual guide describe Python tools for LangGraph. No official MCP server in the repo root or docs index fetched.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "yes",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "You can attach a profile schema and namespaces, but the library still extracts text, stores it, and injects hits. No silence, no companion identity types, no official MCP.",
+  "published_eval": {
+    "name": null,
+    "claimed_score": null,
+    "what_it_actually_scores": null,
+    "source": null
+  },
+  "sources": [
+    "https://github.com/langchain-ai/langmem/blob/main/README.md",
+    "https://github.com/langchain-ai/langmem/blob/main/src/langmem/knowledge/tools.py",
+    "https://langchain-ai.github.io/langmem/concepts/conceptual_guide/",
+    "https://langchain-ai.github.io/langmem/reference/memory/",
+    "https://github.com/langchain-ai/langmem/blob/main/LICENSE"
+  ],
+  "open_unknowns": [
+    "Whether any LangChain-hosted MCP wrapper exists outside this repo.",
+    "Default Memory Pydantic fields beyond content were not re-read from extraction.py after GitHub search rate-limit."
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "id": "byterover",
+  "name": "ByteRover",
+  "kind": "adjacent-coding-agent",
+  "repo": "https://github.com/campfirein/byterover-cli",
+  "docs": "https://docs.byterover.dev/llms.txt",
+  "license": "Elastic-2.0",
+  "stars_observed": 4958,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Canonical public repo found: campfirein/byterover-cli (formerly Cipher), homepage docs.byterover.dev. V4 product is Desktop + spaces + a skill (bind, query, record, dream, auth). Structured records use bv-topic with bv-task, bv-decision, bv-reason, bv-fact, and implied rules/files. This is project knowledge for coding agents, not companion memory. V4 ranking internals inside Desktop/cloud are not fully specified in the public docs.",
+  "dimensions": {
+    "ontology": {
+      "score": "partial",
+      "evidence": "docs v4/skill/record.md structured HTML: bv-topic, bv-task, bv-decision, bv-reason, bv-fact with subject/category/value. Context tree of topics. Not user/character/relationship.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "Record skill. Agent writes after useful work. Docs say do not record facts obvious from source. User can ask to record or update. Dream does not write; merge/prune/synthesize scripts do after review.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "Query skill before non-trivial work. query.mjs returns ranked hits with path, title, score, snippet, should_cite, citation_block. Agent may skip query. Retrieve-nothing is documented (if nothing useful appears, continue).",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "partial",
+      "evidence": "Record can update an existing topic. Dream merge folds one topic into another and removes the loser. prune removes stale topics. Dream itself only proposes.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "unknown",
+      "evidence": "Public V4 docs do not describe validity windows or last-Tuesday queries. Topics can go stale (Dream prune) without a time index being named.",
+      "label": "inferred"
+    },
+    "identity_split": {
+      "score": "absent",
+      "evidence": "Spaces (private, team, shared) and project bind. No user vs character vs relationship. Memory is project knowledge.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "Query ranks by relevance. No control to suppress a high-score topic for social reasons.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "absent",
+      "evidence": "Recorded HTML is later retrieved as constraints. No trust tags or jailbreak filter in V4 skill docs.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "partial",
+      "evidence": "prune.mjs deletes topics after Dream review. No user forget-that. Dream prune is proposal-only until the agent runs prune.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "unknown",
+      "evidence": "V4 docs do not state LLM/embed calls per query. Query is a script returning JSON hits. Extract cost of record/dream is not published.",
+      "label": "inferred"
+    },
+    "local": {
+      "score": "partial",
+      "evidence": "CLI is source-available Elastic-2.0 (cannot offer it as a hosted service). V4 quick start requires Desktop sign-in (Google or GitHub) to load spaces. Intimate companion chat is not the product.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "partial",
+      "evidence": "CLI README historically described MCP for the Cipher-era product. V4 docs index is skill-based (npx skills add campfirein/skills), not an official MCP memory server.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "yes",
+  "companion_fit": "MISFIT",
+  "companion_fit_reason": "Coding-agent project memory. Context tree and decisions, not a companion. ELv2 and V4 account spaces. Use as a negative control next to claude-mem.",
+  "published_eval": {
+    "name": null,
+    "claimed_score": null,
+    "what_it_actually_scores": "paper/ exists in the CLI repo; no companion or LoCoMo score cited in V4 docs fetched.",
+    "source": "https://github.com/campfirein/byterover-cli/tree/main/paper"
+  },
+  "sources": [
+    "https://github.com/campfirein/byterover-cli",
+    "https://github.com/campfirein/byterover-cli/blob/main/LICENSE",
+    "https://docs.byterover.dev/llms.txt",
+    "https://docs.byterover.dev/v4/overview.md",
+    "https://docs.byterover.dev/v4/skill/query.md",
+    "https://docs.byterover.dev/v4/skill/record.md",
+    "https://docs.byterover.dev/v4/skill/dream.md"
+  ],
+  "open_unknowns": [
+    "How V4 Query ranks hits (vector vs keyword vs tree) is not in the public skill docs.",
+    "Whether Cipher-era MCP still ships in current byterover-cli.",
+    "paper/ contents were not opened this session."
+  ]
+}

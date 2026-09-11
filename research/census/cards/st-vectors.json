@@ -1,0 +1,90 @@
+{
+  "id": "st-vectors",
+  "name": "SillyTavern Vector Storage",
+  "kind": "roleplay-client",
+  "repo": "https://github.com/SillyTavern/SillyTavern",
+  "docs": "https://docs.sillytavern.app/extensions/chat-vectorization.md",
+  "license": "AGPL-3.0",
+  "stars_observed": 33251,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Vectra JSON collections under user-data /vectors. Three uses: chat-message chunks, Data Bank/file chunks, World Info entry contents. Items are hashed text plus embedding. No typed facts. Chat messages stay in the chat file; vectors are an index.",
+  "dimensions": {
+    "ontology": {
+      "score": "absent",
+      "evidence": "extensions/vectors/index.js stores hash/text/index. Chat vectorization shuffles original messages, not summaries, into a 'Past events:' template. Data Bank is files. WI path hashes entry.content. No kinds.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "partial",
+      "evidence": "Background synchronizeChat embeds new messages. User Vectorize All / Purge. Optional summarize-before-embed via Main API/WebLLM/Extras (summarize() in vectors/index.js). User attaches Data Bank files. Model does not decide what to store as a fact.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "rearrangeChat: query last `query` messages (default 2), skip if chat shorter than `protect` (default 5), insert up to `insert` (default 3) hits above score_threshold (default 0.25). setExtensionPrompt(EXTENSION_PROMPT_TAG). activateWorldInfo emits WORLDINFO_FORCE_ACTIVATE for similar WI entries. Disabled paths inject nothing.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "absent",
+      "evidence": "Old message vectors remain until Purge. Summarized vectors still retrieve the original message. No overwrite of a fact.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "absent",
+      "evidence": "Similarity vs recent query text. No timestamp filter. Retain# only protects the last N messages from being shuffled, not time.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "absent",
+      "evidence": "Collection id is chat id, file hash, or world_${hash(world name)}. Speakers are concatenated as name: mes. No user vs character vs relationship collections.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "partial",
+      "evidence": "score_threshold, disable extension, keep_hidden. Official disclaimer: does not guarantee improved memory. Prompt-cache warning: dynamic prefix causes cache misses. No topic blocklist.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "absent",
+      "evidence": "Any past message that embeds near the query is eligible, including jailbreak attempts stored as chat. include_wi can let injected chunks trigger WI. No provenance.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "partial",
+      "evidence": "Purge Vectors for current chat or files. Deleting a chat does not automatically document vector file cleanup in the user-facing chat-vectorization page (vectors live in /vectors).",
+      "label": "inferred"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "One embedding query per generation plus embeds for new messages. Optional extra LLM summarize per message if summarize/summarize_sent. File RAG reserves context before fitting chat (data-bank.md). Defaults insert=3, query=2, message_chunk_size=400 chars.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "present",
+      "evidence": "Vectra on disk. Local Transformers default jina-embeddings-v2-base-en, or Ollama/llama.cpp/WebLLM. Cloud embed APIs optional. AGPL-3.0.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "No MCP server. Extension API only.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "yes",
+  "companion_fit": "MISFIT",
+  "companion_fit_reason": "Official docs say this does not guarantee better memory. It shuffles similar past chat text into the prompt. That is RAG, not a companion who knows when to stay quiet or how the relationship changed.",
+  "published_eval": {
+    "name": null,
+    "claimed_score": null,
+    "what_it_actually_scores": null,
+    "source": null
+  },
+  "sources": [
+    "https://docs.sillytavern.app/extensions/chat-vectorization.md",
+    "https://docs.sillytavern.app/usage/characters/data-bank.md",
+    "https://github.com/SillyTavern/SillyTavern/blob/release/public/scripts/extensions/vectors/index.js"
+  ],
+  "open_unknowns": [
+    "Whether purge-on-chat-delete is implemented in server vector routes (not fully read)."
+  ]
+}

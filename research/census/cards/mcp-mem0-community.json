@@ -1,0 +1,92 @@
+{
+  "id": "mcp-mem0-community",
+  "name": "coleam00/mcp-mem0",
+  "kind": "mcp-server",
+  "repo": "https://github.com/coleam00/mcp-mem0",
+  "docs": "https://github.com/coleam00/mcp-mem0/blob/main/README.md",
+  "license": "MIT",
+  "stars_observed": 684,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Three tools over mem0.Memory: save_memory(text), search_memories(query, limit=3), get_all_memories. DEFAULT_USER_ID is the string user. CUSTOM_INSTRUCTIONS in src/utils.py are commented out (custom_fact_extraction_prompt is not set). Last push observed 2025-04-13.",
+  "dimensions": {
+    "ontology": {
+      "score": "absent",
+      "evidence": "src/main.py save_memory stores a single text string. No typed slots. Mem0 may extract facts internally, but this repo does not name types.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "Agent tool save_memory calls mem0_client.add(messages, user_id=DEFAULT_USER_ID). No pin, no refuse.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "search_memories uses mem0_client.search with default limit 3. get_all_memories dumps all. Tool docstring tells the model to search before decisions. Retrieve-nothing happens when search returns [].",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "unknown",
+      "evidence": "This repo never updates or deletes. Whether mem0.add consolidates is Mem0 OSS behavior, not implemented here.",
+      "label": "inferred"
+    },
+    "temporal": {
+      "score": "absent",
+      "evidence": "No timestamp field on save_memory. search_memories has only query and limit.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "absent",
+      "evidence": "DEFAULT_USER_ID = \"user\" in src/main.py. One bag for the whole server.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "search_memories returns top-k by Mem0 semantic rank. No skip control.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "absent",
+      "evidence": "No filter on text before add. CUSTOM_INSTRUCTIONS exist but are not wired.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "absent",
+      "evidence": "No delete tool in src/main.py. Only save, search, get_all.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "utils.get_mem0_client configures an LLM (openai/openrouter/ollama) and an embedder plus Supabase vector_store. Each save_memory is a Mem0 add (extract LLM plus embed). Search is embed plus vector lookup. get_all dumps up to 50 items.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "partial",
+      "evidence": "MIT. Ollama branch in utils.py. Requires DATABASE_URL for Supabase. Not a single-machine file store.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "present",
+      "evidence": "Community FastMCP server. SSE or stdio via TRANSPORT env. README is explicit it is a template.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "yes",
+  "companion_fit": "MISFIT",
+  "companion_fit_reason": "One hardcoded user_id, three tools, no delete, no typed memory. A Mem0 tutorial, not a companion store.",
+  "published_eval": {
+    "name": null,
+    "claimed_score": null,
+    "what_it_actually_scores": null,
+    "source": null
+  },
+  "sources": [
+    "https://github.com/coleam00/mcp-mem0/blob/main/src/main.py",
+    "https://github.com/coleam00/mcp-mem0/blob/main/src/utils.py",
+    "https://github.com/coleam00/mcp-mem0/blob/main/README.md",
+    "https://github.com/coleam00/mcp-mem0/blob/main/LICENSE"
+  ],
+  "open_unknowns": [
+    "Whether anyone still runs this template after mem0-mcp was archived.",
+    "Mem0 OSS extract/update rules behind Memory.add are not in this repo."
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "id": "mirrormind",
+  "name": "MirrorMind (Zeng et al.)",
+  "kind": "academic",
+  "repo": null,
+  "docs": "https://arxiv.org/html/2511.16997",
+  "license": null,
+  "stars_observed": null,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "OmniScientist cognitive architecture, not a companion store. Three levels. Individual Level builds an Author Agent from episodic chunks (hybrid dense+BM25 papers), semantic period summaries (daily/monthly/yearly map-reduce), and a Persona Schema concept graph plus reasoning/style attributes serialized into the system prompt. Domain Level is an OpenAlex concept graph with specialist tools. Interdisciplinary Level is a MAS coordinator plus review/integration. Identity split is author vs discipline vs committee, not user vs character vs relationship.",
+  "dimensions": {
+    "ontology": {
+      "score": "partial",
+      "evidence": "Paper §2.2. Episodic Memory, Semantic Memory, Persona Schema at Individual Level. Domain Concept Graph at Domain Level. Coordinator, Domain Agents, Author Agents at Interdisciplinary Level. Types are scientist-cognition, not companion bio/autobiography/relationship/lore/OOC.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "Paper ingestion chunks documents, writes dense vectors and BM25, stores chunk_id, source_document, timestamp (§2.2.1). Semantic pipeline is a periodic map-reduce job (§2.2.2). Persona graph is LLM-extracted incrementally (§2.2.3). Input is an Author ID plus papers. No user pin. No joke refusal.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "Four-stage Contextualization Workflow (§2.2.4). Load persona system prompt, semantic-scope the period, hybrid RRF episodic retrieve, assemble prompt. Domain tools are search_concept, expand_concept, find_path_between, get_expert_authors_for_concept. MAS routes then Fact Checker and Knowledge Integrator. Premise is retrieve-then-speak.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "partial",
+      "evidence": "Persona schema is incrementally rebuilt as memories are added (§2.2.3 Stage I-II). Semantic summaries roll up periods. No delete-on-contradiction for an author fact. Consistency Checker exists only at MAS review (§2.4.3).",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "partial",
+      "evidence": "Episodic chunks carry timestamps used for chronological scoping (§2.2.1). Semantic caches are L1 daily, L2 monthly, L3 yearly (§2.2.2). Collaborator bench uses 2025 papers to avoid train leakage (§6.1). No companion last-Tuesday query.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "partial",
+      "evidence": "Individual Level splits episodic, semantic, and persona for one author. Domain Level is collective, not personal. Author Agents vs Domain Agents are separate specialist types (§2.4.2). There is no companion user vs character vs relationship split. Persona is scientific style, not a roleplay card.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "Workflow always loads persona then retrieves semantic and episodic context (§2.2.4). No skip-relevant-hit for trauma or spoilers.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "absent",
+      "evidence": "AuthorQA injects retrieved paper chunks into the LLM prompt. MAS Fact Checker reviews specialist outputs, not stored-memory trust tags. Poisoned papers would become episodic evidence.",
+      "label": "inferred"
+    },
+    "forgetting": {
+      "score": "absent",
+      "evidence": "No user forget-that. Semantic distillation compresses but does not drop on command. No decay curve.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "Per AuthorQA query. Persona load, one semantic vector search, hybrid dense+BM25+RRF, then the LLM. Domain queries add graph tools. HLE workflow caps 1-3 domains, 2 concepts each, 2 authors each, max 24 authors, 50 items (§7.1). Extra LLMs for review/integration.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "unknown",
+      "evidence": "Paper describes FastAPI Author and Domain endpoints (§2.2, §2.3.3) but cites no GitHub. tsinghua-fib-lab/OmniScientist is a MIT paper-collection repo (LICENSE MIT, 202 stars observed 2026-09-11) and does not contain the Author Agent engine. Software license for MirrorMind itself is not in the paper.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "FastAPI microservices in the paper. No MCP in https://arxiv.org/html/2511.16997.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "yes",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "Splits episodic, semantic, and persona for an author, then still stuffs them into a prompt. Domain is OmniScientist, not 1:1 companions. Steal the three-memory split. Do not clone the scientist MAS. Evals are Sci-Twin AuthorQA, NSKP, collaborator prediction, and HLE. Those are not companion holes.",
+  "published_eval": {
+    "name": "Sci-Twin AuthorQA (200 OpenAlex authors), Next-Step Keyword Prediction, interdisciplinary collaborator prediction (325 papers), HLE interdisciplinary subset",
+    "claimed_score": "AuthorQA Qwen3-14B fact accuracy 71.99%, F1 68.41%, style accuracy 49.30%, average 60.65% (Table 1). NSKP Hit@3 0.7285 Qwen / 0.7351 GPT-4o-mini (Table 2). Collaborator prediction GPT-4o-mini 0.578 at 10 negatives (Table 3). HLE 12% vs 6% baseline on 50 questions (§7.2).",
+    "what_it_actually_scores": "Whether an agent answers as a scientist (facts plus next-paper style), predicts keywords and coauthors, and lifts interdisciplinary exam accuracy. Not companion identity drift, social silence, poisoning, or forget-that.",
+    "source": "https://arxiv.org/html/2511.16997 Table 1, Table 2, Table 3, §7.2"
+  },
+  "sources": [
+    "https://arxiv.org/abs/2511.16997",
+    "https://arxiv.org/html/2511.16997",
+    "https://github.com/tsinghua-fib-lab/OmniScientist"
+  ],
+  "open_unknowns": [
+    "Whether Author Agent FastAPI code will be released outside the OmniScientist paper dump.",
+    "Whether Persona Schema graph attributes are versioned or only the latest serialization is kept."
+  ]
+}

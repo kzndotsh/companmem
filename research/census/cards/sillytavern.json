@@ -1,0 +1,97 @@
+{
+  "id": "sillytavern",
+  "name": "SillyTavern",
+  "kind": "roleplay-client",
+  "repo": "https://github.com/SillyTavern/SillyTavern",
+  "docs": "https://docs.sillytavern.app/llms.txt",
+  "license": "AGPL-3.0",
+  "stars_observed": 33251,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Prompt assembler, not a memory engine. Always-on character card fields (description, personality, scenario, example messages) plus persona description and Author's Note. Keyword World Info, vector chat/file/WI matching, and a rolling chat summary are optional extensions. No typed relationship-state table. Stores are files under the user data directory.",
+  "dimensions": {
+    "ontology": {
+      "score": "partial",
+      "evidence": "Docs split Character Design, Personas, Author's Note, World Info, Data Bank, Vector Storage, and Summarize. Those are prompt slots and files, not typed kinds such as relationship_state. public/scripts/world-info.js, extensions/vectors/index.js, extensions/memory/index.js.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "partial",
+      "evidence": "User writes card fields, WI entries, Data Bank files, and the summary box. Summarize can LLM-extract a rolling summary into chat[i].extra.memory via setMemoryContext in extensions/memory/index.js. Vectors embed on send. No background deriver of relationship facts.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "Each turn checkWorldInfo (world-info.js) keyword/regex/timed/vector-forced entries, rearrangeChat (vectors/index.js) top-k message shuffle, setExtensionPrompt for summary. Always-on card/persona/AN. Retrieval can inject nothing if no keys match, vectors disabled, or summary empty.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "absent",
+      "evidence": "New WI entries stack. Summarize overwrites the current summary string in message extra and Restore Previous rolls back one step. Vectors keep both original messages. No invalidate-with-time for facts.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "partial",
+      "evidence": "World Info Timed Effects (sticky/cooldown/delay) count messages, not calendar time (docs/usage/worldinfo.md, WorldInfoTimedEffects in world-info.js). Chat vectorization has no date query. Summarize is a blob with no validity window.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "partial",
+      "evidence": "Separate stores: character card, persona description (docs/usage/personas.md), chat lore, character lore, global WI. Relationship is still untyped prose inside those strings. No relationship_state object.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "partial",
+      "evidence": "User can omit keys, disable entries, set Probability 0, Character Filter, score_threshold for vectors, pause Summarize. No trauma/kink/spoiler type that suppresses a relevant hit. WI docs advertise random Elder-God injection via trigger%.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "absent",
+      "evidence": "Injected WI/vector/summary text is trusted prompt. No provenance or trust tags. Function-calling docs list memory tools as an example pattern, not a filter (docs/for_contributors/function-calling.md).",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "partial",
+      "evidence": "User deletes/disables WI, Purge Vectors, edits or Restore Previous on summary, or deletes chat messages (summary attached to a message reverts if that message is deleted). No 'forget that' that tombstones a fact across stores.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "WI is local scan plus token budget (world_info_budget default 25% of maxContext, optional world_info_budget_cap) in checkWorldInfo. Vectors: embedding calls per new message plus optional Main API summarize-before-embed. Summarize: extra LLM call every N messages/words. All three reserve prompt tokens before chat history fits.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "present",
+      "evidence": "AGPL-3.0 local Node server. Chat, WI, Vectra JSON under user-data /vectors. Can use local Transformers/Ollama/llama.cpp embeddings and a local LLM. Cloud APIs optional.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "No official MCP memory server. Function calling exists for Chat Completions (docs/for_contributors/function-calling.md). Built-in tools are image, web search, RSS, weather, dice, not a memory graph.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "yes",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "Best-in-class local roleplay prompt control and keyword lore, but it assumes retrieved or always-on text is remembering. No typed relationship state, no poisoning filter, and the official vector docs deny a memory guarantee.",
+  "published_eval": {
+    "name": null,
+    "claimed_score": null,
+    "what_it_actually_scores": null,
+    "source": null
+  },
+  "sources": [
+    "https://docs.sillytavern.app/llms.txt",
+    "https://docs.sillytavern.app/usage/worldinfo.md",
+    "https://docs.sillytavern.app/extensions/chat-vectorization.md",
+    "https://docs.sillytavern.app/extensions/summarize.md",
+    "https://docs.sillytavern.app/usage/personas.md",
+    "https://docs.sillytavern.app/usage/characters/authors-note.md",
+    "https://github.com/SillyTavern/SillyTavern/blob/release/public/scripts/world-info.js",
+    "https://github.com/SillyTavern/SillyTavern/blob/release/public/scripts/extensions/vectors/index.js",
+    "https://github.com/SillyTavern/SillyTavern/blob/release/public/scripts/extensions/memory/index.js"
+  ],
+  "open_unknowns": [
+    "Whether any third-party ST extension implements typed relationship state (out of slice unless discovered).",
+    "Exact default loreBookToken in a fresh ST install vs user-tuned budgets."
+  ]
+}

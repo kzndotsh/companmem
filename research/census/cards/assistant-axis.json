@@ -1,0 +1,94 @@
+{
+  "id": "assistant-axis",
+  "name": "The Assistant Axis (Lu et al.)",
+  "kind": "academic",
+  "repo": "https://github.com/safety-research/assistant-axis",
+  "docs": "https://arxiv.org/abs/2601.10387",
+  "license": "MIT",
+  "stars_observed": 171,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Not a memory store. Persona space is PCA over residual-stream role vectors for 275 character archetypes plus a default Assistant vector. The Assistant Axis is mean(default Assistant) minus mean(other roles). Identity here is the model's default Assistant vs other archetypes, not user vs character vs relationship tables.",
+  "dimensions": {
+    "ontology": {
+      "score": "absent",
+      "evidence": "Paper §2.1 builds role vectors from system-prompted characters (editor, jester, bard, consultant). assistant_axis/axis.py compute_axis is mean default minus mean roles. No typed memory kinds.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "275 roles, five system prompts each, 240 extraction questions, 1200 rollouts per role. Responses are judged fully / somewhat / no role-play. Mean post-MLP residual on response tokens becomes the role vector (paper §2.1.2). pipeline/ is the extract path. No user pin of facts.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "Inference-time addition along the axis at a middle layer, every token (paper §3). Activation capping clamps projection onto the axis to a floor tau at many layers (paper §5 eq. 1). Code. ActivationSteering and build_capping_steerer in assistant_axis/steering.py.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "absent",
+      "evidence": "No stored fact is replaced. Capping overwrites the current residual component along one axis. Prior conversation text is unchanged.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "absent",
+      "evidence": "Projections are averaged per turn to plot drift. No validity windows or calendar queries.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "partial",
+      "evidence": "Reusable split is Assistant vs other character archetypes (PC1 loads consultant/evaluator vs bard/ghost/leviathan, paper Table 1). Judge labels human, nonhuman, and mystical non-Assistant speech (paper §3). Not user vs character vs relationship tables.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "Capping stops the model leaving Assistant mode. It does not skip a relevant memory because recall would be creepy. Case studies still answer the user, with hedging.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "partial",
+      "evidence": "Persona-based jailbreaks from Shah et al. 2023 succeed at 65.3% to 88.5% harm vs 0.5% to 4.5% without the jailbreak (paper §3). Steering toward Assistant and activation capping cut harm. This is an inference-time lock against persona overwrite, not trust tags on stored text.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "absent",
+      "evidence": "No forget-that. Capping does not delete conversation content. Drift can return when the cap is off.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "Axis extract is offline (275 roles x 1200 rollouts). Online capping applies at every token on 8 layers for Qwen 3 32B (layers 46-53) or 16 layers for Llama 3.3 70B (layers 56-71). Extra LLM cost is the judge used in eval, not the companion turn.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "present",
+      "evidence": "README License section is MIT. Code and precomputed axes (HuggingFace lu-christina/assistant-axis-vectors) run on Gemma 2 27B, Qwen 3 32B, Llama 3.3 70B. Extraction used Claude Sonnet 4 and gpt-4.1-mini judges, which are not required at serving if the axis is precomputed.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "Research repo plus a Neuronpedia demo. No MCP server in the tree.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "no",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "Stealable lock for hole 1. Activation capping keeps the default Assistant when meta-reflection or a distressed user would otherwise drift the model into harmful personas. Distinguishes Assistant from other archetypes. Not a companion memory system. Eval is jailbreak harm and capability benches, not months of 1:1 roleplay.",
+  "published_eval": {
+    "name": "Persona-based jailbreaks (Shah et al. 2023 sample of 1100) plus IFEval, MMLU Pro, GSM8k, EQ-Bench under activation capping",
+    "claimed_score": "Unsteered jailbreak harm 65.3% to 88.5% vs 0.5% to 4.5% without jailbreak. Best capping setting cuts harmful responses by nearly 60% with no net capability drop on the four benches (paper §5.2, Figure 10). Judge vs human agreement 91.6% on 200 harm labels.",
+    "what_it_actually_scores": "Whether a jailbroken instruct model emits harmful text, and whether instruction, knowledge, math, and EQ benches hold under capping. Not character autobiography, silence of recall, or poisoned relationship facts.",
+    "source": "https://arxiv.org/html/2601.10387 §3 and §5; https://github.com/safety-research/assistant-axis"
+  },
+  "sources": [
+    "https://arxiv.org/abs/2601.10387",
+    "https://arxiv.org/html/2601.10387",
+    "https://github.com/safety-research/assistant-axis",
+    "https://github.com/safety-research/assistant-axis/blob/master/assistant_axis/axis.py",
+    "https://github.com/safety-research/assistant-axis/blob/master/assistant_axis/steering.py",
+    "https://github.com/safety-research/assistant-axis/blob/master/README.md"
+  ],
+  "open_unknowns": [
+    "Whether capping a companion character (not the default Assistant) needs a different axis, and whether that axis stays stable across 50+ sessions.",
+    "No LICENSE file in the repo. MIT is stated only in README."
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "id": "beam",
+  "name": "BEAM",
+  "kind": "eval-benchmark",
+  "repo": "https://github.com/mohammadtavakoli78/BEAM",
+  "docs": "https://mohammadtavakoli78.github.io/beam-light/",
+  "license": "MIT (code); CC BY-SA 4.0 (data)",
+  "stars_observed": 142,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "User-assistant long-chat eval at 128K, 500K, 1M, and 10M tokens. 100 conversations, 2,000 human-validated probes, two probes per ability per chat. Ten abilities: abstention, contradiction resolution, event ordering, information extraction, instruction following, knowledge update, multi-session reasoning, preference following, summarization, temporal reasoning. Domains include personal, coding, math, health, finance. Scoring is nugget-based 0 / 0.5 / 1 via an LLM judge. LIGHT is a separate memory method in the same paper, not this card.",
+  "dimensions": {
+    "ontology": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "present",
+      "evidence": "Knowledge Update is one of ten official probe types. README Probing Questions Types item 6. Paper §2.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "present",
+      "evidence": "Temporal Reasoning and Event Ordering are official probe types. Conversation plans include an explicit timeline.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "absent",
+      "evidence": "One simulated user and one AI assistant. User profile plus relationship graph are generation seeds. The store under test is not required to split user / character / relationship / lore.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "partial",
+      "evidence": "Abstention probes withhold answers when evidence is missing. Instruction Following tests sustained constraints. Neither is a 'do not recall this known fact' social-silence test.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "absent",
+      "evidence": "Contradiction Resolution reconciles inconsistent user statements. It is not a poisoned write that later jailbreaks a system persona.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "absent",
+      "evidence": "Knowledge update revises facts. No user 'forget that' deletion probe in the ten types.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "partial",
+      "evidence": "Length buckets 128K / 500K / 1M / 10M are the difficulty axis. Paper reports degradation as dialogues lengthen. No first-class dollars or LLM-calls-per-turn score. Mem0 later publishes tokens/query on BEAM. That is a vendor metric, not BEAM's official score.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "partial",
+      "evidence": "MIT code, CC BY-SA 4.0 data on Hugging Face (Mohammadta/BEAM and BEAM-10M). Evaluation uses an LLM-as-a-judge.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "eval, not a memory engine",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "yes",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "Broadest public ability list and the only common bench at 1M-10M tokens. Still user-assistant probe QA. It would not select for character identity, RP silence, lore vs lived event, or cross-character leak.",
+  "published_eval": {
+    "name": "BEAM",
+    "claimed_score": "Paper. LIGHT improves probing accuracy 3.5%-12.69% over the strongest baseline depending on backbone and length. Absolute per-model tables live in the paper. Vendor blogs later claim other systems' BEAM-1M / BEAM-10M numbers.",
+    "what_it_actually_scores": "Nugget recall of ten memory abilities on coherent synthetic user-assistant chats at four length scales. Abilities listed in the README probing list.",
+    "source": "https://arxiv.org/abs/2510.27246"
+  },
+  "sources": [
+    "https://github.com/mohammadtavakoli78/BEAM",
+    "https://arxiv.org/abs/2510.27246",
+    "https://arxiv.org/html/2510.27246v1",
+    "https://mohammadtavakoli78.github.io/beam-light/",
+    "https://huggingface.co/datasets/Mohammadta/BEAM"
+  ],
+  "open_unknowns": [
+    "Per-model absolute scores from paper tables were not copied into this card. Headline delta is LIGHT vs baselines.",
+    "Mem0 blog claims 64.1% on BEAM-1M and 48.6% on BEAM-10M. Inferred vendor claim, not the BEAM paper."
+  ]
+}

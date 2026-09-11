@@ -1,0 +1,93 @@
+{
+  "id": "memu",
+  "name": "memU",
+  "kind": "memory-os",
+  "repo": "https://github.com/NevaMind-AI/memU",
+  "docs": "https://github.com/NevaMind-AI/memU/blob/main/README.md",
+  "license": "Apache-2.0",
+  "stars_observed": 14404,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Personal wiki of RecallFiles. Two tracks: memory (user facts, preferences, project context, working style from messages only) and skill (workflows from messages plus tool activity). Optional resources.md. Not user vs character vs relationship. Storage is Markdown files in a local SQLite/Postgres or MemU Cloud.",
+  "dimensions": {
+    "ontology": {
+      "score": "partial",
+      "evidence": "docs/developer.md: Memory projection gets message items only. Skill projection gets all items. commit writes RecallFiles. README: reusable Markdown skills with name, description, workflow. No companion types.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "Host adapter scheduled bridging plus memu memorize prepare. An external agent reads jobs and chooses create, patch, or no-op. MemoryService makes no LLM calls (README). Developer contract forbids synthesizing facts. Secrets should be omitted before submit.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "README inject seam: standing instruction tells the host to run <binary> retrieve (progressive_retrieve) before answering. The agent can retrieve nothing. Profile is not always-on unless a memory file says so.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "partial",
+      "evidence": "Agent jobs may patch an existing skill or memory file. No typed invalidate. Uninstall keeps the store unless the user asks to erase (README).",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "absent",
+      "evidence": "developer.md rejects unknown fields including timestamps. Session order is the items array order. No validity windows.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "absent",
+      "evidence": "One configured backend via ~/.memu/config.env is shared across hosts. Memory vs skill tracks are user-facts vs workflows, not user vs character vs relationship. OpenClaw adapter is per agentId session log but one memory store.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "retrieve returns relevant wiki files by embedding. No social skip.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "partial",
+      "evidence": "developer.md: do not synthesize facts; omit credentials. The executing agent still writes the Markdown that later retrieve injects. No trust tags.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "partial",
+      "evidence": "README uninstall keeps memory unless explicitly erased. Agent can patch or presumably delete files in a job. No first-class forget-that API in the README CLI list.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "Memorize is a background scheduled job (prepare, one external executor over all jobs, commit). Retrieve is embedding search at question time. MemoryService itself does not call an LLM. Cost sits in the host agent that writes the wiki and in embeddings.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "present",
+      "evidence": "Apache-2.0 LICENSE.txt. Self-hosted SQLite (~/.memu/memu.sqlite3) or Postgres. Embedding provider key required locally. Cloud at memu.so is optional.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "absent",
+      "evidence": "Integration is SKILL.md plus per-host binaries (memu-cursor, memu-claude-code, ...). README and SKILL.md do not ship an MCP server.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "yes",
+  "companion_fit": "MISFIT",
+  "companion_fit_reason": "memU is a coding-agent sidecar wiki. The agent writes Markdown, then retrieve injects it. No character or relationship types, no timestamps in the v1 session schema, no silence. Shared store across hosts is a cross-character leak risk if two companions used it.",
+  "published_eval": {
+    "name": null,
+    "claimed_score": null,
+    "what_it_actually_scores": null,
+    "source": null
+  },
+  "sources": [
+    "https://github.com/NevaMind-AI/memU/blob/main/README.md",
+    "https://github.com/NevaMind-AI/memU/blob/main/docs/developer.md",
+    "https://github.com/NevaMind-AI/memU/blob/main/SKILL.md",
+    "https://github.com/NevaMind-AI/memU/blob/main/LICENSE.txt"
+  ],
+  "open_unknowns": [
+    "Whether Cloud vs local RecallFile schemas differ.",
+    "How progressive_retrieve ranks and whether empty retrieve is the documented default on miss.",
+    "Any unpublished LoCoMo numbers on memu.pro (site HTML, no llms.txt)."
+  ]
+}

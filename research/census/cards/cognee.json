@@ -1,0 +1,99 @@
+{
+  "id": "cognee",
+  "name": "Cognee",
+  "kind": "agent-memory-lib",
+  "repo": "https://github.com/topoteretes/cognee",
+  "docs": "https://docs.cognee.ai/llms.txt",
+  "license": "Apache-2.0",
+  "stars_observed": 30642,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Default unit is DataPoint (entities, relationships, chunks) plus session QA cache. OWL grounding can rename types to ontology classes. There are no shipped companion kinds (user bio, character autobiography, relationship state, lore, OOC). Isolation is Cognee user plus dataset, not character.",
+  "dimensions": {
+    "ontology": {
+      "score": "partial",
+      "evidence": "docs.cognee.ai/getting-started/introduction.md stores documents as graph entities and relationships. DataPoint in cognee/infrastructure/engine/models/DataPoint.py is the node model (id, valid_to, ontology_valid, source_user). OWL support in guides/ontology-support.md maps owl:Class and owl:ObjectProperty. Companion roles are not shipped.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "introduction.md: remember() ingests text/files/URLs, chunks, extracts entities, and builds the graph. Session remember() writes a fast cache. The LLM extractor decides stored facts. No refusal of intimate or adversarial text is documented.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "docs.cognee.ai/core-concepts/main-operations/recall.md: recall() auto-routes (HYBRID_COMPLETION default, TEMPORAL, GRAPH_COMPLETION_COT, CHUNKS_LEXICAL). With session_id and no query_type it searches the session cache first and can return nothing on a miss before falling through to the graph.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "partial",
+      "evidence": "DataPoint.valid_to is bi-temporal close via close_node (still current when None). README news mentions conflict resolution. There is no documented fact-level UPDATE edge like Graphiti invalid_at. Dataset forget wipes nodes rather than superseding them.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "partial",
+      "evidence": "DataPoint.created_at/updated_at/valid_to are millisecond epochs. recall.md routes time-worded queries to SearchType.TEMPORAL. Session cache is keyword over stored QA, not a validity window API.",
+      "label": "measured"
+    },
+    "identity_split": {
+      "score": "partial",
+      "evidence": "modules/users plus dataset ACL isolate tenants. parent_user_id on users marks child agent accounts (alembic 7c5d4e2f8a91). That is operator vs agent, not user vs character vs relationship. Default graph is one dataset bag.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "recall.md exposes search types, dataset scope, and only_context. No control to skip a high-ranking hit for trauma, kink, spoilers, or jokes.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "partial",
+      "evidence": "DataPoint carries source_user, source_pipeline, source_content_hash, source_node_set. Architecture.md says the relational store tracks provenance. Retrieved text is still prompt context with no trust tag or jailbreak filter.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "present",
+      "evidence": "docs.cognee.ai/core-concepts/main-operations/forget.md: forget() deletes a data item, a dataset, everything the current user can delete, or memory-only graph/vector state. Session turns that cited deleted graph elements are removed. prune is a separate destructive reset.",
+      "label": "measured"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "remember() runs ingest plus entity extract plus graph write (LLM). recall completion types call an LLM on retrieved graph/chunks; CHUNKS and SUMMARIES return payloads without that generation. Session-only recall is keyword over cache. Default providers are OpenAI LLM and embeddings (README).",
+      "label": "inferred"
+    },
+    "local": {
+      "score": "present",
+      "evidence": "Apache-2.0. README: default SQLite + LanceDB + embedded Kuzu, or one Postgres. docs.cognee.ai/guides/local-ollama.md. Intimate chat can stay on one machine if the operator supplies a local LLM and embedder.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "present",
+      "evidence": "Official cognee-mcp package. docs.cognee.ai/cognee-mcp/mcp-overview.md. v1.0 tools remember, recall, forget. Standalone mode runs local stores; API mode shares one Cognee user token.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "yes",
+  "companion_fit": "MISFIT",
+  "companion_fit_reason": "Cognee is a document/code knowledge graph for agents. Custom OWL can invent companion types, but the shipped model is entities in a dataset. It cannot split user vs character vs relationship unless the app builds that ontology. The loop is remember then recall into the model, which is the shared retrieve-equals-remember premise. No silence.",
+  "published_eval": {
+    "name": "BEAM (Cognee eval_framework)",
+    "claimed_score": "0.79 at 100K tokens (fixed hybrid, 20 questions, four rounds); 0.67 at 10M tokens (exploratory, five rounds). README warns the two settings are not comparable.",
+    "what_it_actually_scores": "LLM-judge conversational memory on synthetic long-context conversations with Cognee-specific formatting. Not character drift, social silence, or persona poisoning.",
+    "source": "https://github.com/topoteretes/cognee/blob/main/README.md#benchmarks-and-research"
+  },
+  "sources": [
+    "https://docs.cognee.ai/llms.txt",
+    "https://docs.cognee.ai/getting-started/introduction.md",
+    "https://docs.cognee.ai/core-concepts/architecture.md",
+    "https://docs.cognee.ai/core-concepts/main-operations/recall.md",
+    "https://docs.cognee.ai/core-concepts/main-operations/forget.md",
+    "https://docs.cognee.ai/guides/ontology-support.md",
+    "https://docs.cognee.ai/cognee-mcp/mcp-overview.md",
+    "https://github.com/topoteretes/cognee/blob/main/README.md",
+    "https://github.com/topoteretes/cognee/blob/main/cognee/infrastructure/engine/models/DataPoint.py",
+    "https://arxiv.org/abs/2505.24478"
+  ],
+  "open_unknowns": [
+    "Exact LLM call count inside remember() for a typical chat turn.",
+    "Whether default search excludes nodes with valid_to set, or the caller must filter.",
+    "Whether OWL drop-ungrounded mode is used in any companion-facing example."
+  ]
+}

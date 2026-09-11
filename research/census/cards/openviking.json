@@ -1,0 +1,96 @@
+{
+  "id": "openviking",
+  "name": "OpenViking",
+  "kind": "memory-os",
+  "repo": "https://github.com/volcengine/OpenViking",
+  "docs": "https://docs.openviking.ai/llms.txt",
+  "license": "AGPL-3.0",
+  "stars_observed": 36658,
+  "observed_at": "2026-09-11",
+  "ontology_notes": "Three context types: Resource, Memory, Skill. Built-in memory files are profile.md, preferences/, entities/, events/, identity.md, soul.md, cases/, trajectories/, experiences/. Peer memories live under viking://user/{user_id}/peers/{peer_id}/memories/. L0/L1/L2 layered files. This is an agent context filesystem, not companion role tables, but identity and soul are first-class assistant persona files.",
+  "dimensions": {
+    "ontology": {
+      "score": "present",
+      "evidence": "docs/en/concepts/02-context-types.md (repo) tables Resource vs Memory vs Skill and the built-in memory types including identity.md and soul.md. Peer path is viking://user/{user_id}/peers/{peer_id}/memories/. Custom templates can extend types.",
+      "label": "measured"
+    },
+    "write_policy": {
+      "score": "present",
+      "evidence": "Resources are user-added. Memories are agent-extracted on session.commit() (08-session.md). add_message can take peer_id. Extraction policy writes candidate memories then persists a memory_diff.json. Skills are user or system added. No intimate-text refusal.",
+      "label": "measured"
+    },
+    "read_policy": {
+      "score": "present",
+      "evidence": "07-retrieval.md: find() is single-query hierarchical retrieval without session. search() runs LLM intent analysis into 0-5 TypedQueries then rerank. Unified find across memories/resources/skills. Returning zero hits is allowed. Agents also read identity.md and soul.md as files.",
+      "label": "measured"
+    },
+    "supersession": {
+      "score": "partial",
+      "evidence": "session.md: memory_diff.json records all memory changes from a commit for audit and rollback. Snapshots API exists (llms.txt). Freshness-aware parent bubbling is a design doc. Not Graphiti-style invalid_at on every fact.",
+      "label": "measured"
+    },
+    "temporal": {
+      "score": "partial",
+      "evidence": "Sessions archive with timestamps. Events memory type stores decisions and milestones. Retrieval uses freshness in design docs. No documented last-Tuesday fact query API in 07-retrieval.md.",
+      "label": "inferred"
+    },
+    "identity_split": {
+      "score": "partial",
+      "evidence": "User space vs agent space vs peer space. identity.md and soul.md are the assistant. profile.md is the user. A Peer is a stable other, not a typed relationship. Coding-agent skills/trajectories dominate. Not user vs character vs relationship as companion kinds.",
+      "label": "measured"
+    },
+    "silence": {
+      "score": "absent",
+      "evidence": "find/search rank memories for the task. No social skip. Privacy configs (13-privacy.md) redact skill secrets, not trauma recall.",
+      "label": "measured"
+    },
+    "poisoning": {
+      "score": "partial",
+      "evidence": "13-privacy.md extracts api_key/token from SKILL.md into versioned privacy configs. ACL and multi-tenant APIs exist. memory_diff.json is an audit log. Retrieved memory files are still prompt text without trust tags.",
+      "label": "measured"
+    },
+    "forgetting": {
+      "score": "partial",
+      "evidence": "Snapshots and memory_diff rollback. OVPack import/export. No documented user forget-that that hides a fact from the next find() without a manual file edit.",
+      "label": "inferred"
+    },
+    "cost_shape": {
+      "score": "present",
+      "evidence": "commit() archives sync then LLM-extracts memories async. search() adds an LLM query planner (0-5 TypedQueries) plus embeddings and rerank. find() skips the planner. Resource ingest parses without LLM then generates L0/L1 async. README LoCoMo token drop 34.3-91.0%.",
+      "label": "measured"
+    },
+    "local": {
+      "score": "partial",
+      "evidence": "AGPL-3.0 LICENSE (not Apache, despite the docs footer). Self-host server and CLI are first-class. Local embedding llama.cpp design exists. AGPL copyleft applies if you network-serve a modified binary. Volcengine hosted option exists.",
+      "label": "measured"
+    },
+    "mcp": {
+      "score": "present",
+      "evidence": "Official MCP clients guide (en/agent-integrations/06-mcp-clients) and OAuth 2.1 MCP design. Also first-party plugins for Claude Code, Codex, OpenClaw, Cursor, DeepSeek Harness.",
+      "label": "measured"
+    }
+  },
+  "assumes_retrieve_equals_remember": "mixed",
+  "companion_fit": "PARTIAL",
+  "companion_fit_reason": "identity.md, soul.md, profile.md, and peer memory folders are closer to companion split than a flat Graph-RAG. The product is still a coding-agent context database. Retrieval injects files into the agent. No silence. License is AGPL-3.0.",
+  "published_eval": {
+    "name": "LoCoMo, tau2-bench",
+    "claimed_score": "README: with OpenViking, OpenClaw/Hermes/Claude Code LoCoMo accuracy 80-83% (from 24-57% native). tau2-bench Retail 77.81% vs 70.94%, Airline 66.25% vs 54.38%. Token drop 34.3-91.0%.",
+    "what_it_actually_scores": "Long-conversation user-memory fact QA (LoCoMo) and multi-turn tool-agent tasks (tau2). Not character drift or social silence.",
+    "source": "https://github.com/volcengine/OpenViking/blob/main/README.md"
+  },
+  "sources": [
+    "https://docs.openviking.ai/llms.txt",
+    "https://github.com/volcengine/OpenViking/blob/main/README.md",
+    "https://github.com/volcengine/OpenViking/blob/main/LICENSE",
+    "https://github.com/volcengine/OpenViking/blob/main/docs/en/concepts/02-context-types.md",
+    "https://github.com/volcengine/OpenViking/blob/main/docs/en/concepts/07-retrieval.md",
+    "https://github.com/volcengine/OpenViking/blob/main/docs/en/concepts/08-session.md",
+    "https://github.com/volcengine/OpenViking/blob/main/docs/en/concepts/13-privacy.md"
+  ],
+  "open_unknowns": [
+    "Whether peer memory is enabled by default or only when the memory policy permits it.",
+    "Exact extract LLM calls per session.commit().",
+    "Whether find() over memories/ can return identity.md/soul.md without a query match (always-on persona)."
+  ]
+}
