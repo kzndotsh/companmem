@@ -60,7 +60,8 @@ Most of the field assumes that sentence. This repo is built to break it — or p
 | Mem0 (per-`agent_id`) | 2/9 |
 | Mem0 (shared bag) | 1/9 |
 | Graphiti (Neo4j + Kiro) | 1/9 |
-| Letta MemFS (simulated) | 1/9 |
+| Letta / Honcho (simulated) | 1/9 each |
+| ST World Info (simulated) | 2/9 |
 | Kiro frozen reader | 9/9 |
 | Kiro LLM extract (no fallback) | 9/9 |
 

@@ -4,7 +4,7 @@ Overwrite this file each session. The audit TSV is the log. This is the snapshot
 
 - Date. 2026-09-11
 - LLM. Kiro gateway (`.env` auto-loaded). No OpenAI.
-- Scoreboard. `research/evals/BAKEOFF.md` from `2026-09-11T203204Z-merged-scoreboard.json`.
+- Scoreboard. `research/evals/BAKEOFF.md` from `2026-09-11T203346Z-merged-scoreboard.json`.
 
 ## Public fixture matrix (9 scenarios)
 
@@ -15,21 +15,23 @@ Overwrite this file each session. The audit TSV is the log. This is the snapshot
 | mem0 (per agent_id) | 2/9 | cross-character-leak, social-silence |
 | mem0-shared-bag | 1/9 | fails hole 5 |
 | graphiti | 1/9 | cross-character-leak PASS; Kiro + Neo4j |
-| letta (MemFS sim) | 1/9 | cross-character-leak PASS; no server |
+| letta (MemFS sim) | 1/9 | cross-character-leak PASS |
+| honcho (sim) | 1/9 | cross-character-leak PASS |
+| st-world-info (sim) | 2/9 | cross-character-leak, social-silence |
 | companmem + sketches | 9/9 | reference impl |
 
 ## Harness
 
-- `--baseline comparison` — full public scoreboard (Neo4j + Kiro for Graphiti).
-- Graphiti: JSON retry, embedder singleton, live progress logging.
-- Letta: MemFS simulation adapter (`research/harness/lib/letta_memfs.py`).
-- CI: `.github/workflows/ci.yml` (contracts, oracles, script baselines + letta + companmem).
+- `--baseline comparison` — mem0, graphiti, local baselines (Neo4j + Kiro for Graphiti).
+- All external baselines now have runnable simulation adapters (no vendor servers).
+- `merge_reports.py` overlays baseline rows into a scoreboard report.
+- CI: contracts, oracles, script baselines + letta/honcho/st-world-info + companmem.
 
-## Stubs / not done
+## Not done
 
-- Honcho, ST World Info adapters.
-- Letta live server adapter (optional; simulation encodes MemFS read policy).
+- Live vendor server adapters (Letta/Honcho APIs) optional.
 - Multi-month simulation, hole-8 cost curve fixture.
+- Fresh single-shot `--baseline comparison` run (current scoreboard uses merged reports).
 
 ## Freeze
 

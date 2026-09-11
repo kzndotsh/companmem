@@ -19,6 +19,8 @@ HIGHLIGHT = (
     "mem0-shared-bag",
     "graphiti",
     "letta",
+    "honcho",
+    "st-world-info",
     "companmem-sketch-a",
     "companmem-sketch-b",
     "companmem",
@@ -118,6 +120,8 @@ def build_markdown(report: dict, source: Path) -> str:
             "fails companion write/read policy holes. Wall time ~25–40x companmem.",
             "- **Letta MemFS simulation scores 1/9**. `system/` always-on plus `reference/` overlap retrieval per character tree; "
             "passes isolation (hole 5), fails typed write/read policy holes. Fast (~250ms for nine fixtures).",
+            "- **Honcho simulation scores 1/9** (peer card + explicit conclusions). **ST World Info scores 2/9** "
+            "(keyword/constant activation; passes holes 5 and 7-adjacent social-silence). Both fail companion policy holes.",
             "- **Companmem passes 9/9** on typed ingest + read policy + frozen reader policy fallback. "
             "Reference package: `companmem/`. Protocol: `research/protocol/SPEC.md`.",
             "",
