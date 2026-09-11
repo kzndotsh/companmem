@@ -36,10 +36,14 @@ LOCAL_DEFAULTS = (
     "companmem",
 )
 
-# Full public scoreboard: local baselines + isolation stress + Graphiti (Neo4j required).
+# Full public scoreboard: local baselines + isolation stress + external simulations.
+# Graphiti needs Neo4j + Kiro; mem0 needs sentence-transformers.
 COMPARISON_DEFAULTS = LOCAL_DEFAULTS + (
     "mem0-shared-bag",
     "graphiti",
+    "letta",
+    "honcho",
+    "st-world-info",
 )
 
 
@@ -380,7 +384,10 @@ def main() -> int:
         "baselines": baseline_rows,
     }
     RESULTS.mkdir(parents=True, exist_ok=True)
-    out = args.out or (RESULTS / f"{now}-{sha[:8]}.json")
+    if args.out is not None:
+        out = args.out if args.out.is_absolute() else (ROOT / args.out)
+    else:
+        out = RESULTS / f"{now}-{sha[:8]}.json"
     out.write_text(json.dumps(report, indent=2) + "\n")
     print_summary(report)
     print(f"report {out.relative_to(ROOT)}")

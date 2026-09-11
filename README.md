@@ -33,7 +33,7 @@ Concretely:
 
 ```bash
 python3 research/harness/run.py --baseline comparison   # full scoreboard (Neo4j for Graphiti)
-python3 research/harness/write_bakeoff.py          # write human-readable scoreboard → research/evals/BAKEOFF.md
+python3 research/harness/write_bakeoff.py          # → research/evals/BAKEOFF.md (use --report for a specific JSON)
 ```
 
 That is the bar for claiming "our memory is better": not a blog post, not a LoCoMo screenshot — **this command, this commit, these nine scenarios.** We are not there yet on every competitor (Letta/Honcho are still stubs), but the harness is the point.

@@ -116,8 +116,8 @@ def build_markdown(report: dict, source: Path) -> str:
             "- **Mem0 with per-`agent_id` isolation passes hole 5 but not the companion write/read policy holes.** "
             "Typical failures: helper voice (hole 1), lore as autobiography (hole 6), poison in reply (hole 7), "
             "no forget-that (hole 9), no gap calibration (hole 10), stale job bag (hole 4), joke as fact (hole 3).",
-            "- **Graphiti scores 1/9** (Kiro extract + hybrid search). Passes hole 5 when ingest completes; "
-            "fails companion write/read policy holes. Wall time ~25–40x companmem.",
+            "- **Graphiti scores 1/9** (Kiro extract + hybrid search). Passes hole 5; "
+            "fails companion write/read policy holes. Wall time ~46x companmem on this run.",
             "- **Letta MemFS simulation scores 1/9**. `system/` always-on plus `reference/` overlap retrieval per character tree; "
             "passes isolation (hole 5), fails typed write/read policy holes. Fast (~250ms for nine fixtures).",
             "- **Honcho simulation scores 1/9** (peer card + explicit conclusions). **ST World Info scores 2/9** "
