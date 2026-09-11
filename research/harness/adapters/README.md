@@ -6,7 +6,7 @@
 | `mem0-shared-bag` | implemented | same as mem0 |
 | `companmem` / sketches | implemented | `pip install httpx` (Kiro in `.env`) |
 | `graphiti` | implemented | `pip install graphiti-core sentence-transformers`; Neo4j via `docker compose -f research/harness/docker/neo4j-compose.yml up -d`; Kiro in `.env` |
-| `letta` | stub | Letta server + `letta-client` |
+| `letta` | implemented | MemFS simulation (`system/` always-on + `reference/` overlap retrieval); no Letta server |
 | `honcho` | stub | Honcho API key + SDK |
 | `st-world-info` | stub | SillyTavern World Info semantics TBD |
 

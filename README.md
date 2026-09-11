@@ -59,7 +59,8 @@ Most of the field assumes that sentence. This repo is built to break it — or p
 | Naive retrieve / RAG / stuff | 0/9 (expected) |
 | Mem0 (per-`agent_id`) | 2/9 |
 | Mem0 (shared bag) | 1/9 |
-| Graphiti (Neo4j + Kiro) | 0/9 |
+| Graphiti (Neo4j + Kiro) | 1/9 |
+| Letta MemFS (simulated) | 1/9 |
 | Kiro frozen reader | 9/9 |
 | Kiro LLM extract (no fallback) | 9/9 |
 
