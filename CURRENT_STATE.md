@@ -38,7 +38,8 @@ Overwrite this file each session. The audit TSV is the log. This is the snapshot
 ## Stubs / not done
 
 - Letta, Honcho, ST World Info adapters.
-- CI, multi-month simulation, hole-8 cost curve as sessions grow.
+- CI workflow added (`.github/workflows/ci.yml`): contracts, oracles, unit tests, script baselines + companmem. Mem0/Graphiti need local run with deps + Kiro + Neo4j.
+- Multi-month simulation, hole-8 cost curve as sessions grow.
 
 ## Freeze
 

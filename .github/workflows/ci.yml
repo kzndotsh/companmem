@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  fast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: pip install httpx
+
+      - name: Validate contracts
+        run: |
+          python3 research/_contracts/validate-fixtures.py
+          python3 research/_contracts/validate-harness.py
+          python3 research/_contracts/validate-evals.py
+
+      - name: Oracle solvability
+        run: python3 research/_contracts/run-oracles.py
+
+      - name: Unit tests
+        run: |
+          python3 tests/test_extract.py
+          PYTHONPATH=research/harness/lib python3 tests/test_graphiti_kiro_json.py
+
+      - name: Script baselines + companmem (no network)
+        run: |
+          python3 research/harness/run.py \
+            --baseline oracle,naive-retrieve,naive-rag,long-context-stuff,companmem,companmem-sketch-a,companmem-sketch-b
