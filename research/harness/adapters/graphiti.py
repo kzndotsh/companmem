@@ -25,7 +25,7 @@ load_dotenv()
 from graphiti_kiro import (  # noqa: E402
     KiroGraphitiLLMClient,
     PassThroughReranker,
-    SentenceTransformerEmbedder,
+    get_sentence_transformer_embedder,
     group_namespace,
     neo4j_settings,
 )
@@ -86,7 +86,7 @@ async def _run_async(world: Path) -> tuple[str, dict[str, Any], dict[str, int]]:
         user=user,
         password=password,
         llm_client=KiroGraphitiLLMClient(LLMConfig()),
-        embedder=SentenceTransformerEmbedder(),
+        embedder=get_sentence_transformer_embedder(),
         cross_encoder=PassThroughReranker(),
     )
     try:

@@ -32,7 +32,7 @@ Concretely:
 4. **Report** — one JSON file per run with timestamp and git commit, so anyone can rerun and verify.
 
 ```bash
-python3 research/harness/run.py --baseline local   # run the exam on all local systems
+python3 research/harness/run.py --baseline comparison   # full scoreboard (Neo4j for Graphiti)
 python3 research/harness/write_bakeoff.py          # write human-readable scoreboard → research/evals/BAKEOFF.md
 ```
 
@@ -56,8 +56,10 @@ Most of the field assumes that sentence. This repo is built to break it — or p
 | --- | --- |
 | Public fixtures (9) | **companmem 9/9** |
 | Oracle solvability | 9/9 PASS |
-| Naive retrieve-then-speak | 0/9 (expected) |
+| Naive retrieve / RAG / stuff | 0/9 (expected) |
 | Mem0 (per-`agent_id`) | 2/9 |
+| Mem0 (shared bag) | 1/9 |
+| Graphiti (Neo4j + Kiro) | 0/9 |
 | Kiro frozen reader | 9/9 |
 | Kiro LLM extract (no fallback) | 9/9 |
 
@@ -75,8 +77,8 @@ cp .env.example .env                             # Kiro gateway (no OpenAI requi
 # Unit 4 — fixtures are solvable, naive baseline fails
 python3 research/_contracts/run-oracles.py
 
-# Run the comparison on all local memory systems
-python3 research/harness/run.py --baseline local
+# Run the comparison on all wired memory systems
+python3 research/harness/run.py --baseline comparison
 python3 research/harness/summarize_bakeoff.py
 python3 research/harness/write_bakeoff.py
 

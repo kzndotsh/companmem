@@ -36,6 +36,12 @@ LOCAL_DEFAULTS = (
     "companmem",
 )
 
+# Full public scoreboard: local baselines + isolation stress + Graphiti (Neo4j required).
+COMPARISON_DEFAULTS = LOCAL_DEFAULTS + (
+    "mem0-shared-bag",
+    "graphiti",
+)
+
 
 def fixture_ids() -> list[str]:
     return [
@@ -229,6 +235,9 @@ def run_trial(
     except subprocess.CalledProcessError as exc:
         status = "infra_error"
         error = f"exit {exc.returncode}"
+    except Exception as exc:
+        status = "infra_error"
+        error = f"{type(exc).__name__}: {exc}"
     wall_ms = int((time.perf_counter() - started) * 1000)
     export_stats = export_metrics(artifacts) if status == "ok" else {"export_chars": 0, "export_tokens_approx": 0}
     trial = {
@@ -247,6 +256,24 @@ def run_trial(
     return trial
 
 
+def format_trial_line(baseline_id: str, trial: dict[str, Any]) -> str:
+    if trial["status"] != "ok":
+        mark = trial["status"]
+    elif trial.get("resolved"):
+        mark = "PASS"
+    else:
+        mark = "FAIL"
+    cost_note = ""
+    if trial.get("cost_flags"):
+        cost_note = f" cost={','.join(trial['cost_flags'])}"
+    return (
+        f"{baseline_id:22} {trial['fixture_id']:24} {mark:12} "
+        f"f2p={trial['fail_to_pass']} p2p={trial['pass_to_pass']} "
+        f"wall_ms={trial['wall_ms']} "
+        f"export_tok={trial.get('export_tokens_approx', 0)}{cost_note}"
+    )
+
+
 def run_baseline(
     baseline: dict[str, Any],
     fixture_list: list[str],
@@ -254,11 +281,15 @@ def run_baseline(
     budgets: dict[str, int],
 ) -> dict[str, Any]:
     trials: list[dict[str, Any]] = []
-    for fixture_id in fixture_list:
+    baseline_id = str(baseline["id"])
+    total = len(fixture_list)
+    for index, fixture_id in enumerate(fixture_list, start=1):
+        print(f"{baseline_id:22} {fixture_id:24} running ({index}/{total}) ...", flush=True)
         work = tmp_parent / baseline["id"] / fixture_id
         trial = run_trial(baseline, fixture_id, work)
         trial["cost_flags"] = cost_flags(trial, budgets)
         trials.append(trial)
+        print(format_trial_line(baseline_id, trial), flush=True)
     resolved = sum(1 for t in trials if t["status"] == "ok" and t["resolved"])
     runnable = sum(1 for t in trials if t["status"] == "ok")
     return {
@@ -273,25 +304,12 @@ def run_baseline(
     }
 
 
-def print_summary(report: dict[str, Any]) -> None:
+def print_summary(report: dict[str, Any], *, include_trials: bool = False) -> None:
     for row in report["baselines"]:
         bid = row["baseline_id"]
-        for trial in row["trials"]:
-            if trial["status"] != "ok":
-                mark = trial["status"]
-            elif trial.get("resolved"):
-                mark = "PASS"
-            else:
-                mark = "FAIL"
-            cost_note = ""
-            if trial.get("cost_flags"):
-                cost_note = f" cost={','.join(trial['cost_flags'])}"
-            print(
-                f"{bid:22} {trial['fixture_id']:24} {mark:12} "
-                f"f2p={trial['fail_to_pass']} p2p={trial['pass_to_pass']} "
-                f"wall_ms={trial['wall_ms']} "
-                f"export_tok={trial.get('export_tokens_approx', 0)}{cost_note}"
-            )
+        if include_trials:
+            for trial in row["trials"]:
+                print(format_trial_line(bid, trial))
         cost = row.get("cost", {})
         if cost:
             print(
@@ -309,7 +327,7 @@ def main() -> int:
     parser.add_argument(
         "--baseline",
         default="local",
-        help="baseline id, comma list, 'local' (default), or 'all'",
+        help="baseline id, comma list, 'local' (default), 'comparison', or 'all'",
     )
     parser.add_argument("--fixture", help="single fixture id")
     parser.add_argument("--out", type=Path, help="report path (default: research/evals/results/<ts>-<sha>.json)")
@@ -329,6 +347,8 @@ def main() -> int:
 
     if args.baseline == "local":
         selected = [by_id[bid] for bid in LOCAL_DEFAULTS]
+    elif args.baseline == "comparison":
+        selected = [by_id[bid] for bid in COMPARISON_DEFAULTS]
     elif args.baseline == "all":
         selected = list(registry["baselines"])
     else:

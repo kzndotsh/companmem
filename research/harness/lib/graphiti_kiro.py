@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import re
@@ -14,6 +15,11 @@ from graphiti_core.llm_client.client import LLMClient
 from graphiti_core.llm_client.config import DEFAULT_MAX_TOKENS, LLMConfig, ModelSize
 from graphiti_core.prompts.models import Message
 from pydantic import BaseModel
+
+_JSON_ONLY_SUFFIX = (
+    "\n\nIMPORTANT: Output ONLY a JSON object. No markdown code fences. "
+    "No preamble. Start with { and end with }."
+)
 
 
 def _gateway_url() -> str:
@@ -28,36 +34,76 @@ def _model() -> str:
     return os.environ.get("COMPANMEM_LLM_MODEL", "claude-sonnet-4.6").strip()
 
 
-def _extract_json_object(text: str) -> dict[str, Any]:
-    cleaned = text.strip()
-    if not cleaned.startswith("{"):
-        start = cleaned.find("{")
+def _json_retries() -> int:
+    raw = os.environ.get("GRAPHITI_KIRO_JSON_RETRIES", "3").strip()
+    try:
+        return max(1, int(raw))
+    except ValueError:
+        return 3
+
+
+def _parse_json_response(text_out: str) -> dict[str, Any]:
+    """Parse JSON from Kiro output (gang.guide extract.py / enrich.py pattern)."""
+    text_out = text_out.strip()
+    if not text_out:
+        raise ValueError("empty response from Kiro gateway")
+
+    if "```" in text_out:
+        for part in text_out.split("```")[1:]:
+            candidate = part.lstrip("json\n").strip()
+            if candidate.startswith("{"):
+                text_out = candidate
+                break
+
+    if not text_out.startswith("{"):
+        start = text_out.find("{")
         if start == -1:
             raise ValueError("no JSON object in model response")
-        cleaned = cleaned[start:]
+        text_out = text_out[start:]
+
     depth = 0
     end_idx = 0
-    for i, char in enumerate(cleaned):
+    for index, char in enumerate(text_out):
         if char == "{":
             depth += 1
         elif char == "}":
             depth -= 1
-        if depth == 0:
-            end_idx = i + 1
-            break
+            if depth == 0:
+                end_idx = index + 1
+                break
     if not end_idx:
         raise ValueError("unbalanced JSON in model response")
-    parsed = json.loads(cleaned[:end_idx])
+
+    try:
+        parsed = json.loads(text_out[:end_idx])
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"invalid JSON in model response: {exc}") from exc
     if not isinstance(parsed, dict):
         raise ValueError("expected JSON object from model")
     return parsed
 
 
+def _extract_json_object(text: str) -> dict[str, Any]:
+    return _parse_json_response(text)
+
+
+def _embedding_model() -> str:
+    return os.environ.get(
+        "COMPANMEM_EMBEDDING_MODEL",
+        "sentence-transformers/all-MiniLM-L6-v2",
+    ).strip()
+
+
+_EMBEDDER_CACHE: dict[str, SentenceTransformerEmbedder] = {}
+
+
 class SentenceTransformerEmbedder(EmbedderClient):
-    def __init__(self) -> None:
+    def __init__(self, model_name: str | None = None) -> None:
         from sentence_transformers import SentenceTransformer
 
-        self._model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+        resolved = model_name or _embedding_model()
+        self._model_name = resolved
+        self._model = SentenceTransformer(resolved)
         self.config = EmbedderConfig(embedding_dim=384)
 
     async def create(self, input_data: str | list[str] | Any) -> list[float]:
@@ -66,6 +112,16 @@ class SentenceTransformerEmbedder(EmbedderClient):
 
     async def create_batch(self, input_data_list: list[str]) -> list[list[float]]:
         return [self._model.encode(text).tolist() for text in input_data_list]
+
+
+def get_sentence_transformer_embedder() -> SentenceTransformerEmbedder:
+    """Return a process-wide embedder for the configured model (harness warm-cache)."""
+    model = _embedding_model()
+    cached = _EMBEDDER_CACHE.get(model)
+    if cached is None:
+        cached = SentenceTransformerEmbedder(model)
+        _EMBEDDER_CACHE[model] = cached
+    return cached
 
 
 class PassThroughReranker(CrossEncoderClient):
@@ -104,31 +160,63 @@ class KiroGraphitiLLMClient(LLMClient):
                 "\n\nRespond with ONLY a JSON object matching this schema. "
                 f"No markdown. Schema: {schema}"
             )
+        system_prompt += _JSON_ONLY_SUFFIX
 
-        payload = {
-            "model": _model(),
-            "max_tokens": max_tokens,
-            "thinking": {"type": "disabled"},
-            "system": system_prompt,
-            "messages": [{"role": "user", "content": user_prompt}],
-        }
         headers = {
             "x-api-key": key,
             "anthropic-version": "2023-06-01",
             "content-type": "application/json",
         }
-        async with httpx.AsyncClient(timeout=120.0) as client:
-            resp = await client.post(f"{_gateway_url()}/v1/messages", headers=headers, json=payload)
-            resp.raise_for_status()
-            body = resp.json()
+        retries = _json_retries()
+        last_error: Exception | None = None
+        prompt = user_prompt
 
-        parts = body.get("content", [])
-        text = "".join(str(part.get("text", "")) for part in parts if part.get("type") == "text").strip()
-        if not text:
-            raise ValueError("empty response from Kiro gateway")
-        if response_model is None:
-            return _extract_json_object(text) if text.startswith("{") else {"content": text}
-        return _extract_json_object(text)
+        async with httpx.AsyncClient(timeout=300.0) as client:
+            for attempt in range(retries):
+                payload = {
+                    "model": _model(),
+                    "max_tokens": max_tokens,
+                    "thinking": {"type": "disabled"},
+                    "system": system_prompt,
+                    "messages": [{"role": "user", "content": prompt}],
+                }
+                try:
+                    resp = await client.post(
+                        f"{_gateway_url()}/v1/messages",
+                        headers=headers,
+                        json=payload,
+                    )
+                    resp.raise_for_status()
+                    body = resp.json()
+                    parts = body.get("content", [])
+                    text = "".join(
+                        str(part.get("text", ""))
+                        for part in parts
+                        if part.get("type") == "text"
+                    ).strip()
+                    if response_model is None and text and not text.lstrip().startswith("{"):
+                        if "```" not in text and "{" not in text:
+                            return {"content": text}
+                    return _parse_json_response(text)
+                except (
+                    httpx.HTTPStatusError,
+                    httpx.TimeoutException,
+                    httpx.TransportError,
+                    ValueError,
+                ) as exc:
+                    last_error = exc
+                    if attempt + 1 >= retries:
+                        break
+                    wait = min(2**attempt, 8)
+                    prompt = (
+                        f"{user_prompt}\n\n"
+                        f"[retry {attempt + 2}/{retries}] Previous response was invalid "
+                        f"({type(exc).__name__}). Output ONLY valid JSON."
+                    )
+                    await asyncio.sleep(wait)
+
+        detail = f"{type(last_error).__name__}: {last_error}" if last_error else "unknown error"
+        raise ValueError(f"kiro JSON request failed after {retries} attempts: {detail}")
 
 
 def neo4j_settings() -> tuple[str, str, str]:

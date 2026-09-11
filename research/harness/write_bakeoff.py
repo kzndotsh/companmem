@@ -12,12 +12,14 @@ DEFAULT_OUT = ROOT / "research" / "evals" / "BAKEOFF.md"
 RESULTS = ROOT / "research" / "evals" / "results"
 
 HIGHLIGHT = (
-    "oracle",
     "naive-retrieve",
     "naive-rag",
+    "long-context-stuff",
     "mem0",
     "mem0-shared-bag",
+    "graphiti",
     "companmem-sketch-a",
+    "companmem-sketch-b",
     "companmem",
 )
 
@@ -40,7 +42,9 @@ def build_markdown(report: dict, source: Path) -> str:
     sha = report.get("git_sha", "unknown")
     observed = report.get("observed_at", "unknown")
     lines = [
-        "# Companion memory bakeoff",
+        "# Companion memory scoreboard",
+        "",
+        "Side-by-side results from running multiple memory systems on the same nine scenarios.",
         "",
         f"Observed. {observed} UTC",
         f"Git SHA. `{sha}`",
@@ -50,7 +54,7 @@ def build_markdown(report: dict, source: Path) -> str:
         "",
         "```bash",
         "python3 research/_contracts/run-oracles.py",
-        "python3 research/harness/run.py --baseline local",
+        "python3 research/harness/run.py --baseline comparison",
         "python3 research/harness/summarize_bakeoff.py",
         "python3 research/harness/write_bakeoff.py",
         "```",
@@ -109,6 +113,8 @@ def build_markdown(report: dict, source: Path) -> str:
             "- **Mem0 with per-`agent_id` isolation passes hole 5 but not the companion write/read policy holes.** "
             "Typical failures: helper voice (hole 1), lore as autobiography (hole 6), poison in reply (hole 7), "
             "no forget-that (hole 9), no gap calibration (hole 10), stale job bag (hole 4), joke as fact (hole 3).",
+            "- **Graphiti scores 0–1/9** on this harness (Kiro extract + hybrid search). Passes isolation (hole 5) when ingest completes; "
+            "fails companion write/read policy holes (joke-as-fact, forget-that, reunion gap, etc.). Wall time ~25–40x companmem.",
             "- **Companmem passes 9/9** on typed ingest + read policy + frozen reader policy fallback. "
             "Reference package: `companmem/`. Protocol: `research/protocol/SPEC.md`.",
             "",
@@ -144,7 +150,7 @@ def build_markdown(report: dict, source: Path) -> str:
             "",
             "## What still loses",
             "",
-            "- No claim against Graphiti, Letta, Honcho, or ST World Info yet.",
+            "- Letta, Honcho, and ST World Info adapters are still stubs.",
             "- Frozen Kiro reader and LLM extract bakeoffs recorded separately; see `*-frozen-reader-*.json` and `*-llm-extract-*.json`.",
             "- Long-session cost curve (hole 8 as sessions grow) is not a fixture yet; only per-trial meters exist.",
             "",
