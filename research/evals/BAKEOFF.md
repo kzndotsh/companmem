@@ -1,4 +1,6 @@
-# Companion memory bakeoff
+# Companion memory scoreboard
+
+Side-by-side results from running multiple memory systems on the same nine scenarios. Regenerate with `python3 research/harness/run.py` then `write_bakeoff.py`.
 
 Observed. 2026-09-11T182923Z UTC
 Git SHA. `unknown`

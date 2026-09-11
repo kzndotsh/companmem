@@ -1,5 +1,7 @@
 # companmem
 
+> **Work in progress.** Census, fixtures, and harness are active research. Scores, adapters, and docs change between commits. Do not treat pass rates or architecture as final.
+
 Find the missing secret sauce for **agent memory that feels like a real relationship** — not a search box stapled to a chat window.
 
 ## The actual goal
@@ -16,11 +18,29 @@ This repo exists because **claims without automated evals are hearsay**. The pro
 4. **Score companion-specific holes** that retrieval QA never touches: write policy, read policy, ontology, isolation, poisoning, forget-that, reunion gaps, cost per turn.
 5. **Simulate long arcs** (fixtures today; multi-month simulation is the direction) and measure drift, hallucination, and latency — memory has to feel instant, not "hold on while I search."
 
-The north star is not a leaderboard number on someone else's bench. It is a **reproducible bakeoff** — `git sha`, dated artifact, same command for Mem0, Graphiti, naive RAG, and our design — where the winner still feels like the same person after a three-month gap without leaking another character's secrets.
+LoCoMo stays in the census as a **benchmark others optimize**. A high LoCoMo score does not mean you solved companion memory. Mem0 can look fine on LoCoMo and score 2/9 here.
 
-LoCoMo stays in the census as a **baseline others optimize**. Beating it does not mean you solved companion memory. Mem0 can look fine on LoCoMo and score 2/9 here.
+## The comparison run (we call this a "bakeoff")
 
-## What we test (nine public holes)
+**Bakeoff** is just jargon for: *put every memory system through the same exam and publish the scores.*
+
+Concretely:
+
+1. **Scenarios** — nine short roleplay worlds in `research/evals/fixtures/` (e.g. user jokes they were mayor; user asks you to forget an allergy; two characters must not share secrets).
+2. **Systems under test** — Mem0, naive RAG, Graphiti, our `companmem` design, etc. Each one reads the same world files and produces a reply + memory export.
+3. **Grader** — automated pass/fail checks on that output (no human in the loop). Example: reply must not mention "nickel allergy" after a forget-that; Corin's store must not contain Mara's firing.
+4. **Report** — one JSON file per run with timestamp and git commit, so anyone can rerun and verify.
+
+```bash
+python3 research/harness/run.py --baseline local   # run the exam on all local systems
+python3 research/harness/write_bakeoff.py          # write human-readable scoreboard → research/evals/BAKEOFF.md
+```
+
+That is the bar for claiming "our memory is better": not a blog post, not a LoCoMo screenshot — **this command, this commit, these nine scenarios.** We are not there yet on every competitor (Letta/Honcho are still stubs), but the harness is the point.
+
+What the grader checks today is **specific string rules** on replies and memory exports — proxies for "same person after a gap" or "no leak," not a full vibe judge.
+
+## What we test (nine public scenarios)
 
 Identity drift, social silence, joke-as-fact, retcon/supersession, cross-character isolation, lore vs lived experience, persona poisoning, forget-that, reunion gap calibration, plus cost meters. See [`research/evals/SPEC.md`](research/evals/SPEC.md).
 
@@ -41,7 +61,7 @@ Most of the field assumes that sentence. This repo is built to break it — or p
 | Kiro frozen reader | 9/9 |
 | Kiro LLM extract (no fallback) | 9/9 |
 
-Latest numbers and matrix: [`research/evals/BAKEOFF.md`](research/evals/BAKEOFF.md).
+Latest scoreboard: [`research/evals/BAKEOFF.md`](research/evals/BAKEOFF.md) (generated from the comparison run).
 
 ## Quick start
 
@@ -55,12 +75,12 @@ cp .env.example .env                             # Kiro gateway (no OpenAI requi
 # Unit 4 — fixtures are solvable, naive baseline fails
 python3 research/_contracts/run-oracles.py
 
-# Full local bakeoff
+# Run the comparison on all local memory systems
 python3 research/harness/run.py --baseline local
 python3 research/harness/summarize_bakeoff.py
 python3 research/harness/write_bakeoff.py
 
-# Extract / reader bakeoffs (gateway must be up)
+# Optional: Kiro reader / LLM extract runs (gateway must be up)
 python3 research/harness/run_frozen_reader.py
 python3 research/harness/run_llm_extract.py
 
@@ -97,7 +117,7 @@ research/
   evals/
     fixtures/           Nine public fixtures + held-out persona-poison-alt
     baselines/          naive-retrieve, naive-rag, long-context-stuff
-    BAKEOFF.md          Generated scoreboard
+    BAKEOFF.md          Generated scoreboard (from comparison run)
   harness/              run.py, adapters (mem0, graphiti, companmem, …), readers
   papers/               registry.json, vendored arxiv extracts
   protocol/SPEC.md      Memory protocol (unit 7)
@@ -141,7 +161,7 @@ Public fixture **predicates are frozen**. If a design fails a hole, fix ingest/r
 
 1. Read [`WORKFLOW.md`](WORKFLOW.md) for unit order.
 2. Run `python3 research/_contracts/run-oracles.py` before and after changes.
-3. Refresh bakeoff: `run.py --baseline local` → `write_bakeoff.py`.
+3. Refresh the scoreboard: `run.py --baseline local` → `write_bakeoff.py`.
 
 ## License
 
