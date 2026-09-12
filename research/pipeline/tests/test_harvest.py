@@ -1,0 +1,486 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+from companmem_pipeline.harvest import (
+    ISSUE_NOISE_RE,
+    ISSUE_UX_RE,
+    LOGIN_PATH_RE,
+    allowed_source_url,
+    blog_seed_urls,
+    detect_license,
+    first_party_hosts,
+    github_owner_repo,
+    is_community_host,
+    is_community_thread,
+    is_generic_code_name,
+    is_generic_docs_url,
+    is_marketing_home,
+    is_memory_path,
+    is_noisy_issue,
+    issue_sort_key,
+    load_seed,
+    parse_llms_links,
+    parse_robots_sitemaps,
+    parse_sitemap_locs,
+    product_ids,
+    product_mentioned,
+    product_path_tokens,
+    public_https_repo,
+    select_code_files,
+    select_code_inventory,
+    select_docs_urls,
+    select_listed_code_files,
+)
+
+
+def test_github_owner_repo_https_and_ssh() -> None:
+    assert github_owner_repo("https://github.com/mem0ai/mem0") == ("mem0ai", "mem0")
+    assert github_owner_repo("https://github.com/mem0ai/mem0.git") == ("mem0ai", "mem0")
+    assert github_owner_repo("ssh://git@github.com/mem0ai/mem0") == ("mem0ai", "mem0")
+    assert github_owner_repo("git@github.com:letta-ai/letta-code.git") == (
+        "letta-ai",
+        "letta-code",
+    )
+    assert github_owner_repo("") is None
+
+
+def test_seed_has_inclusion_lists() -> None:
+    seed = load_seed()
+    assert "slices" not in seed
+    ids = product_ids()
+    assert "mem0" in ids
+    assert "claude-mem" in ids
+    products = seed["products"]
+    assert isinstance(products, dict)
+    for slug in ids:
+        product = products[slug]
+        assert "slice" not in product
+        assert isinstance(product.get("open_code"), list), slug
+        assert isinstance(product.get("open_docs"), list), slug
+        assert all(isinstance(item, str) for item in product["open_code"]), slug
+        assert all(isinstance(item, str) for item in product["open_docs"]), slug
+        if not product.get("clone"):
+            assert product["open_code"] == []
+
+
+def test_blog_seed_skips_github_forge() -> None:
+    urls = blog_seed_urls(
+        {
+            "repo": "https://github.com/coleam00/mcp-mem0",
+            "docs": "https://github.com/coleam00/mcp-mem0/blob/main/README.md",
+            "census_sources": [],
+            "skip_url_prefixes": [],
+        }
+    )
+    assert urls == []
+    urls = blog_seed_urls(
+        {
+            "repo": "https://github.com/mem0ai/mem0",
+            "docs": "https://docs.mem0.ai/llms.txt",
+            "census_sources": [],
+            "skip_url_prefixes": [],
+        }
+    )
+    assert urls == ["https://docs.mem0.ai/blog"]
+
+
+def test_detect_license_agpl_before_gpl(tmp_path: Path) -> None:
+    (tmp_path / "LICENSE").write_text(
+        "GNU AFFERO GENERAL PUBLIC LICENSE\nVersion 3, 19 November 2007\n"
+        "This is a GNU General Public License version 3 derived text.\n",
+        encoding="utf-8",
+    )
+    assert detect_license(tmp_path) == "AGPL-3.0"
+
+
+def test_select_code_files_prefers_src_over_nested_readme(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("# Honcho\n", encoding="utf-8")
+    (tmp_path / "LICENSE").write_text("GNU AFFERO GENERAL PUBLIC LICENSE\n", encoding="utf-8")
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "memory.py").write_text("def remember():\n    pass\n", encoding="utf-8")
+    (src / "deriver.py").write_text("def derive():\n    pass\n", encoding="utf-8")
+    nested = tmp_path / "docs" / "v2"
+    nested.mkdir(parents=True)
+    (nested / "README.md").write_text("nested\n", encoding="utf-8")
+    examples = tmp_path / "examples" / "crewai"
+    examples.mkdir(parents=True)
+    (examples / "README.md").write_text("example\n", encoding="utf-8")
+    (examples / "memory.py").write_text("pass\n", encoding="utf-8")
+    selected = [p.relative_to(tmp_path).as_posix() for p in select_code_files(tmp_path)]
+    assert "README.md" in selected
+    assert "LICENSE" not in selected
+    assert "src/memory.py" in selected
+    assert "src/models.py" not in selected
+    assert "src/deriver.py" not in selected
+    assert "docs/v2/README.md" not in selected
+    assert "examples/crewai/README.md" not in selected
+    assert "examples/crewai/memory.py" not in selected
+
+
+def test_public_https_repo_from_ssh() -> None:
+    assert (
+        public_https_repo("ssh://git@github.com/plastic-labs/honcho", None)
+        == "https://github.com/plastic-labs/honcho"
+    )
+
+
+def test_allowed_source_url_first_party_only() -> None:
+    product = {
+        "id": "honcho",
+        "name": "Honcho",
+        "repo": "https://github.com/plastic-labs/honcho",
+        "docs": "https://docs.honcho.dev/llms.txt",
+    }
+    repo_meta = {"origin": "ssh://git@github.com/plastic-labs/honcho"}
+    hosts = first_party_hosts(product, repo_meta)
+    assert "docs.honcho.dev" in hosts
+    assert "honcho.dev" in hosts
+    assert "github.com" not in hosts
+    assert allowed_source_url("https://docs.honcho.dev/v2/guides/architecture", product, repo_meta)
+    assert allowed_source_url(
+        "https://github.com/plastic-labs/honcho/blob/main/src/models.py",
+        product,
+        repo_meta,
+    )
+    assert not allowed_source_url(
+        "https://docs.mem0.ai/openmemory/integrations",
+        product,
+        repo_meta,
+    )
+    assert not allowed_source_url("https://docs.openclaw.ai/concepts/memory", product, repo_meta)
+    assert not allowed_source_url("https://discord.com/invite/honcho", product, repo_meta)
+    assert not allowed_source_url("https://app.honcho.dev/login", product, repo_meta)
+    assert not allowed_source_url(
+        "https://github.com/coleam00/mcp-mem0/blob/main/README.md",
+        product,
+        repo_meta,
+    )
+
+
+def test_select_code_files_skips_generic_meta(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("# x\n", encoding="utf-8")
+    (tmp_path / "LICENSE").write_text("MIT\n", encoding="utf-8")
+    (tmp_path / "CHANGELOG.md").write_text("# changes\n", encoding="utf-8")
+    (tmp_path / "CONTRIBUTING.md").write_text("# contrib\n", encoding="utf-8")
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "memory.py").write_text("def remember():\n    pass\n", encoding="utf-8")
+    selected = [p.relative_to(tmp_path).as_posix() for p in select_code_files(tmp_path)]
+    assert selected == ["README.md", "src/memory.py"]
+
+
+def test_select_code_scores_content_quota_and_package_root(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("# Honcho\nSee `src/main.py`\n", encoding="utf-8")
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "main.py").write_text("def main():\n    pass\n", encoding="utf-8")
+    (src / "models.py").write_text("class Peer:\n    pass\n", encoding="utf-8")
+    (src / "explore.py").write_text("def walk():\n    pass\n", encoding="utf-8")
+    deriver = src / "deriver"
+    deriver.mkdir()
+    (deriver / "deriver.py").write_text("class Deriver:\n    pass\n", encoding="utf-8")
+    for i in range(6):
+        (deriver / f"worker_{i}.py").write_text(
+            "def search_memory():\n    pass\n",
+            encoding="utf-8",
+        )
+    (src / "embedding_client.py").write_text("def embed():\n    pass\n", encoding="utf-8")
+    cli = tmp_path / "honcho-cli" / "src" / "honcho_cli"
+    cli.mkdir(parents=True)
+    for i in range(8):
+        (cli / f"cmd_{i}.py").write_text("print('honcho memory')\n", encoding="utf-8")
+    product = {"id": "honcho", "name": "Honcho"}
+    inventory = select_code_inventory(tmp_path, product)
+    names = [p.relative_to(tmp_path).as_posix() for p in inventory.files]
+    assert "README.md" in names
+    assert "src/main.py" in names
+    assert "src/models.py" in names
+    assert "src/deriver/deriver.py" in names
+    assert "src/explore.py" not in names
+    deriver_kept = [n for n in names if n.startswith("src/deriver/")]
+    assert len(deriver_kept) <= 4
+    assert "src/deriver/deriver.py" in deriver_kept
+    cli_kept = [n for n in names if n.startswith("honcho-cli/")]
+    assert len(cli_kept) <= 4
+    assert inventory.signaled > len(inventory.files)
+    reasons = {row["reason"] for row in inventory.skipped}
+    assert reasons & {"quota", "cap"}
+    assert "src/models.py" in inventory.must_open
+    assert "src/main.py" in inventory.must_open
+    assert inventory.skipped_total >= len(inventory.skipped)
+
+
+def test_memory_path_uses_this_product_not_siblings(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("# x\n", encoding="utf-8")
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "graphiti_client.py").write_text("pass\n", encoding="utf-8")
+    (src / "mem0.py").write_text("pass\n", encoding="utf-8")
+    (src / "memory.py").write_text("pass\n", encoding="utf-8")
+    honcho = select_code_files(tmp_path, {"id": "honcho", "name": "Honcho"})
+    names = [p.relative_to(tmp_path).as_posix() for p in honcho]
+    assert "src/memory.py" in names
+    assert "src/graphiti_client.py" not in names
+    assert "src/mem0.py" not in names
+    mem0 = select_code_files(tmp_path, {"id": "mem0", "name": "Mem0"})
+    mem0_names = [p.relative_to(tmp_path).as_posix() for p in mem0]
+    assert "src/mem0.py" in mem0_names
+    assert "src/memory.py" in mem0_names
+
+
+def test_parse_sitemap_and_robots() -> None:
+    xml = """<?xml version="1.0"?>
+    <urlset>
+      <url><loc>https://honcho.dev/docs/memory</loc></url>
+      <url><loc>https://honcho.dev/changelog</loc></url>
+    </urlset>
+    """
+    assert parse_sitemap_locs(xml) == [
+        "https://honcho.dev/docs/memory",
+        "https://honcho.dev/changelog",
+    ]
+    robots = "User-agent: *\nSitemap: https://honcho.dev/sitemap.xml\n"
+    assert parse_robots_sitemaps(robots) == ["https://honcho.dev/sitemap.xml"]
+
+
+def test_generic_docs_and_github_chrome() -> None:
+    assert is_generic_docs_url("https://github.com/plastic-labs/honcho")
+    assert is_generic_docs_url("https://github.com/plastic-labs/honcho/tags")
+    assert is_generic_docs_url("https://github.com/plastic-labs/honcho/issues")
+    assert is_generic_docs_url("https://honcho.dev/changelog")
+    assert not is_generic_docs_url(
+        "https://github.com/plastic-labs/honcho/blob/main/src/models.py"
+    )
+    assert is_community_host("news.ycombinator.com")
+    assert is_community_host("old.reddit.com")
+    assert is_community_host("forum.honcho.dev")
+    assert not is_community_host("docs.honcho.dev")
+
+
+def test_issue_rank_prefers_ux_over_noise() -> None:
+    bot = {
+        "title": "Bump requests from 1.0 to 2.0",
+        "user": {"login": "dependabot[bot]"},
+        "body": "",
+        "comments": 0,
+    }
+    ux = {
+        "title": "Honcho doesn't remember my name across sessions",
+        "user": {"login": "alice"},
+        "body": "lost context after a day",
+        "comments": 4,
+        "reactions": {"total_count": 3},
+    }
+    tech = {
+        "title": "TypeError in deriver worker",
+        "user": {"login": "bob"},
+        "body": "pytest stack trace on import error",
+        "comments": 1,
+        "reactions": {"total_count": 0},
+    }
+    assert is_noisy_issue(bot)
+    assert not is_noisy_issue(ux)
+    assert issue_sort_key(ux) < issue_sort_key(tech)
+    assert ISSUE_UX_RE.search("please delete memory for this user")
+    assert ISSUE_UX_RE.search("personalization is wrong")
+    assert ISSUE_UX_RE.search("doesn’t remember me")
+    assert ISSUE_UX_RE.search("character forgets my name")
+    assert ISSUE_UX_RE.search("it forgot my name across sessions")
+    assert ISSUE_UX_RE.search("doesn't know who I am")
+    assert not ISSUE_UX_RE.search("does not know how to compile")
+    assert not ISSUE_UX_RE.search("confused about docker install")
+    assert not ISSUE_UX_RE.search("relationship between tables in postgres")
+    assert not ISSUE_UX_RE.search("change my namespace")
+    assert not ISSUE_UX_RE.search("personal access token")
+    assert not ISSUE_NOISE_RE.search("Test: character forgets my name")
+    assert ISSUE_NOISE_RE.search("test(deps): bump pytest")
+    assert not LOGIN_PATH_RE.search("/api/v1/members")
+    assert LOGIN_PATH_RE.search("/login")
+
+
+def test_memory_path_boundaries_and_markdown_links() -> None:
+    assert is_memory_path("src/memory.py")
+    assert is_memory_path("src/vector_store/__init__.py")
+    assert is_memory_path("src/embedding_client.py")
+    assert not is_memory_path("src/explore.py")
+    assert not is_memory_path("src/graphql_client.py")
+    links = parse_llms_links(
+        '[Peer card](https://honcho.dev/docs/peer-card "title")\n'
+        "[rel](/docs/memory)\n"
+        "[skip](#anchor)",
+        "https://honcho.dev/docs/llms.txt",
+    )
+    assert "https://honcho.dev/docs/peer-card" in links
+    assert "https://honcho.dev/docs/memory" in links
+    assert all(not u.endswith("#anchor") for u in links)
+    xml = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+    xml += "<url><loc>https://honcho.dev/docs/memory</loc></url></urlset>"
+    assert parse_sitemap_locs(xml) == ["https://honcho.dev/docs/memory"]
+    namespaced = "<urlset><url><sm:loc>https://honcho.dev/a</sm:loc></url></urlset>"
+    assert parse_sitemap_locs(namespaced) == ["https://honcho.dev/a"]
+    encoded = "<urlset><url><loc>https://honcho.dev/a&amp;b</loc></url></urlset>"
+    assert parse_sitemap_locs(encoded) == ["https://honcho.dev/a&b"]
+    links = parse_llms_links(
+        "[img](https://honcho.dev/logo.png)\n[ok](https://honcho.dev/docs/memory)",
+        "https://honcho.dev/docs/llms.txt",
+    )
+    assert links == ["https://honcho.dev/docs/memory"]
+    zep_tokens = product_path_tokens({"id": "zep", "name": "Zep Cloud"})
+    assert "zep" in zep_tokens
+    assert "cloud" not in zep_tokens
+    honcho = {"id": "honcho", "name": "Honcho"}
+    assert product_mentioned("Honcho forgot my birthday", honcho)
+    assert not product_mentioned("a lettable API", {"id": "letta", "name": "Letta"})
+    assert is_generic_code_name("SECURITY.md")
+    assert not is_generic_code_name("security.py")
+    assert not is_generic_code_name("changes.py")
+    assert is_generic_docs_url("https://github.com/plastic-labs/honcho/security")
+    assert not is_generic_docs_url("https://docs.honcho.dev/docs/security")
+
+
+def test_docs_rank_drops_old_version_and_collapses_api() -> None:
+    honcho = {"id": "honcho", "name": "Honcho"}
+    urls = [
+        "https://honcho.dev/docs/llms-full.txt",
+        "https://honcho.dev/docs/v3/documentation/introduction/overview",
+        "https://honcho.dev/docs/v3/documentation/core-concepts/memory",
+        "https://honcho.dev/docs/v3/api-reference/endpoint/peers/get-peers",
+        "https://honcho.dev/docs/v3/api-reference/endpoint/peers/create-peer",
+        "https://honcho.dev/docs/v1/api-reference/endpoint/apps/create-app",
+        "https://honcho.dev/docs/v1/api-reference/endpoint/apps/get-app",
+        "https://honcho.dev/docs/v1/api-reference/endpoint/collections/delete-collection",
+        "https://honcho.dev/",
+    ]
+    picked = select_docs_urls(urls, honcho, skip_home=True)
+    kept = picked.urls
+    assert "https://honcho.dev/docs/llms-full.txt" in kept
+    assert "https://honcho.dev/docs/v3/documentation/introduction/overview" in kept
+    assert "https://honcho.dev/docs/v3/documentation/core-concepts/memory" in kept
+    assert "https://honcho.dev/" not in kept
+    assert all("/v1/" not in url for url in kept)
+    assert "https://honcho.dev/docs/v3/api-reference/endpoint/peers/get-peers" in kept
+    assert "https://honcho.dev/docs/v3/api-reference/endpoint/peers/create-peer" not in kept
+    reasons = {row["reason"] for row in picked.skipped}
+    assert "old_version" in reasons
+    assert "api_collapse" in reasons
+    assert is_marketing_home("https://honcho.dev/")
+    assert not is_marketing_home(
+        "https://honcho.dev/docs/v3/documentation/introduction/overview"
+    )
+    assert is_community_thread("https://news.ycombinator.com/item?id=47831013")
+    assert not is_community_thread("https://x.com/honchodotdev")
+    assert is_community_thread("https://x.com/honchodotdev/status/123")
+
+
+def test_code_listed_paths_only(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("# Mem0\n", encoding="utf-8")
+    memory = tmp_path / "mem0" / "memory"
+    memory.mkdir(parents=True)
+    (memory / "main.py").write_text("def add():\n    pass\n", encoding="utf-8")
+    (memory / "storage.py").write_text("def save():\n    pass\n", encoding="utf-8")
+    cli = tmp_path / "cli"
+    cli.mkdir()
+    (cli / "app.py").write_text("def add_memory():\n    pass\n", encoding="utf-8")
+    picked = select_listed_code_files(
+        tmp_path,
+        ["README.md", "mem0/memory/main.py", "cli/missing.py"],
+    )
+    names = [p.relative_to(tmp_path).as_posix() for p in picked.files]
+    assert names == ["README.md", "mem0/memory/main.py"]
+    assert "mem0/memory/storage.py" not in names
+    assert "cli/app.py" not in names
+    assert any(row["path"] == "cli/missing.py" for row in picked.skipped)
+
+
+def test_code_steals_infra_slots_for_high_packages(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("# Honcho\n", encoding="utf-8")
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "models.py").write_text("class Peer:\n    pass\n", encoding="utf-8")
+    deriver = src / "deriver"
+    deriver.mkdir()
+    (deriver / "deriver.py").write_text("class Deriver:\n    pass\n", encoding="utf-8")
+    (deriver / "consumer.py").write_text("def search_memory():\n    pass\n", encoding="utf-8")
+    (deriver / "enqueue.py").write_text("def search_memory():\n    pass\n", encoding="utf-8")
+    llm = src / "llm"
+    llm.mkdir()
+    for i in range(6):
+        (llm / f"backend_{i}.py").write_text("def embed():\n    pass\n", encoding="utf-8")
+    for i in range(20):
+        pack = src / f"pack_{i:02d}"
+        pack.mkdir()
+        (pack / "mod.py").write_text("def search_memory():\n    pass\n", encoding="utf-8")
+    product = {"id": "honcho", "name": "Honcho"}
+    names = [
+        p.relative_to(tmp_path).as_posix()
+        for p in select_code_files(tmp_path, product)
+    ]
+    deriver_kept = [name for name in names if name.startswith("src/deriver/")]
+    assert len(deriver_kept) >= 3
+    assert "src/deriver/deriver.py" in deriver_kept
+    assert "src/deriver/consumer.py" in deriver_kept
+
+
+def test_code_skips_tests_directory_and_test_prefix(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("# Honcho\n", encoding="utf-8")
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "memory.py").write_text("def search_memory():\n    pass\n", encoding="utf-8")
+    tests = tmp_path / "tests"
+    tests.mkdir()
+    (tests / "memory.py").write_text("def search_memory():\n    pass\n", encoding="utf-8")
+    (src / "test_store.py").write_text("def search_memory():\n    pass\n", encoding="utf-8")
+    names = [
+        p.relative_to(tmp_path).as_posix()
+        for p in select_code_files(tmp_path, {"id": "honcho", "name": "Honcho"})
+    ]
+    assert "src/memory.py" in names
+    assert all("tests/" not in name for name in names)
+    assert "src/test_store.py" not in names
+
+
+def test_code_skips_integrations_and_js_tests(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("# Mem0\n", encoding="utf-8")
+    memory = tmp_path / "mem0" / "memory"
+    memory.mkdir(parents=True)
+    (memory / "main.py").write_text("def add_memory():\n    pass\n", encoding="utf-8")
+    plugin = tmp_path / "integrations" / "cursor-plugin" / "core"
+    plugin.mkdir(parents=True)
+    (plugin / "memory_core.py").write_text("def add_memory():\n    pass\n", encoding="utf-8")
+    n8n_test = tmp_path / "integrations" / "n8n" / "test"
+    n8n_test.mkdir(parents=True)
+    (n8n_test / "Mem0.node.test.ts").write_text("search_memory()\n", encoding="utf-8")
+    (tmp_path / "mem0" / "scoping.test.ts").write_text(
+        "function search_memory() {}\n", encoding="utf-8"
+    )
+    names = [
+        p.relative_to(tmp_path).as_posix()
+        for p in select_code_files(tmp_path, {"id": "mem0", "name": "Mem0"})
+    ]
+    assert "mem0/memory/main.py" in names
+    assert all("integrations/" not in name for name in names)
+    assert "mem0/scoping.test.ts" not in names
+
+
+def test_code_prefers_package_memory_over_cli(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("# Mem0\n", encoding="utf-8")
+    memory = tmp_path / "mem0" / "memory"
+    memory.mkdir(parents=True)
+    for name in ("base.py", "main.py", "storage.py", "utils.py"):
+        (memory / name).write_text("def add_memory():\n    pass\n", encoding="utf-8")
+    cli = tmp_path / "cli" / "python" / "src"
+    cli.mkdir(parents=True)
+    (cli / "app.py").write_text("def add_memory():\n    pass\n", encoding="utf-8")
+    ts_llm = tmp_path / "mem0-ts" / "src" / "oss" / "src" / "llms"
+    ts_llm.mkdir(parents=True)
+    (ts_llm / "langchain.ts").write_text("function add_memory() {}\n", encoding="utf-8")
+    names = [
+        p.relative_to(tmp_path).as_posix()
+        for p in select_code_files(tmp_path, {"id": "mem0", "name": "Mem0"})
+    ]
+    memory_kept = [name for name in names if name.startswith("mem0/memory/")]
+    assert len(memory_kept) >= 3
+    assert "mem0/memory/storage.py" in memory_kept
+

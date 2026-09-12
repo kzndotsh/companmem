@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://companmem.local/audit.schema.json",
+  "title": "Product memory audit",
+  "description": "Canonical per-product record. ledger is observation (quote + locator). copy/refuse/consensus/contested are interpretation and stay empty until a later grill. No companion_fit. No 12-axis scores.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "identity",
+    "claimed_purpose",
+    "mechanisms",
+    "ledger",
+    "sources",
+    "consensus",
+    "contested",
+    "copy",
+    "refuse",
+    "unknowns"
+  ],
+  "properties": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "observed_at"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "name": {"type": "string", "minLength": 1},
+        "repo": {"type": ["string", "null"]},
+        "docs": {"type": ["string", "null"]},
+        "license": {"type": ["string", "null"]},
+        "version_or_commit": {"type": ["string", "null"]},
+        "observed_at": {"type": "string", "minLength": 1}
+      }
+    },
+    "claimed_purpose": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/text_item"}
+    },
+    "mechanisms": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/text_item"}
+    },
+    "ledger": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claim", "kind", "quote", "confidence", "label"],
+        "properties": {
+          "claim": {"type": "string", "minLength": 1},
+          "kind": {
+            "type": "string",
+            "enum": ["docs", "code", "issue", "community", "blog"]
+          },
+          "url": {"type": ["string", "null"]},
+          "quote": {"type": "string"},
+          "locator": {"type": ["string", "null"]},
+          "confidence": {"type": "string", "enum": ["high", "medium", "unknown"]},
+          "label": {"type": "string", "enum": ["measured", "inferred", "unknown"]}
+        },
+        "anyOf": [
+          {
+            "required": ["url"],
+            "properties": {"url": {"type": "string", "minLength": 1}}
+          },
+          {
+            "required": ["locator"],
+            "properties": {"locator": {"type": "string", "minLength": 1}}
+          }
+        ]
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["url", "kind", "accessed_at", "quality"],
+        "properties": {
+          "url": {"type": "string", "minLength": 1},
+          "kind": {
+            "type": "string",
+            "enum": ["docs", "code", "issue", "community", "blog"]
+          },
+          "accessed_at": {"type": "string", "minLength": 1},
+          "quality": {"type": "string", "enum": ["high", "medium", "low"]}
+        }
+      }
+    },
+    "consensus": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/text_item"}
+    },
+    "contested": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/text_item"}
+    },
+    "copy": {
+      "type": "array",
+      "description": "Interpretation: what we would copy. Extract must not fill this.",
+      "items": {"$ref": "#/$defs/text_item"}
+    },
+    "refuse": {
+      "type": "array",
+      "description": "Interpretation: what we would refuse. Extract must not fill this.",
+      "items": {"$ref": "#/$defs/text_item"}
+    },
+    "unknowns": {
+      "type": "array",
+      "description": "Search-bounded gaps. Each row names the page it is about.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["text", "url"],
+        "properties": {
+          "text": {"type": "string", "minLength": 1},
+          "url": {"type": "string", "minLength": 1},
+          "kind": {
+            "type": "string",
+            "enum": ["docs", "code", "issue", "community", "blog"]
+          },
+          "locator": {"type": ["string", "null"]}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "text_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text"],
+      "properties": {
+        "text": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}
