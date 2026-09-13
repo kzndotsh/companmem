@@ -125,6 +125,10 @@ class PipelineLogger:
             "step": self.step,
             "source": self.source,
         }
+        if "source" in safe:
+            safe.setdefault("hit_source", safe.pop("source"))
+        for key in ("step", "level", "event", "elapsed", "ts", "run_id"):
+            safe.pop(key, None)
         entry.update(safe)
         self._file.write(json.dumps(entry, ensure_ascii=False, default=str) + "\n")
         self._file.flush()

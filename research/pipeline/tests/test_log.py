@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from companmem_pipeline.log import PipelineLogger, emit_console
@@ -34,3 +35,17 @@ def test_pipeline_logger_writes_jsonl_and_echoes(tmp_path: Path, monkeypatch, ca
     lines = path.read_text(encoding="utf-8").splitlines()
     assert any('"event": "docs_kept"' in line for line in lines)
     assert any('"event": "run_completed"' in line for line in lines)
+
+
+def test_logger_source_kwarg_does_not_collide(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setattr("companmem_pipeline.log.LOGS_DIR", tmp_path)
+    log = PipelineLogger("harvest", source="graphiti")
+    try:
+        log.info("search_hit", source="brave", url="https://example.com")
+        line = log.log_path.read_text(encoding="utf-8").splitlines()[-1]
+        row = json.loads(line)
+        assert row["source"] == "graphiti"
+        assert row["hit_source"] == "brave"
+        assert row["url"] == "https://example.com"
+    finally:
+        log.close()
