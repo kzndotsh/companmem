@@ -1,0 +1,3154 @@
+{
+  "identity": {
+    "id": "supermemory",
+    "name": "SuperMemory",
+    "repo": "https://github.com/supermemoryai/supermemory",
+    "docs": "https://supermemory.ai/docs/llms.txt",
+    "license": "MIT",
+    "version_or_commit": "2415a5c796d62c7ea9d709bc9337a6e1b6f6d837",
+    "observed_at": "2026-09-13"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Universal memory layer across multiple LLMs via MCP"
+    },
+    {
+      "text": "Universal memory layer that unifies files, chats, email, and other data into one semantic hub with millisecond retrieval"
+    },
+    {
+      "text": "Managed service for agent memory, convenient for getting started"
+    },
+    {
+      "text": "Builds a living knowledge graph of extracted facts, not a static embedding store or hand-maintained triple store."
+    },
+    {
+      "text": "Designed to keep facts true over time through relationships, temporal truth, and automatic forgetting."
+    },
+    {
+      "text": "The product is powered by a custom learning model and a graph database built internally, handling what to learn, what is important, and when to forget."
+    },
+    {
+      "text": "Supermemory positions itself as long-term and short-term context and memory infrastructure for agents."
+    },
+    {
+      "text": "Long-term and short-term context and memory infrastructure for AI agents"
+    },
+    {
+      "text": "One engine exposing three retrieval paths (document search, memory graph, profile) all scoped by containerTag."
+    },
+    {
+      "text": "The forget-matching endpoint is described as an agentic operation that searches and soft-deletes memories by semantic query."
+    },
+    {
+      "text": "SuperMemory builds a living knowledge graph of facts, not a static folder of embeddings or hand-maintained triples, intended to keep understanding true over time."
+    },
+    {
+      "text": "Long-term and short-term context and memory infrastructure for agents"
+    },
+    {
+      "text": "Provides a review interface for inferred memories derived by the graph engine, allowing approve, decline, or undo actions on low-confidence facts."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Dynamic Dreaming: automatic connection of dots across stored information"
+    },
+    {
+      "text": "Memory architecture inspired by the human brain \u2014 accumulate, recall, and contextualize over time"
+    },
+    {
+      "text": "Dynamic Dreaming: automatic connection of dots across stored memories, active across all access modes"
+    },
+    {
+      "text": "Architecture described as inspired by human brain \u2014 accumulate, recall, and contextualize over time"
+    },
+    {
+      "text": "Company brain and Nova discontinued; focus shifted entirely to the memory engine"
+    },
+    {
+      "text": "Isolation is per containerTag \u2014 described as projects/container tags for separating work, personal, client, repo context"
+    },
+    {
+      "text": "Forget path: content string is passed to client.forgetMemory(); forget is used when information is outdated or the user asks to remove it \u2014 not a hide-at-retrieve but an explicit delete call"
+    },
+    {
+      "text": "Isolation is per space (containerTag); the active space is what the user previously selected via select-space, with containerTag as an override parameter"
+    },
+    {
+      "text": "Write path: a discrete content string is passed to createMemory, returning an ID \u2014 indicating a curated memory write rather than a full transcript append."
+    },
+    {
+      "text": "The tool is annotated as ADDITIVE \u2014 indicating the write path is append/create, not update or delete."
+    },
+    {
+      "text": "Profile retrieval is query-aware \u2014 the profile is fetched by passing the search query, suggesting relevance-sensitive profile selection."
+    },
+    {
+      "text": "The search tool is marked read-only, meaning this code path performs no writes, updates, or deletes \u2014 only retrieval."
+    },
+    {
+      "text": "Documents (memory writes) can be added individually or in batches, each optionally scoped to one or more containerTags and carrying free-form metadata and an entityContext string."
+    },
+    {
+      "text": "Memory isolation is implemented via containerTags: documents, searches, and connections are all scoped to containerTags, and an entire containerTag (with its documents and memories) can be deleted as a unit."
+    },
+    {
+      "text": "Embeddings in the system are normalized using a fast normalization function, making cosine similarity equivalent to dot product for retrieval comparison."
+    },
+    {
+      "text": "The forget call accepts a containerTag parameter, indicating memories are isolated/scoped per container (likely per user, agent, or character)."
+    },
+    {
+      "text": "The memory API lives under /v4/, and co-exists with /v4/profile and /v4/conversations endpoints, suggesting memories, profiles, and conversation logs are distinct stores."
+    },
+    {
+      "text": "Memories are scoped per user via a containerTag parameter used as a user/container ID on all API calls."
+    },
+    {
+      "text": "The profile structure has two distinct memory categories: static and dynamic, requested together via an include array."
+    },
+    {
+      "text": "Retrieved memories are deduplicated before injection, with deduplication applied separately to static, dynamic, and search result buckets."
+    },
+    {
+      "text": "A separate MemoryEntry layer exists alongside documents; documents can have associated memory entries, distinguishing curated memory facts from raw document storage."
+    },
+    {
+      "text": "Isolation is via containerTags: any string identifier (user ID, project ID) can scope memories; search and list operations filter by containerTags."
+    },
+    {
+      "text": "SuperMemory can be configured to control what gets remembered, implying some user-facing configuration for memory selection"
+    },
+    {
+      "text": "Memories are searched and injected into LLM prompts rather than kept in the context window"
+    },
+    {
+      "text": "Memory is scoped to projects as isolation containers, enabling separation of work and personal context"
+    },
+    {
+      "text": "Delete is a supported operation targeting memories inside a specified tag's container."
+    },
+    {
+      "text": "Write path \u2014 derives (inference): SuperMemory infers facts never stated explicitly by recognising patterns across existing memories."
+    },
+    {
+      "text": "Dreaming: an async background process that continues building the graph after ingest \u2014 extracting facts, linking memories, resolving updates, and producing derived facts."
+    },
+    {
+      "text": "Memory types have differentiated persistence behaviour: facts persist until updated, preferences strengthen with repetition, episodes decay unless significant."
+    },
+    {
+      "text": "One input produces many extracted memories automatically; no schema or edge definition required from the caller."
+    },
+    {
+      "text": "Persisted store is a Temporal Vector-graph engine combining vector similarity, full-text search, and graph structure, described as fact-based and temporal."
+    },
+    {
+      "text": "A second post-indexing phase called 'dreaming' passes content through the memory model to merge, arrange, and organize memories into the graph."
+    },
+    {
+      "text": "Dynamic dreaming groups related documents so memories form from coherent units rather than isolated writes, improving graph quality for multi-turn flows; memory extraction may continue after status: done."
+    },
+    {
+      "text": "Isolation is enforced via containerTag as a hard boundary per user, tenant, or project; scoped API keys cannot cross container boundaries."
+    },
+    {
+      "text": "A stable customId on add() drives deduplication and diff billing on re-ingest of the same conversation or file across sessions."
+    },
+    {
+      "text": "Memory pipeline involves entity recognition and graph traversal, implying a knowledge graph store"
+    },
+    {
+      "text": "Container tags act as hard isolation boundaries \u2014 memories in one tag are never returned by a search scoped to another tag."
+    },
+    {
+      "text": "Metadata filtering provides organization within a container via custom key/value properties; it cannot cross container tag boundaries."
+    },
+    {
+      "text": "Graph memory connects facts, updates them, enforces temporal truth, and performs automatic forgetting."
+    },
+    {
+      "text": "Container tags serve as the isolation boundary, partitioning memories by user, project, or logical scope."
+    },
+    {
+      "text": "User profiles are automatically maintained context about users, kept current without manual updates."
+    },
+    {
+      "text": "Memories can be updated by creating a new version; the original is preserved with isLatest=false rather than overwritten."
+    },
+    {
+      "text": "Forget is implemented as a soft delete: the memory is marked as forgotten but not permanently deleted."
+    },
+    {
+      "text": "Agentic mass-forget allows a tool-calling agent to search a container's memories and soft-delete everything matching a prompt or query, with a dryRun preview option."
+    },
+    {
+      "text": "Memory entries have update history and source documents that can be listed."
+    },
+    {
+      "text": "Low-confidence inferred memories can be reviewed, approved, declined, or undone before they are used."
+    },
+    {
+      "text": "SMFS exposes memory as a filesystem interface that agents can grep, mount, and sync."
+    },
+    {
+      "text": "Avoids stuffing the full chat log into every prompt \u2014 curated memory rather than full transcript replay"
+    },
+    {
+      "text": "Memory graph traversal extracts entities and relations from ingested conversations and links them across turns; the graph resolves implicit connections (e.g. 'Sarah is VP of Product') that were never stated in a single sentence."
+    },
+    {
+      "text": "Profiles are a two-part always-on summary (static + dynamic) scoped to a containerTag, intended to be injected every turn without re-searching."
+    },
+    {
+      "text": "Persistence survives process restarts: memory and docs live in supermemory, not in the running process; restarting and reusing the same containerTag retrieves prior state."
+    },
+    {
+      "text": "Retrieval is similarity-score-based with a configurable threshold; results include a score field."
+    },
+    {
+      "text": "Retrieval threshold is configurable at query time and can be lowered to near zero; at threshold 0.01 non-English content still returns empty results."
+    },
+    {
+      "text": "Memory agent generates memories from documents using an LLM call with structured output"
+    },
+    {
+      "text": "Memory generation is skipped (not retried) when the agent fails, implying non-fatal degradation"
+    },
+    {
+      "text": "Cloud supermemory routes memory generation through its own memory router proxy, abstracting provider differences"
+    },
+    {
+      "text": "Re-ingesting unchanged content is skipped, so an empty extraction cannot be repaired by re-submitting the same document."
+    },
+    {
+      "text": "Finalization status is exposed via the API; however a zero-memory extraction is indistinguishable from a successful one through the API alone."
+    },
+    {
+      "text": "Retrieval via client.profile() and client.search() returns memories directly into LLM context with no intervening filter"
+    },
+    {
+      "text": "Memory is scoped to containers, with retrieval keyed by containerTag"
+    },
+    {
+      "text": "No structured record exists of which memories or profile facts were retrieved for a given request"
+    },
+    {
+      "text": "MCP server exposes a getDocument tool that retrieves documents by raw ID, with space scoping intended via containerTag checks"
+    },
+    {
+      "text": "Session IDs were previously echoed into model-visible output and persisted to transcripts"
+    },
+    {
+      "text": "Ingested content metadata (e.g. URL) is stored and later surfaced in client actions, indicating third-party content is persisted as memory"
+    },
+    {
+      "text": "After embedding, a memory agent runs over the full chunk set to derive a set of memories from the document."
+    },
+    {
+      "text": "Memories are scoped to a container (isolation unit)"
+    },
+    {
+      "text": "Forget is a soft delete: the memory entry is marked as forgotten but not permanently removed from the store."
+    },
+    {
+      "text": "An optional reason field can accompany a forget operation, suggesting auditing or provenance tracking of deletions."
+    },
+    {
+      "text": "Attempting to forget an already-forgotten memory is a distinct error state (409 Conflict), implying the forgotten flag is tracked per entry."
+    },
+    {
+      "text": "Forget is implemented as a soft-delete, not a hard removal. The operation marks memories rather than permanently erasing them."
+    },
+    {
+      "text": "Forget is scoped to a containerTag (space), providing per-container isolation for the operation."
+    },
+    {
+      "text": "Memories are extracted entries, not raw documents \u2014 the API operates on a curated memory layer separate from the document pipeline."
+    },
+    {
+      "text": "Derives relationship: SuperMemory infers facts never stated in one place, from patterns across memories."
+    },
+    {
+      "text": "Dreaming is a post-ingest async process that continues building the graph: extracting facts, linking related memories, resolving updates, and producing derives."
+    },
+    {
+      "text": "Isolation is enforced via containerTag as a hard boundary per user, tenant, or project. Scoped API keys cannot cross container boundaries."
+    },
+    {
+      "text": "A stable customId on a document drives update/diff semantics on re-ingest, enabling sessions or connector syncs to update existing content rather than duplicate it."
+    },
+    {
+      "text": "The learning model decides when to forget, indicating forget is a model-driven function not solely a user-triggered delete."
+    },
+    {
+      "text": "Personalization avoids stuffing the full chat log into every prompt \u2014 curated memory rather than full transcript log"
+    },
+    {
+      "text": "Memories are stored as embedded, immediately searchable units distinct from raw documents"
+    },
+    {
+      "text": "isStatic flag distinguishes permanent identity traits (lore/backstory) from mutable facts (events/preferences)"
+    },
+    {
+      "text": "Update path is versioned: a new version is created and the original is preserved with isLatest=false rather than overwritten"
+    },
+    {
+      "text": "The review queue is scoped to a single container tag (space), providing per-space isolation."
+    },
+    {
+      "text": "Spaces isolate stored documents, memories, and profile context per team or initiative, preventing mixing of unrelated work"
+    },
+    {
+      "text": "Retrieve policy: search_memory also includes stable and recent profile context by default; can be suppressed"
+    },
+    {
+      "text": "Memory entries carry version information and are linked back to source documents"
+    },
+    {
+      "text": "supermemory://profile resource surfaces stable and recent profile context for the active space"
+    },
+    {
+      "text": "Spaces isolate stored documents, memories, and profile context per team or project to prevent mixing unrelated work"
+    },
+    {
+      "text": "listMemories returns memory IDs, text, versions, and source document IDs, indicating memories are versioned extracts from documents"
+    },
+    {
+      "text": "guided-save widget allows user review and editing before a memory is committed; nothing is saved until submission"
+    },
+    {
+      "text": "supermemory://profile resource exposes stable and recent profile context for the active space"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Persistent memory across sessions for coding agents survives months of use without losing context",
+      "kind": "blog",
+      "url": "https://supermemory.ai/blog/",
+      "quote": "It remembers your preferences, learns your codebase, and never loses context mid-conversation. The result is an agent you can run for months without starting over.",
+      "locator": "post: Infinitely running stateful coding agents",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conversation identity is a first-class concept, implying per-conversation isolation of stored memory",
+      "kind": "blog",
+      "url": "https://supermemory.ai/blog/",
+      "quote": "makes conversation identity a first-class concept, and ships with memory saving on by default.",
+      "locator": "post: Introducing @supermemory/tools v2.0.0",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dynamic Dreaming automatically synthesizes connections across stored memories without user action",
+      "kind": "blog",
+      "url": "https://supermemory.ai/blog/",
+      "quote": "We're launching Dynamic Dreaming in supermemory today, which automatically works if you're using supermemory in any way - API, OpenClaw, Hermes agent, etc.",
+      "locator": "post: Introducing Dynamic Dreaming: supermemory now connects the dots, for you.",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SMFS redesigns the filesystem for agents and reduces agentic retrieval cost by 55% while improving accuracy",
+      "kind": "blog",
+      "url": "https://supermemory.ai/blog/",
+      "quote": "SMFS: making agentic retrieval 55% cheaper AND more accurate",
+      "locator": "post title: SMFS: making agentic retrieval 55% cheaper AND more accurate",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Company brain and Nova products discontinued; memory engine is the remaining core product",
+      "kind": "blog",
+      "url": "https://supermemory.ai/blog/",
+      "quote": "We've discontinued the supermemory company brain and Nova. Everyone who was charged has been refunded, our MCP and plugins continue to run, and we're going all in on the memory engine.",
+      "locator": "post: An update to supermemory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory architecture is modeled on human brain principles of accumulation, recall, and contextualization",
+      "kind": "blog",
+      "url": "https://supermemory.ai/blog/",
+      "quote": "memory \u2014 the ability to accumulate, recall, and contextualize information over time.",
+      "locator": "post: Architecting a memory engine inspired by the human brain",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Supermemory positions itself as a unified infrastructure layer replacing multiple vendors for memory and context needs",
+      "kind": "blog",
+      "url": "https://supermemory.ai/blog/",
+      "quote": "They were all setting up 7-8 different vendors at the same time.",
+      "locator": "post: Dear reader, we just made supermemory insanely cheap... the Context Cloud",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Raised $3M funding round focused on interoperable, scalable, reliable memory for LLMs and agents",
+      "kind": "blog",
+      "url": "https://supermemory.ai/blog/",
+      "quote": "Today, I am excited to announce our first funding round to accelerate our mission of building an interoperable, scalable and reliable memory for LLMs and agents.",
+      "locator": "post: Supermemory raises $3 million with the best memory engine for LLMs",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SuperMemory provides persistent memory that allows agents to run for months without losing context",
+      "kind": "blog",
+      "url": "https://supermemory.ai/blog/",
+      "quote": "It remembers your preferences, learns your codebase, and never loses context mid-conversation. The result is an agent you can run for months without starting over.",
+      "locator": "post: 'Infinitely running stateful coding agents'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conversation identity is a first-class concept; memory saving is on by default in @supermemory/tools v2.0.0",
+      "kind": "blog",
+      "url": "https://supermemory.ai/blog/",
+      "quote": "makes conversation identity a first-class concept, and ships with memory saving on by default.",
+      "locator": "post: 'Introducing @supermemory/tools v2.0.0'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dynamic Dreaming automatically synthesizes connections across stored memories without user prompting",
+      "kind": "blog",
+      "url": "https://supermemory.ai/blog/",
+      "quote": "We're launching Dynamic Dreaming in supermemory today, which automatically works if you're using supermemory in any way - API, OpenClaw, Hermes agent, etc.",
+      "locator": "post: 'Introducing Dynamic Dreaming: supermemory now connects the dots, for you.'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SMFS redesigns the retrieval filesystem for agents, claimed 55% cheaper and more accurate than prior approach",
+      "kind": "blog",
+      "url": "https://supermemory.ai/blog/",
+      "quote": "SMFS: making agentic retrieval 55% cheaper AND more accurate",
+      "locator": "post title: 'SMFS: making agentic retrieval 55% cheaper AND more accurate'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory engine is the sole remaining product focus after discontinuing company brain and Nova",
+      "kind": "blog",
+      "url": "https://supermemory.ai/blog/",
+      "quote": "We've discontinued the supermemory company brain and Nova. Everyone who was charged has been refunded, our MCP and plugins continue to run, and we're going all in on the memory engine.",
+      "locator": "post: 'An update to supermemory'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory architecture is described as inspired by the human brain with accumulate, recall, and contextualize operations",
+      "kind": "blog",
+      "url": "https://supermemory.ai/blog/",
+      "quote": "memory \u2014 the ability to accumulate, recall, and contextualize information over time. Large Language Models (LLMs) have mastered language, but memory remains their Achilles' heel.",
+      "locator": "post: 'Architecting a memory engine inspired by the human brain'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SuperMemory is positioned as context engineering infrastructure, not merely a retrieval or RAG library",
+      "kind": "blog",
+      "url": "https://supermemory.ai/blog/",
+      "quote": "Supermemory IS context engineering",
+      "locator": "post title: 'Faster, smarter, reliable infinite chat: Supermemory IS context engineering.'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SuperMemory ranks #1 on LongMemEval, LoCoMo, and ConvoMem benchmarks",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/README.md",
+      "quote": "**#1 on [LongMemEval](https://github.com/xiaowu0162/LongMemEval), [LoCoMo](https://github.com/snap-research/locomo), and [ConvoMem](https://github.com/Salesforce/ConvoMem)** \u2014 the three major benchmarks for AI memory.",
+      "locator": "README.md, opening section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Supermemory Filesystem (SMFS) uses 3.0\u00d7 fewer tokens on Claude and 1.75\u00d7 fewer on Codex vs baseline on xAFS benchmark",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/README.md",
+      "quote": "We also built the **Supermemory Filesystem (SMFS)**, which uses **3.0\u00d7 fewer tokens on Claude** (24M vs 72M) and **1.75\u00d7 fewer on Codex** across the 110-question xAFS benchmark.",
+      "locator": "README.md, Benchmarks",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Automatic forgetting: temporary/time-bound facts expire, contradictions are resolved, noise is not persisted",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/README.md",
+      "quote": "Temporary facts (\"I have an exam tomorrow\") expire after the date passes. Contradictions are resolved automatically. Noise never becomes permanent memory.",
+      "locator": "README.md, How memory works under the hood",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per containerTag, supporting per-user, per-project, per-client, or per-repo scoping",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/README.md",
+      "quote": "Memory is scoped with **projects** (container tags) so you can separate work and personal context, or organize by client, repo, or anything else.",
+      "locator": "README.md, Give your AI memory > How it works",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "User profile separates stable long-term facts (static) from recent activity (dynamic)",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/README.md",
+      "quote": "profile.static \u2192 [\"Senior engineer at Acme\", \"Prefers dark mode\", \"Uses Vim\"]\n// profile.dynamic \u2192 [\"Working on auth migration\", \"Debugging rate limits\"]",
+      "locator": "README.md, Build with Supermemory (API) > User profiles",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Local deployment stores all data in ./.supermemory directory using an embedded graph engine",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/README.md",
+      "quote": "everything lives in `./.supermemory`, easy to back up or move.",
+      "locator": "README.md, Supermemory local \u2014 run it yourself",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are written by explicit tool call (save action), not by automatic transcript logging; the caller supplies the content to persist",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/apps/mcp/src/server/tools/add-memory.ts",
+      "quote": "content: z.string().max(200000, \"Content exceeds maximum length\").describe(\"The memory content to save or forget\")",
+      "locator": "add-memory.ts, inputSchema",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is a deletion operation (client.forgetMemory) triggered by staleness or user request, not a retrieval-time filter",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/apps/mcp/src/server/tools/add-memory.ts",
+      "quote": "Use 'forget' when information is outdated or the user asks to remove it.\n...\nconst result = await client.forgetMemory(args.content)",
+      "locator": "add-memory.ts, tool description and forget branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per container space; the active space resolves from a prior select-space action, overridable per call via containerTag",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/apps/mcp/src/server/tools/add-memory.ts",
+      "quote": "The target space is the one the user selected via select-space; pass containerTag only to override it.",
+      "locator": "add-memory.ts, tool description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Each saved memory is assigned a unique ID and associated with a containerTag, returned in the structured output",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/apps/mcp/src/server/tools/add-memory.ts",
+      "quote": "Memory saved (ID: ${result.id}, space: ${result.containerTag})",
+      "locator": "add-memory.ts, save branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is written as a discrete curated fact/content item, not as a full conversation transcript log.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/apps/mcp/src/server/tools/save-memory.ts",
+      "quote": "const result = await client.createMemory(args.content)",
+      "locator": "save-memory handler, try block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path is additive (no update or delete surface visible in this file).",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/apps/mcp/src/server/tools/save-memory.ts",
+      "quote": "annotations: ADDITIVE_MEMORY_TOOL_ANNOTATIONS",
+      "locator": "deps.server.registerTool, tool options block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is scoped to a named space (containerTag), providing per-space memory isolation.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/apps/mcp/src/server/tools/search-memory.ts",
+      "quote": "const effectiveTag = await deps.resolveContainerTag(args.containerTag)",
+      "locator": "handler body, search-memory.ts",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The profile has two named layers: 'static' (persistent facts) and 'dynamic' (recent context), surfaced together on every search.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/apps/mcp/src/server/tools/search-memory.ts",
+      "quote": "profileResult.profile.static ... profileResult.profile.dynamic",
+      "locator": "profile assembly block, search-memory.ts",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Profile retrieval is query-conditioned, not a fixed dump \u2014 suggesting adaptive selection of what profile facts to surface per query.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/apps/mcp/src/server/tools/search-memory.ts",
+      "quote": "const profileResult = await client.getProfile(args.query)",
+      "locator": "profile fetch, search-memory.ts",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are curated objects (id, normalized text, similarity, optional title), not raw transcript lines \u2014 distinguishing a memory store from a message log.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/apps/mcp/src/server/tools/search-memory.ts",
+      "quote": "id: result.id, text: getMemoryText(result), similarity: result.similarity, ...(result.title ? { title: result.title } : {})",
+      "locator": "results mapping block, search-memory.ts",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "This tool only reads; write, update, and delete paths are not present here and must exist elsewhere in the codebase.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/apps/mcp/src/server/tools/search-memory.ts",
+      "quote": "annotations: READ_ONLY_TOOL_ANNOTATIONS",
+      "locator": "registerTool options, search-memory.ts",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path: documents are the unit of memory ingestion; they are posted to /documents (single) or /documents/batch (up to 600), with content, containerTags, entityContext, and metadata.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/lib/api.ts",
+      "quote": "\"@post/documents\": { input: MemoryAddSchema, output: MemoryResponseSchema }",
+      "locator": "apiSchema, @post/documents",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete path: individual delete by ID and bulk delete are both first-class API operations.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/lib/api.ts",
+      "quote": "// Delete a memory\n\"@delete/documents/:id\": { output: z.any(), params: z.object({ id: z.string() }) },\n// Bulk delete memories\n\"@delete/documents/bulk\": { body: BulkDeleteMemoriesSchema, output: BulkDeleteMemoriesResponseSchema }",
+      "locator": "apiSchema, @delete/documents/:id and @delete/documents/bulk",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per containerTag: memories, documents, and connections are all tagged, and deleting a containerTag cascades to its documents and memories.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/lib/api.ts",
+      "quote": "\"@delete/container-tags/:containerTag\": { output: z.object({ success: z.boolean(), containerTag: z.string(), deletedDocumentsCount: z.number(), deletedMemoriesCount: z.number() }) }",
+      "locator": "apiSchema, @delete/container-tags/:containerTag",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Profile distinguishes static vs dynamic memory tiers per containerTag, suggesting lore/backstory (static) separate from conversationally-accrued facts (dynamic).",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/lib/api.ts",
+      "quote": "profile: z.object({ static: z.array(z.string()).optional(), dynamic: z.array(z.string()).optional() })",
+      "locator": "apiSchema, @get/container-tags/:containerTag/profile",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Inferred memories form a separate pre-store queue requiring explicit approval or decline before being promoted; 'undo' reverses a review action.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/lib/api.ts",
+      "quote": "input: z.object({ action: z.enum([\"approve\", \"decline\", \"undo\"]) }), output: z.object({ id: z.string(), isInference: z.boolean(), reviewStatus: z.enum([\"approved\", \"declined\"]).nullable() })",
+      "locator": "apiSchema, @post/container-tags/:containerTag/inferred/:memoryId/review",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Weekly digest is a curated summarisation over stored memories, not a log replay: highlights carry a query and sourceDocumentIds, and the digest tracks memoryCount and spaceCount.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/lib/api.ts",
+      "quote": "highlights: z.array(z.object({ id: z.string(), title: z.string(), content: z.string(), format: z.enum([\"paragraph\", \"bullets\", \"quote\", \"one_liner\"]), query: z.string(), sourceDocumentIds: z.array(z.string()) })), memoryCount: z.number(), spaceCount: z.number()",
+      "locator": "apiSchema, @get/digests/:id digestData",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Full forget: settings reset wipes all persisted state including memory rows, document batches, connections, and the default space context.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/lib/api.ts",
+      "quote": "deletedMemoryRows: z.number(), deletedExtraSpaces: z.number(), clearedDefaultSpaceContext: z.boolean(), settingsReset: z.boolean()",
+      "locator": "apiSchema, @post/settings/reset",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "SuperMemory normalizes all embeddings so cosine similarity reduces to a dot product, used when comparing stored items at retrieval time.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/lib/similarity.ts",
+      "quote": "Since all embeddings in this system are normalized using normalizeEmbeddingFast, cosine similarity equals dot product for unit vectors.",
+      "locator": "cosineSimilarity JSDoc comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "When embeddings are absent, SuperMemory falls back to a relevance score persisted in the database (0\u2013100 scale) for document-to-memory similarity.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/lib/similarity.ts",
+      "quote": "Fall back to relevance score from database (0-100 scale)\n\t\tif (relevanceScore !== null && relevanceScore !== undefined) {\n\t\t\treturn Math.max(0, Math.min(1, relevanceScore / 100))\n\t\t}",
+      "locator": "calculateDocumentMemorySimilarity, fallback branch",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "When no embedding or relevance score is available, the system defaults to a similarity of 0.5 for connections between items, suggesting connections without embeddings are still retained in the store.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/lib/similarity.ts",
+      "quote": "// Default similarity for connections without embeddings or relevance scores\n\t\treturn 0.5",
+      "locator": "calculateDocumentMemorySimilarity, default return",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "SuperMemory models connections between stored items and exposes visual properties (opacity, thickness, glow, pulse) based on similarity scores, suggesting a graph-like memory store with weighted edges.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/lib/similarity.ts",
+      "quote": "Get visual properties for connection based on similarity",
+      "locator": "getConnectionVisualProps JSDoc comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are distinct from conversation logs; /v4/conversations is a separate endpoint from /v4/memories.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/tools/src/shared/forget-memory.ts",
+      "quote": "the same pattern the middleware already uses for `/v4/profile` and `/v4/conversations`",
+      "locator": "forget-memory.ts: JSDoc comment above forgetMemoryRequest",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory writes are scoped by containerTag, implying per-user or per-agent isolation at the storage level.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/tools/src/shared/forget-memory.ts",
+      "quote": "containerTag: string",
+      "locator": "forget-memory.ts: ForgetMemoryParams interface",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is scoped per user via a containerTag identifier passed on every API call.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/tools/src/shared/memory-client.ts",
+      "quote": "@param containerTag - The container tag/user ID for scoping memories",
+      "locator": "supermemoryProfileSearch JSDoc",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The store distinguishes at least two memory kinds: static and dynamic, returned as separate arrays from the profile endpoint.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/tools/src/shared/memory-client.ts",
+      "quote": "include: [\"static\", \"dynamic\"]",
+      "locator": "supermemoryProfileSearch, payload construction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is not always-on; the mode parameter determines whether profile, search, or both are selected into the turn.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/tools/src/shared/memory-client.ts",
+      "quote": "const userMemories =\n\t\tmode !== \"query\"\n\t\t\t? convertProfileToMarkdown(...)\n\t\t\t: \"\"\n\tconst generalSearchMemories =\n\t\tmode !== \"profile\" && deduplicated.searchResults.length > 0\n\t\t\t? `Search results for user's recent message: ...`\n\t\t\t: \"\"",
+      "locator": "buildMemoriesText, userMemories and generalSearchMemories construction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Deduplication is applied per mode across static, dynamic, and search result buckets before content reaches the prompt.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/tools/src/shared/memory-client.ts",
+      "quote": "const deduplicated = deduplicateMemoriesForMode(mode, {\n\t\t\tstatic: memoriesResponse.profile.static,\n\t\t\tdynamic: memoriesResponse.profile.dynamic,\n\t\t\tsearchResults: rawSearchResults,\n\t\t})",
+      "locator": "buildMemoriesText, deduplication block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The retrieve path uses a single POST /v4/profile endpoint that handles both profile retrieval and optional semantic search in one call.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/tools/src/shared/memory-client.ts",
+      "quote": "const response = await fetch(`${baseUrl}/v4/profile`, {\n\t\t\tmethod: \"POST\",",
+      "locator": "supermemoryProfileSearch, fetch call",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The prompt scaffold is configurable via a PromptTemplate function; a default template is used when none is provided.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/tools/src/shared/memory-client.ts",
+      "quote": "promptTemplate = defaultPromptTemplate,",
+      "locator": "buildMemoriesText, options destructuring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "SuperMemory persists content as memory documents with extracted summary, title, raw text, token count, status, and optional metadata.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/validation/api.ts",
+      "quote": "summary: \"A comprehensive guide to understanding the basics of machine learning and its applications.\" \u2026 tokenCount: 1000 \u2026 status: \"done\"",
+      "locator": "exampleMemory constant / MemorySchema",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A distinct MemoryEntry layer (curated facts) is stored separately from raw documents; documents can carry multiple associated memory entries.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/validation/api.ts",
+      "quote": "memoryEntries: z.array(MemoryEntryAPISchema) \u2026 Document with associated memory entries",
+      "locator": "DocumentWithMemoriesSchema openapi description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory entries have versioned supersession: each entry tracks its version and parent/child relations typed as updates, extends, or derives.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/validation/api.ts",
+      "quote": "relation: z.enum([\"updates\", \"extends\", \"derives\"]) \u2026 version: z.number().nullable().optional().openapi({ description: \"Version number of this memory entry\" })",
+      "locator": "MemorySearchResult / context parents/children relation and version fields",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is scoped by containerTags; a tag can be a user ID, project ID, or any caller-chosen string.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/validation/api.ts",
+      "quote": "Optional tags this memory should be containerized by. This can be an ID for your user, a project ID, or any other identifier you wish to use to group memories.",
+      "locator": "MemorySchema / containerTags field description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-container entityContext (max 1500 chars) acts as a scaffold prompt guiding extraction within that container.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/validation/api.ts",
+      "quote": "Context for memory extraction on this container tag. Helps guide how memories are extracted and understood. \u2026 z.string().max(1500)",
+      "locator": "MemoryUpdateSchema / entityContext field",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve is query-driven with adjustable sensitivity thresholds, not always-on; callers can also trigger reranking and query rewriting.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/validation/api.ts",
+      "quote": "Threshold / sensitivity for chunk selection. 0 is least sensitive (returns most chunks, more results), 1 is most sensitive (returns lesser chunks, accurate results)",
+      "locator": "SearchRequestSchema / chunkThreshold field description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete supports bulk removal by memory IDs or by container tag (nukes all memories in a container).",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/validation/api.ts",
+      "quote": "Array of container tags - all memories in these containers will be deleted (max 100 at once)",
+      "locator": "BulkDeleteMemoriesSchema / containerTags field description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Analytics log records every add/search/delete/update operation with input, output, duration, and status code \u2014 this is a full operation log, not curated memory.",
+      "kind": "code",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/validation/api.ts",
+      "quote": "output: z.discriminatedUnion(\"type\", [ z.object({ response: MemoryResponseSchema, type: z.literal(\"add\") }), z.object({ response: SearchResponseSchema, type: z.literal(\"search\") }), z.object({ response: z.object({ success: z.boolean() }), type: z.literal(\"delete\") }), z.object({ response: MemoryResponseSchema, type: z.literal(\"update\") }) ])",
+      "locator": "AnalyticsLogSchema / output field",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Supermemory cannot store large content from links, returning an error when content exceeds a size threshold",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=41030219",
+      "quote": "It's a shame it is unable to store large content from links. I tried it with this link https://nix.dev/tutorials/nix-language so that I could eventually master the Nix language but got an error saying it was too large of a content.",
+      "locator": "comment by shane_kerns",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No edit path exists for stored memories; updates require creating a new memory",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/supermemory",
+      "quote": "Can't edit memories!! Rather than creating a separate memory/space for each thing I want to remember, there are some memories I'd prefer to go back and edit. For example, I have a \"Food\" space where I store memories about flavor pairings and food I want to try. In this space I have a note called \"Cuisines to try\" which I'd like to be able to update regularly as I add-on/cross off things on that list.",
+      "locator": "Reviews \u2014 Olivia",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Ingestion pipeline can silently fail for external sources with no user-facing error or support response",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/supermemory",
+      "quote": "after some time it stopped adding my medium blogs. I am adding new medium blogs but they are not getting added. I also mailed regarding the same but got no response.",
+      "locator": "Reviews \u2014 Lovelesh Gangil",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Product positions itself as a cross-LLM memory layer via MCP protocol as of 2025 launch",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/supermemory",
+      "quote": "Universal Memory MCP \u2014 Your memories, in every LLM you use.",
+      "locator": "Launches section \u2014 April 18th, 2025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Supermemory positions itself as a unified 'second brain' semantic hub with millisecond retrieval",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qbmffy/i_tried_to_make_llm_agents_truly_understand_me/",
+      "quote": "Supermemory markets itself as a universal memory layer that unifies files, chats, email, and other data into one semantic hub, with millisecond retrieval and a strong focus on encryption and privacy.",
+      "locator": "section: Supermemory: closer to a \"second brain,\" but still not the whole story",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Supermemory is project- and tool-anchored rather than person-centric, leaving a gap for cross-agent personal continuity",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qbmffy/i_tried_to_make_llm_agents_truly_understand_me/",
+      "quote": "Many examples anchor around tools and projects, which is great, but I still felt a gap around modeling enduring personal preferences, habits, and an evolving identity in a structured way that any agent can rely on.",
+      "locator": "section: Supermemory: closer to a \"second brain,\" but still not the whole story, subsection: The tradeoffs I kept thinking about",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SuperMemory is a managed service, which creates vendor lock-in risk for long-term agent memory use",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AI_Agents/comments/1szwjat/agent_memory_supermemory_vs_hindsight/",
+      "quote": "Supermemory is convenient for getting started, but the vendor lock-in risk is a valid concern for long-term agent memory.",
+      "locator": "comment/u/PuzzleheadedMind874",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SuperMemory is easier to get moving fast but the memory layer is not self-hostable or easily inspectable",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AI_Agents/comments/1szwjat/agent_memory_supermemory_vs_hindsight/",
+      "quote": "Supermemory is easier to get moving fast, Hindsight gives you more control once memory starts becoming core infrastructure instead of just retrieval. i've had better long-term results with systems where the memory layer stays inspectable and self-hostable because eventually you end up debugging memory behavior, not just prompts.",
+      "locator": "comment/u/Martin3_21",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Stale memories and contradiction handling are perceived pain points for managed memory services including SuperMemory",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AI_Agents/comments/1szwjat/agent_memory_supermemory_vs_hindsight/",
+      "quote": "whether it's Supermemory, Hindsight, or something else, stale memories and contradiction handling usually become the real bottleneck.",
+      "locator": "comment/u/riddlemewhat2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "By month six of use, managed memory services like SuperMemory accumulate stored facts, retrieval tuning, and correction hacks with no clean exit path",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AI_Agents/comments/1szwjat/agent_memory_supermemory_vs_hindsight/",
+      "quote": "managed memory services work fine early on but by month six you have thousands of stored facts, retrieval tuning, and correction hacks all baked into someone else's infrastructure with no clean exit.",
+      "locator": "comment/u/Distinct-Shoulder592",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Half-correct old facts in managed memory are a painful failure mode because the user cannot inspect why the assistant has stale information",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AI_Agents/comments/1szwjat/agent_memory_supermemory_vs_hindsight/",
+      "quote": "the painful part usually shows up later when the assistant has half-correct old facts and you cannot see why.",
+      "locator": "comment/u/genunix64",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SuperMemory stores scraped article content persistently so it remains accessible even after the source URL breaks.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AppIdeas/comments/1f0ykm2/supermemory_the_app_that_lets_you_search_your/",
+      "quote": "If the original link is broken or no longer accessible, the app still provides the scraped content.",
+      "locator": "post body, numbered list item 3",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval is user-initiated via a chat interface rather than automatic or adaptive injection into context.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AppIdeas/comments/1f0ykm2/supermemory_the_app_that_lets_you_search_your/",
+      "quote": "Imagine an app called SuperMemory that works like a chat interface with GPT.",
+      "locator": "post body, paragraph 1",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "SuperMemory shows latency improvements over mem0 on the LoCoMo dataset: mean 37.4%, median 41.4%, P95 22.9%, P99 43.0%, stability gain 39.5%, max 60%.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LangChain/comments/1o080oz/mem0_vs_supermemory_numbers_on_whats_better_for/",
+      "quote": "Mean Improvement: 37.4% Median Improvement: 41.4% P95 Improvement: 22.9% P99 Improvement: 43.0% Stability Gain: 39.5% Max Value: 60% Used the LoCoMo dataset.",
+      "locator": "post body",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "SuperMemory has documentation and a quickstart guide for integrating into apps, described as a 5-minute process.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LangChain/comments/1o080oz/mem0_vs_supermemory_numbers_on_whats_better_for/",
+      "quote": "our docs are pretty detailed: https://supermemory.ai/docs/intro the quickstart is a 5-min guide to integrating this into your app.",
+      "locator": "comment by u/writer_coder_06",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Multi-session score (96.99% in best configuration) is the weakest benchmark category and may degrade further over sustained production use",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/tech_x/comments/1s0szbg/san_francisco_startup_supermemory_reached_a_99/",
+      "quote": "Multi-session drops to 96.99% even in the best configuration. That's the one closest to real-world sustained use and it's already the weakest score. Scale that to six months of multi-session accumulation and the question becomes whether that number holds, improves, or degrades.",
+      "locator": "comment by u/sandstone-oli",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SuperMemory exposes configuration that lets users decide what is remembered, rather than making that decision entirely automatically",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LangChain/comments/1q0dpty/mem0_zep_letta_supermemory_etc_why_do_memory/",
+      "quote": "you can just configure supermemory to remember the right things. or any of these platforms for that matter",
+      "locator": "comment by u/DhravyaShah",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "SuperMemory is grouped with memory layers (mem0, Zep, Letta) that store generic or conversational memories but struggle with structured, versioned, temporal information such as contract clauses, effective dates, and supersession relationships",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LangChain/comments/1q0dpty/mem0_zep_letta_supermemory_etc_why_do_memory/",
+      "quote": "many memory layers (mem0, Zep, Letta, Supermemory, etc.) decide for you what should be remembered \u2026 Memory layers: they store generic or conversational 'memories', but not the information that actually matters",
+      "locator": "original post by u/nicolo_memorymodel",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "SuperMemory is characterised as being mainly suited for personal assistants rather than vertical or domain-specific use cases requiring high accuracy",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LangChain/comments/1q0dpty/mem0_zep_letta_supermemory_etc_why_do_memory/",
+      "quote": "There are great (cloud-managed) systems that do this, but I struggle to find one that fits very vertical use cases, they are mainly made for personal assistants",
+      "locator": "comment by u/nicolo_memorymodel",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "The official SuperMemory server stack is resource-heavy enough to cause CPU lockups and swap usage on low-resource machines",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/buildinpublic/comments/1u3oull/rebuilt_the_selfhosted_supermemory_server_in_pure/",
+      "quote": "running the official WASM-on-Node.js and PGlite stack consumed nearly 1.2 GB of RAM on my tiny VPS, causing CPU lockups and high swap usage",
+      "locator": "post body, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The original SuperMemory setup requires a self-generated API key that cannot be pre-filled, complicating deployment",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/buildinpublic/comments/1u3oull/rebuilt_the_selfhosted_supermemory_server_in_pure/",
+      "quote": "it's much easier to set up with Docker than the original with it's self-generated API key that apparently can't be pre-filled",
+      "locator": "comments, u/ErraticFipple",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SuperMemory is an upcoming memory feature for Perplexity, currently in beta and not available to all users.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/perplexity_ai/comments/1n78mpm/supermemory_for_perplexity_nextlevel_task/",
+      "quote": "It's not available yet for all users. It's just a beta.",
+      "locator": "comment by u/sittingmongoose",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LLM platforms including Perplexity are seen by users as needing selective memory due to context limitations, suggesting SuperMemory is expected to address this gap.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/perplexity_ai/comments/1n78mpm/supermemory_for_perplexity_nextlevel_task/",
+      "quote": "LLM platforms need to develop selective memory due to context limitations",
+      "locator": "comment by u/freedomachiever",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is per-project: users can separate work vs personal or organize by client or repo",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/tech_x/comments/1s0szbg/san_francisco_startup_supermemory_reached_a_99/",
+      "quote": "Memory is scoped with projects (container tags) so you can separate work and personal context, or organize by client, repo, or anything else.",
+      "locator": "comment by u/brucebay",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieve policy is search-based injection into prompt, not always-full-context",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/tech_x/comments/1s0szbg/san_francisco_startup_supermemory_reached_a_99/",
+      "quote": "They apparently essentially search memories and inject them into the LLM prompts.",
+      "locator": "comment by u/tzaeru",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No vector search used; relies on agentic RAG with parallel agents, raising scalability concerns at large memory volumes",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/tech_x/comments/1s0szbg/san_francisco_startup_supermemory_reached_a_99/",
+      "quote": "It doesn't use vector search at all which will surely fall apart with memories in the million+ context range",
+      "locator": "comment by u/TenshiS",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory compaction is a known failure point where continuity degrades",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/tech_x/comments/1s0szbg/san_francisco_startup_supermemory_reached_a_99/",
+      "quote": "Because as soon as memory compaction occurs, the whole thing starts falling to shit.",
+      "locator": "comment by u/MeisterD2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Users repeatedly have to re-teach the AI conclusions it already reached, indicating continuity failure across sessions",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/tech_x/comments/1s0szbg/san_francisco_startup_supermemory_reached_a_99/",
+      "quote": "In my own experience, I'm finding myself constantly having to lead it to the same conclusions it came to once before.",
+      "locator": "comment by u/Ambitious-Sense2769",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation between containers is strict (not best-effort) because each tag maps to its own vector namespace with no shared index.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/container-tags.md",
+      "quote": "there is no shared index to filter through, which is why isolation is strict rather than best-effort",
+      "locator": "How it works",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete operation is scoped to a specific container tag, enabling targeted removal of memories within a partition.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/container-tags.md",
+      "quote": "Update / Delete \u2014 Targets the memory inside the specified tag's container.",
+      "locator": "Where container tags are used, table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Access control is enforced at the container tag level; out-of-scope requests return 403 Forbidden rather than silently empty results.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/multi-tenancy.md",
+      "quote": "a request for a tag outside the caller's allowed set is rejected with 403 Forbidden rather than silently filtered",
+      "locator": "Access control",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The plural containerTags field is deprecated; v4 API only accepts the singular containerTag string.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/container-tags.md",
+      "quote": "The plural containerTags array field is deprecated. It still works for backward compatibility on older (/v3) endpoints, but new integrations should use the singular containerTag string. The /v4 API only accepts containerTag.",
+      "locator": "containerTag vs containerTags",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation scope supports user, project, agent, and hierarchical multi-tenant patterns via tag naming conventions.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/container-tags.md",
+      "quote": "Agent scoping \u2014 agent_{agentId} \u2014 Separate long-term memory per AI agent",
+      "locator": "Choosing a convention, table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "SuperMemory uses a graph model where memories are atomic facts connected by typed edges (updates, extends, derives), not a flat embedding store.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/graph-memory.md",
+      "quote": "Supermemory builds a living knowledge graph of facts on top of other facts \u2014 not a static folder of embeddings, and not classic entity\u2013relation\u2013entity triples you maintain by hand.",
+      "locator": "Introduction paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The updates relationship implements supersession: the newer fact becomes current for retrieval while the older fact is retained for audit via the isLatest field.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/graph-memory.md",
+      "quote": "`isLatest` (and related graph fields) keep retrieval on the current fact without erasing the past.",
+      "locator": "Memory relationships \u2192 Updates \u2014 information changes",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Derives edges are inferred automatically from patterns across memories, not written by the caller.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/graph-memory.md",
+      "quote": "Supermemory infers a fact you never stated in one place, from patterns across memories.",
+      "locator": "Memory relationships \u2192 Derives \u2014 information infers",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dreaming is an asynchronous background process distinct from ingest; it continues graph construction after the initial indexing pass.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/graph-memory.md",
+      "quote": "After (and alongside) indexing, dreaming continues building the graph: extracting facts, linking related memories, resolving updates, and producing derives you never stated in one place.",
+      "locator": "Dreaming keeps the graph alive",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Episode-type memories decay over time unless marked significant; preference-type memories strengthen with repetition \u2014 persistence is type-differentiated.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/graph-memory.md",
+      "quote": "Facts: Persists until updated | Preferences: Strengthens with repetition | Episodes: Decays unless significant",
+      "locator": "Memory types table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forgetting is automatic via time expiry, contradiction supersession, and noise filtering; explicit forget is a separate API operation.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/graph-memory.md",
+      "quote": "Time-based \u2014 temporary facts drop after they expire \u2026 Contradiction \u2014 updates win for \"what's true now.\" \u2026 Noise filtering \u2014 casual, non-meaningful chatter is less likely to become durable memory.",
+      "locator": "Automatic forgetting",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per container tag; ingest and search both require containerTag to scope memories to a user or tenant.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/graph-memory.md",
+      "quote": "await client.add({ content: \"Alex mentioned he just started at Stripe\", containerTag: \"user_123\" })",
+      "locator": "What you don't do + code sample",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Uploading a document causes SuperMemory to derive multiple memories and link them to existing knowledge about that entity or user.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/graph-memory.md",
+      "quote": "Uploading a long PDF does more than store bytes: Supermemory derives many memories and links them to what it already knows about that entity or user.",
+      "locator": "Documents vs memories \u2192 Note",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "SuperMemory uses a custom learning model that decides what to learn, what is important, and when to forget.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/how-it-works.md",
+      "quote": "At it's core, supermemory is powered by a custom learning model and a graph database that we built internally.",
+      "locator": "# How Supermemory Works",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Profile output provides a static + dynamic summary of memories for always-on context injection.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/how-it-works.md",
+      "quote": "Profile: A sample of memories, static + dynamic summary for always-on context",
+      "locator": "## What you get out",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The dreaming phase merges and organizes memories into the graph after document indexing is complete.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/how-it-works.md",
+      "quote": "This is when the content is passed through the memory model and merged, arranged and organized for the future.",
+      "locator": "## Dreaming (how memories enter the graph)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dynamic dreaming improves memory quality by grouping related documents into coherent units before extraction.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/how-it-works.md",
+      "quote": "Related documents are grouped so memories form from coherent units, not one isolated write at a time. Graph quality is higher for real multi-turn / multi-doc flows.",
+      "locator": "## Dreaming (how memories enter the graph) \u2014 dynamic mode",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "containerTag provides hard isolation per user, tenant, or project; scoped API keys enforce that boundary at the credential level.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/how-it-works.md",
+      "quote": "containerTag \u2014 hard isolation boundary (user, tenant, project). \u2026 Scoped API keys \u2014 credentials that cannot cross a container.",
+      "locator": "## Isolation and identity",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Supermemory distinguishes Documents (stateless, universal) from Memories (stateful, personal, temporal)",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/memory-vs-rag.md",
+      "quote": "Supermemory makes a clear distinction between these two concepts",
+      "locator": "## Documents vs Memories in Supermemory",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory store is a knowledge graph with entities, relationships, temporal context, and invalidation",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/memory-vs-rag.md",
+      "quote": "Memory systems build a knowledge graph that understands: Entities: Users, products, concepts / Relationships: Preferences, ownership, causality / Temporal Context: When facts were true / Invalidation: When facts became outdated",
+      "locator": "### Memory: Contextual Graph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is per-user via container_tags at write and retrieve time",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/memory-vs-rag.md",
+      "quote": "container_tags=[\"user_123\"],  # User-specific",
+      "locator": "### 2. Memory Creation",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are extracted from documents and conversations, implying a write-path extraction step",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/memory-vs-rag.md",
+      "quote": "Memories are the insights, preferences, and relationships extracted from documents and conversations.",
+      "locator": "### Memories: Contextual Understanding",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hybrid search mode combines user-scoped memory retrieval with general document retrieval in one call",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/memory-vs-rag.md",
+      "quote": "search_mode=\"hybrid\",  # Also searches general knowledge",
+      "locator": "### 3. Hybrid Retrieval",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Container tags provide hard namespace isolation; memories in one tag are never returned by a search scoped to another tag.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/multi-tenancy.md",
+      "quote": "A container tag is a hard boundary \u2014 its own namespace. Memories in one tag are never returned by a search scoped to another tag.",
+      "locator": "Multi-tenancy Overview, CardGroup",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Metadata filtering cannot cross container tag boundaries \u2014 it cannot be used to access another tenant's memories.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/multi-tenancy.md",
+      "quote": "Filtering never crosses a container tag boundary \u2014 you can't use metadata to peek into another tenant's container.",
+      "locator": "Why two mechanisms",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path attaches a containerTag for isolation and optional key/value metadata at the time a memory is stored.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/multi-tenancy.md",
+      "quote": "containerTag: \"org_acme\", // isolates to the \"acme\" tenant",
+      "locator": "How they work together, code snippet (client.add)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve path uses containerTag as required scope and AND/OR metadata filters as optional narrowing within that scope.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/multi-tenancy.md",
+      "quote": "the container tag restricts which tenant's data is in scope, and filters narrow down which memories within that tenant come back",
+      "locator": "How they work together, code snippet (client.search)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Supermemory is long-term and short-term context and memory infrastructure for agents.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/llms.txt",
+      "quote": "Supermemory is the long term and short term context and memory infrastructure for agents.",
+      "locator": "What is Supermemory? entry",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graph memory handles temporal truth and automatic forgetting of connected facts.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/llms.txt",
+      "quote": "How facts connect, update, and stay true \u2014 memory relationships, temporal truth, and automatic forgetting.",
+      "locator": "Graph memory entry",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget is a soft delete; the memory record is retained but marked forgotten, not permanently removed.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/llms.txt",
+      "quote": "Forget (soft delete) a memory entry. The memory is marked as forgotten but not permanently deleted.",
+      "locator": "Forget a memory entry",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Updates create new versions; prior versions are preserved with isLatest=false (conflict/supersession handled by versioning).",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/llms.txt",
+      "quote": "Update a memory by creating a new version. The original memory is preserved with isLatest=false.",
+      "locator": "Update a memory (creates new version) entry",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per container tag, which can map to user, project, or any logical scope.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/llms.txt",
+      "quote": "The isolation boundary that groups and partitions memories by user, project, or any logical scope",
+      "locator": "Container Tags entry",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "User profiles are automatically maintained, not manually curated.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/llms.txt",
+      "quote": "Automatically maintained context about your users",
+      "locator": "User Profiles entry",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Low-confidence inferred memories have a review queue before acceptance.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/llms.txt",
+      "quote": "List and act on low-confidence inferred memories \u2014 approve, decline, or undo",
+      "locator": "Review Inferred Memories entry",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mass-forget is agentic: a tool-calling agent matches memories by query and soft-deletes them, with dryRun available.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/llms.txt",
+      "quote": "Agentic mass-forget. Given a prompt or query, a tool-calling agent searches the container's memories and soft-deletes everything matching the target. Use dryRun to preview first.",
+      "locator": "Forget memories matching a prompt/query entry",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "SMFS exposes memory as a mountable filesystem for agents.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/llms.txt",
+      "quote": "Memory your agent can grep.",
+      "locator": "SMFS entry",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory entries carry update history and references to source documents.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/llms.txt",
+      "quote": "List all latest memory entries from specified container tags with their update history and source documents",
+      "locator": "List memory entries with history entry",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Supermemory distinguishes agent memory from RAG as fundamentally different.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/llms.txt",
+      "quote": "Learn why agent memory and RAG are fundamentally different, and when to use each approach",
+      "locator": "Memory vs RAG: Understanding the Difference entry",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SuperMemory positions itself as long-term and short-term memory infrastructure for agents, not just a retrieval layer",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/overview/what-is-supermemory.md",
+      "quote": "Supermemory is the long term and short term context and memory infrastructure for agents.",
+      "locator": "page heading blockquote",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is stored as a semantic knowledge graph per entity (containerTag), not as raw chunks",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/overview/what-is-supermemory.md",
+      "quote": "builds a semantic understanding graph on top of an entity (e.g., a user, a document, a project, an organization). We call these entities containerTag",
+      "locator": "section: How does it work? (at a glance)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "SuperMemory claims #1 on LongMemEval, LoCoMo, and ConvoMem benchmarks",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/overview/what-is-supermemory.md",
+      "quote": "State of the art on long-horizon memory \u2014 #1 on LongMemEval, LoCoMo, and ConvoMem, plus independent benches like SWEContext",
+      "locator": "section: Why Supermemory?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is curated (log vs memory distinction): history is retained without replaying the full transcript into each prompt",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/overview/what-is-supermemory.md",
+      "quote": "remember preferences, roles, and history across sessions without stuffing the full chat log into every prompt",
+      "locator": "section: Why add memory to your agent?",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory, profiles, and SuperRAG retrieval share one unified context pool scoped by containerTag",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/overview/what-is-supermemory.md",
+      "quote": "Memory, profiles, and SuperRAG share the same context pool when you use the same isolation (containerTag).",
+      "locator": "Note block, section: Why Supermemory?",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Content is stored persistently in supermemory's backend under a containerTag and survives process restarts.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/quickstart.md",
+      "quote": "Nothing was reloaded from your process. Memory and docs live in supermemory.",
+      "locator": "Section 5 \u2014 Kill it, restart it",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The dreaming pipeline extracts facts and links entities from conversation turns asynchronously; 'instant' mode forces per-document processing while 'dynamic' batches for richer graph formation.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/quickstart.md",
+      "quote": "Supermemory may batch related documents so memories form from coherent units, which can lag after `status: \"done\"`. For this quickstart (and any path where you need memories/profiles right away), pass `dreaming: \"instant\"` so the document is processed on its own as soon as it finishes indexing.",
+      "locator": "Note block after Section 1 code",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory graph resolves implicit entity connections across multiple conversation turns, not just within a single message.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/quickstart.md",
+      "quote": "You never wrote \"Sarah is my VP of Product\" as one sentence. The graph connected sessions of speech.",
+      "locator": "Section 4B \u2014 Memory graph traversal",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Profiles have a static component and a dynamic (recent) component, both scoped to a containerTag and suitable for cheap per-turn injection.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/quickstart.md",
+      "quote": "Profiles are the always-on summary (static + recent dynamic) of an entity (or a `containerTag`) \u2014 what you inject every turn without re-searching the world.",
+      "locator": "Section 4C \u2014 User profile",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "customId identifies a session as a single document; appending new turns to the same customId keeps the session coherent for the extraction pipeline.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/quickstart.md",
+      "quote": "They send conversation turns \u2014 often the full session \u2014 under a stable `customId` so the pipeline can extract facts and link entities.",
+      "locator": "Section 1 \u2014 Ingest a conversation",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "containerTag provides isolation for multi-tenant products, scoping all memory and RAG retrieval to one entity.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/quickstart.md",
+      "quote": "Same `containerTag` for everything. One engine, three ways out.",
+      "locator": "Quickstart, introductory bullets",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "After upgrading from v0.0.1 to v0.0.2, search returns total:0 for all queries on an existing store, even though documents are present with status 'done' \u2014 a continuity failure where previously ingested memories become unsearchable.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1103",
+      "quote": "a store that was **upgraded from server-v0.0.1 to v0.0.2 returns `total: 0` for every search**, while the same binary with a **fresh data dir finds documents immediately**",
+      "locator": "Summary",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The vector/chunk index is not backfilled during migration, so the write path (documents visible in list) and the read path (search index) can silently diverge after an upgrade.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1103",
+      "quote": "The migration runner reports nothing to do, so existing stores silently lose search.",
+      "locator": "Suspected cause",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Search produces no diagnostic log output even under verbose mode, making retrieval failures opaque to operators.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1103",
+      "quote": "`SUPERMEMORY_VERBOSE=1` produces **no search-related log lines** at all",
+      "locator": "Repro / evidence",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The store supports encrypted local storage.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1103",
+      "quote": "Encrypted local storage",
+      "locator": "Environment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hard-coded English-only embedding model causes recall to fail entirely for non-English memory content, even on verbatim token queries.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1104",
+      "quote": "German query, English query, even the verbatim token `PHYSALIS-88` \u2192 `{\"results\":[],\"total\":0}`, thresholds down to 0.01 have no effect",
+      "locator": "issue body, Problem section, bullet 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "English-language memories on the same store and same deployment are retrievable with score 0.83, confirming the failure is model-language mismatch, not a store or infrastructure fault.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1104",
+      "quote": "Identical setup with English content + English query \u2192 found with score 0.83",
+      "locator": "issue body, Problem section, bullet 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory write path stores canonical text; corrupting it at write time (e.g. translating to English) is considered a permanent data-quality loss, not a viable workaround.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1104",
+      "quote": "Translating memory content to English at write time: corrupts the canonical memory text permanently.",
+      "locator": "issue body, Workarounds section, bullet 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The vector schema is coupled to embedding dimensions; switching models requires schema changes as well as re-ingestion.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1104",
+      "quote": "this is mostly plumbing the model id + dimension through worker init and the vector schema",
+      "locator": "issue body, Proposal section, bullet 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory agent fails before making any HTTP request (~280-300ms) when using non-first-party endpoints, indicating hardcoded provider validation inside the binary",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1209",
+      "quote": "The binary's memory agent (`generateObject` from Vercel AI SDK) appears to have hardcoded provider validation that rejects non-official endpoints before making HTTP calls. The ~280-300ms failure timing is too fast for network I/O\u2014it's a code-level rejection during SDK initialization.",
+      "locator": "## Actual Behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory generation is silently skipped on agent failure rather than surfacing a hard error",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1209",
+      "quote": "Self-hosted memory agent failed for document, skipping memory generation",
+      "locator": "### 1. Azure OpenAI (direct)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No configuration flags exist in the binary to override or bypass provider validation",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1209",
+      "quote": "Binary strings search: no `OPENAI_COMPATIBILITY_MODE`, `STRICT_SCHEMA`, or validation override flags",
+      "locator": "## Investigation Summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Only api.openai.com and api.anthropic.com are supported as LLM backends for the self-hosted memory agent",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1209",
+      "quote": "The memory agent only works with first-party `api.openai.com` or `api.anthropic.com` endpoints.",
+      "locator": "## Problem",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cloud supermemory uses a memory router proxy that handles Azure OpenAI, unlike the self-hosted binary",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1209",
+      "quote": "cloud supermemory (which supports Azure via its memory router proxy)",
+      "locator": "## Related",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A memory whose content contains a comma is fragmented into multiple fake rows in the popup due to array-to-string coercion on a dataset attribute and subsequent comma-split.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1257",
+      "quote": "Save a memory whose content contains a comma, e.g. `Prefers TypeScript, strict mode, and Biome` \u2026 Expected: one row for the memory. Actual: three rows (\"Prefers TypeScript\" / \"strict mode\" / \"and Biome\").",
+      "locator": "issue body, section 1 \u2014 Steps to reproduce",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Removing one of two included memories silently discards the other as well, due to an off-by-one guard (`<= 1` instead of `=== 0`) that wipes the store when any removal leaves one item.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1257",
+      "quote": "The cleanup guard after a removal is `if (currentMemories.length <= 1)`, which wipes `dataset.supermemories`, clears the icon, and destroys the popup. So with two memories included, removing one also silently discards the one you wanted to keep.",
+      "locator": "issue body, section 2",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The injected prompt context becomes corrupted after removals \u2014 numbering goes stale and separators are malformed \u2014 meaning the model receives garbled memory context.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1257",
+      "quote": "the injected \"Supermemories of user\" block ends up as `1. foo , 3. bar`",
+      "locator": "issue body, section 4",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Each auto-search leaks a popup node and a global click listener; accumulated over a typing session this results in dozens of orphaned handlers and stacked hidden popups.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1257",
+      "quote": "Each successful fetch appends a new popup `div` to `document.body` and registers a new `document.addEventListener(\"click\", ...)` closing over it. The listener is never removed and the popup only goes away after a 5-minute timeout.",
+      "locator": "issue body, section 3",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A prose-only model turn (finish_reason: stop, no tool calls) is treated as agent completion, silently finalizing the document with zero memories and status done \u2014 no error, no retry, no warning.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1301",
+      "quote": "If the extraction model answers with prose instead of tool calls, the memory agent treats that as \"the agent has finished\" and the document is finalized with 0 memories and status done. No error, no retry, no warning.",
+      "locator": "issue body, Summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The failure rate in a backfill run was 3 of 470 documents (0.6%), described as permanent and silent.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1301",
+      "quote": "Rate in my backfill: 3 of 470 documents (0.6 %) \u2014 low, but permanent and silent, and it lands on whichever documents happen to draw the short straw.",
+      "locator": "issue body, Cause",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "An empty extraction cannot be repaired by re-ingesting the same document because unchanged content is skipped.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1301",
+      "quote": "the resulting empty document cannot be repaired through the API (re-ingesting unchanged content is skipped)",
+      "locator": "issue body, closing note",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "There is no API surface to distinguish a zero-memory successful extraction from a genuinely empty document; the difference is only visible in server logs.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1301",
+      "quote": "an empty extraction should be distinguishable from a successful one via the API, not only via grep on the server log",
+      "locator": "issue body, What I'd ask for, point 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "There is no mechanism to pass chat_template_kwargs (e.g. enable_thinking: false) to OpenAI-compatible endpoints, preventing suppression of reasoning leaks at the source.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1301",
+      "quote": "allow passing chat_template_kwargs (e.g. {\"enable_thinking\": false}) through to an OpenAI-compatible endpoint. vLLM supports it, and it suppresses this class of leak at the source. Right now there is no way to set it.",
+      "locator": "issue body, What I'd ask for, point 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Contradictory live documentation pages (one showing deprecated array form, one showing current singular form) with no deprecation warning cause developers to build against wrong API behavior",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1305",
+      "quote": "Both pages are live, both look current, and there is no deprecation warning on the outdated page pointing users to the correct one. The result is that developers read the wrong page, build against deprecated behavior, and have no obvious way to know they've done so until something breaks.",
+      "locator": "Description, issue 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No server-side tag normalization on write; memories from different connectors are isolated in disconnected tag namespaces with no platform-level unification",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1305",
+      "quote": "Supermemory applies no server-side normalization after receiving a write request, memories end up scattered across disconnected tag namespaces with no way to unify them at the query layer.",
+      "locator": "Description, issue 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Continuity failure: playground assistant cannot reliably answer configuration questions about its own API, adding confusion for developers trying to set up unified memory",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1305",
+      "quote": "The embedded assistant in the Supermemory playground was unable to definitively explain how containerTag works\u2026 It deferred to external documentation that itself contained the contradictions described above.",
+      "locator": "Description, issue 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The entire async ingestion and search pipeline depends on the rivet runtime (@rivetkit/rivetkit-wasm); when it fails to load, the memory store is silently empty \u2014 no documents are processed and no search results are returned",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1315",
+      "quote": "Because everything returns HTTP 200, the breakage is silent \u2014 no crash, no fatal log, just an empty memory store from the client's perspective.",
+      "locator": "Summary, paragraph after bullets",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "v0.0.6 linux-x64 binary silently breaks ingestion and search due to @rivetkit/rivetkit-wasm not being bundled; v0.0.5 worked because it bundled the napi loader statically",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1315",
+      "quote": "For comparison, the v0.0.5 binary bundled the napi loader statically \u2014 the per-platform stubs are visible in the binary \u2026 which is why v0.0.5 works on the same machine.",
+      "locator": "Root cause section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A separate migration issue (schema 'observatory' already exists) also blocks the 0.0.5 \u2192 0.0.6 upgrade path on linux-x64",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1315",
+      "quote": "This is independent of #1314 (the regenerated 0000_quiet_slyde baseline failing on existing DBs with schema \"observatory\" already exists). We hit that too on upgrade from v0.0.5 and worked around it by applying the schema delta manually and recording the new migration hash",
+      "locator": "Notes section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SuperMemory extracts facts from user conversation and stores them persistently",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1348",
+      "quote": "Supermemory correctly extracts and stores this as a fact.",
+      "locator": "Problem, item 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieved memories pass directly into LLM context \u2014 no filtering, redaction, or audit trail exists at retrieval boundary",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1348",
+      "quote": "there's no governance layer between memory retrieval and the LLM",
+      "locator": "Problem, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Connector-ingested content becomes part of every future retrieval for that container with no checkpoint",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1348",
+      "quote": "If a poisoned document enters via a connector, it becomes part of every future retrieval for that container. There's no governance checkpoint between \"connector ingested this\" and \"agent received this as context.\"",
+      "locator": "Problem, item 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No audit trail exists for memory reads \u2014 no record of what was retrieved, filtered, or reached the LLM",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1348",
+      "quote": "Currently there's no structured record of which memories/profile facts were retrieved, what was filtered, and what reached the LLM.",
+      "locator": "Problem, item 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is isolated per container, with containerTag as the isolation key",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1348",
+      "quote": "containerTag: \"user_123\"",
+      "locator": "Technical Approach, code snippet",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "hybrid searchMode can silently exclude all document chunks when memory entries score higher in global ranking, causing a continuity failure where indexed document content is unreachable via hybrid search",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1398",
+      "quote": "hybrid searches against a container with a large memory pool can return only memory entries, even when an explicit documents search returns relevant chunks for the same query.",
+      "locator": "issue body, Details section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SuperMemory stores two distinct persistent artifact types within a container: extracted memory entries and indexed document chunks",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1398",
+      "quote": "Container contains both extracted memories and indexed documents",
+      "locator": "issue body, Environment section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The data directory path is configurable via the SUPERMEMORY_DATA_DIR environment variable; when unset it defaults to $CWD/.supermemory.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1420",
+      "quote": "The self-hosted server resolves its data directory relative to the current working directory ($CWD/.supermemory) whenever SUPERMEMORY_DATA_DIR is unset.",
+      "locator": "Summary section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Five separate stores accumulated on one machine over six weeks due to the CWD-relative default, resulting in the real 664 MB store being separated from several empty stray stores.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1420",
+      "quote": "Five stores accumulated over six weeks from ordinary cd-ing before launch",
+      "locator": "Impact observed on one machine section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The reporter in issue #1317 experienced the same failure, with the store landing in their repo checkout rather than $HOME.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1420",
+      "quote": "Same shape is visible in #1317's own paste, where the store landed in the reporter's repo checkout (/home/culex/github/rlai/.supermemory) rather than $HOME.",
+      "locator": "Reproduction section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The self-hosted v0.0.6 Darwin arm64 binary binds to all network interfaces (0.0.0.0) rather than loopback, exposing the memory service on the local network without opt-in.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1441",
+      "quote": "The official self-hosted `server-v0.0.6` Darwin arm64 binary listens on all interfaces (`*:6768`). I found no documented host/bind environment variable or CLI flag that restricts it to loopback.",
+      "locator": "section: Summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The released binary hardcodes hostname to 0.0.0.0 in its startup path with no documented environment variable override for host binding.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1441",
+      "quote": "The released binary contains a startup path using `hostname: \"0.0.0.0\"`. I did not find a documented `HOST`, `SUPERMEMORY_HOST`, or equivalent bind override.",
+      "locator": "section: Reproduction",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The same class of upgrade-induced memory unsearchability was reported in prior versions (#1103, claimed fixed in 0.0.3, still reproducing in 0.0.3/0.0.5/0.0.7-rc.2)",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1524",
+      "quote": "#1103 \u2014 'search returns total:0 on a store upgraded from v0.0.1' (claimed fixed in 0.0.3, but a comment on 2026-07-26 reports it still reproduces on fresh stores in v0.0.3/v0.0.5/v0.0.7-rc.2)",
+      "locator": "Related",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No automatic migration or explicit boot warning is provided when a backend change invalidates stored vectors",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1524",
+      "quote": "a routine version bump triggers this path silently, with no warning that existing memories will become unsearchable until a full re-ingest",
+      "locator": "Root cause hypothesis",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A reindex command to rebuild vectors without full re-extraction has been requested but does not yet exist",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1524",
+      "quote": "A built-in reindex command (already requested in #1104) would make this a one-step operation",
+      "locator": "Our workaround (verified)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "RBAC on memory write operations is scoped by containerTags; empty tag sets fail open to org-wide write access",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1578",
+      "quote": "a scoped key whose tag set resolves empty gets org-wide write (`rbac.ts` treats empty set as 'no restriction')",
+      "locator": "M4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory retrieval (getDocument) is intended to be scoped to the active space via containerTag verification",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1578",
+      "quote": "MCP `getDocument` bypasses space scoping \u2014 raw ID fetch with no containerTag check while every sibling read tool scopes by space.",
+      "locator": "M5",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The ai-sdk integration exposes LLM-controlled memory search with no server-side result limit, risking context flooding",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1578",
+      "quote": "`@supermemory/ai-sdk` search limit unconstrained (LLM-controlled, no clamp, no client timeout). Fix: integer 1\u201350 in schema + execute-time clamp + 30s timeout.",
+      "locator": "M8",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session identifiers were persisted to transcripts via model-visible output before being removed",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1578",
+      "quote": "`whoAmI` echoed the transport session id into model-visible output (persisted to transcripts) \u2014 dropped.",
+      "locator": "Low / hardening",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Third-party ingested content can supply metadata (including URLs) that is stored and later acted upon by clients, creating a stored-content injection surface",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1578",
+      "quote": "server-controlled `metadata.url` passed to `Action.OpenInBrowser` without scheme allowlist (javascript:, file:, custom handlers reachable from third-party ingested content).",
+      "locator": "M10",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Upsert via /v3/documents with a stable customId re-embeds nearly all chunks on mid-file edits due to position-sensitive chunking; 1007 of 1102 chunks re-embedded for a small edit to a 105 KB document, consuming ~21.5 minutes of CPU on a 2-vCPU host.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1649",
+      "quote": "a one-paragraph mid-file edit to a 105 KB document re-embedded 1007 of 1102 chunks and pinned a 2-vCPU droplet for ~21 minutes (local embeddings, Xenova/bge-base-en-v1.5)",
+      "locator": "## Summary",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "After embedding, a memory agent runs over the chunk set and produces a reduced set of memories (13 memories from 1102 chunks in this case).",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1649",
+      "quote": "Document UYdALezic6sfnHM6DvHqSU starting memory agent (1102 chunks) ... Document UYdALezic6sfnHM6DvHqSU memory agent completed (28084ms, 13 memories)",
+      "locator": "## Observed",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "This re-embed behavior is identified as the dominant CPU cost for self-hosters running local embeddings on any workflow that keeps living documents synced.",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1649",
+      "quote": "For self-hosters running local CPU embeddings, this re-embed behavior is now the dominant CPU cost: any workflow that keeps living documents synced (docs, notes, exports) pays a full re-embed per edit.",
+      "locator": "## Relationship to other issues",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The on-disk memory store (SMD1 container) is encrypted and has no documented export path, making lossless backup or migration of the distilled memory layer impossible for self-hosted users",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1653",
+      "quote": "the on-disk store (`data`, SMD1 container) is encrypted with no documented export path \u2192 For a self-hosted user there is no reliable way to take a full, lossless backup of the distilled memory layer, or to migrate it to another system.",
+      "locator": "issue body, Use case section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memories carry ids, timestamps, and metadata per the requested (not yet implemented) export schema",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1653",
+      "quote": "list and export all extracted memories for a container (ideally with ids, timestamps, metadata)",
+      "locator": "issue body, Request section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Self-hosted server has not been updated since v0.0.8 (2026-08-17), raising continuity concerns for users planning around the memory layer",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1653",
+      "quote": "the self-hosted server has been on v0.0.8 since 2026-08-17 \u2014 are there any plans for further self-hosted server releases/roadmap?",
+      "locator": "issue body, Side note",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SuperMemory is intended to integrate as a memory layer within other AI systems",
+      "kind": "issue",
+      "url": "https://github.com/supermemoryai/supermemory/issues/349",
+      "quote": "a solution that can integrate well within other systems",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget is soft delete: memory is marked forgotten, not permanently deleted from the store.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/api-reference/content-management/forget-a-memory",
+      "quote": "Forget (soft delete) a memory entry. The memory is marked as forgotten but not permanently deleted.",
+      "locator": "DELETE /v4/memories description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory entries can be addressed by ID or by exact content string for forget operations.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/api-reference/content-management/forget-a-memory",
+      "quote": "Exact content match of the memory entry to operate on. Use this when you don't have the ID.",
+      "locator": "DELETE /v4/memories requestBody schema properties.content",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is scoped to a containerTag (space), required on every forget call; example value is a user ID.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/api-reference/content-management/forget-a-memory",
+      "quote": "Container tag / space identifier. Required to scope the operation. \u2026 example: user_123",
+      "locator": "DELETE /v4/memories requestBody schema properties.containerTag",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A reason for forgetting can optionally be recorded, e.g. 'outdated information', suggesting the store retains provenance of why an entry was forgotten.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/api-reference/content-management/forget-a-memory",
+      "quote": "reason: Optional reason for forgetting this memory \u2026 example: outdated information",
+      "locator": "DELETE /v4/memories requestBody allOf[1] properties.reason",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A 409 response for 'Memory already forgotten' implies the store tracks forgotten state as a persistent flag on the entry rather than removing the row.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/api-reference/content-management/forget-a-memory",
+      "quote": "409 \u2026 Memory already forgotten",
+      "locator": "DELETE /v4/memories responses.409",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget is a soft-delete, not a hard purge; memories are marked rather than removed from the store.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/api-reference/content-management/forget-memories-matching-a-promptquery",
+      "quote": "a tool-calling agent searches the container's memories and soft-deletes everything matching the target",
+      "locator": "POST /v4/memories/forget-matching description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget can be scoped to a containerTag, suggesting memories are isolated per container/space/user.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/api-reference/content-management/forget-memories-matching-a-promptquery",
+      "quote": "Container tag / space the forget operation is scoped to.",
+      "locator": "requestBody.properties.containerTag.description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic forget uses cosine similarity scoring; each candidate or forgotten memory carries its similarity score against the forget query.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/api-reference/content-management/forget-memories-matching-a-promptquery",
+      "quote": "Similarity score against the forget query",
+      "locator": "responses.200.properties.candidates.items.properties.score.description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The service has a concept of discrete memory objects (with IDs and content strings) that are individually selectable and deletable.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/api-reference/content-management/forget-memories-matching-a-promptquery",
+      "quote": "Memory ID",
+      "locator": "responses.200.properties.forgotten.items.properties.id.description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "SuperMemory maintains extracted memories as a distinct layer from raw documents, with its own CRUD surface at v4.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/api-reference/memories",
+      "quote": "These endpoints operate on extracted memories, not raw documents.",
+      "locator": "Memories / introductory note",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path supports both direct memory creation and pipeline-based ingestion as separate flows.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/api-reference/memories",
+      "quote": "Write memories directly (skip document pipeline)",
+      "locator": "Memories / endpoint table, POST /v4/memories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Updates are non-destructive by default: PATCH creates a new version, preserving history.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/api-reference/memories",
+      "quote": "Update (creates a new version)",
+      "locator": "Memories / endpoint table, PATCH /v4/memories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is supported both by explicit ID (DELETE) and by natural-language semantic match (forget-matching), giving two deletion modalities.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/api-reference/memories",
+      "quote": "DELETE /v4/memories \u2014 Forget a specific memory\nPOST /v4/memories/forget-matching \u2014 Forget by natural-language match",
+      "locator": "Memories / endpoint table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Version history of memories is queryable via the list endpoint.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/api-reference/memories",
+      "quote": "List with history / versions",
+      "locator": "Memories / endpoint table, POST /v4/memories/list",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path includes automatic extraction from arbitrary input into multiple atomic memories, linked by updates/extends/derives edges.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/graph-memory",
+      "quote": "You do not define schema or draw edges. You add content; the graph updates.",
+      "locator": "Automatic extraction section",
+      "confidence": "unknown",
+      "label": "unknown"
+    },
+    {
+      "claim": "Conflict resolution uses an isLatest marker so search returns the current fact while historical facts remain in the graph for audit.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/graph-memory",
+      "quote": "isLatest (and related graph fields) keep retrieval on the current fact without erasing the past.",
+      "locator": "Memory relationships \u2014 Updates",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation boundary is the containerTag, scoping both writes and searches to a tenant or user.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/graph-memory",
+      "quote": "Ingest under a container tag",
+      "locator": "What you don't do, step 1",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "SuperMemory uses a proprietary learning model that decides what to learn, what is important, when to forget, and how to create relations between facts.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/how-it-works",
+      "quote": "Learning model: Decides what and how to learn, what is important, when to forget, creating relations, etc.",
+      "locator": "How Supermemory Works \u2014 Learning model card",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The store is a fact-based temporal graph combining vector similarity, full-text search, and graph traversal, not a flat embedding store or raw transcript log.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/how-it-works",
+      "quote": "Temporal Vector-graph engine: Where the learnings are actually stored, optimized for search. Fact-based temporal graph that has Vector, FTS, and graph built in.",
+      "locator": "How Supermemory Works \u2014 Temporal Vector-graph engine card",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memories are curated extractions (graph facts, updates, derivations) produced in a dreaming phase, distinct from the raw chunk log produced during indexing.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/how-it-works",
+      "quote": "Document status done means chunks are indexed for search. Memories \u2014 the graph facts, updates, and derives \u2014 come from a second phase called dreaming.",
+      "locator": "Dreaming (how memories enter the graph)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Dynamic dreaming groups related documents so memories emerge from coherent multi-doc or multi-turn context, with extraction potentially continuing after the document reaches done status.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/how-it-works",
+      "quote": "Related documents are grouped so memories form from coherent units, not one isolated write at a time. Graph quality is higher for real multi-turn / multi-doc flows. Memory extraction may continue after status: \"done\".",
+      "locator": "Dreaming \u2014 mode table, dynamic row",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The Profile output provides always-on context as a static + dynamic summary derived from memories, acting as the scaffold layer injected into turns.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/how-it-works",
+      "quote": "Profile: A sample of memories, static + dynamic summary for always-on context",
+      "locator": "What you get out \u2014 output table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is per-containerTag (user, tenant, or project) and enforced at the credential level via scoped API keys that cannot cross containers.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/how-it-works",
+      "quote": "containerTag \u2014 hard isolation boundary (user, tenant, project). [...] Scoped API keys \u2014 credentials that cannot cross a container.",
+      "locator": "Isolation and identity",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Re-ingesting a document with the same customId triggers a diff/update path rather than a new write, enabling session continuity without duplication.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/concepts/how-it-works",
+      "quote": "Use a stable customId when the same conversation or file will be updated later (sessions, connector syncs). That identity also drives diff billing on re-ingest.",
+      "locator": "What you send: documents \u2014 callout",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Supermemory is long-term and short-term context and memory infrastructure for agents",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/overview/what-is-supermemory.md",
+      "quote": "Supermemory is the long term and short term context and memory infrastructure for agents.",
+      "locator": "page header blockquote",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Claimed state-of-the-art on LongMemEval, LoCoMo, ConvoMem benchmarks and SWEContext",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/overview/what-is-supermemory.md",
+      "quote": "State of the art on long-horizon memory \u2014 #1 on LongMemEval, LoCoMo, and ConvoMem, plus independent benches like SWEContext",
+      "locator": "section: Why Supermemory? \u2014 bullet list",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is curated facts/events, not a full chat log \u2014 log vs memory distinction explicitly stated",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/overview/what-is-supermemory.md",
+      "quote": "remember preferences, roles, and history across sessions without stuffing the full chat log into every prompt",
+      "locator": "section: Why add memory to your agent? \u2014 bullet list",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are extracted units stored separately from raw documents; v4 API operates on these extracted memories directly",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/recall/memory-operations",
+      "quote": "These v4 endpoints operate on extracted memories (not raw documents).",
+      "locator": "Info block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Store supports a static/dynamic distinction: isStatic=true marks permanent identity traits (name, hometown); isStatic=false for mutable facts",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/recall/memory-operations",
+      "quote": "`memories[].isStatic` \u2014 `true` for permanent identity traits (name, hometown). Defaults to `false`",
+      "locator": "## Create Memories / Parameters table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is soft-delete only; the memory record is retained in the database with isForgotten=true and excluded from search results",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/recall/memory-operations",
+      "quote": "The memory will no longer appear in search results but remains in the database (`isForgotten=true`).",
+      "locator": "## Forget Memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Bulk forget uses semantic search plus LLM adjudication to select memories matching a natural-language query before soft-deleting",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/recall/memory-operations",
+      "quote": "Give a `query` (a prompt or topic) and the service semantically searches the container, an LLM decides which memories are genuinely about your target, and those are soft-deleted",
+      "locator": "## Forget Matching",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Update creates a versioned new record; original is preserved with isLatest=false rather than overwritten in place",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/recall/memory-operations",
+      "quote": "Update a memory by creating a new version. The original is preserved with `isLatest=false`.",
+      "locator": "## Update Memory (Versioned)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A lightweight source document is created for traceability when memories are written via the Create Memories endpoint",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/recall/memory-operations",
+      "quote": "`documentId` \u2014 ID of the lightweight source document created for traceability",
+      "locator": "## Create Memories / Response table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Declining an inferred memory forgets it by setting isForgotten, removing it from search.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/recall/memory-review",
+      "quote": "Decline \u2014 isForgotten set \u2014 Removed from search entirely \u2014 a rejected guess is forgotten",
+      "locator": "section: How review affects ranking, table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Undo un-forgets a declined memory and returns it to the inferred, down-weighted state in the review queue.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/recall/memory-review",
+      "quote": "Undo clears that stamp \u2014 and un-forgets a declined memory \u2014 bringing it back.",
+      "locator": "section: How review affects ranking, following table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Inferred memories carry metadata source field set to 'derive', distinguishing them from directly stated memories.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/recall/memory-review",
+      "quote": "\"metadata\": { \"source\": \"derive\" }",
+      "locator": "section: List Inferred Memories, Response example JSON",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per container tag (space), scoping the review queue and inferred memory operations.",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/recall/memory-review",
+      "quote": "These endpoints are scoped to a single container tag (space), under /v3/container-tags/{containerTag}.",
+      "locator": "Info callout, section: Review Inferred Memories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Spaces provide isolation so retrieved knowledge does not mix across unrelated teams or projects",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/supermemory-mcp/mcp.md",
+      "quote": "A space keeps a team's documents, memories, and profile context focused, so AI retrieves the right knowledge without mixing unrelated work.",
+      "locator": "How spaces work",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The store distinguishes two object types: source documents and extracted memory entries",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/supermemory-mcp/mcp.md",
+      "quote": "Browse recent extracted memory entries and their source document IDs",
+      "locator": "Tools (table row for listMemories)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is handled via add_memory with action set to forget; there is no dedicated forget tool",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/supermemory-mcp/mcp",
+      "quote": "Set action to forget when a fact is outdated or should be removed. There is no separate forget tool.",
+      "locator": "Tools > Save or forget",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy includes profile context by default alongside matched memories; caller can disable profile injection",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/supermemory-mcp/mcp.md",
+      "quote": "By default, it also includes stable and recent profile context from the same space. Set `includeProfile` to `false` when only matching memories are needed.",
+      "locator": "Tools > Search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Profile context is categorized as stable vs recent, implying different recency or durability tiers",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/supermemory-mcp/mcp.md",
+      "quote": "Stable and recent profile context for the active space",
+      "locator": "Resources and context prompt (Resource: supermemory://profile)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Human-in-the-loop save path exists: assistant prefills guided-save draft but nothing persists until user submits",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/supermemory-mcp/mcp.md",
+      "quote": "The assistant can prefill the draft, but nothing is saved until you submit it.",
+      "locator": "Interactive widgets > Guided save",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Authentication is OAuth-based with no API key required; scope and role are visible via whoAmI",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/supermemory-mcp/mcp.md",
+      "quote": "Supermemory uses OAuth, so no API key is required.",
+      "locator": "Connect",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory entries are versioned (versions field returned by listMemories)",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/supermemory-mcp/mcp",
+      "quote": "Memory IDs, text, versions, and source document IDs",
+      "locator": "Tools table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Profile context is a distinct stable/recent layer retrieved alongside or separately from episodic memories",
+      "kind": "docs",
+      "url": "https://supermemory.ai/docs/supermemory-mcp/mcp",
+      "quote": "Stable and recent profile context for the active space",
+      "locator": "Resources and context prompt",
+      "confidence": "medium",
+      "label": "measured"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/lib/api.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/validation/api.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/lib/similarity.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/tools/src/shared/memory-client.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/tools/src/shared/forget-memory.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/apps/mcp/src/server/tools/save-memory.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/apps/mcp/src/server/tools/search-memory.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/apps/mcp/src/server/tools/add-memory.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://supermemory.ai/docs/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://supermemory.ai/docs/overview/what-is-supermemory.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://supermemory.ai/docs/quickstart.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://supermemory.ai/docs/concepts/how-it-works.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://supermemory.ai/docs/concepts/graph-memory.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://supermemory.ai/docs/concepts/memory-vs-rag.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://supermemory.ai/docs/concepts/multi-tenancy.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://supermemory.ai/docs/concepts/container-tags.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/349",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1104",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1420",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1348",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1305",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1398",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1315",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1649",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1610",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1578",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1209",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1524",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1257",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1301",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1103",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1661",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1441",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1653",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1544",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/supermemoryai/supermemory/issues/1561",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://supermemory.ai/blog/",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://supermemory.ai/docs/recall/memory-operations",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://supermemory.ai/docs/concepts/how-it-works",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://supermemory.ai/docs/supermemory-mcp/mcp.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://supermemory.ai/docs/api-reference/content-management/forget-memories-matching-a-promptquery",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://supermemory.ai/docs/supermemory-mcp/mcp",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://supermemory.ai/docs/api-reference/content-management/forget-a-memory",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://supermemory.ai/docs/concepts/graph-memory",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://supermemory.ai/docs/api-reference/memories",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://supermemory.ai/docs/recall/memory-review",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://news.ycombinator.com/item?id=41030219",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/tech_x/comments/1s0szbg/san_francisco_startup_supermemory_reached_a_99/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LangChain/comments/1o080oz/mem0_vs_supermemory_numbers_on_whats_better_for/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/perplexity_ai/comments/1n78mpm/supermemory_for_perplexity_nextlevel_task/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LangChain/comments/1q0dpty/mem0_zep_letta_supermemory_etc_why_do_memory/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/buildinpublic/comments/1u3oull/rebuilt_the_selfhosted_supermemory_server_in_pure/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qbmffy/i_tried_to_make_llm_agents_truly_understand_me/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.producthunt.com/products/supermemory",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/AI_Agents/comments/1szwjat/agent_memory_supermemory_vs_hindsight/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/AppIdeas/comments/1f0ykm2/supermemory_the_app_that_lets_you_search_your/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Write path mechanics (extract, update, conflict/supersession) are not described on this blog index page despite this being a vendor blog for a memory engine product",
+      "url": "https://supermemory.ai/blog/",
+      "kind": "blog"
+    },
+    {
+      "text": "Write path details (extract, update, delete, conflict/supersession) not described on this blog index page despite being a canonical product blog",
+      "url": "https://supermemory.ai/blog/",
+      "kind": "blog"
+    },
+    {
+      "text": "Forget / deletion mechanism \u2014 no description of how memories are removed or hidden from retrieval",
+      "url": "https://supermemory.ai/blog/",
+      "kind": "blog"
+    },
+    {
+      "text": "Retrieve policy \u2014 whether retrieval is always-on or adaptive/conditional is not described here",
+      "url": "https://supermemory.ai/blog/",
+      "kind": "blog"
+    },
+    {
+      "text": "The internal write path (how extraction, deduplication, and conflict resolution are implemented in the memory engine) is described at a high level but not detailed in this page; the architecture doc reference points to external docs not included here.",
+      "url": "https://supermemory.ai/docs/concepts/memory-vs-rag",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession behavior (what happens when a new save contradicts an existing memory) is not described here",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/apps/mcp/src/server/tools/add-memory.ts",
+      "kind": "code"
+    },
+    {
+      "text": "Conflict/supersession policy \u2014 how duplicate or contradictory memories are handled \u2014 is not described here.",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/apps/mcp/src/server/tools/search-memory.ts",
+      "kind": "code"
+    },
+    {
+      "text": "Forget / delete mechanism is absent; this read-only file gives no indication of how memories are removed or hidden.",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/apps/mcp/src/server/tools/search-memory.ts",
+      "kind": "code"
+    },
+    {
+      "text": "Retrieve policy is not described here: how search results are selected into a turn context (always retrieve, adaptive, threshold-based) is absent from this API schema file.",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/lib/api.ts",
+      "kind": "code"
+    },
+    {
+      "text": "The SearchRequestSchema is imported but not inlined; retrieve parameters (top-k, similarity threshold, filter fields) are not visible on this page.",
+      "url": "https://github.com/supermemoryai/supermemory/blob/2415a5c796d62c7ea9d709bc9337a6e1b6f6d837/packages/lib/api.ts",
+      "kind": "code"
+    },
+    {
+      "text": "No description of how content is persisted, retrieved, updated, or deleted; the page is silent on the memory architecture despite being a product announcement thread.",
+      "url": "https://news.ycombinator.com/item?id=41030219",
+      "kind": "community"
+    },
+    {
+      "text": "No description of retrieve policy: whether memories are always injected, retrieved adaptively, or surfaced only on explicit search. This is a canonical behavior for an LLM memory product and the page does not address it.",
+      "url": "https://www.producthunt.com/products/supermemory",
+      "kind": "community"
+    },
+    {
+      "text": "No description of forget or delete behavior: whether memories can be deleted from the store and how deletion propagates.",
+      "url": "https://www.producthunt.com/products/supermemory",
+      "kind": "community"
+    },
+    {
+      "text": "No description on this page of how Supermemory writes, updates, or deletes memories (write path / conflict resolution / supersession)",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qbmffy/i_tried_to_make_llm_agents_truly_understand_me/",
+      "kind": "community"
+    },
+    {
+      "text": "No description on this page of Supermemory's retrieve policy \u2014 whether retrieval is always-on, adaptive, or user-triggered",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qbmffy/i_tried_to_make_llm_agents_truly_understand_me/",
+      "kind": "community"
+    },
+    {
+      "text": "No information on SuperMemory's write path (extract, update, delete, conflict/supersession logic) is present on this page despite it being a canonical concern raised by commenters",
+      "url": "https://www.reddit.com/r/AI_Agents/comments/1szwjat/agent_memory_supermemory_vs_hindsight/",
+      "kind": "community"
+    },
+    {
+      "text": "No information on SuperMemory's forget or eviction policy is present on this page",
+      "url": "https://www.reddit.com/r/AI_Agents/comments/1szwjat/agent_memory_supermemory_vs_hindsight/",
+      "kind": "community"
+    },
+    {
+      "text": "This post is the canonical product pitch but says nothing about how memory is updated, deleted, or whether conflicts between saved items are resolved.",
+      "url": "https://www.reddit.com/r/AppIdeas/comments/1f0ykm2/supermemory_the_app_that_lets_you_search_your/",
+      "kind": "community"
+    },
+    {
+      "text": "No information on how SuperMemory handles stale or conflicting memories \u2014 the community explicitly flags this as untested and the post does not address it.",
+      "url": "https://www.reddit.com/r/LangChain/comments/1o080oz/mem0_vs_supermemory_numbers_on_whats_better_for/",
+      "kind": "community"
+    },
+    {
+      "text": "The page does not describe SuperMemory's write path: how memories are extracted, updated, deduplicated, or deleted from the store",
+      "url": "https://www.reddit.com/r/buildinpublic/comments/1u3oull/rebuilt_the_selfhosted_supermemory_server_in_pure/",
+      "kind": "community"
+    },
+    {
+      "text": "The page does not describe SuperMemory's retrieve policy: whether retrieval is always-on, adaptive, or triggered by specific conditions",
+      "url": "https://www.reddit.com/r/buildinpublic/comments/1u3oull/rebuilt_the_selfhosted_supermemory_server_in_pure/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of the delete or forget path: whether memories can be explicitly removed from the store or expire",
+      "url": "https://www.reddit.com/r/tech_x/comments/1s0szbg/san_francisco_startup_supermemory_reached_a_99/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of conflict or supersession handling: what happens when a newly extracted fact contradicts a stored one",
+      "url": "https://www.reddit.com/r/tech_x/comments/1s0szbg/san_francisco_startup_supermemory_reached_a_99/",
+      "kind": "community"
+    },
+    {
+      "text": "Retrieve policy not described: this architecture doc defines isolation and the search API signature but does not specify when or whether retrieval is triggered automatically versus on explicit caller request, or any adaptive/always-on retrieval behavior.",
+      "url": "https://supermemory.ai/docs/concepts/container-tags.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / deletion semantics beyond the delete operation are not described: no detail on whether deleted memories are hard-purged from the vector namespace or soft-hidden at retrieval time.",
+      "url": "https://supermemory.ai/docs/concepts/container-tags.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Write path for extraction and conflict/supersession not described: the page mentions entityContext steers extraction but does not describe how duplicate or conflicting memory entries within a container are detected or resolved.",
+      "url": "https://supermemory.ai/docs/concepts/container-tags.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy: this page describes what is stored and how edges form, but does not specify when or how memories are selected into a model turn (always retrieve vs adaptive). The Search API page is referenced but not reproduced here.",
+      "url": "https://supermemory.ai/docs/concepts/graph-memory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict resolution detail: the page states updates win via isLatest but does not describe how conflicts between two simultaneously arriving contradictory facts are resolved (e.g. ordering, confidence scoring).",
+      "url": "https://supermemory.ai/docs/concepts/graph-memory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget/delete mechanism: the learning model is said to decide 'when to forget' but this page does not describe the delete-from-store, hide-at-retrieve, or omit-in-generation path for memories.",
+      "url": "https://supermemory.ai/docs/concepts/how-it-works.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession: memories are described as a 'living graph' with 'updates' but this page does not describe how conflicting or outdated facts are resolved or superseded.",
+      "url": "https://supermemory.ai/docs/concepts/how-it-works.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy: the page describes search via containerTag and metadata but does not specify when retrieval is triggered, whether it is always-on or adaptive, or how results are scaffolded into the model turn.",
+      "url": "https://supermemory.ai/docs/concepts/how-it-works.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete path: this architecture doc describes temporal invalidation conceptually but does not specify the API or mechanism for deleting or explicitly invalidating a memory from the store",
+      "url": "https://supermemory.ai/docs/concepts/memory-vs-rag.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This page is an architecture/isolation doc but does not describe the forget/delete path \u2014 how memories are removed from the store or expire.",
+      "url": "https://supermemory.ai/docs/concepts/multi-tenancy.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of the write-conflict or supersession behavior \u2014 what happens when two writes target the same memory within a container.",
+      "url": "https://supermemory.ai/docs/concepts/multi-tenancy.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy is not described on this index page: no detail on whether retrieval is always-on, adaptive, or caller-directed. The canonical recall/search.md and memory-operations.md pages likely cover this but their content is not present here.",
+      "url": "https://supermemory.ai/docs/llms.txt",
+      "kind": "docs"
+    },
+    {
+      "text": "Graph memory mechanisms (how nodes/edges are formed, how temporal supersession is implemented in code) are named but not detailed on this index page.",
+      "url": "https://supermemory.ai/docs/llms.txt",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete: this page does not describe how to delete a memory or document from the store, nor how supersession or conflict resolution works when a customId is updated with new content that contradicts prior extracted facts.",
+      "url": "https://supermemory.ai/docs/quickstart.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Profile static vs dynamic distinction: the page names both fields but does not explain what populates 'static' vs 'dynamic' or when each is updated.",
+      "url": "https://supermemory.ai/docs/quickstart.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Search-path internals (query embedding step, candidate retrieval count, threshold filtering logic) are not logged or documented on this page; the reporter explicitly flags this as a diagnostic gap.",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1103",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how memories are extracted or structured before embedding (free text, summary, key-value fact). The canonical architecture or write-path doc, if it exists, does not appear here.",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1104",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of what the memory agent persists, how it structures or retrieves stored memories, or how conflicts/supersession are handled \u2014 this is a canonical architecture surface that the issue does not cover",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1209",
+      "kind": "issue"
+    },
+    {
+      "text": "The agent loop code that decides when to finalize a document is not shown; it is unclear whether any turn count or memory count guard exists beyond tool-call presence.",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1301",
+      "kind": "issue"
+    },
+    {
+      "text": "Forget/delete behavior: this issue report does not describe how memories are deleted or evicted from the store",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1305",
+      "kind": "issue"
+    },
+    {
+      "text": "Retrieve policy: no description of how memories are selected into a turn (always retrieve vs adaptive)",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1305",
+      "kind": "issue"
+    },
+    {
+      "text": "No information on how SuperMemory selects or filters stored memories into a turn (retrieve policy, adaptive vs always-on)",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1315",
+      "kind": "issue"
+    },
+    {
+      "text": "No information on forget / delete behavior \u2014 whether records can be removed from the store or are only omitted at retrieval",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1315",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how SuperMemory handles conflicting or superseded facts \u2014 whether newer facts overwrite older ones or both are retained in the store",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1348",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of a forget or delete path \u2014 whether memories can be removed from the store individually or in bulk",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1348",
+      "kind": "issue"
+    },
+    {
+      "text": "The hybrid ranking algorithm is not described: it is unspecified whether scores across memory entries and document chunks are comparable, normalized, or fused before global ranking.",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1398",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of retrieve policy \u2014 how memories are selected into a turn, whether retrieval is adaptive or always-on \u2014 despite this being an architecture-level memory server.",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1420",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of the write path: how memories are extracted, updated, or superseded within a store.",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1420",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of forget/delete behavior: whether memories can be deleted from the store, hidden at retrieve time, or omitted during generation.",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1420",
+      "kind": "issue"
+    },
+    {
+      "text": "No documented host/bind override (HOST, SUPERMEMORY_HOST, or CLI flag) to restrict the server to loopback; this page flags the absence explicitly.",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1441",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of retrieve policy (always retrieve vs adaptive) or how memories are selected into a turn context \u2014 this is a canonical architecture issue for a memory store and the page is silent on it",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1524",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of forget / delete behavior: whether deletion removes vectors from the store or only hides them at retrieval time",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1524",
+      "kind": "issue"
+    },
+    {
+      "text": "Forget / deletion behavior for extracted memories is not mentioned; unclear whether individual memory cards can be deleted or suppressed",
+      "url": "https://github.com/supermemoryai/supermemory/issues/1653",
+      "kind": "issue"
+    },
+    {
+      "text": "This page describes the forget (soft delete) path but does not describe whether forgotten memories are excluded at retrieve time, hidden at generation/scaffold time, or both. The retrieve policy with respect to forgotten entries is not stated here.",
+      "url": "https://supermemory.ai/docs/api-reference/content-management/forget-a-memory",
+      "kind": "docs"
+    },
+    {
+      "text": "Isolation scope is not stated: no indication of whether memories are isolated per user, session, agent, or character.",
+      "url": "https://supermemory.ai/docs/api-reference/memories",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession logic is not described: unclear how duplicate or contradictory memories are handled beyond versioning.",
+      "url": "https://supermemory.ai/docs/api-reference/memories",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy: this architecture page does not describe when or whether memories are retrieved adaptively vs always injected into context, nor how the scaffold instructs the model to use retrieved memories.",
+      "url": "https://supermemory.ai/docs/concepts/graph-memory",
+      "kind": "docs"
+    },
+    {
+      "text": "The page references 'Graph memory' (how facts connect, update, and stay true over time) and 'Profiles' as separate docs but does not explain conflict resolution or supersession logic on this page. This is a canonical architecture doc that describes the graph as the memory store without covering how conflicting facts are resolved.",
+      "url": "https://supermemory.ai/docs/concepts/how-it-works",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget mechanism is named as a learning-model responsibility ('when to forget') but no API or trigger for explicit deletion or hiding at retrieve is described on this page.",
+      "url": "https://supermemory.ai/docs/concepts/how-it-works",
+      "kind": "docs"
+    },
+    {
+      "text": "The page references graph-memory (facts update, connect, forget) but does not describe the write path mechanics \u2014 how extraction, deduplication, update, or deletion are triggered or executed. The graph-memory concept page (/docs/concepts/graph-memory) is linked but not shown.",
+      "url": "https://supermemory.ai/docs/overview/what-is-supermemory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy is not described: whether retrieval is always-on, adaptive, or query-triggered, and what selection logic determines what enters the context turn, is absent from this page.",
+      "url": "https://supermemory.ai/docs/overview/what-is-supermemory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict/supersession policy not described: how duplicate or contradictory memories are handled at write time (beyond versioned update)",
+      "url": "https://supermemory.ai/docs/recall/memory-operations",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession policy: this API doc describes save and forget but does not specify how duplicate or conflicting memories are detected or resolved",
+      "url": "https://supermemory.ai/docs/supermemory-mcp/mcp.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Extraction process: the doc references 'extracted memory entries' but does not describe how extraction from source documents works or what triggers it",
+      "url": "https://supermemory.ai/docs/supermemory-mcp/mcp.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Write path for conflict or supersession: the page describes forget-by-overwrite semantics loosely ('outdated') but does not specify how conflicting facts in the same space are resolved or whether older versions are retained or deleted",
+      "url": "https://supermemory.ai/docs/supermemory-mcp/mcp",
+      "kind": "docs"
+    },
+    {
+      "text": "Extraction mechanism: the page refers to 'extracted memory entries' from documents but does not describe how extraction is triggered, what is extracted, or what controls what gets stored as a memory vs left only in the document",
+      "url": "https://supermemory.ai/docs/supermemory-mcp/mcp",
+      "kind": "docs"
+    }
+  ]
+}

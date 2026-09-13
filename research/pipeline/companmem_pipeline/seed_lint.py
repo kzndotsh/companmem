@@ -7,9 +7,11 @@ from urllib.parse import urlparse
 
 import httpx
 
-from companmem_pipeline.harvest import load_seed
+from pathlib import Path
+
+from companmem_pipeline.harvest import load_seed, select_listed_code_files
 from companmem_pipeline.log import PipelineLogger
-from companmem_pipeline.paths import SEED_PATH
+from companmem_pipeline.paths import CACHE_DIR, SEED_PATH
 
 REQUIRED_KEYS = (
     "id",
@@ -65,10 +67,14 @@ def lint_seed_structure(seed: dict[str, object]) -> list[str]:
         if repo is not None and repo != "" and not _is_url(str(repo)):
             errors.append(f"{prefix} repo is not a valid URL")
         clone = product.get("clone")
+        open_code = product.get("open_code")
+        if not isinstance(open_code, list):
+            errors.append(f"{prefix} open_code must be a list")
+        elif clone is True and not open_code:
+            errors.append(f"{prefix} clone=true but open_code is empty")
         if clone is False:
             if repo:
                 errors.append(f"{prefix} clone=false but repo is set")
-            open_code = product.get("open_code")
             if isinstance(open_code, list) and open_code:
                 errors.append(f"{prefix} clone=false but open_code is non-empty")
         open_docs = product.get("open_docs")
@@ -157,9 +163,53 @@ def lint_seed_urls(seed: dict[str, object], *, client: httpx.Client) -> list[str
     return errors
 
 
-def lint_seed(*, check_urls: bool = False) -> list[str]:
+def lint_open_code_paths(
+    seed: dict[str, object],
+    *,
+    cache_dir: Path = CACHE_DIR,
+    require_clones: bool = False,
+) -> list[str]:
+    """Verify seed open_code paths exist in harvested repo clones."""
+    errors: list[str] = []
+    products = seed.get("products")
+    if not isinstance(products, dict):
+        return ["products: missing"]
+
+    for slug, product in products.items():
+        if not isinstance(product, dict) or not product.get("clone"):
+            continue
+        prefix = f"{slug}:"
+        listed = product.get("open_code")
+        if not isinstance(listed, list):
+            continue
+        repo_dir = cache_dir / slug / "repo"
+        if not (repo_dir / ".git").exists():
+            if require_clones:
+                errors.append(f"{prefix} open_code not checked (no clone at {repo_dir})")
+            continue
+        selection = select_listed_code_files(repo_dir, listed)
+        for skipped in selection.skipped:
+            reason = skipped.get("reason")
+            path = skipped.get("path")
+            if reason == "missing":
+                errors.append(f"{prefix} open_code missing in repo: {path}")
+            elif reason == "outside_repo":
+                errors.append(f"{prefix} open_code outside repo: {path}")
+    return errors
+
+
+def lint_seed(
+    *,
+    check_urls: bool = False,
+    check_open_code: bool = False,
+    require_clones: bool = False,
+) -> list[str]:
     seed = load_seed()
     errors = lint_seed_structure(seed)
+    if check_open_code and not errors:
+        errors.extend(
+            lint_open_code_paths(seed, require_clones=require_clones),
+        )
     if check_urls and not errors:
         headers = {
             "User-Agent": "CompanmemResearch/0.1",
@@ -177,16 +227,36 @@ def main() -> None:
         action="store_true",
         help="GET docs/open_docs and HEAD repo for every product",
     )
+    parser.add_argument(
+        "--check-open-code",
+        action="store_true",
+        help="Verify open_code paths against .cache/by-product/<slug>/repo when present",
+    )
+    parser.add_argument(
+        "--require-clones",
+        action="store_true",
+        help="With --check-open-code, fail if any clone=true product has no cached repo",
+    )
     args = parser.parse_args()
     with PipelineLogger("seed_lint", source="seed") as log:
-        errors = lint_seed(check_urls=args.check_urls)
+        errors = lint_seed(
+            check_urls=args.check_urls,
+            check_open_code=args.check_open_code,
+            require_clones=args.require_clones,
+        )
         if errors:
             log.error("seed_lint_fail", path=str(SEED_PATH), errors=errors[:30])
             print(f"FAIL {SEED_PATH}")
             for err in errors:
                 print(f"  {err}")
             raise SystemExit(1)
-        log.info("seed_lint_ok", path=str(SEED_PATH), check_urls=args.check_urls)
+        log.info(
+            "seed_lint_ok",
+            path=str(SEED_PATH),
+            check_urls=args.check_urls,
+            check_open_code=args.check_open_code,
+            require_clones=args.require_clones,
+        )
         print(f"ok {SEED_PATH}")
 
 

@@ -38,6 +38,9 @@ lint-audits:
 lint-seed:
     {{pipeline}} python -m companmem_pipeline.seed_lint --check-urls
 
+lint-open-code:
+    {{pipeline}} python -m companmem_pipeline.seed_lint --check-open-code --require-clones
+
 synthesize:
     {{pipeline}} python -m companmem_pipeline.synthesize
 

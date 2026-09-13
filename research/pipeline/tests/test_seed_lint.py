@@ -2,13 +2,18 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from companmem_pipeline.harvest import (
     load_seed,
     product_named_in_url_or_title,
     reddit_subreddit_prefix_collision,
 )
-from companmem_pipeline.seed_lint import lint_seed, lint_seed_structure
-
+from companmem_pipeline.seed_lint import (
+    lint_open_code_paths,
+    lint_seed,
+    lint_seed_structure,
+)
 
 def test_lint_seed_structure_passes() -> None:
     assert lint_seed_structure(load_seed()) == []
@@ -43,3 +48,46 @@ def test_reddit_subreddit_prefix_collision_blocks_zepbound() -> None:
 
 def test_lint_seed_offline() -> None:
     assert lint_seed(check_urls=False) == []
+
+
+def test_lint_open_code_paths_for_cached_clones() -> None:
+    seed = load_seed()
+    errors = lint_open_code_paths(seed)
+    assert errors == []
+
+
+def test_lint_open_code_detects_missing_path(tmp_path: Path) -> None:
+    repo = tmp_path / "demo" / "repo"
+    repo.mkdir(parents=True)
+    (repo / ".git").mkdir()
+    (repo / "README.md").write_text("# demo", encoding="utf-8")
+    seed = {
+        "products": {
+            "demo": {
+                "id": "demo",
+                "clone": True,
+                "open_code": ["README.md", "missing.py"],
+            }
+        }
+    }
+    errors = lint_open_code_paths(seed, cache_dir=tmp_path)
+    assert any("missing.py" in err for err in errors)
+
+
+def test_clone_true_requires_nonempty_open_code() -> None:
+    seed = {
+        "products": {
+            "bad": {
+                "id": "bad",
+                "name": "Bad",
+                "repo": "https://github.com/example/bad",
+                "docs": "https://example.com/docs",
+                "clone": True,
+                "community": [],
+                "skip_url_prefixes": [],
+                "open_code": [],
+                "open_docs": ["https://example.com/docs"],
+            }
+        }
+    }
+    assert any("open_code is empty" in err for err in lint_seed_structure(seed))
