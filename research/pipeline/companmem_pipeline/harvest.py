@@ -184,6 +184,15 @@ PRODUCT_TOKEN_STOP = {
     "microsoft",
 }
 PRODUCT_TOKEN_MIN = 3
+DOCS_INDEX_NAMES = frozenset(
+    {
+        "llms.txt",
+        "llms-full.txt",
+        "index.html",
+        "index.md",
+        "readme.md",
+    }
+)
 ISSUE_TECH_BUG_RE = re.compile(
     r"typeerror|nullpointer|stack trace|segfault|\boom\b|race condition|"
     r"dockerfile|migration fail|\b500 error\b|connection refused|\bpytest\b|"
@@ -780,7 +789,8 @@ def search_queries(product: dict[str, object]) -> list[str]:
     if isinstance(docs, str) and docs:
         host = host_of(docs)
         if host and host not in FORGE_HOSTS:
-            queries.append(f"site:{host} forget OR memory OR companion")
+            prefix = docs_host_path_prefix(product) or ""
+            queries.append(f"site:{host}{prefix} forget OR memory OR companion")
     if not product.get("clone"):
         queries.append(f"site:en.wikipedia.org {name}")
     return queries
@@ -875,6 +885,8 @@ def select_search_urls(
             continue
         reason = search_url_skip_reason(url, prefixes, skip_home=skip_home)
         if reason:
+            continue
+        if sibling_on_shared_host(url, product, repo_meta):
             continue
         seen.add(key)
         if allowed_source_url(url, product, repo_meta):
@@ -1764,6 +1776,28 @@ def first_party_hosts(product: dict[str, object], repo_meta: dict[str, object]) 
     return hosts
 
 
+def docs_host_path_prefix(product: dict[str, object]) -> str | None:
+    """Path under the docs host that is this product. None means the whole host."""
+    docs = product.get("docs")
+    if not isinstance(docs, str) or not docs:
+        return None
+    path = urlparse(docs).path.rstrip("/")
+    if not path:
+        return None
+    name = path.rsplit("/", 1)[-1].lower()
+    if name in DOCS_INDEX_NAMES:
+        path = path[: -len(name)].rstrip("/")
+    if not path:
+        return None
+    return path.lower()
+
+
+def path_under_docs_prefix(path: str, prefix: str) -> bool:
+    path = path.lower().rstrip("/") or "/"
+    prefix = prefix.lower().rstrip("/")
+    return path == prefix or path.startswith(prefix + "/") or path.startswith(prefix + ".")
+
+
 def allowed_source_url(
     url: str,
     product: dict[str, object],
@@ -1785,7 +1819,36 @@ def allowed_source_url(
             return False
         prefix = f"/{pair[0]}/{pair[1]}".lower()
         return path.lower().startswith(prefix)
-    return host in first_party_hosts(product, repo_meta)
+    if host not in first_party_hosts(product, repo_meta):
+        return False
+    prefix = docs_host_path_prefix(product)
+    if not prefix:
+        return True
+    docs = product.get("docs")
+    docs_host = host_of(str(docs)) if isinstance(docs, str) else ""
+    if host == docs_host:
+        return path_under_docs_prefix(path, prefix)
+    if host.startswith("docs.") or host.startswith("help."):
+        return True
+    blob = path.lower()
+    return any(
+        re.search(rf"(?:^|[^a-z0-9]){re.escape(token)}(?:[^a-z0-9]|$)", blob)
+        for token in product_path_tokens(product)
+    )
+
+
+def sibling_on_shared_host(
+    url: str,
+    product: dict[str, object],
+    repo_meta: dict[str, object],
+) -> bool:
+    """True for another product's pages on this product's docs/marketing host."""
+    host = host_of(url)
+    if not host or host == "github.com":
+        return False
+    if host not in first_party_hosts(product, repo_meta):
+        return False
+    return not allowed_source_url(url, product, repo_meta)
 
 
 def blog_seed_urls(product: dict[str, object]) -> list[str]:
@@ -1812,11 +1875,15 @@ def blog_seed_urls(product: dict[str, object]) -> list[str]:
             if host.startswith("docs.") or host.startswith("help."):
                 blog_host = host.split(".", 1)[1]
             candidates.append(f"{parsed.scheme}://{blog_host}/blog")
+            candidates.append(f"{parsed.scheme}://blog.{blog_host}/")
     seen: set[str] = set()
     unique: list[str] = []
+    prefix = docs_host_path_prefix(product)
     for url in candidates:
         key = normalize_url(url)
         if key in seen:
+            continue
+        if prefix and not product_mentioned(url, product):
             continue
         seen.add(key)
         unique.append(url)
@@ -1950,6 +2017,10 @@ def harvest_search(
                 skipped[reason] = skipped.get(reason, 0) + 1
                 log.info("search_skipped", url=url, reason=reason, query=query)
                 continue
+            if sibling_on_shared_host(url, product, repo_meta):
+                skipped["sibling_host"] = skipped.get("sibling_host", 0) + 1
+                log.info("search_skipped", url=url, reason="sibling_host", query=query)
+                continue
             key = normalize_url(url)
             if key in already:
                 skipped["already"] = skipped.get("already", 0) + 1
@@ -2003,6 +2074,10 @@ def harvest_search(
                 skipped[f"redirect_{reason}"] = skipped.get(f"redirect_{reason}", 0) + 1
                 log.info("search_skipped", url=final_url, reason=reason, via="redirect")
                 continue
+            if sibling_on_shared_host(final_url, product, repo_meta):
+                skipped["redirect_sibling_host"] = skipped.get("redirect_sibling_host", 0) + 1
+                log.info("search_skipped", url=final_url, reason="sibling_host", via="redirect")
+                continue
             body = page.text
             first_party_page = allowed_source_url(final_url, product, repo_meta)
             if not first_party_page and not product_mentioned(body, product):
@@ -2021,6 +2096,10 @@ def harvest_search(
             final_url = (page_dir / "url.txt").read_text(encoding="utf-8").strip()
             body = (page_dir / "content.txt").read_text(encoding="utf-8", errors="replace")
             first_party_page = allowed_source_url(final_url, product, repo_meta)
+            if sibling_on_shared_host(final_url, product, repo_meta):
+                skipped["sibling_host"] = skipped.get("sibling_host", 0) + 1
+                log.info("search_skipped", url=final_url, reason="sibling_host")
+                continue
             if not first_party_page and not product_mentioned(body, product):
                 skipped["product_not_in_body"] = skipped.get("product_not_in_body", 0) + 1
                 log.info("search_skipped", url=final_url, reason="product_not_in_body")

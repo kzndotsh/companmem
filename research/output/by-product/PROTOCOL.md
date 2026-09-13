@@ -48,8 +48,8 @@ Absence needs a search boundary **and the page it was checked on**: "not in the 
 | Repo | `git clone --depth 1 --single-branch`. Skip if `.git` exists unless `--force`. No submodules. Closed products skip clone. Manifest `repo` is the public https URL, not `ssh://`. License: AGPL before GPL. | **Inclusion list.** `seed.json` `open_code` is the files to copy, picked by looking at the tree (`just harvest-inventory <id>`). Harvest fetches those paths only. No memory-word ranker. No cap-fill. Missing listed paths are skipped and recorded. `open_code: []` means inspected, no code. Missing `open_code` is an error. |
 | Docs | GET the URLs in `seed.json` `open_docs`. First-party only. No sitemap snowball. No llms.txt link expansion. Missing `open_docs` is an error. Empty list means no docs pages. | listed URLs |
 | Issues | GitHub search `is:issue` plus memory/forget/persona/"lost context"/"user experience". Fetch up to 50, drop bots/dependabot/chore/duplicates, rank UX/product language over stack-trace bugs. | 20 |
-| Blog | Census URLs that are not forge hosts. `/blog` on the product site (apex if docs are on `docs.` / `help.`) | 10 |
-| Web search | Claim-shaped queries (forget / lost context / LoCoMo / graph). Fetch landing pages into `search/`. First-party extras and third-party pages that name the product. Skip marketing home when `open_docs` is listed. Wikipedia `site:` only if `clone` is false. Skip community hosts, forge chrome, arxiv, DeepWiki / GitHub Pages mirrors. Do not expand `open_docs`. Snippets are not evidence. | 10 |
+| Blog | Census URLs that are not forge hosts. `/blog` on the product site (apex if docs are on `docs.` / `help.`) and `blog.{apex}`. If docs live under a path prefix, keep only blog URLs that name the product. | 10 |
+| Web search | Claim-shaped queries (forget / lost context / LoCoMo / graph). Fetch landing pages into `search/`. First-party extras and third-party pages that name the product. On a shared docs host, only URLs under the product's docs path are first-party; sibling pages on that host are skipped. Skip marketing home when `open_docs` is listed. Wikipedia `site:` only if `clone` is false. Skip community hosts, forge chrome, arxiv, DeepWiki / GitHub Pages mirrors. Do not expand `open_docs`. Snippets are not evidence. | 10 |
 | Community | Seed forum URLs plus web search on HN, Reddit, Product Hunt, Stack Overflow, X/Twitter, Discourse/forums. Thread URL or title must name the product. A snippet-only mention is not enough: one confirm search on that host (`intitle` / Product Hunt `/products/<id>`) keeps or replaces the URL. Harvest stays no LLM. Skip profile/home URLs. Quality `medium`. Reddit `/comments/` and `redd.it` threads fetch post + comments from [Arctic Shift](https://github.com/ArthurHeitmann/arctic_shift) JSON so the JS shell does not empty the body. `url.txt` stays the reddit.com link. | 10 |
 
 Search snippets are not evidence. `ledger.kind` is `docs \| code \| issue \| community \| blog`. The `search/` folder is where the file was saved.
@@ -79,8 +79,8 @@ Every id in [`../../pipeline/seed.json`](../../pipeline/seed.json) is in scope. 
 | id | name | repo | docs | notes |
 | --- | --- | --- | --- | --- |
 | mem0 | Mem0 | https://github.com/mem0ai/mem0 | https://docs.mem0.ai/llms.txt | |
-| graphiti | Graphiti | https://github.com/getzep/graphiti | https://help.getzep.com/graphiti | |
-| zep | Zep Cloud | none (closed core) | https://help.getzep.com/llms.txt | Skip clone. Docs, blog, search only. Do not treat Graphiti code as Zep Cloud behavior |
+| graphiti | Graphiti | https://github.com/getzep/graphiti | https://help.getzep.com/graphiti | First-party on help.getzep.com is `/graphiti` only. Do not treat Zep Cloud SDK/docs as Graphiti |
+| zep | Zep Cloud | none (closed core) | https://help.getzep.com/llms.txt | Skip clone. Docs, blog, search only. Skip `help.getzep.com/graphiti` and the Graphiti GitHub repo. Do not treat Graphiti code as Zep Cloud behavior |
 | letta | Letta | https://github.com/letta-ai/letta | https://docs.letta.com/llms.txt | Follow GitHub redirect to letta-code |
 | cognee | Cognee | https://github.com/topoteretes/cognee | census | |
 | memos | MemOS | https://github.com/MemTensor/MemOS | census | |

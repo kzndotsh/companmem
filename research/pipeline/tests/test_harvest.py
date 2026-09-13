@@ -11,6 +11,7 @@ from companmem_pipeline.harvest import (
     blog_seed_urls,
     community_confirm_queries,
     detect_license,
+    docs_host_path_prefix,
     first_party_hosts,
     github_owner_repo,
     is_community_host,
@@ -34,6 +35,7 @@ from companmem_pipeline.harvest import (
     search_page_meta,
     search_queries,
     search_url_skip_reason,
+    sibling_on_shared_host,
     select_code_files,
     select_code_inventory,
     select_docs_urls,
@@ -90,7 +92,7 @@ def test_blog_seed_skips_github_forge() -> None:
             "skip_url_prefixes": [],
         }
     )
-    assert urls == ["https://mem0.ai/blog"]
+    assert urls == ["https://mem0.ai/blog", "https://blog.mem0.ai/"]
 
 
 def test_detect_license_agpl_before_gpl(tmp_path: Path) -> None:
@@ -165,6 +167,84 @@ def test_allowed_source_url_first_party_only() -> None:
         product,
         repo_meta,
     )
+
+
+def test_shared_docs_host_is_path_scoped() -> None:
+    graphiti = {
+        "id": "graphiti",
+        "name": "Graphiti",
+        "repo": "https://github.com/getzep/graphiti",
+        "docs": "https://help.getzep.com/graphiti",
+        "clone": True,
+        "open_docs": ["https://help.getzep.com/graphiti/llms.txt"],
+        "skip_url_prefixes": [],
+    }
+    repo_meta = {"origin": "https://github.com/getzep/graphiti"}
+    assert docs_host_path_prefix(graphiti) == "/graphiti"
+    assert allowed_source_url(
+        "https://help.getzep.com/graphiti/working-with-data/searching.md",
+        graphiti,
+        repo_meta,
+    )
+    assert allowed_source_url("https://help.getzep.com/graphiti.md", graphiti, repo_meta)
+    assert allowed_source_url(
+        "https://www.getzep.com/platform/graphiti/",
+        graphiti,
+        repo_meta,
+    )
+    assert not allowed_source_url(
+        "https://help.getzep.com/v2/sdk-reference/memory/delete.md",
+        graphiti,
+        repo_meta,
+    )
+    assert not allowed_source_url("https://help.getzep.com/eve.md", graphiti, repo_meta)
+    assert sibling_on_shared_host(
+        "https://help.getzep.com/v2/sdk-reference/memory/delete.md",
+        graphiti,
+        repo_meta,
+    )
+    kept, _ = select_search_urls(
+        [
+            "https://help.getzep.com/graphiti/getting-started/overview.md",
+            "https://help.getzep.com/v2/sdk-reference/memory/delete.md",
+            "https://help.getzep.com/eve.md",
+            "https://www.getzep.com/platform/graphiti/",
+        ],
+        graphiti,
+        repo_meta,
+        set(),
+    )
+    assert kept[0] == "https://help.getzep.com/graphiti/getting-started/overview.md"
+    assert "https://www.getzep.com/platform/graphiti/" in kept
+    assert "https://help.getzep.com/v2/sdk-reference/memory/delete.md" not in kept
+    assert "https://help.getzep.com/eve.md" not in kept
+    queries = search_queries(graphiti)
+    assert any(q.startswith("site:help.getzep.com/graphiti") for q in queries)
+    assert blog_seed_urls(graphiti) == []
+    assert "https://blog.getzep.com/graphiti-knowledge-graphs-for-agents" in blog_seed_urls(
+        {
+            **graphiti,
+            "census_sources": [
+                "https://blog.getzep.com/graphiti-knowledge-graphs-for-agents"
+            ],
+        }
+    )
+    zep = {
+        "id": "zep",
+        "name": "Zep Cloud",
+        "docs": "https://help.getzep.com/llms.txt",
+        "repo": None,
+        "skip_url_prefixes": [
+            "https://github.com/getzep/graphiti",
+            "https://help.getzep.com/graphiti",
+        ],
+    }
+    assert docs_host_path_prefix(zep) is None
+    assert allowed_source_url("https://help.getzep.com/eve.md", zep, {})
+    assert search_url_skip_reason(
+        "https://help.getzep.com/graphiti/getting-started/overview.md",
+        list(zep["skip_url_prefixes"]),
+    ) == "skip_prefix"
 
 
 def test_select_code_files_skips_generic_meta(tmp_path: Path) -> None:
