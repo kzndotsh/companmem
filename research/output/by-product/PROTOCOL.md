@@ -48,17 +48,21 @@ Absence needs a search boundary **and the page it was checked on**: "not in the 
 | Repo | `git clone --depth 1 --single-branch`. Skip if `.git` exists unless `--force`. No submodules. Closed products skip clone. Manifest `repo` is the public https URL, not `ssh://`. License: AGPL before GPL. | **Inclusion list.** `seed.json` `open_code` is the files to copy, picked by looking at the tree (`just harvest-inventory <id>`). Harvest fetches those paths only. No memory-word ranker. No cap-fill. Missing listed paths are skipped and recorded. `open_code: []` means inspected, no code. Missing `open_code` is an error. |
 | Docs | GET the URLs in `seed.json` `open_docs`. First-party only. No sitemap snowball. No llms.txt link expansion. Missing `open_docs` is an error. Empty list means no docs pages. | listed URLs |
 | Issues | GitHub search `is:issue` plus memory/forget/persona/"lost context"/"user experience". Fetch up to 50, drop bots/dependabot/chore/duplicates, rank UX/product language over stack-trace bugs. | 20 |
-| Blog | Census URLs that are not forge hosts, `/blog` on the docs host | 10 |
-| Web search | Off. Docs pages come from `open_docs` only. | 0 |
+| Blog | Census URLs that are not forge hosts. `/blog` on the product site (apex if docs are on `docs.` / `help.`) | 10 |
+| Web search | Claim-shaped queries (forget / lost context / LoCoMo / graph). Fetch landing pages into `search/`. First-party extras and third-party pages that name the product. Skip marketing home when `open_docs` is listed. Wikipedia `site:` only if `clone` is false. Skip community hosts, forge chrome, arxiv, DeepWiki / GitHub Pages mirrors. Do not expand `open_docs`. Snippets are not evidence. | 10 |
 | Community | Seed forum URLs plus web search on HN, Reddit, Product Hunt, Stack Overflow, X/Twitter, Discourse/forums. Thread must name the product. Skip profile/home URLs (`x.com/user`, subreddit indexes). Quality `medium`. | 10 |
 
 Search snippets are not evidence. `ledger.kind` is `docs \| code \| issue \| community \| blog`. The `search/` folder is where the file was saved.
+
+**Prose conversion.** Docs, blog, search, and community GET with `Accept: text/markdown`. Native markdown is stored as-is. HTML is stripped locally. If origin fails or the strip is thin, try the same path with `.md` (skip if the URL already has an extension). Then one [markdown.new](https://markdown.new/) POST (`method=auto`). A first-party `.md` URL is the source; markdown.new keeps the origin URL. Do not use `/crawl`. Git clone and GitHub issue search stay as they are. markdown.new is 500 requests/day/IP; a 429 disables it for the rest of the process.
 
 ## Extraction and fold
 
 One Kiro call per harvested page, temperature 0.1, no tools. Prompt v3: extract **this product only**; memory is persistent cross-session state, not retrieve-then-speak. Quote before claim. Prefer store/reader/forget/conflict/isolation when the page states them. Empty unknowns beat a laundry list. `label` is `measured` for verbatim code/docs behavior, `inferred` for issues/blogs/vendor benches. LoCoMo-class scores stay inferred.
 
-Fold unions pages into one candidate. Drop `claimed_purpose` / `mechanisms` that do not match a ledger quote or overlapping claim text. Do not emit `claim_ids`. Drop a page-local absence unknown ("not on this page/file") unless the same stem appears on two or more URLs. `copy`, `refuse`, `consensus`, `contested` stay empty after fold. A later grill fills them.
+Fold unions pages into one candidate. Drop `claimed_purpose` / `mechanisms` that do not match a ledger quote or overlapping claim text. Do not emit `claim_ids`. Drop a page-local absence unknown ("not on this page/file") unless the same stem appears on two or more URLs. `copy`, `refuse`, `consensus`, `contested` stay empty after fold.
+
+Those four fields are **interpretation**: what we would copy or refuse from this product for companion continuity, and what the sources agree or fight about. They are not quotes. Extract is forbidden from filling them. There is no `just grill` yet. A later human/agent pass writes them into `audit.json`. Apply keeps non-empty values so a harvest rerun does not wipe that work.
 
 Apply replaces `claimed_purpose`, `mechanisms`, `unknowns`, `sources`, and `ledger` from the candidate. Keep non-empty `copy` / `refuse` / `consensus` / `contested`.
 

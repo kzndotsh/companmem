@@ -22,7 +22,7 @@ jq '{id: .identity.id, refuse: .refuse}' research/output/by-product/mem0/audit.j
 jq -s 'map({id: .identity.id, mechanisms: .mechanisms})' research/output/by-product/*/audit.json
 ```
 
-`sources` is what we opened. `ledger` is what we claim (quote + locator). `copy` / `refuse` are interpretation and stay empty until a later grill.
+`sources` is what we opened. `ledger` is what we claim (quote + locator). `copy` / `refuse` are interpretation (what we would steal or reject for companion continuity). Extract and fold leave them empty. There is no `just grill` yet.
 
 ## Run
 
