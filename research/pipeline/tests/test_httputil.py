@@ -5,8 +5,10 @@ import httpx
 from companmem_pipeline.httputil import (
     decode_body,
     fetch_prose,
+    format_arctic_thread,
     markdown_new_url,
     markdown_suffix_url,
+    reddit_post_id,
     reset_markdown_new,
     unwrap_markdown_new,
 )
@@ -167,3 +169,111 @@ def test_fetch_prose_skips_markdown_new_after_429() -> None:
     assert second is not None
     assert second.converter == "clean_html"
     assert posts == 1
+
+
+def test_reddit_post_id_from_thread_and_short_url() -> None:
+    assert (
+        reddit_post_id(
+            "https://www.reddit.com/r/AI_Agents/comments/1stf5gv/mem0_sufficient/"
+        )
+        == "1stf5gv"
+    )
+    assert reddit_post_id("https://old.reddit.com/r/test/comments/abc123") == "abc123"
+    assert reddit_post_id("https://redd.it/1stf5gv") == "1stf5gv"
+    assert reddit_post_id("https://www.reddit.com/r/AI_Agents/") is None
+    assert reddit_post_id("https://example.com/comments/1stf5gv") is None
+
+
+def test_format_arctic_thread_skips_automod() -> None:
+    text = format_arctic_thread(
+        {
+            "title": "Mem0 sufficient for memory layer?",
+            "selftext": "Recently, many people were talking about mem0.",
+            "author": "alice",
+            "subreddit": "AI_Agents",
+        },
+        [
+            {"author": "AutoModerator", "body": "Please check the wiki."},
+            {"author": "bob", "body": "I use mem0 for long-term memory."},
+            {"author": "gone", "body": "[deleted]"},
+        ],
+    )
+    assert text.startswith("# Mem0 sufficient for memory layer?")
+    assert "r/AI_Agents" in text
+    assert "talking about mem0" in text
+    assert "u/bob" in text
+    assert "AutoModerator" not in text
+    assert "[deleted]" not in text
+
+
+def test_fetch_prose_uses_arctic_shift_for_reddit() -> None:
+    reset_markdown_new()
+    posts: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        url = str(request.url)
+        if request.method == "POST":
+            posts.append(url)
+            return httpx.Response(500)
+        if "arctic-shift.photon-reddit.com" in url and "/api/posts/ids" in url:
+            return httpx.Response(
+                200,
+                json={
+                    "data": [
+                        {
+                            "id": "1stf5gv",
+                            "title": "Mem0 sufficient for memory layer?",
+                            "selftext": "Recently, many people were talking about mem0.",
+                            "author": "alice",
+                            "subreddit": "AI_Agents",
+                        }
+                    ]
+                },
+            )
+        if "arctic-shift.photon-reddit.com" in url and "/api/comments/search" in url:
+            return httpx.Response(
+                200,
+                json={
+                    "data": [
+                        {"author": "AutoModerator", "body": "wiki", "id": "1"},
+                        {
+                            "author": "bob",
+                            "body": "I use mem0 for long-term memory.",
+                            "id": "2",
+                        },
+                    ]
+                },
+            )
+        return httpx.Response(200, text=THIN_HTML, headers={"content-type": "text/html"})
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    thread = "https://www.reddit.com/r/AI_Agents/comments/1stf5gv/mem0_sufficient/"
+    page = fetch_prose(client, thread)
+    assert page is not None
+    assert page.converter == "arctic_shift"
+    assert page.url == thread
+    assert "talking about mem0" in page.text
+    assert "u/bob" in page.text
+    assert "AutoModerator" not in page.text
+    assert posts == []
+
+
+def test_fetch_prose_falls_back_when_arctic_shift_misses() -> None:
+    reset_markdown_new()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        url = str(request.url)
+        if "arctic-shift.photon-reddit.com" in url:
+            return httpx.Response(200, json={"data": []})
+        if request.method == "POST":
+            return httpx.Response(500)
+        return httpx.Response(
+            200,
+            text=GOOD_MARKDOWN,
+            headers={"content-type": "text/markdown"},
+        )
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    page = fetch_prose(client, "https://www.reddit.com/r/test/comments/abc123/x/")
+    assert page is not None
+    assert page.converter == "origin_markdown"

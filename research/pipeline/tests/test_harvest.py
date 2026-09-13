@@ -9,6 +9,7 @@ from companmem_pipeline.harvest import (
     SEARCH_CAP,
     allowed_source_url,
     blog_seed_urls,
+    community_confirm_queries,
     detect_license,
     first_party_hosts,
     github_owner_repo,
@@ -27,6 +28,7 @@ from companmem_pipeline.harvest import (
     parse_sitemap_locs,
     product_ids,
     product_mentioned,
+    product_named_in_url_or_title,
     product_path_tokens,
     public_https_repo,
     search_page_meta,
@@ -456,6 +458,33 @@ def test_docs_rank_drops_old_version_and_collapses_api() -> None:
     assert is_community_thread("https://news.ycombinator.com/item?id=47831013")
     assert not is_community_thread("https://x.com/honchodotdev")
     assert is_community_thread("https://x.com/honchodotdev/status/123")
+
+
+def test_community_confirm_drops_sibling_producthunt_pages() -> None:
+    mem0 = {"id": "mem0", "name": "Mem0"}
+    assert product_named_in_url_or_title(
+        "https://www.producthunt.com/products/mem0-5",
+        "Mem0: Persistent Memory Layer for AI Agents",
+        mem0,
+    )
+    assert product_named_in_url_or_title(
+        "https://news.ycombinator.com/item?id=41447317",
+        "Show HN: Mem0 – open-source Memory Layer for AI apps",
+        mem0,
+    )
+    assert not product_named_in_url_or_title(
+        "https://www.producthunt.com/products/gstack",
+        "GStack: Use Garry Tan's exact Claude Code setup",
+        mem0,
+    )
+    assert not product_named_in_url_or_title(
+        "https://www.producthunt.com/products/openmemory-chrome-extension",
+        "OpenMemory Chrome Extension: Sync memory across AI's",
+        mem0,
+    )
+    queries = community_confirm_queries("producthunt.com", mem0)
+    assert any('intitle:"Mem0"' in q for q in queries)
+    assert any("products/mem0" in q for q in queries)
 
 
 def test_code_listed_paths_only(tmp_path: Path) -> None:

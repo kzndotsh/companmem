@@ -303,6 +303,22 @@ def product_mentioned(text: str, product: dict[str, object]) -> bool:
     return False
 
 
+def product_named_in_url_or_title(url: str, title: str, product: dict[str, object]) -> bool:
+    """True when the page is about this product, not a sibling that mentions it in a snippet."""
+    return product_mentioned(url, product) or product_mentioned(title, product)
+
+
+def community_confirm_queries(host: str, product: dict[str, object]) -> list[str]:
+    """Stricter follow-up search: title or product-hunt slug, not 'mentions Mem0 somewhere'."""
+    name = str(product.get("name") or product["id"])
+    slug = str(product.get("id") or "").strip()
+    host = host.lower().removeprefix("www.")
+    queries = [f'site:{host} intitle:"{name}"']
+    if host.endswith("producthunt.com") and slug:
+        queries.append(f"site:{host}/products/{slug}")
+    return queries
+
+
 def is_memory_path(rel: str, product: dict[str, object] | None = None) -> bool:
     if MEMORY_NAME_RE.search(rel):
         return True
@@ -2068,6 +2084,7 @@ def harvest_community(
             log.info("community_seed", url=url)
     queries = community_search_queries(name)
     log.info("community_queries", queries=queries)
+    incidental_hosts: set[str] = set()
     for query in queries:
         hits, stats = web_search_stats(query, count=6)
         log.info("community_query", query=query, **stats)
@@ -2087,7 +2104,31 @@ def harvest_community(
                 skipped[reason] = skipped.get(reason, 0) + 1
                 log.info("community_skipped", url=url, reason=reason, query=query)
                 continue
-            candidates.append(url)
+            if product_named_in_url_or_title(url, title, product):
+                candidates.append(url)
+                continue
+            incidental_hosts.add(host_of(url))
+            skipped["incidental_mention"] = skipped.get("incidental_mention", 0) + 1
+            log.info("community_skipped", url=url, reason="incidental_mention", query=query)
+    for host in sorted(h for h in incidental_hosts if h):
+        for query in community_confirm_queries(host, product):
+            hits, stats = web_search_stats(query, count=6)
+            log.info("community_confirm", host=host, query=query, **stats)
+            for hit in hits:
+                found += 1
+                url = hit.get("url") or ""
+                title = (hit.get("title") or "")[:120]
+                if not product_named_in_url_or_title(url, title, product):
+                    skipped["confirm_not_named"] = skipped.get("confirm_not_named", 0) + 1
+                    log.info("community_skipped", url=url, reason="confirm_not_named", query=query)
+                    continue
+                reason = community_url_skip_reason(url, prefixes, seed_urls)
+                if reason:
+                    skipped[reason] = skipped.get(reason, 0) + 1
+                    log.info("community_skipped", url=url, reason=reason, query=query)
+                    continue
+                candidates.append(url)
+                log.info("community_adjusted", url=url, title=title, via=query)
 
     unique: list[str] = []
     seen: set[str] = set()

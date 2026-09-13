@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import random
+import re
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -20,7 +21,21 @@ USER_AGENT = "CompanmemResearch/0.1 (+https://github.com/kzndotsh/companmem)"
 DEFAULT_TIMEOUT = 30.0
 MAX_RETRIES = 5
 MARKDOWN_NEW_ENDPOINT = "https://markdown.new/"
-Converter = Literal["origin_markdown", "origin_text", "clean_html", "markdown_new"]
+ARCTIC_SHIFT_BASE = "https://arctic-shift.photon-reddit.com"
+ARCTIC_COMMENT_CAP = 50
+Converter = Literal[
+    "origin_markdown",
+    "origin_text",
+    "clean_html",
+    "markdown_new",
+    "arctic_shift",
+]
+
+_REDDIT_COMMENTS_RE = re.compile(
+    r"https?://(?:www\.|old\.|np\.|new\.)?reddit\.com/r/[^/]+/comments/([0-9a-z]+)",
+    re.I,
+)
+_REDDIT_SHORT_RE = re.compile(r"https?://(?:www\.)?redd\.it/([0-9a-z]+)", re.I)
 
 _markdown_new_disabled = False
 
@@ -169,9 +184,121 @@ def _thin_html(page: FetchedText) -> bool:
     return page.converter == "clean_html" and bool(quality_score(page.text)["is_low_quality"])
 
 
+def reddit_post_id(url: str) -> str | None:
+    """Post id from a reddit.com/comments or redd.it URL. None for profiles and indexes."""
+    for pattern in (_REDDIT_COMMENTS_RE, _REDDIT_SHORT_RE):
+        match = pattern.search(url)
+        if match:
+            return match.group(1).lower()
+    return None
+
+
+def _arctic_rows(payload: object) -> list[dict[str, object]]:
+    if isinstance(payload, dict):
+        data = payload.get("data")
+        if isinstance(data, list):
+            return [row for row in data if isinstance(row, dict)]
+    if isinstance(payload, list):
+        return [row for row in payload if isinstance(row, dict)]
+    return []
+
+
+def format_arctic_thread(
+    post: dict[str, object],
+    comments: list[dict[str, object]],
+) -> str:
+    """Post + comments as markdown. Ledger URL stays the reddit.com thread."""
+    title = str(post.get("title") or "").strip() or "Reddit post"
+    subreddit = str(post.get("subreddit") or "").strip()
+    author = str(post.get("author") or "").strip()
+    selftext = str(post.get("selftext") or "").strip()
+    lines = [f"# {title}", ""]
+    byline: list[str] = []
+    if subreddit:
+        byline.append(f"r/{subreddit}")
+    if author:
+        byline.append(f"u/{author}")
+    if byline:
+        lines.append(" · ".join(byline))
+        lines.append("")
+    if selftext:
+        lines.append(selftext)
+        lines.append("")
+    kept: list[dict[str, object]] = []
+    for comment in comments:
+        c_author = str(comment.get("author") or "")
+        body = str(comment.get("body") or "").strip()
+        if c_author in {"AutoModerator", "[deleted]"}:
+            continue
+        if not body or body in {"[deleted]", "[removed]"}:
+            continue
+        kept.append(comment)
+    if kept:
+        lines.append("## Comments")
+        for comment in kept:
+            c_author = str(comment.get("author") or "unknown")
+            body = str(comment.get("body") or "").strip()
+            lines.extend(["", f"### u/{c_author}", "", body])
+        lines.append("")
+    return "\n".join(lines).strip() + "\n"
+
+
+def fetch_arctic_shift(client: httpx.Client, url: str) -> FetchedText | None:
+    """JSON post + comments from Arctic Shift. None if not Reddit or the API misses."""
+    post_id = reddit_post_id(url)
+    if post_id is None:
+        return None
+    emit_console("httputil", url, "info", "arctic_shift_start", post_id=post_id)
+    fields = "id,title,selftext,author,subreddit"
+    post_resp = fetch_with_retry(
+        client,
+        f"{ARCTIC_SHIFT_BASE}/api/posts/ids?ids={post_id}&fields={fields}",
+    )
+    if post_resp is None:
+        emit_console("httputil", url, "warn", "arctic_shift_miss", reason="post_http")
+        return None
+    try:
+        post_payload: object = post_resp.json()
+    except json.JSONDecodeError:
+        emit_console("httputil", url, "warn", "arctic_shift_miss", reason="post_json")
+        return None
+    posts = _arctic_rows(post_payload)
+    if not posts:
+        emit_console("httputil", url, "warn", "arctic_shift_miss", reason="post_empty")
+        return None
+    comments: list[dict[str, object]] = []
+    comment_resp = fetch_with_retry(
+        client,
+        (
+            f"{ARCTIC_SHIFT_BASE}/api/comments/search?link_id={post_id}"
+            f"&limit={ARCTIC_COMMENT_CAP}&sort=asc&fields=id,author,body,score"
+        ),
+    )
+    if comment_resp is not None:
+        try:
+            comments = _arctic_rows(comment_resp.json())
+        except json.JSONDecodeError:
+            comments = []
+    else:
+        emit_console("httputil", url, "info", "arctic_shift_comments_miss")
+    text = format_arctic_thread(posts[0], comments)
+    emit_console(
+        "httputil",
+        url,
+        "info",
+        "arctic_shift_ok",
+        chars=len(text),
+        comments=len(comments),
+    )
+    return FetchedText(url=url, text=text, converter="arctic_shift")
+
+
 def fetch_prose(client: httpx.Client, url: str) -> FetchedText | None:
-    """Origin markdown, else `{url}.md`, else local HTML strip, else markdown.new."""
+    """Reddit via Arctic Shift, else origin markdown, `{url}.md`, HTML strip, markdown.new."""
     emit_console("httputil", url, "info", "fetch_prose_start")
+    arctic = fetch_arctic_shift(client, url)
+    if arctic is not None:
+        return arctic
     resp = fetch_with_retry(client, url)
     origin: FetchedText | None = None
     if resp is not None:
