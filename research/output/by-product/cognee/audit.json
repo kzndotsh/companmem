@@ -1,0 +1,2691 @@
+{
+  "identity": {
+    "id": "cognee",
+    "name": "Cognee",
+    "repo": "https://github.com/topoteretes/cognee",
+    "docs": "https://docs.cognee.ai/llms.txt",
+    "license": "Apache-2.0",
+    "version_or_commit": "c0d18c80e24b7b78918e7642c03f6f128fdd2aee",
+    "observed_at": "2026-09-13"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Cognee is an open-source memory platform for AI agents built around a memory-native API"
+    },
+    {
+      "text": "Cognee is positioned as a memory layer for AI agents"
+    },
+    {
+      "text": "Open-source AI memory platform giving agents persistent long-term memory across sessions"
+    },
+    {
+      "text": "Raw data continues to flow through a permanent add+cognify path unchanged."
+    },
+    {
+      "text": "Core enrichment pipeline that converts raw text and documents into a knowledge graph for enhanced search and reasoning"
+    },
+    {
+      "text": "Open-source dynamic, self-improving knowledge engine for AI agents"
+    },
+    {
+      "text": "Open-source memory layer that builds a dynamic, self-improving knowledge engine for AI agents"
+    },
+    {
+      "text": "Structured memory to unlock context-aware intelligence, addressing the failure of AI assistants to recall beyond simple text snippets"
+    },
+    {
+      "text": "Memory for AI agents, described as buildable in minimal code"
+    },
+    {
+      "text": "Open-source memory that builds a dynamic, self-improving knowledge engine for AI agents"
+    },
+    {
+      "text": "Cognee turns documents, code, and application data into persistent AI memory that agents and applications can store, query, and improve over time."
+    },
+    {
+      "text": "Cognee exposes a remember \u2192 recall flow as its core user-facing memory operations."
+    },
+    {
+      "text": "Cognee is building a broad set of data-source connectors to ingest content into a searchable graph store."
+    },
+    {
+      "text": "Cognee has a connector system for ingesting data from external sources into a searchable graph"
+    },
+    {
+      "text": "Cognee ingests data from external sources and makes it searchable via a graph store."
+    },
+    {
+      "text": "Open-source memory layer for AI agents combining vector, graph, and relational stores with primitives for long-term, continual learning."
+    },
+    {
+      "text": "Enables coordinated multi-agent reasoning from one shared memory"
+    },
+    {
+      "text": "Four main user-facing operations: remember, recall, improve, forget"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Cognee exposes a memory-native API with four named operations: remember, recall, improve, forget"
+    },
+    {
+      "text": "Cognee can build a memory graph for AI agents covering schema, identity resolution, hybrid retrieval, revision, and evaluation"
+    },
+    {
+      "text": "Cognee supports persistent context: scope, index, retrieve, verify, and write back"
+    },
+    {
+      "text": "Cognee achieved BEAM benchmark results using only default open-source features without benchmark-specific architecture"
+    },
+    {
+      "text": "Cognee addresses why AI agents forget and provides fixes via memory lifecycle including state, retrieval, and long-term storage"
+    },
+    {
+      "text": "improve() enriches memory, applies feedback, and bridges session knowledge into the graph"
+    },
+    {
+      "text": "Session distillation curates accepted lessons into permanent memory"
+    },
+    {
+      "text": "remember() internally runs add + cognify + improve for permanent storage"
+    },
+    {
+      "text": "Conflict resolution is present"
+    },
+    {
+      "text": "Memory is stored across three distinct layers: relational DB (datasets and data records), graph DB (nodes and edges), and vector DB (embeddings). Forget operations target these layers selectively or together."
+    },
+    {
+      "text": "Isolation is per-user: delete_all and forget operations are scoped to user ownership."
+    },
+    {
+      "text": "When memory-only forget is performed on a dataset, session entries whose answers relied on deleted graph elements are removed so the model stops asserting removed content."
+    },
+    {
+      "text": "Pipeline status (cognify_pipeline) is reset per data record after memory-only forget, enabling re-processing with different settings without touching the add-pipeline status."
+    },
+    {
+      "text": "Edge evidence (provenance rows describing graph edges) is deleted alongside graph edges during memory forget, and recaptured on the next cognify run."
+    },
+    {
+      "text": "A per-dataset lock is acquired before entering the database context to prevent concurrent pipeline runs or deletes from interleaving."
+    },
+    {
+      "text": "Session entries are isolated by both user_id and session_id."
+    },
+    {
+      "text": "Contradiction detection is optionally applied at write time: every remember() call can check newly stored facts against the existing graph and record conflicts as 'contradicts' edges."
+    },
+    {
+      "text": "QA entries store question, context, answer, feedback text/score, and graph element IDs used \u2014 a curated structured record, not a raw transcript line."
+    },
+    {
+      "text": "Feedback can be written back to an existing QA entry by qa_id, updating that record with text and score."
+    },
+    {
+      "text": "Migration import from external memory systems (Mem0, Zep/Graphiti, Letta, COGX archive) routes through add/cognify or direct graph storage depending on source fidelity mode."
+    },
+    {
+      "text": "QAEntry persists a user question + assistant answer with optional retrieval context into the session cache, dispatched to SessionManager.add_qa."
+    },
+    {
+      "text": "TraceEntry persists one step of an agent trace (tool/function call, outcome, parameters, return value) into the session cache, dispatched to SessionManager.add_agent_trace_step."
+    },
+    {
+      "text": "FeedbackEntry is semantically an update to an existing QA entry rather than a new memory, dispatched to SessionManager.add_feedback; it chains to a prior QA via qa_id."
+    },
+    {
+      "text": "SkillRunEntry is graph-backed rather than session-cache-backed, persisting skill execution records with quality signals through cognee.remember() without a separate public API."
+    },
+    {
+      "text": "The 'tools' scope (external database access) is explicit opt-in only and is never included in 'all' or 'auto' expansion unless the caller explicitly requests it."
+    },
+    {
+      "text": "Two memory sources are combined per agent call: recent session trace feedback and Cognee graph-search memory, each fetched independently and concatenated."
+    },
+    {
+      "text": "Pipeline execution is dataset-scoped and user-scoped; authorized datasets are resolved before any write"
+    },
+    {
+      "text": "Database context is set per dataset and per dataset owner before graph retrieval, providing dataset- and user-level isolation"
+    },
+    {
+      "text": "Pipeline run records (user_id, outcome, tokens, \u2026) are written to a database; schema must be at current Alembic head before first write"
+    },
+    {
+      "text": "run_pipeline is called with incremental_loading=False, use_pipeline_cache=False, and data_cache=False, meaning each memify run processes the full data without caching"
+    },
+    {
+      "text": "When a session is enabled, retrieved node_ids and edge_ids are extracted from retrieved objects for session QA storage."
+    },
+    {
+      "text": "Temporal evolution of memory (facts changing over time) is acknowledged as an open, actively worked-on problem."
+    },
+    {
+      "text": "Structured memory via knowledge graphs rather than plain text retrieval"
+    },
+    {
+      "text": "Default pipeline usable in 5-6 lines of code; custom domain logic requires additional rule sets"
+    },
+    {
+      "text": "User-specific personalization based on user features mentioned on website but absent from docs"
+    },
+    {
+      "text": "Uses knowledge graphs to give agents structured memory rather than flat text retrieval"
+    },
+    {
+      "text": "Default pipeline works in most general cases in 5 lines; custom domain knowledge requires user-defined rule sets and logic built with provided tooling"
+    },
+    {
+      "text": "Facts taught once are retrieved and surfaced in future sessions"
+    },
+    {
+      "text": "Dynamic enrichment on query: when you ask something, it also enriches the graph"
+    },
+    {
+      "text": "Cognee is described as a layer rather than a full stack, requiring the user to choose and manage the underlying database"
+    },
+    {
+      "text": "Standalone mode provides per-instance data isolation; API mode shares one knowledge graph across multiple MCP clients."
+    },
+    {
+      "text": "API mode authenticates each instance with a single token so all writes belong to one Cognee user; multiple instances share the same knowledge graph."
+    },
+    {
+      "text": "Isolation scoped at least to the current user: .forget can delete everything owned by the current user."
+    },
+    {
+      "text": "Remember stores data as either permanent graph memory or session memory"
+    },
+    {
+      "text": "Recall queries memory with auto-routing and session-aware retrieval"
+    },
+    {
+      "text": "Forget deletes data, datasets, or memory-only state"
+    },
+    {
+      "text": "Improve enriches an existing graph and bridges session memory into it"
+    },
+    {
+      "text": "Session distillation moves session-stated guidance into permanent graph memory"
+    },
+    {
+      "text": "Fact validity allows superseded facts to be closed and stale ones filtered"
+    },
+    {
+      "text": "Per-user preference personalization stores ratings and nudges retrieval ranking"
+    },
+    {
+      "text": "Multi-user mode provides data isolation across users"
+    },
+    {
+      "text": "Global Context Index builds dataset-level summaries to improve graph completion retrieval"
+    },
+    {
+      "text": "COGX is a portable exchange format for importing and exporting memories"
+    },
+    {
+      "text": "Session persistence allows cached conversation sessions to be persisted into the knowledge graph"
+    },
+    {
+      "text": "Entity deduplication detects near-duplicate entity nodes and merges them into a single canonical node"
+    },
+    {
+      "text": "Truth-subspace reranking lets finished sessions reshape retrieval ordering"
+    },
+    {
+      "text": "Agent session traces record what a decorated function did on each call for later recall"
+    },
+    {
+      "text": "Conflict handling flags contradictions between documents and resists premature rating changes"
+    },
+    {
+      "text": "Cognee uses a relational store, a vector store, a graph store, and a cache backend, all of which can be configured to use PostgreSQL/pgvector."
+    },
+    {
+      "text": "Vector search is ORDER BY distance LIMIT top_k with no distance predicate; nearest neighbour is unconditionally treated as relevant"
+    },
+    {
+      "text": "Ingested content becomes searchable within cognee after being added to the graph."
+    },
+    {
+      "text": "Deletion of a source upstream triggers removal of the corresponding record from the graph on the next sync (forget-on-delete write path)."
+    },
+    {
+      "text": "Ingested content is stored in a graph structure; wikilinks are mapped to edges rather than discarded."
+    },
+    {
+      "text": "Connectors live under a community package layout and ingest content to make it searchable in cognee."
+    },
+    {
+      "text": "Cognee persists ingested data into a graph store, and deletion of an upstream source must propagate to remove the record from the graph on the next sync."
+    },
+    {
+      "text": "Ingested content becomes searchable within Cognee after ingest."
+    },
+    {
+      "text": "Deleting a data source upstream removes its record from the graph on the next sync (forget-on-delete pattern)."
+    },
+    {
+      "text": "Cognee stores ingested data in a graph structure that is searchable."
+    },
+    {
+      "text": "Incremental sync uses a date-window cursor to pick up only changed data since the last run."
+    },
+    {
+      "text": "Cognee supports data-source connectors that ingest external content and make it searchable in the cognee graph store."
+    },
+    {
+      "text": "Incremental sync tracks only changes since the last run using a cursor field on the source record."
+    },
+    {
+      "text": "Forget-on-delete: removing a record upstream causes it to be removed from the graph on the next sync."
+    },
+    {
+      "text": "Deleting a record upstream is expected to remove it from the graph on the next sync cycle, indicating a delete/forget path tied to the graph store."
+    },
+    {
+      "text": "Cognee stores ingested data in a graph structure that can be queried"
+    },
+    {
+      "text": "Incremental sync tracks changes since the last run via a cursor, limiting what is re-ingested"
+    },
+    {
+      "text": "Deleting a source upstream triggers removal from the graph on next sync \u2014 a forget-on-delete path"
+    },
+    {
+      "text": "Forget is implemented as delete from the graph store, triggered by upstream deletion detected at sync time"
+    },
+    {
+      "text": "Cognee maintains a graph store that is updated on sync; deleting a source upstream triggers removal from the graph on the next sync cycle."
+    },
+    {
+      "text": "Incremental sync uses a cursor (LastUpdatedTime) to persist and retrieve only changed records since the last run."
+    },
+    {
+      "text": "Connectors ingest data so it becomes searchable within Cognee's store."
+    },
+    {
+      "text": "Forget-on-delete: deleting an upstream record must remove it from the graph on the next sync"
+    },
+    {
+      "text": "Incremental sync uses If-Modified-Since header to pick up only changed records since the last run"
+    },
+    {
+      "text": "Connectors ingest data into cognee making it searchable"
+    },
+    {
+      "text": "Cognee uses a graph as its persistent store; deleting an upstream source removes the record from the graph on the next sync."
+    },
+    {
+      "text": "Incremental sync tracks what has changed since the last run via an entry-level cursor (published/updated timestamps)."
+    },
+    {
+      "text": "Cognee stores ingested content in a graph and supports forget-on-delete: removing a source upstream removes the record from the graph on the next sync."
+    },
+    {
+      "text": "Cognee supports incremental sync, tracking only what changed since the last run via a cursor."
+    },
+    {
+      "text": "Ingested content becomes searchable within Cognee."
+    },
+    {
+      "text": "Ingested content is stored in a graph and made searchable."
+    },
+    {
+      "text": "Incremental sync limits ingest to only new or changed content since the last run."
+    },
+    {
+      "text": "Deleting a source upstream propagates the deletion to the graph store on the next sync."
+    },
+    {
+      "text": "Forget-on-delete: deleting a data source upstream removes the record from the graph on the next sync"
+    },
+    {
+      "text": "Ingested content from connectors becomes searchable in cognee's graph"
+    },
+    {
+      "text": "Write path: incoming data is classified, chunked, LLM-extracted into entities and relationships, summarized, embedded, and committed to the graph; only new or updated data is processed on re-runs."
+    },
+    {
+      "text": "recall queries memory with auto-routing: checks session memory first, then falls through to the graph, choosing between semantic search and traversal depending on the query."
+    },
+    {
+      "text": "Continuous reweighting from correctness signals: confirmed answers strengthen their source memories; corrections attach to memories that produced wrong answers, pushing misleading entries down rather than overwriting them."
+    },
+    {
+      "text": "Isolation: session memory is keyed by session_id and uses a fast cache that syncs to the graph; the shared graph can serve multiple agents and humans simultaneously."
+    },
+    {
+      "text": "Memory improves from agent interaction signals: retrieval, correction, reuse, and ignoring are all feedback"
+    },
+    {
+      "text": "Shared memory: multiple agents read and write the same memory store"
+    },
+    {
+      "text": "remember(): extracts entities and relationships from plain text and stores them as a connected graph, linking new input to existing memory"
+    },
+    {
+      "text": "Feedback signals attached to nodes and edges after answer judgement; confirmed memories rank higher, corrected ones rank lower"
+    },
+    {
+      "text": "Hybrid retrieval: graph traversal + vector search + BM25 lexical retrieval, fused with reciprocal rank fusion"
+    },
+    {
+      "text": "Storage isolation: Postgres as full graph backend with multi-user isolation"
+    },
+    {
+      "text": "Session cache (turns) is cleaned up as part of every forget mode; contaminated turns whose answers used deleted graph elements are removed"
+    },
+    {
+      "text": "Isolation scope for .forget includes per-user ownership: deletion can target everything owned by the current user."
+    },
+    {
+      "text": "Ingest (add): skills are parsed from SKILL.md files, given stable identity, metadata, and content hashes to detect changes."
+    },
+    {
+      "text": "Skills can be deleted cleanly from both graph and vector storage."
+    },
+    {
+      "text": "Supersession pattern: write replacement first, then forget() the outdated record by data_id so both versions never stay active at once"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Cognee 1.0 is an open-source memory platform with a memory-native API: remember, recall, improve, forget",
+      "kind": "blog",
+      "url": "https://www.cognee.ai/blog",
+      "quote": "cognee 1.0 is the first open-source memory platform built around a memory-native API \u2014 remember, recall, improve, forget \u2014 with full data ownership and deployment flexibility from managed cloud to edge.",
+      "locator": "Latest News section, cognee 1.0 post summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee is the open-source memory layer for AI agents backed by OpenAI and Facebook AI Research founders",
+      "kind": "blog",
+      "url": "https://www.cognee.ai/blog",
+      "quote": "Cognee raises $7.5M seed led by Pebblebed to build the open-source memory layer for AI agents\u2014backed by founders of OpenAI and Facebook AI Research.",
+      "locator": "Latest News section, seed round post summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee uses graph-based memory for selective retrieval rather than expanding context windows",
+      "kind": "blog",
+      "url": "https://www.cognee.ai/blog",
+      "quote": "Throwing a million tokens at an agent makes it slower and more expensive. Graph-based memory decides what to retrieve, not window size.",
+      "locator": "Latest Deep Dives section, 'Coding Agents Don't Need Bigger Context Windows \u2014 They Need Better Memory' post summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee beat SOTA on BEAM 100k-token setting by 6.5% using only default open-source features",
+      "kind": "blog",
+      "url": "https://www.cognee.ai/blog",
+      "quote": "cognee beat SOTA on BEAM's 100k-token setting by 6.5% and matched SOTA at 10M tokens using only default open-source features \u2014 no custom benchmark-specific architecture.",
+      "locator": "Latest Deep Dives section, 'cognee on BEAM' post summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee supports a full memory lifecycle: scope, index, retrieve, verify, write back for persistent context",
+      "kind": "blog",
+      "url": "https://www.cognee.ai/blog",
+      "quote": "Learn how to scope, index, retrieve, verify, and write back persistent context for coding agents, then measure whether it actually improves the coding workflow.",
+      "locator": "Tutorials section, 'How to Build Persistent Context for Coding Agents' post summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee memory graph covers identity resolution, hybrid retrieval, revision, and evaluation",
+      "kind": "blog",
+      "url": "https://www.cognee.ai/blog",
+      "quote": "Learn how to design, build, and maintain a memory graph for AI agents, from schema and identity resolution to hybrid retrieval, revision, and evaluation with cognee.",
+      "locator": "Tutorials section, 'How to Build a Memory Graph for AI Agents' post summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee addresses the agent forgetting problem through memory lifecycle including long-term storage",
+      "kind": "blog",
+      "url": "https://www.cognee.ai/blog",
+      "quote": "Learn why AI agents lose context and how to fix agent memory with better state, retrieval, long-term storage, and cognee's memory lifecycle.",
+      "locator": "Latest Tutorials section, 'Why AI Agents Forget and How to Fix Their Memory' post summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee provides persistent long-term memory across sessions for AI agents",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/README.md",
+      "quote": "Cognee is the open-source AI memory platform that gives AI agents persistent long-term memory across sessions.",
+      "locator": "README.md, opening description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "remember() with no session_id writes permanently to the knowledge graph via add + cognify + improve",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/README.md",
+      "quote": "Store permanently in the knowledge graph (runs add + cognify + improve)",
+      "locator": "README.md, Quickstart code block, inline comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "recall() uses automatic routing to pick the best search strategy, and with a session_id queries session memory first before falling through to the graph",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/README.md",
+      "quote": "Query with auto-routing (picks best search strategy automatically) ... Query session memory first, fall through to graph if needed",
+      "locator": "README.md, Quickstart code block, inline comments",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "improve() bridges session knowledge into the permanent graph and applies feedback",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/README.md",
+      "quote": "Enrich memory, apply feedback, and bridge session knowledge into the graph.",
+      "locator": "README.md, How Cognee works, operations table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Session distillation converts session lessons into permanent curated memory, distinct from a raw message log",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/README.md",
+      "quote": "Session distillation curates accepted lessons into permanent memory.",
+      "locator": "README.md, How Cognee works",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per session via a session_id parameter on remember() and recall()",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/README.md",
+      "quote": "await cognee.remember(\"User prefers detailed explanations.\", session_id=\"chat_1\") ... results = await cognee.recall(\"What does the user prefer?\", session_id=\"chat_1\")",
+      "locator": "README.md, Quickstart code block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "BEAM benchmark at 100K tokens scored 0.79 using Cognee memory components with benchmark-specific configuration",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/README.md",
+      "quote": "100K tokens | 0.79 | Fixed hybrid retrieval; four evaluation rounds over 20 questions from one held-out conversation.",
+      "locator": "README.md, Benchmarks and research, BEAM table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cognee has conflict resolution for memory writes",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/README.md",
+      "quote": "Cognee now has better conflict resolution",
+      "locator": "README.md, Latest News",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cognee memory is stored across three layers: relational DB, graph DB, and vector DB; forget can target all three or graph+vector only.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/forget/forget.py",
+      "quote": "Cleanup scope:\n    - Relational DB (datasets, data records): yes\n    - Graph DB (nodes, edges): yes\n    - Vector DB (embeddings): yes\n    - Session cache (Redis/FS): yes (full prune)",
+      "locator": "_forget_everything docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "memory_only delete removes graph nodes/edges and vector embeddings while preserving raw files and relational data records, enabling re-cognification with different settings.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/forget/forget.py",
+      "quote": "delete only memory (graph nodes/edges and vector embeddings) and reset pipeline status. Raw files and data records are preserved so the dataset can be re-cognified with different settings.",
+      "locator": "forget docstring, memory_only arg",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is scoped per-user; everything=True deletes all datasets and data the current user owns.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/forget/forget.py",
+      "quote": "If True, delete all datasets and data the user owns. Ignores ``data_id``, ``dataset``, and ``dataset_id``.",
+      "locator": "forget docstring, everything arg",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session cache (Redis or filesystem) is pruned as part of forget-everything.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/forget/forget.py",
+      "quote": "cache_engine = get_cache_engine()\n            if cache_engine is not None:\n                await cache_engine.prune()",
+      "locator": "_forget_everything, session cache block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "After memory-only forget, session entries referencing deleted graph element IDs are invalidated so the model stops asserting removed content.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/forget/forget.py",
+      "quote": "Remove session entries whose answers used the deleted graph elements, so completions stop asserting the removed content (non-fatal).",
+      "locator": "_forget_data_memory, comment block 1b",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Pipeline status is tracked per data record per dataset; memory-only forget resets only cognify_pipeline status, leaving add-pipeline status intact.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/forget/forget.py",
+      "quote": "Memory-only forget removes cognify artifacts (graph/vector), so only\n                # cognify_pipeline status should be reset. Keep add status intact.",
+      "locator": "_forget_data_memory, block 2 comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Edge provenance evidence rows are deleted alongside graph edges and are recaptured on the next cognify run.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/forget/forget.py",
+      "quote": "The edges are gone, so the evidence rows describing them are stale;\n        # the next cognify recaptures them under its own run (non-fatal).",
+      "locator": "_forget_dataset_memory, block 1c comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A per-dataset lock enforces sequential ordering between pipeline runs and delete operations on the same dataset.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/forget/forget.py",
+      "quote": "Same per-dataset lock as pipeline runs: wait for any in-flight pipeline on this dataset and exclude concurrent deletes. The database context comes AFTER the lock \u2014 canonical order (dataset lock -> queue slot), SDK-483.",
+      "locator": "_forget_dataset_memory, lock block comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "remember() has two write modes: permanent (add+cognify knowledge graph) and session (session cache), selected by presence of session_id.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/remember/remember.py",
+      "quote": "Two modes depending on whether ``session_id`` is provided:\n\n    **Without session_id (permanent memory):** Runs ``add()`` +\n    ``cognify()`` to ingest data and build the knowledge graph.\n\n    **With session_id (session memory):** Stores the data in the\n    session cache for fast retrieval.",
+      "locator": "remember() docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session memory is isolated by both user_id and session_id at the storage layer.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/remember/remember.py",
+      "quote": "await sm.add_qa(\n        user_id=user_id,\n        session_id=session_id,\n        question=\"\",\n        context=\"\",\n        answer=text,\n    )",
+      "locator": "_add_to_session(), sm.add_qa() call",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session memory auto-bridges to permanent graph storage via improve() in a background task when self_improvement=True (default).",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/remember/remember.py",
+      "quote": "Bridge session data to permanent graph in the background\n\n            if self_improvement:\n                from cognee.api.v1.improve import improve\n\n                async def _session_improve():\n                    ...await improve(\n                        dataset=dataset_id,\n                        session_ids=[session_id],\n                        user=user,\n                    )\n                logger.info(\"remember: session '%s' bridged to permanent graph\", session_id)",
+      "locator": "_remember_inner(), session_id branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Contradiction detection checks newly stored facts against existing graph facts and records conflicts as 'contradicts' edges; off by default.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/remember/remember.py",
+      "quote": "setting ``CONTRADICTION_DETECTION=true``\n    makes every ``remember()`` call check the facts it just stored against\n    the ones already in the graph and record each conflict as a\n    ``contradicts`` edge (see ``CognifyConfig``). Off by default.",
+      "locator": "remember() docstring, permanent memory section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "QA entries are structured records (question, context, answer, feedback, graph element IDs used) \u2014 not raw transcript lines.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/remember/remember.py",
+      "quote": "qa_id = await sm.add_qa(\n            user_id=user_id,\n            session_id=session_id,\n            question=entry.question,\n            context=entry.context,\n            answer=entry.answer,\n            feedback_text=entry.feedback_text,\n            feedback_score=entry.feedback_score,\n            used_graph_element_ids=entry.used_graph_element_ids,\n        )",
+      "locator": "_dispatch_session_entry(), QAEntry branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Feedback can update an existing QA record by qa_id with a text note and numeric score.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/remember/remember.py",
+      "quote": "ok = await sm.add_feedback(\n            user_id=user_id,\n            session_id=session_id,\n            qa_id=entry.qa_id,\n            feedback_text=entry.feedback_text,\n            feedback_score=entry.feedback_score,\n        )",
+      "locator": "_dispatch_session_entry(), FeedbackEntry branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session availability is gated on CACHING=true; if unavailable, session writes warn and skip rather than raise.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/remember/remember.py",
+      "quote": "if not sm.is_available:\n        logger.warning(\"remember: session cache not available (enable CACHING=true)\")\n        return",
+      "locator": "_add_to_session(), availability check",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemorySource imports from external systems (Mem0, Zep/Graphiti, Letta, COGX) are routed through add/cognify or direct graph storage based on source fidelity mode.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/remember/remember.py",
+      "quote": "Migration dispatch: a MemorySource streams COGX records from an external\n    memory system (Mem0, Zep/Graphiti, Letta, a COGX archive, ...). The\n    migration loader routes them through add/cognify or direct graph storage\n    depending on the source's fidelity mode.",
+      "locator": "remember() body, MemorySource dispatch block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Cognee models memory as typed entries (QA, Trace, Feedback, SkillRun) imported from a dedicated entries module, distinguishing curated memory writes from a flat transcript log.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/memory/__init__.py",
+      "quote": "MemoryEntry,\n    QAEntry,\n    TraceEntry,\n    FeedbackEntry,\n    SkillRunEntry,",
+      "locator": "cognee/memory/__init__.py, import block and __all__",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "QAEntry stores a Q&A turn (question, answer, context, optional feedback and graph element ids) in the session cache via SessionManager.add_qa",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/memory/entries.py",
+      "quote": "A Q&A turn stored in the session cache. Represents a user question + assistant answer with optional retrieval context. Dispatched to ``SessionManager.add_qa``.",
+      "locator": "QAEntry class docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "TraceEntry stores agent trace steps (tool/function calls with params and return values) in the session cache via SessionManager.add_agent_trace_step",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/memory/entries.py",
+      "quote": "One step of an agent trace. Structured representation of a tool/function call \u2014 origin, outcome, parameters, return value. Dispatched to ``SessionManager.add_agent_trace_step``.",
+      "locator": "TraceEntry class docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "FeedbackEntry is an update path to an existing QA record, not a new memory write, linked by qa_id",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/memory/entries.py",
+      "quote": "Semantically an update rather than a new memory \u2014 carried through remember() for API minimalism. Dispatched to ``SessionManager.add_feedback``.",
+      "locator": "FeedbackEntry class docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "SkillRunEntry is persisted to the graph store (not the session cache), recording skill execution quality signals",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/memory/entries.py",
+      "quote": "This is graph-backed rather than session-cache-backed. It lets agents report explicit skill quality signals through ``cognee.remember()`` without adding another public API surface.",
+      "locator": "SkillRunEntry class docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall has distinct scopes: graph, session, trace, session_context for normal recall; tools and code are opt-in only and excluded from auto/all expansion",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/memory/entries.py",
+      "quote": "\"tools\" is explicit opt-in only: it is valid here but deliberately NOT part of the \"all\" expansion or the \"auto\" resolution \u2014 recall must never reach an external database unless the caller asked for it by name.",
+      "locator": "_VALID_SCOPES comment block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Raw text/file data bypasses typed entry dispatch and goes through the permanent add+cognify path",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/memory/entries.py",
+      "quote": "Raw data (str / bytes / file-like / list of the above) continues to flow through the permanent add+cognify path unchanged.",
+      "locator": "module docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Two memory stores exist: a session trace store (short-term, cache-backed, per user+session) and a Cognee graph dataset store (long-term, graph-backed, per user+dataset).",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/agent_memory/runtime.py",
+      "quote": "session_memory = await retrieve_session_memory_context(context)\n    if session_memory:\n        memory_parts.append(f\"Recent Session Memory:\\n{session_memory}\")\n\n    cognee_memory = await retrieve_cognee_memory_context(context)\n    if cognee_memory:\n        memory_parts.append(f\"Relevant Cognee Memory:\\n{cognee_memory}\")",
+      "locator": "retrieve_memory_context",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session memory is a curated trace log (last_n entries), not a full transcript; each entry records query, context, params, return value, status, and error.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/agent_memory/runtime.py",
+      "quote": "last_n=context.config.session_memory_last_n",
+      "locator": "retrieve_session_memory_context",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path to long-term graph memory is triggered automatically every N session trace steps, not on every call.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/agent_memory/runtime.py",
+      "quote": "if trace_count == 0 or trace_count % context.config.persist_session_trace_after != 0:\n            return",
+      "locator": "persist_trace",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is skipped (not silently empty) when no query can be derived from the call arguments, making retrieval conditional rather than always-on.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/agent_memory/runtime.py",
+      "quote": "logger.info(\"Skipping agent memory retrieval because no usable query could be derived.\")",
+      "locator": "retrieve_cognee_memory_context",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-call execution context (including memory query and retrieved context) is stored in a contextvars.ContextVar, scoping it to the current async task and preventing cross-call bleed.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/agent_memory/runtime.py",
+      "quote": "_agent_memory_context_var: contextvars.ContextVar[Optional[AgentMemoryContext]] = (\n    contextvars.ContextVar(\"agent_memory_context\", default=None)\n)",
+      "locator": "module-level _agent_memory_context_var",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "memify converts raw text/documents into a knowledge graph by extracting entities and relationships",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/memify/memify.py",
+      "quote": "This is the core processing step in Cognee that converts raw text and documents into an intelligent knowledge graph. It analyzes content, extracts entities and relationships, and creates semantic connections for enhanced search and reasoning.",
+      "locator": "memify docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory retrieval uses brute-force triplet search over the graph, filtered by node type and name",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/memify/memify.py",
+      "quote": "from cognee.modules.retrieval.utils.brute_force_triplet_search import get_memory_fragment",
+      "locator": "import, line ~8",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per dataset and per user/owner via database context variables set before graph access",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/memify/memify.py",
+      "quote": "async with set_database_global_context_variables(\n            authorized_dataset.id, authorized_dataset.owner_id\n        ):",
+      "locator": "memify, lines ~111-113",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Pipeline run log writes persist operational metadata (user_id, outcome, tokens) to a database table",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/memify/memify.py",
+      "quote": "The pipeline-run log writers INSERT the operation-record columns (user_id, outcome, tokens, ...), so an existing database must be at the current Alembic head before the first write",
+      "locator": "memify, inline comment ~lines 100-103",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "memify does not use caching or incremental loading; each run reprocesses the full data",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/memify/memify.py",
+      "quote": "use_pipeline_cache=False,\n            incremental_loading=False,\n            data_cache=False,",
+      "locator": "memify, lines ~128-130",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dataset and user authorization are resolved before data is accessed or written",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/memify/memify.py",
+      "quote": "user, authorized_dataset_list = await resolve_authorized_user_datasets(dataset, user)\n    authorized_dataset = authorized_dataset_list[0]",
+      "locator": "memify, lines ~107-108",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Underlying storage for retrieval is a Graph DB (edges) or Vector DB (chunks), not a flat message log.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/retrieval/base_retriever.py",
+      "quote": "Fetch raw data (e.g., Graph Edges, Vector chunks).",
+      "locator": "class BaseRetriever docstring, step 1",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session turn preparation can rewrite the user query before retrieval using conversational context, implying session state is maintained across turns.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/retrieval/base_retriever.py",
+      "quote": "a session turn runs the raw question and a conversational rewrite of it \u2014 so the retriever formats context from both at once",
+      "locator": "merge_retrieved_objects docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph node and edge IDs from a retrieval turn are stored back into session QA, linking retrieval to session memory.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/retrieval/base_retriever.py",
+      "quote": "Extract node_ids and edge_ids from retrieved_objects for session QA.\n        Override in retrievers that use session and have graph elements to store.\n        Only called when session is enabled.",
+      "locator": "extract_context_object_ids docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Session isolation is keyed by session_id on the retriever instance.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/retrieval/base_retriever.py",
+      "quote": "session_id=getattr(self, \"session_id\", None)",
+      "locator": "prepare_session_turn_for_retrieval method body",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cognee is licensed Apache 2.0 for the open-source framework and adapters; production features are in a paid tier.",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=44169594",
+      "quote": "We've open-sourced cognee \u2014specifically the framework and various vector and graph database adapters, as well as our default data pipeline, cognify\u2014under the Apache 2.0 license. However, many keep features that are optimized for production use, as a part of our paid platform.",
+      "locator": "Show HN submission body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Temporal evolution of stored facts is an open problem; mechanisms are in development but not yet shipped.",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=44169594",
+      "quote": "We have temporal resolution mechanisms we are building, and framework is generalizable enough to build any custom logic. We have a few ideas and some things will be posted there soon.",
+      "locator": "vasa_ reply to dovlex, June 3 2025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee uses knowledge graphs as structured memory, not plain text snippets",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/cognee?hss_channel=lcp-53258240&launch=cognee",
+      "quote": "Giving AI agents structured memory through knowledge graphs is genius.",
+      "locator": "Community comment, Desmond Manna",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "90% accuracy out of the box, benchmarked on HotPot with F1, EM, LLM-as-Judge, and human evaluation",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/cognee?hss_channel=lcp-53258240&launch=cognee",
+      "quote": "We give you 90% accuracy out of the box \u2026 We have an entire evaluation framework where we benchmarked cognee using F1, EM, LLM as Judge metrics and Human eval (meaning we went over responses and checked manually) on HotPot.",
+      "locator": "Maker comment, Vasilije Markovic",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User-specific memory isolation is claimed on the website but not documented in the docs at time of launch",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/cognee?hss_channel=lcp-53258240&launch=cognee",
+      "quote": "How do you make the search user-specific? I read on website you personalize to user based on user features but didn't find it in the docs",
+      "locator": "Community comment, Anuar Yeraliyev",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Default pipeline covers most general cases; custom domain knowledge requires user-defined rule sets",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/cognee?hss_channel=lcp-53258240&launch=cognee",
+      "quote": "With 5 lines of code you get our default pipeline that works in most general cases. If you have some specific domain knowledge you need to map, you would need to add your rule set and build your own logic, but we provide tooling for this",
+      "locator": "Maker comment, Vasilije Markovic replying to Tom Cao",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee compared favourably against Mem0 in their own evals",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/cognee?hss_channel=lcp-53258240&launch=cognee",
+      "quote": "we compared against Mem0 and our tool is more accurate -> https://github.com/topoteretes/cognee/tree/main/evals",
+      "locator": "Maker comment, Vasilije Markovic replying to Anil Peri",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee is open-source memory for AI agents positioning itself as a knowledge graph-backed alternative to flat text retrieval",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/cognee",
+      "quote": "Cognee is an open-source memory that builds dynamic, self-improving knowledge engine for AI agents.",
+      "locator": "Product tagline / overview section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Structured memory through knowledge graphs is the core differentiator from snippet-based retrieval",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/cognee",
+      "quote": "most AI assistants struggle to recall information beyond simple text snippets, which can lead to incorrect or vague answers. We felt that a more structured memory was needed to truly unlock context-aware intelligence.",
+      "locator": "Maker comment \u2013 Vasilije Markovic, launch post",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User-specific personalisation is mentioned on the product website but was not findable in the docs at time of launch",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/cognee",
+      "quote": "How do you make the search user-specific? I read on website you personalize to user based on user features but didn't find it in the docs",
+      "locator": "Community comment \u2013 Anuar Yeraliyev",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Benchmarked against Mem0; maker claims cognee is more accurate per evals at github.com/topoteretes/cognee/tree/main/evals",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/cognee",
+      "quote": "Have a look at our evals here, we compared against Mem0 and our tool is more accurate",
+      "locator": "Maker comment \u2013 Vasilije Markovic, reply to Anil Peri",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee positions itself as memory infrastructure for AI agents, not a general RAG library",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/cognee/makers",
+      "quote": "Memory for AI Agents in 6 lines of code",
+      "locator": "Product tagline",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee describes its memory as dynamic and self-improving, implying the knowledge store evolves over time rather than being static",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/cognee/makers",
+      "quote": "Cognee is an open-source memory that builds dynamic, self-improving knowledge engine for AI agents.",
+      "locator": "Product description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee MCP persists user-taught rules and surfaces them proactively in later sessions",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1m6f3xd/cognee_mcp_is_my_new_ai_memory_for_making_rules/",
+      "quote": "when I teach my assistant something once - like \"hey, new .mdx files need to be added to docs.json\" - it actually remembers and suggests it next time",
+      "locator": "post body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Knowledge graph structure affects how much tuning helps, with graph generation parameters creating a large search space.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1l2dru6/new_paper_from_cognee_hyperparam_optimization_for/",
+      "quote": "The more parameter the bigger the search space.",
+      "locator": "comment by u/Business_Reason",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee offers cutting-edge configurations not available in simpler memory tools, but docs versioning is an obstacle",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qgbptg/which_one_is_better_for_graphrag_cognee_vs/",
+      "quote": "Mem0 was easy-ish to get setup, but didn't offer the cutting edge configurations I was looking for... I was using one version and built something to the docs spec, but I needed to upgrade to use that.",
+      "locator": "comment by u/Crashbox3000",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee offers more control over graph schema (entity types, relationship layers) than simpler alternatives, but graph drift and update/correction difficulty are practical risks",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qgbptg/which_one_is_better_for_graphrag_cognee_vs/",
+      "quote": "Cognee gives you more control over entity types and relationship layers, which helps when your terminology is domain-specific... The real trap with customer support is graph drift. Your datasheets get revised, part numbers change, specs update. If you can't evolve the graph incrementally, you end up rebuilding it every release cycle.",
+      "locator": "comment by u/pbalIII",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "cognee builds evolving semantic memory using knowledge graphs and data pipelines for AI agents",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1iptj8g/cognee_opensource_memory_framework_for_ai_agents/",
+      "quote": "an open-source Python library that approaches building evolving semantic memory using knowledge graphs + data pipelines",
+      "locator": "post body, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "cognee stores data across vector, graph, and relational stores as its persistence layer",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1iptj8g/cognee_opensource_memory_framework_for_ai_agents/",
+      "quote": "store the data in the vector (in this case our partner FalkorDB), graph, and relational stores",
+      "locator": "post body, ECL pipelines section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Querying cognee also enriches the graph, making retrieval and write a combined operation",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1iptj8g/cognee_opensource_memory_framework_for_ai_agents/",
+      "quote": "we can add many in many graph layers and make it dynamic, so that when you ask something, it also enriches the graph",
+      "locator": "comment by u/Short-Honeydew-7000, reply to ironman_gujju",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Pipeline state tracking has no stale-lock recovery, blocking future cognify runs after a crash",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1iptj8g/cognee_opensource_memory_framework_for_ai_agents/",
+      "quote": "the pipeline lock stays stuck at DATASET_PROCESSING_STARTED forever. No timeout, no stale detection. Only fix is manually updating the pipeline_runs table in postgres.",
+      "locator": "comment by u/No-Dig-6543",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee uses ontology mapping to connect dots across stored data; reliability is upstream-dependent",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1uzyyja/cognee_10_oss_selfimproving_memory_for_agents/",
+      "quote": "structured data quality upstream determines whether the ontology mapping means anything downstream, not the graph logic itself. tried Docsumo on scanned invoices for one project... if cognee's ingestion path assumes clean structured input already, that's the gap",
+      "locator": "comment by u/Specialist_Golf8133",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Risk of getting lost in infrastructure gaps before reaching a working product when using Cognee as a part-time project",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mlnvob/comparing_agent_memory_kits_letta_memos_cognee_etc/",
+      "quote": "I feel like I'd be more prone to getting lost in the weeds with Cognee before I had anything useful",
+      "locator": "OP post, u/nostriluu",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee is a layer, not a full database stack; users must supply and manage the underlying store",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mlnvob/comparing_agent_memory_kits_letta_memos_cognee_etc/",
+      "quote": "Cognee is more of a layer, so you still need to choose and manage the underlying database",
+      "locator": "comment, u/JonnyJF",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee MCP provides persistent memory that survives across conversations and sessions.",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/cognee-mcp/mcp-overview.md",
+      "quote": "Persistent memory that survives across conversations and sessions",
+      "locator": "What is MCP? \u2014 bullet list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "v1.0 API surface for memory is remember, recall, and forget.",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/cognee-mcp/mcp-overview.md",
+      "quote": "prefer the v1.0 memory tools (`remember`, `recall`, `forget`)",
+      "locator": "How Cognee MCP Works",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Standalone mode isolates data per MCP instance; API mode shares data across instances.",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/cognee-mcp/mcp-overview.md",
+      "quote": "Each MCP instance maintains separate data. Use this for personal development or when clients need isolated environments.",
+      "locator": "Architecture Modes \u2014 Standalone Mode",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "In API mode, all writes by an instance are scoped to one Cognee user account via a single auth token, with noted multi-tenant implications.",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/cognee-mcp/mcp-overview.md",
+      "quote": "Each instance authenticates with a single token, so everything it writes belongs to one Cognee user \u2014 see Running in API Mode for what that means when several tenants share one deployment.",
+      "locator": "Architecture Modes \u2014 API Mode",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cognee is a memory layer providing long-term connected memory for AI agents, not an LLM replacement.",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/getting-started/introduction.md",
+      "quote": "Cognee is a memory layer for AI agents and tools. It is not an LLM, and it is more than plain RAG.",
+      "locator": "## What is Cognee?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The store path (.remember) extracts entities and builds a knowledge graph, going beyond chunk-level embedding.",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/getting-started/introduction.md",
+      "quote": "It ingests, chunks, extracts entities, and builds the knowledge graph for you in one call.",
+      "locator": "## How Cognee works \u2014 .remember bullet",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval strategy is chosen automatically by Cognee or can be specified by the caller.",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/getting-started/introduction.md",
+      "quote": "Cognee picks the best retrieval strategy automatically, or you can specify one.",
+      "locator": "## How Cognee works \u2014 .recall bullet",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Session memory can be promoted into the permanent graph via .improve, which also applies feedback-based weighting.",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/getting-started/introduction.md",
+      "quote": "With session IDs, it bridges short-term session memory into the permanent graph and applies feedback-based weighting.",
+      "locator": "## How Cognee works \u2014 .improve bullet",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget operates at three granularities: single item, entire dataset, or all data owned by the current user.",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/getting-started/introduction.md",
+      "quote": "Delete a specific data item, an entire dataset, or everything owned by the current user.",
+      "locator": "## How Cognee works \u2014 .forget bullet",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cognee is open source under Apache License 2.0.",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/getting-started/introduction.md",
+      "quote": "Cognee is open source and released under the Apache License 2.0.",
+      "locator": "## License",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Remember stores data as permanent graph memory or session (short-term) memory, establishing two distinct persistence tiers",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/llms-core.md",
+      "quote": "Store data in Cognee as permanent graph memory or session memory.",
+      "locator": "Core Concepts / Remember",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Recall uses auto-routing and is session-aware, indicating retrieval policy adapts based on context",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/llms-core.md",
+      "quote": "Query Cognee memory with auto-routing and session-aware retrieval.",
+      "locator": "Core Concepts / Recall",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget is an explicit delete operation covering data, datasets, or memory-only state",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/llms-core.md",
+      "quote": "Delete data, datasets, or memory-only state with forget.",
+      "locator": "Core Concepts / Forget",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Improve bridges session memory into the permanent graph, acting as the write path from short-term to long-term store",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/llms-core.md",
+      "quote": "Enrich an existing Cognee graph and bridge session memory into it.",
+      "locator": "Core Concepts / Improve",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session distillation converts conversational guidance into permanent knowledge graph lessons",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/llms-core.md",
+      "quote": "Turn guidance stated in a session into permanent lessons in the knowledge graph so future recalls respect it.",
+      "locator": "Guides / Session Distillation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Fact supersession is handled via close_node() and is_valid() to manage stale or conflicting facts",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/llms-core.md",
+      "quote": "Close superseded facts with close_node() and filter stale ones with is_valid().",
+      "locator": "Guides / Fact Validity",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conflict detection flags disagreements between stored documents and requires explicit correction to change answers",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/llms-core.md",
+      "quote": "Feed cognee two documents that disagree and watch it flag the conflict, resist a five-star rating, and change its answer only when a correction is remembered.",
+      "locator": "Examples / Resolve Conflicting Facts in Memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is implemented at the dataset level, with per-user and per-tenant permission controls",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/llms-core.md",
+      "quote": "Learn how Cognee handles multiple users and data isolation.",
+      "locator": "Core Concepts / Multi-User Mode Overview",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User preferences are persisted as ratings that nudge retrieval ranking, enabling personalization",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/llms-core.md",
+      "quote": "How per-user preference personalization stores ratings and nudges retrieval ranking.",
+      "locator": "Core Concepts / User Preferences",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Feedback weights baked into the graph can shift retrieval ranking based on up/down ratings",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/llms-core.md",
+      "quote": "Rate one answer up and another down, bake both into graph feedback weights, then sweep feedback_influence from 0.0 to 1.0 over one ambiguous question and watch the ranking move.",
+      "locator": "Examples / Tune How Strongly Ratings Steer an Answer",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "COGX portable format enables memory migration and interoperability with other memory systems",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/llms-core.md",
+      "quote": "The portable format Cognee uses to import memories from other tools and to export, back up, and move its own.",
+      "locator": "Core Concepts / COGX Exchange Format",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cached conversation sessions can be explicitly persisted into the permanent knowledge graph via memify",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/llms-core.md",
+      "quote": "Persist cached conversation sessions into the knowledge graph.",
+      "locator": "Guides / Session Persistence",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Entity deduplication merges near-duplicate nodes into canonical nodes during the write/enrichment path",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/llms-core.md",
+      "quote": "Detect near-duplicate entity nodes and merge each group into a single canonical node.",
+      "locator": "Guides / Entity Deduplication",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graph completion retrieval uses a global context index of dataset-level summaries",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/llms-core.md",
+      "quote": "Build dataset-level summaries to improve graph completion retrieval.",
+      "locator": "Core Concepts / Global Context Index",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Finished sessions can reshape future retrieval ordering via truth-subspace reranking",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/llms-core.md",
+      "quote": "Let finished sessions reshape retrieval ordering by reranking against learned 'truth' directions.",
+      "locator": "Guides / Truth-Subspace Reranking",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agent function call traces are stored and can be recalled, supporting agent self-improvement from past actions",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/llms-core.md",
+      "quote": "Record what a decorated function did on each call, and recall those traces later.",
+      "locator": "Guides / Agent Session Traces",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee provides persistent AI memory for agents and applications, supporting store, query, and improvement over time",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/llms.txt",
+      "quote": "Cognee turns documents, code, and application data into persistent AI memory that agents and applications can store, query, and improve over time.",
+      "locator": "page header / description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee's core memory API is named remember and recall.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4180",
+      "quote": "Running a minimal remember \u2192 recall example",
+      "locator": "Issue body, Suggested Improvement, item 5",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee supports PostgreSQL/pgvector as the backend for relational, vector, graph, and cache storage simultaneously.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4180",
+      "quote": "Configuring PostgreSQL as the relational, vector, graph, and cache backend",
+      "locator": "Issue body, Suggested Improvement, item 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee documents Azure OpenAI and PostgreSQL/pgvector configuration separately but lacks a combined end-to-end guide.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4180",
+      "quote": "Cognee documents Azure OpenAI configuration and PostgreSQL/pgvector configuration separately, but there is no focused end-to-end quickstart combining them.",
+      "locator": "Issue body, Issue Description, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A first-time user must manually identify which environment variables, installation extras, Docker Compose commands, and Cognee operations are needed to achieve a working memory flow.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4180",
+      "quote": "A first-time Azure user currently needs to determine which environment variables, installation extras, Docker Compose commands, and Cognee operations belong together before they can verify a working remember \u2192 recall flow.",
+      "locator": "Issue body, Issue Description, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee provides installation extras for Azure and PostgreSQL dependencies.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4180",
+      "quote": "Installing the required Azure and PostgreSQL extras",
+      "locator": "Issue body, Suggested Improvement, item 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee's runnable examples are organised under examples/guides/ with an index at examples/README.md.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4180",
+      "quote": "The contribution could be a runnable example under examples/guides/ with a short entry in examples/README.md.",
+      "locator": "Issue body, Suggested Improvement, final paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Every query against a non-empty Cognee collection returns exactly top_k results regardless of semantic relevance, because vector search has no distance predicate",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4462",
+      "quote": "Vector search is `ORDER BY distance LIMIT top_k` with no distance predicate, so on a non-empty collection **every query returns `top_k` results, no matter how unrelated the query is to the corpus**.",
+      "locator": "Summary",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval of completely irrelevant content (query about Antarctic emperor penguins against a software engineering corpus) returns 3 chunks at full confidence with no relevance signal",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4462",
+      "quote": "Returns 3 chunks at full confidence, each an unrelated technical note on a different topic. Correct behaviour would be an empty result or an explicit \"no relevant context\" signal.",
+      "locator": "Reproduction",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The only signal that retrieval returned nothing is CollectionNotFoundError / NoDataError, meaning silence equals no ingested data, not no relevant data \u2014 a continuity/hallucination risk for agents",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4462",
+      "quote": "The only empty-result path is `CollectionNotFoundError` \u2192 `NoDataError`, i.e. an empty result means *no data ingested*, never *nothing relevant*.",
+      "locator": "Root cause \u2014 \u00a72. Retriever layer",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "grep over cognee/modules/retrieval/ and cognee/infrastructure/databases/vector/ finds zero threshold or score-cutoff implementations in version 1.4.2 and current main",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4462",
+      "quote": "`grep -rniE 'threshold|min_score|score_cutoff|distance_threshold'` over `cognee/modules/retrieval/` and `cognee/infrastructure/databases/vector/` returns **zero matches**.",
+      "locator": "Root cause \u2014 opening paragraph",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A previous distance-filtering fix (#3006) was merged then reverted (#4379) with no stated rationale, leaving the no-relevance-floor bug live again",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4462",
+      "quote": "**#4379** (merged 2026-08-08) \u2014 **reverted #3006 with no stated rationale.** `max_distance` is absent from `main` today, so #2720's cause is live again.",
+      "locator": "Prior art \u2014 #4379",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graph retrieval degenerates to returning the entire corpus when wide_search_top_k exceeds collection size, causing identical subgraph results regardless of query",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4462",
+      "quote": "when `wide_search_top_k` (default 100) exceeds collection size, vector search returns *everything* and the graph filter degenerates.",
+      "locator": "Prior art \u2014 #2720",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "LanceDB vector store fragments accumulate without bound on long-lived deployments because no compaction runs in normal operation, inflating storage, query cost, and process memory.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4684",
+      "quote": "LanceDB stores accumulate one table version and one data fragment per upsert and are never compacted. On a long-lived self-hosted deployment this grows without bound, inflating storage, query cost and process memory.",
+      "locator": "## Summary",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "After one week of steady agent writes, the vector store grew to 937 MB from 5.3 MB of source data; after offline compaction it reduced to 411 MB, with version files dropping from 6,592 to 48 and fragments from 6,557 to 27.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4684",
+      "quote": "version files | 6,592 | 48 |\ndata fragments | 6,557 | 27 |\nstorage (`/cognee-storage/system`) | 937 MB | 411 MB |\ncontainer anon memory, floor after restart | 1046 MiB | 718 MiB",
+      "locator": "## Measured on a real deployment",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Container memory climbed roughly 230 MiB/hour under normal use due to fragment accumulation, not a Python or allocator leak; fragment count tracks memory growth because every query opens every fragment.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4684",
+      "quote": "The container's memory climbed roughly 230 MiB/hour under normal use and hit its cgroup ceiling repeatedly, forcing reclaim. We first assumed a Python leak, then glibc arena retention, and `MALLOC_ARENA_MAX=2` did **not** fix it. Fragment count tracks the growth far better: every query has to open every fragment, and the count only ever rises.",
+      "locator": "## Why it matters beyond disk",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "No documentation currently mentions that self-hosted deployments need a compaction job for the LanceDB vector store.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4684",
+      "quote": "At minimum, document that self-hosted deployments need a compaction job, since nothing in the current docs mentions it.",
+      "locator": "## Suggestion",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee has five data-source connectors (confluence, gmail, google-drive, notion, slack) and ~120 planned, indicating a connector-based ingest architecture.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4720",
+      "quote": "cognee has five data-source connectors today (`confluence`, `gmail`, `google-drive`, `notion`, `slack`) against roughly 120 planned.",
+      "locator": "Problem Statement",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Connectors are housed in a community package under packages/connector/ and follow a shared layout convention.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4806",
+      "quote": "Add a arxiv connector under packages/connector/arxiv/ in cognee-community, following the shape of the five existing connectors.",
+      "locator": "Proposed Solution",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee uses a graph as its persistent store for ingested content",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4789",
+      "quote": "Deleting the source upstream removes it from the graph on the next sync",
+      "locator": "Acceptance Criteria",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee's memory store is graph-based; ingested content and relationships (edges) are persisted there and made searchable.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4725",
+      "quote": "Wikilinks are already a graph \u2014 map them to edges rather than discarding them.",
+      "locator": "Watch out for",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget is implemented by removing records from the graph store on the next sync when the upstream source is deleted \u2014 not by hiding at retrieval or omitting in generation.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4738",
+      "quote": "Forget-on-delete: deleting upstream must remove the record from the graph on the next sync",
+      "locator": "### Proposed Solution \u2014 Forget-on-delete bullet",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee's persistence layer is a graph store; connectors write structured entities into it rather than flat text blobs.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4738",
+      "quote": "carry speakers into the graph as entities, not flat text",
+      "locator": "### Watch out for",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Incremental sync uses a date-based cursor so only new or changed records are written to the store on subsequent runs.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4738",
+      "quote": "Incremental sync picks up only what changed since the last run",
+      "locator": "### Acceptance Criteria \u2014 third checkbox",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee has at least five data-source connectors (confluence, gmail, google-drive, notion, slack) with ~120 planned, indicating the connector/ingest surface is actively expanding.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4738",
+      "quote": "cognee has five data-source connectors today (`confluence`, `gmail`, `google-drive`, `notion`, `slack`) against roughly 120 planned",
+      "locator": "### Problem Statement",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget-on-delete: removing a record upstream causes it to be removed from the graph on the next sync.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4777",
+      "quote": "Forget-on-delete: deleting upstream must remove the record from the graph on the next sync",
+      "locator": "Proposed Solution > Forget-on-delete",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee persists ingested source data in a graph store; deleting the upstream source removes it from the graph on next sync.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4805",
+      "quote": "Forget-on-delete: deleting upstream must remove the record from the graph on the next sync",
+      "locator": "### Proposed Solution",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Ingested content is searchable in Cognee after ingest.",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4805",
+      "quote": "Selected content is ingested and searchable in cognee",
+      "locator": "### Acceptance Criteria",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "remember() is a session-scoped write operation that records context into the pipeline_runs table without triggering a graph build pipeline",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4879",
+      "quote": "A session-only `remember(..., session_id=..., self_improvement=False)` can therefore make a dataset with no graph-building pipeline appear `warm`.",
+      "locator": "Bug Description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graph readiness (warm vs never_built) is a prerequisite gate before recall/retrieval is attempted; the memory_warming_up marker is returned when the graph is not ready",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4879",
+      "quote": "With no graph build, the probe should return `never_built` and recall should return the existing `memory_warming_up` marker.",
+      "locator": "Expected Behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dataset isolation is a first-class concept: remember() and recall() are both scoped to named datasets and sessions",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/4879",
+      "quote": "dataset_name=\"warmup_repro\",\n        session_id=\"session-1\"",
+      "locator": "Steps to Reproduce",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Over HTTP the forget router swallows typed errors (including 403 PermissionDeniedError) into 500",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/5013",
+      "quote": "Over HTTP the forget router's catch-all turns that crash, and every other typed cognee error (e.g. the 403 `PermissionDeniedError` raised for an unknown `dataset_id`), into `500 {\"error\": \"An error occurred during deletion.\"}`.",
+      "locator": "## Problem",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "forget resolution runs before any dataset lock or database context is entered",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/5013",
+      "quote": "The resolution runs before any dataset lock or database context is entered, so the crash provisions nothing.",
+      "locator": "## Root cause",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "This class of bug (typed error swallowed as 500) is recurrent: related issues #4304, #4305, #4306, #4976",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/5013",
+      "quote": "#4304 (`/datasets/{id}/data` 500 instead of 404), #4305 / #4306 (closed: activity/export and visualize returned 500/409 instead of 403), #4976 (closed: permissions endpoint 500). Same class of \"typed error swallowed as 500\".",
+      "locator": "## Related",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Unknown dataset_id stays 403 (no-leak semantics) rather than 404, consistent with get_specific_user_permission_datasets shared by all UUID paths",
+      "kind": "issue",
+      "url": "https://github.com/topoteretes/cognee/issues/5013",
+      "quote": "should an unknown `dataset_id` stay 403 (current, no-leak) or become 404 like the name path? The proposal keeps 403: it originates in `get_specific_user_permission_datasets`, shared by every UUID path, so changing it only here would be inconsistent.",
+      "locator": "## Proposed direction",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee is an open-source memory layer combining vector, graph, and relational stores for AI agents.",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/agent-memory",
+      "quote": "Cognee implements these principles as an open-source memory layer. It combines vector, graph, and relational stores and exposes simple primitives for AI agents to operate on memory, supporting long-term, continual learning.",
+      "locator": "TL;DR",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path runs ingestion, LLM extraction into entities and relationships, summarization, embedding, and graph edge commit; only new or updated data is reprocessed.",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/agent-memory",
+      "quote": "Ingestion runs a pipeline: incoming data is classified, chunked, and passed through LLM extraction that turns it into entities and relationships; summaries are generated, everything is embedded, and edges are committed to the graph. Only new or updated data is processed on re-runs.",
+      "locator": "Cognee architecture \u2014 Multi-layer knowledge graphs",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "recall auto-routes between session cache, semantic search, and graph traversal depending on query type.",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/agent-memory",
+      "quote": "recall queries the memory with auto-routing to choose the best retrieval strategy: it checks session memory first, then falls through to the graph, choosing between semantic search and traversal depending on the query.",
+      "locator": "Cognee architecture \u2014 A memory-native API",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Correctness feedback propagates back to source memories: confirmed answers strengthen them, corrections downweight them.",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/agent-memory",
+      "quote": "When the agent's answers get evaluated, that signal propagates back to memory, and confirmed answers strengthen their sources. Similarly, corrections attach to the memories that produced a wrong answer, pushing misleading entries down rather than blindly overwriting them.",
+      "locator": "AI memory lifecycle \u2014 Updating and forgetting",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session memory is isolated by session_id with a fast cache that syncs to the shared graph in the background.",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/agent-memory",
+      "quote": "session memory: fast cache, syncs to the graph in the background",
+      "locator": "Cognee architecture \u2014 A memory-native API (code comment)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee scored 79% on BEAM at 100k-token setting vs prior reported state of the art of 73.4%, and 67% at 10M tokens vs 64.1%, with token usage roughly flat as stored data grew.",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/agent-memory",
+      "quote": "Cognee reached 79% on BEAM's 100k-token setting, compared with the previously reported state of the art of 73.4%, and 67% at 10M tokens versus 64.1%, while token usage remained roughly flat as stored data grew.",
+      "locator": "Evaluating AI agent memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "improve() re-weights memory from use rather than only appending new data",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/cognee-1-0-announcement",
+      "quote": "improve updates memory from use, correction, and feedback, so the system can get better instead of only getting bigger.",
+      "locator": "Section: 1 \u2013 The surface area",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agent interaction signals (retrieve, correct, reuse, ignore) feed back into memory quality over time",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/cognee-1-0-announcement",
+      "quote": "When agents retrieve, correct, reuse, or ignore information, those interactions become signals. Over time, cognee can learn which facts matter, which ones are outdated or wrong, and which pieces of memory agents actually rely on.",
+      "locator": "Section: Building memory you can trust to learn",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Shared memory across agents: all MCP-compatible agents read and write the same store",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/cognee-1-0-announcement",
+      "quote": "One brain. Every MCP agent reads and writes the same memory.",
+      "locator": "Section: 3 \u2013 Memory ownership, image caption",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "BEAM benchmark: 79% at 100k-token context, 67% at 10M-token context",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/cognee-1-0-announcement",
+      "quote": "BEAM (100k-token context window) 79% Reported state-of-the-art: 73.4% / BEAM (10M-token context window) 67% Reported state-of-the-art: 64.1%",
+      "locator": "Section: What the numbers say, table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "~6 million memories created per month across 100+ companies",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/cognee-1-0-announcement",
+      "quote": "Around 6 million memories are created on cognee every month across 100+ companies.",
+      "locator": "Section: What the numbers say",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "remember() extracts entities and relationships from plain text and builds a connected memory graph linked to existing knowledge",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/inside-cognee-1-0",
+      "quote": "Hand cognee plain text and it pulls out the entities and relationships, turning a sentence into a connected memory graph. You don't write data into a schema \u2014 you just give it words, and it builds something an agent can reason over and links it into what it already knows.",
+      "locator": "Section: remember()",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "recall() uses graph traversal and retrieval signals including prior feedback to select which memories matter most for the current query",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/inside-cognee-1-0",
+      "quote": "It can use graph structure, retrieval signals, and previous feedback to decide which memories should matter most.",
+      "locator": "Section: recall()",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Feedback weights on graph nodes and edges influence retrieval scoring (confirmed memories rank higher, corrected lower)",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/inside-cognee-1-0",
+      "quote": "Feedback applies after an answer has been judged. The feedback is attached to the nodes, edges, and evidence that contributed to the answer, so corrected memories can rank lower and confirmed ones can rank higher.",
+      "locator": "Section: Memory that improves, not just grows",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "improve() infers new graph edges from existing facts (multi-hop synthesis) and runs by default with self_improvement=True",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/inside-cognee-1-0",
+      "quote": "cognee combines facts it already holds \u2014 Vasilije \u2192 cognee and cognee \u2192 Berlin \u2014 to infer a new connection, Vasilije \u2192 Berlin , so answers that would have needed a multi-hop lookup are already there. In cognee 1.0, the self-improvement loop runs by default ( cognee.remember(conversation, self_improvement=True) ).",
+      "locator": "Section: improve()",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "forget() removes a node and its edges without requiring a full graph rebuild; scoped to dataset or specific identifier",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/inside-cognee-1-0",
+      "quote": "Tell cognee to forget Vasilije and that node plus its 'founded' edge dissolve, while the rest of the graph stays intact \u2014 so you can honor removal requests or drop stale facts without rebuilding everything.",
+      "locator": "Section: forget()",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hybrid retrieval combines graph traversal, vector search, and BM25, fused via reciprocal rank fusion with query routing",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/inside-cognee-1-0",
+      "quote": "cognee 1.0 combines graph traversal, vector search, and BM25 lexical retrieval. Hybrid results are fused with reciprocal rank fusion, and queries can be routed to the retrieval method that fits them best.",
+      "locator": "Section: Retrieval you can trust",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Multi-user isolation is provided via Postgres as full graph backend",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/inside-cognee-1-0",
+      "quote": "Postgres as a full graph backend with multi-user isolation",
+      "locator": "Section: What shipped in 1.0 \u2014 Storage",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Token efficiency claim: cognee uses ~85% fewer tokens than full-context GPT-5.5 baseline at 50 questions over a fixed synthetic corpus",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/inside-cognee-1-0",
+      "quote": "at 50 questions GPT-5.5 runs up to ~$420 and cognee ~$60, with cognee using roughly 85% fewer tokens than GPT-5.5",
+      "locator": "Section: Efficient at scale",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "cognee deduplicates content at ingest by hashing, preventing duplicate storage",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/how-cognee-builds-ai-memory",
+      "quote": "Content is normalized to plain text, hashed for deduplication, and organized into datasets with ownership and permissions.",
+      "locator": "The Core Pipeline",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is enforced at graph and trace level with per-user or per-group instantiation and dataset-level permissions, not only vector namespace separation",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/how-cognee-builds-ai-memory",
+      "quote": "This is not just namespace separation at the vector level. Isolation happens at the graph and trace level, with dataset-level permissions (read, write, delete, share)",
+      "locator": "Multi-Tenancy and Isolation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session memory is short-term / working memory distinct from permanent long-term storage; interaction traces are stored in permanent memory",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/how-cognee-builds-ai-memory",
+      "quote": "Session memory operates as short-term working memory for agents. It loads relevant embeddings and graph fragments into runtime context for fast reasoning. Permanent memory stores long-term knowledge artifacts: user data, interaction traces, external documents, and derived relationships.",
+      "locator": "Session and Permanent Memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "cognee benchmarked 0.93 human-like correctness vs base RAG 0.4 on 24 HotPotQA multi-hop questions, 45 runs on Modal Cloud",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/how-cognee-builds-ai-memory",
+      "quote": "We benchmarked cognee against Mem0, Graphiti, and LightRAG on 24 HotPotQA multi-hop questions, 45 repeated runs on Modal Cloud. All evaluation code is open source. ... Human-like correctness 0.93 +25%",
+      "locator": "Benchmarks",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory curates itself: agent retrieve, correct, reuse, and forget actions become signals cognee learns from",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/cognee-vs-zep",
+      "quote": "Every time agents retrieve, correct, reuse, or ignore information, those interactions become signals that cognee learns from.",
+      "locator": "Key takeaways \u2014 Memory that curates itself",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Shared memory across a fleet of coordinated agents",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/cognee-vs-zep",
+      "quote": "It enables you to run a fleet of coordinated agents from one shared memory that keeps improving.",
+      "locator": "What cognee is",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Single Postgres stores graph, vectors, sessions, and metadata \u2014 no dedicated graph database",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/cognee-vs-zep",
+      "quote": "A single Postgres for graph, vectors, sessions, and metadata",
+      "locator": "Side by side comparison table \u2014 Infrastructure",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is portable via COGX or standard graph formats; not locked in",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/cognee-vs-zep",
+      "quote": "Open source, with memory you can export anytime via open COGX or standard graph formats",
+      "locator": "Side by side comparison table \u2014 Open source",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee is evaluated on BEAM (long-horizon benchmark) measuring reasoning depth and faithfulness, not just retrieval speed",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/cognee-vs-zep",
+      "quote": "Cognee evaluates on BEAM, a longer-horizon benchmark where evidence is scattered across many turns, and measures reasoning depth and faithfulness alongside raw accuracy.",
+      "locator": "Benchmarks \u2014 How we measure memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memory_only=True is a forget mode that clears derived graph/vector knowledge while preserving raw files and relational records, enabling re-cognification with different settings",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/core-concepts/main-operations/forget",
+      "quote": "**Memory-only reset**: delete only graph/vector memory for a dataset or a single file, preserving raw files so the dataset can be re-cognified with different settings.",
+      "locator": "What is the forget operation",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is stored in three separate stores: relational, graph, and vector; forget operates on all three",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/core-concepts/main-operations/forget",
+      "quote": "Under the hood, forgetting performs deletes against the relational, graph, and vector stores. It does **not** re-extract entities, re-embed text, or rebuild graph relationships.",
+      "locator": "Does forget re-run the LLM or cost tokens?",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Session cache turns are scoped to the graph elements used to build them; deleting source graph elements removes the turns that depended on them",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/core-concepts/main-operations/forget",
+      "quote": "Removes the session-cache turns whose answers were built on the graph elements this delete removed, so cached answers stop quoting the deleted document.",
+      "locator": "Forget a specific data item",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Contamination propagates through a session's dependency chain: turn \u2192 feedback \u2192 distilled lesson \u2192 later turns",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/core-concepts/main-operations/forget",
+      "quote": "a contaminated turn taints feedback that references it, feedback taints the distilled session-context lesson it fed, and that lesson taints later turns that consumed it \u2014 and the whole chain is removed.",
+      "locator": "Deletion scope by mode",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Deletion is user-scoped; multi-user and permissioned setups are supported via the user parameter",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/core-concepts/main-operations/forget",
+      "quote": "`forget()` always runs in a user context... This is why the `user` parameter matters in multi-user or permissioned setups.",
+      "locator": "User context and ownership",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-document ownership metadata for both nodes and edges is recorded at cognify time and used to determine what to delete or preserve on item-level forget",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/core-concepts/main-operations/forget",
+      "quote": "when `cognify` builds the graph, it records which graph nodes and which edges (relationships) were derived from each source.",
+      "locator": "What is tracked per document: nodes and relationships",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Session-cache cleanup is best-effort and a success status does not guarantee complete removal of stale cached answers",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/core-concepts/main-operations/forget",
+      "quote": "Session-cache cleanup is best-effort by contract: it never fails the delete that triggered it... A `\"status\": \"success\"` result therefore does not guarantee that every session entry was removed \u2014 check the logs if stale cached answers persist.",
+      "locator": "Permissions and safety",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cognee is open source",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/core-concepts/overview",
+      "quote": "Cognee is an open source tool and platform",
+      "locator": "Introduction",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dual storage architecture provides both semantic search and structural reasoning",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/core-concepts/overview",
+      "quote": "Dual storage architecture gives you both semantic search and structural reasoning",
+      "locator": "Introduction > Info callout",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Modular design composes Tasks, Pipelines, and DataPoints",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/core-concepts/overview",
+      "quote": "Modular design composes Tasks, Pipelines, and DataPoints",
+      "locator": "Introduction > Tip callout",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "v1.0 primary operations are remember, recall, improve, forget; older add/cognify/memify/search remain as lower-level building blocks",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/core-concepts/overview",
+      "quote": "Main operations in Cognee v1.0 are `remember`, `recall`, `improve`, and `forget`, with legacy `add`, `cognify`, `memify`, and `search` still available as lower-level building blocks.",
+      "locator": "Introduction > Note callout",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Remember supports two memory tiers: permanent graph-backed and session-scoped",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/core-concepts/overview",
+      "quote": "Store new memory in one call, either as permanent graph-backed memory or as session memory",
+      "locator": "Main Operations accordion",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Defaults run locally; production-ready backends can be swapped in",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/core-concepts/overview",
+      "quote": "Cognee ships with lightweight defaults that run locally, and you can swap in production-ready backends when needed.",
+      "locator": "Architecture accordion",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cognee is a memory layer for AI agents and tools providing long-term, connected memory.",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/getting-started/introduction",
+      "quote": "Cognee is a memory layer for AI agents and tools. It is not an LLM, and it is more than plain RAG.",
+      "locator": "What is Cognee?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The .remember operation persists data into a permanent knowledge graph via an ingestion pipeline.",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/getting-started/introduction",
+      "quote": "When you store data as permanent memory, Cognee runs the ingestion and graph-building pipeline before that data becomes recallable.",
+      "locator": "What is Cognee? \u2014 When is the 'brain' built?",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The .recall operation uses an automatically selected or user-specified retrieval strategy across both permanent graph and session cache.",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/getting-started/introduction",
+      "quote": "Cognee picks the best retrieval strategy automatically, or you can specify one. Works across the permanent graph and session cache.",
+      "locator": "How Cognee works",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cognee is open source under Apache License 2.0.",
+      "kind": "docs",
+      "url": "https://docs.cognee.ai/getting-started/introduction",
+      "quote": "Cognee is open source and released under the Apache License 2.0.",
+      "locator": "License",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Skills are stored as structured graph objects with stable identity and content hashes enabling change detection and incremental upsert.",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/structure-your-skills-with-cognee",
+      "quote": "Each skill gets a stable identity, metadata, and content hashes so the system can later detect what changed.",
+      "locator": "1. Add: ingest the skills",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget / delete is supported: skills can be removed from both graph and vector storage cleanly.",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/structure-your-skills-with-cognee",
+      "quote": "skills can be removed cleanly from graph and vector storage",
+      "locator": "Why Cognee is a good fit",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Short-term memory uses Redis-backed sessions; long-term memory is the persistent knowledge graph updated via promote().",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/structure-your-skills-with-cognee",
+      "quote": "Those runs first go into short-term memory through Redis-backed sessions. Then promote() moves the important runs into the long-term graph and updates the preference weights between task patterns and skills.",
+      "locator": "4. Learn from feedback: observe and promote",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval is adaptive: routing blends semantic similarity with historical success weights rather than always returning the closest keyword match.",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/structure-your-skills-with-cognee",
+      "quote": "The final ranking blends semantic similarity with historical success for similar task patterns. So the router is answering a better question: not 'which skill looks similar to this prompt?' but 'which skill tends to work for this kind of task?'",
+      "locator": "3. Search: route by meaning and by history",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LLM enrichment during cognify transforms raw skill text into structured graph nodes (TaskPattern) with typed relationships, not just vector embeddings.",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/structure-your-skills-with-cognee",
+      "quote": "Cognee uses structured LLM extraction to enrich each skill... the system is no longer storing 'documents about skills.' It is building a knowledge graph of skills, intents, and relationships.",
+      "locator": "2. Cognify: enrich and connect them",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "recall() has a session-first path that falls through to the permanent graph, and a separate dataset-scoped path that queries the graph directly",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/why-ai-agents-forget",
+      "quote": "Session-first recall. With session_id and no datasets or query_type, recall() matches session cache entries directly and only falls through to the permanent graph when nothing matches. ... Dataset-scoped graph recall. This is a separate retrieval path from session-first recall: it searches the permanent knowledge graph within the named datasets.",
+      "locator": "How cognee Helps Fix Agent Forgetfulness \u2014 code sample run_memory_lifecycle",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dataset isolation requires ENABLE_BACKEND_ACCESS_CONTROL=true and a supported backend; without it the datasets argument does not scope retrieval and everything shares one graph",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/why-ai-agents-forget",
+      "quote": "dataset-scoped retrieval is only enforced with ENABLE_BACKEND_ACCESS_CONTROL=true and an isolation-capable backend set (Ladybug/LanceDB/SQLite/Postgres). In single-user mode the datasets argument does not scope search -- everything shares one graph, and the eval's isolation checks will (correctly) fail.",
+      "locator": "Implementation #2 \u2014 deployment requirement comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Supersession is an explicit two-step: write the replacement, then forget() the old record by data_id; the ID comes from RememberResult.items['id']",
+      "kind": "docs",
+      "url": "https://www.cognee.ai/why-ai-agents-forget",
+      "quote": "store the replacement first, then remove the superseded record so both versions never stay active at once. The data_id comes from the RememberResult of the original write (result.items[\"id\"]).",
+      "locator": "Implementation #1 \u2014 update_bug_fix_memory",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/memory/__init__.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/memory/entries.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/agent_memory/runtime.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/memify/memify.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/retrieval/base_retriever.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/recall/__init__.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/remember/remember.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/forget/forget.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.cognee.ai/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.cognee.ai/getting-started/introduction.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.cognee.ai/llms-core.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.cognee.ai/cognee-mcp/mcp-overview.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4673",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4180",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4684",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4996",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4738",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4462",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4720",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4879",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4806",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4789",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4725",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4805",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4804",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/5013",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4802",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4803",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4817",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4777",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4778",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/issues/4785",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.cognee.ai/blog",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://docs.cognee.ai/getting-started/introduction",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://www.cognee.ai/why-ai-agents-forget",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.cognee.ai/core-concepts/main-operations/forget",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://www.cognee.ai/inside-cognee-1-0",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://www.cognee.ai/cognee-1-0-announcement",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://www.cognee.ai/agent-memory",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://www.cognee.ai/cognee-vs-zep",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://www.cognee.ai/structure-your-skills-with-cognee",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://www.cognee.ai/how-cognee-builds-ai-memory",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.cognee.ai/core-concepts/overview",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://news.ycombinator.com/item?id=44169594",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1iptj8g/cognee_opensource_memory_framework_for_ai_agents/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1uzyyja/cognee_10_oss_selfimproving_memory_for_agents/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/AIMemory/comments/1m6f3xd/cognee_mcp_is_my_new_ai_memory_for_making_rules/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mlnvob/comparing_agent_memory_kits_letta_memos_cognee_etc/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/AIMemory/comments/1l2dru6/new_paper_from_cognee_hyperparam_optimization_for/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qgbptg/which_one_is_better_for_graphrag_cognee_vs/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.producthunt.com/products/cognee",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.producthunt.com/products/cognee?hss_channel=lcp-53258240&launch=cognee",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.producthunt.com/products/cognee/makers",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Per-user vs per-agent isolation boundary is not stated; only session_id isolation is shown",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Isolation model: no specification here of whether session cache or graph entries are scoped per user, per session, per agent, or per character.",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/memory/entries.py",
+      "kind": "code"
+    },
+    {
+      "text": "Conflict / supersession policy: no indication of how a second memify run over the same data resolves conflicts with previously stored graph nodes or edges",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/memify/memify.py",
+      "kind": "code"
+    },
+    {
+      "text": "No description of the write path for conflict resolution or supersession when a stored fact is contradicted by new input.",
+      "url": "https://news.ycombinator.com/item?id=44169594",
+      "kind": "community"
+    },
+    {
+      "text": "No description of a forget or delete mechanism \u2014 whether facts can be removed from the store or suppressed at retrieval.",
+      "url": "https://news.ycombinator.com/item?id=44169594",
+      "kind": "community"
+    },
+    {
+      "text": "User-specific memory isolation mechanism: the page flags that personalization per user is advertised on the website but the docs did not cover it at launch time; no maker response was given explaining the mechanism.",
+      "url": "https://www.producthunt.com/products/cognee?hss_channel=lcp-53258240&launch=cognee",
+      "kind": "community"
+    },
+    {
+      "text": "Page is the makers/team listing for cognee on Product Hunt and contains no detail on persist, retrieve, forget, conflict, or isolation mechanisms despite being a canonical product page that links to those concerns",
+      "url": "https://www.producthunt.com/products/cognee/makers",
+      "kind": "community"
+    },
+    {
+      "text": "No description of persist/write path: how facts are extracted from conversation or documents and written into the knowledge graph store.",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1l2dru6/new_paper_from_cognee_hyperparam_optimization_for/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of forget or deletion: whether facts can be removed or superseded in the knowledge graph.",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1l2dru6/new_paper_from_cognee_hyperparam_optimization_for/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of isolation model: whether memory is scoped per user, session, agent, or character.",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1l2dru6/new_paper_from_cognee_hyperparam_optimization_for/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of Cognee's write path (how facts are extracted, updated, or deleted from the graph) appears on this page",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qgbptg/which_one_is_better_for_graphrag_cognee_vs/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of Cognee's retrieve policy (always retrieve vs adaptive, silence conditions) appears on this page",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qgbptg/which_one_is_better_for_graphrag_cognee_vs/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of how cognee selects or ranks stored graph/vector content for retrieval into a turn (retrieve policy)",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1iptj8g/cognee_opensource_memory_framework_for_ai_agents/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of forget or delete mechanisms \u2014 how data is removed or superseded in the graph or vector store",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1iptj8g/cognee_opensource_memory_framework_for_ai_agents/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of retrieve policy \u2014 whether memory is always injected into context or retrieved adaptively based on relevance",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1uzyyja/cognee_10_oss_selfimproving_memory_for_agents/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of forget or delete behavior \u2014 whether stored facts can be removed or superseded",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1uzyyja/cognee_10_oss_selfimproving_memory_for_agents/",
+      "kind": "community"
+    },
+    {
+      "text": "Conflict and supersession behavior is not described: when .remember is called with data that overlaps or contradicts existing graph nodes, the page does not state whether existing nodes are updated, versioned, or left unchanged.",
+      "url": "https://docs.cognee.ai/getting-started/introduction.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy detail is absent: the page states Cognee picks the best retrieval strategy automatically but does not describe what triggers each strategy or when the system stays silent rather than returning a result.",
+      "url": "https://docs.cognee.ai/getting-started/introduction.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy details \u2014 whether recall always retrieves or uses adaptive/conditional retrieval \u2014 are not described on this index page; the Recall and Sessions pages should cover this but are only linked, not excerpted.",
+      "url": "https://docs.cognee.ai/core-concepts/main-operations/recall.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The scaffold layer \u2014 what instructions or prompts tell the model how to use retrieved memory in generation \u2014 is not described on this index page.",
+      "url": "https://docs.cognee.ai/llms-core.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This page is the curated llms.txt overview index and does not describe persist, retrieve, forget, conflict, or isolation mechanisms. Full architecture and API behavior would be found in linked shards (llms-core.md, llms-api.md) which are not included here.",
+      "url": "https://docs.cognee.ai/llms.txt",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict resolution and supersession behaviour when the same fact is remembered more than once is not addressed.",
+      "url": "https://github.com/topoteretes/cognee/issues/4180",
+      "kind": "issue"
+    },
+    {
+      "text": "Forget / delete behaviour (removing stored facts from the memory layer) is not mentioned.",
+      "url": "https://github.com/topoteretes/cognee/issues/4180",
+      "kind": "issue"
+    },
+    {
+      "text": "No documentation or code on this page describes how or whether Cognee persists user-specific memory state across sessions (isolation: per-user vs per-session vs per-agent)",
+      "url": "https://github.com/topoteretes/cognee/issues/4462",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of retrieve policy for the vector store (when and how stored embeddings are selected into a turn context) appears in this page, despite LanceDB being the canonical vector storage layer.",
+      "url": "https://github.com/topoteretes/cognee/issues/4684",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of conflict or supersession handling when the same entity or fact is upserted multiple times (beyond the mechanical merge_insert key deduplication) appears in this page.",
+      "url": "https://github.com/topoteretes/cognee/issues/4684",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of the retrieve policy \u2014 how stored graph facts are selected into a conversation turn, or whether retrieval is always-on vs adaptive.",
+      "url": "https://github.com/topoteretes/cognee/issues/4738",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of conflict or supersession handling when an updated upstream record already exists in the graph.",
+      "url": "https://github.com/topoteretes/cognee/issues/4738",
+      "kind": "issue"
+    },
+    {
+      "text": "The page is a connector feature request and does not describe how cognee retrieves stored graph content into a conversation turn (retrieve policy, selection logic, or scaffold).",
+      "url": "https://github.com/topoteretes/cognee/issues/4785",
+      "kind": "issue"
+    },
+    {
+      "text": "No information on isolation model (per-user, per-session, per-agent) for stored graph data.",
+      "url": "https://github.com/topoteretes/cognee/issues/4785",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe how or when operation rows written by remember() are deleted or expire from the pipeline_runs table (forget / write-path cleanup)",
+      "url": "https://github.com/topoteretes/cognee/issues/4879",
+      "kind": "issue"
+    },
+    {
+      "text": "Entity resolution algorithm \u2014 how 'the report', 'EU sales report', and 'q3_summary.xlsx' are decided to be one node or separate \u2014 is noted as the hard part but not specified for Cognee's implementation.",
+      "url": "https://www.cognee.ai/agent-memory",
+      "kind": "docs"
+    },
+    {
+      "text": "The page does not describe the retrieve policy in detail \u2014 whether recall() always retrieves or adapts (e.g., stays silent) based on confidence or relevance thresholds.",
+      "url": "https://www.cognee.ai/inside-cognee-1-0",
+      "kind": "docs"
+    },
+    {
+      "text": "The page does not describe how conflict or supersession is handled when remember() ingests information that contradicts existing graph nodes or edges.",
+      "url": "https://www.cognee.ai/inside-cognee-1-0",
+      "kind": "docs"
+    },
+    {
+      "text": "Explicit delete API for removing a specific memory item or entity from the permanent store is not described; dataset-level delete permission is mentioned but no call signature shown",
+      "url": "https://www.cognee.ai/how-cognee-builds-ai-memory",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession policy: what happens when cognify ingests an updated document whose entities contradict existing graph nodes \u2014 no merge or overwrite behavior described",
+      "url": "https://www.cognee.ai/how-cognee-builds-ai-memory",
+      "kind": "docs"
+    },
+    {
+      "text": "Write path details not described: how cognee extracts, updates, or resolves conflicts when new information supersedes existing memory",
+      "url": "https://www.cognee.ai/cognee-vs-zep",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy not described: whether retrieval is always-on, adaptive, or conditioned on relevance thresholds",
+      "url": "https://www.cognee.ai/cognee-vs-zep",
+      "kind": "docs"
+    },
+    {
+      "text": "Isolation model not described: whether memory is scoped per user, session, agent, or character",
+      "url": "https://www.cognee.ai/cognee-vs-zep",
+      "kind": "docs"
+    },
+    {
+      "text": "This page describes the forget/delete path in detail but does not describe the retrieve policy \u2014 whether memory is always retrieved into context, retrieved adaptively, or subject to any relevance or recency filter before generation.",
+      "url": "https://docs.cognee.ai/core-concepts/main-operations/forget",
+      "kind": "docs"
+    },
+    {
+      "text": "The page references 'distilled session-context lessons' produced from feedback chains but does not describe how these summaries or lessons are written, what triggers distillation, or how they are stored versus raw turn logs.",
+      "url": "https://docs.cognee.ai/core-concepts/main-operations/forget",
+      "kind": "docs"
+    },
+    {
+      "text": "Write path details (extract, update, conflict/supersession logic) are not described on this overview page; the Remember and Improve operation pages are the canonical location and should cover these behaviors",
+      "url": "https://docs.cognee.ai/core-concepts/overview",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy details are not described: no information on when .recall stays silent, confidence thresholds, or adaptive suppression of low-relevance memory.",
+      "url": "https://docs.cognee.ai/getting-started/introduction",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession behavior on write is not described: no information on how .remember handles duplicate or contradicting facts in the knowledge graph.",
+      "url": "https://docs.cognee.ai/getting-started/introduction",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget mechanism at the store level is not described: unclear whether .forget physically deletes from the graph store, marks records hidden, or only omits at generation time.",
+      "url": "https://docs.cognee.ai/getting-started/introduction",
+      "kind": "docs"
+    },
+    {
+      "text": "The page does not describe conflict or supersession behavior: what happens when an updated skill contradicts an existing graph node or when two runs produce conflicting preference signals.",
+      "url": "https://www.cognee.ai/structure-your-skills-with-cognee",
+      "kind": "docs"
+    },
+    {
+      "text": "Isolation scope is not stated: whether the graph, Redis session, and preference weights are isolated per user, per agent instance, or shared globally.",
+      "url": "https://www.cognee.ai/structure-your-skills-with-cognee",
+      "kind": "docs"
+    },
+    {
+      "text": "The page describes recall() as returning results but does not specify the ranking or scoring policy (e.g., how graph results are ordered relative to session results, or what controls relevance ranking within the graph).",
+      "url": "https://www.cognee.ai/why-ai-agents-forget",
+      "kind": "docs"
+    },
+    {
+      "text": "The conflict/supersession path relies on the caller supplying the data_id from a prior RememberResult; the page does not describe how the system detects or surfaces conflicts when the same fact is written twice without the caller performing explicit supersession.",
+      "url": "https://www.cognee.ai/why-ai-agents-forget",
+      "kind": "docs"
+    }
+  ]
+}

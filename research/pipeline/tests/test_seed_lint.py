@@ -74,6 +74,25 @@ def test_lint_open_code_detects_missing_path(tmp_path: Path) -> None:
     assert any("missing.py" in err for err in errors)
 
 
+def test_lint_open_code_detects_empty_path(tmp_path: Path) -> None:
+    repo = tmp_path / "demo" / "repo"
+    repo.mkdir(parents=True)
+    (repo / ".git").mkdir()
+    (repo / "README.md").write_text("# demo", encoding="utf-8")
+    (repo / "empty.py").write_bytes(b"")
+    seed = {
+        "products": {
+            "demo": {
+                "id": "demo",
+                "clone": True,
+                "open_code": ["README.md", "empty.py"],
+            }
+        }
+    }
+    errors = lint_open_code_paths(seed, cache_dir=tmp_path)
+    assert any("empty.py" in err and "empty" in err for err in errors)
+
+
 def test_clone_true_requires_nonempty_open_code() -> None:
     seed = {
         "products": {

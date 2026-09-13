@@ -1358,6 +1358,25 @@ def select_code_files(
     return select_code_inventory(repo_dir, product).files
 
 
+def source_file_is_empty(path: Path) -> bool:
+    """True when a listed path exists but has no extractable source text."""
+    if path.stat().st_size == 0:
+        return True
+    text = path.read_text(encoding="utf-8", errors="replace")
+    return not text.strip()
+
+
+def source_file_is_package_stub(path: Path) -> bool:
+    """True for tiny package roots that are only license lines and a docstring."""
+    if source_file_is_empty(path):
+        return True
+    if path.stat().st_size > 250:
+        return False
+    text = path.read_text(encoding="utf-8", errors="replace")
+    stripped = text.strip()
+    return not any(token in stripped for token in ("def ", "class ", "import ", "from ", "export "))
+
+
 def select_listed_code_files(repo_dir: Path, listed: list[str]) -> CodeSelection:
     """Fetch exactly the seed paths. Missing paths are skipped, not ranked around."""
     repo_root = repo_dir.resolve()
@@ -1373,6 +1392,12 @@ def select_listed_code_files(repo_dir: Path, listed: list[str]) -> CodeSelection
             continue
         if not target.is_file():
             skipped.append({"path": rel, "reason": "missing"})
+            continue
+        if source_file_is_empty(target):
+            skipped.append({"path": rel, "reason": "empty"})
+            continue
+        if Path(rel).name.lower() != "readme.md" and source_file_is_package_stub(target):
+            skipped.append({"path": rel, "reason": "stub"})
             continue
         if target in seen:
             continue

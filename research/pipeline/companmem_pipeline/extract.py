@@ -305,6 +305,24 @@ def extract_page(
         return "missing"
     raw = raw_path.read_text(encoding="utf-8", errors="replace")
     text = clean_html(raw) if raw.lstrip()[:100].startswith("<") else raw
+    if not text.strip():
+        log.decision("extract_skipped", page_id=page_id, reason="empty")
+        empty = empty_extract()
+        extract_path.write_text(json.dumps(empty, indent=2), encoding="utf-8")
+        meta_path.write_text(
+            json.dumps(
+                {
+                    "page_id": page_id,
+                    "prompt_hash": prompt_hash(),
+                    "prompt_version": PROMPT_VERSION,
+                    "skipped": "empty",
+                    "model": MODEL,
+                },
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+        return "empty"
     score_as_prose = bool(page.get("score_as_prose", True))
     score = quality_score(text)
     if score_as_prose and score["is_low_quality"]:

@@ -193,6 +193,10 @@ def lint_open_code_paths(
             path = skipped.get("path")
             if reason == "missing":
                 errors.append(f"{prefix} open_code missing in repo: {path}")
+            elif reason == "empty":
+                errors.append(f"{prefix} open_code empty in repo: {path}")
+            elif reason == "stub":
+                errors.append(f"{prefix} open_code package stub in repo: {path}")
             elif reason == "outside_repo":
                 errors.append(f"{prefix} open_code outside repo: {path}")
     return errors

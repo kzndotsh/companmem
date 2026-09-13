@@ -645,6 +645,45 @@ def test_code_listed_paths_only(tmp_path: Path) -> None:
     assert any(row["path"] == "cli/missing.py" for row in picked.skipped)
 
 
+def test_code_listed_paths_skip_package_stubs(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("# GraphRAG\n", encoding="utf-8")
+    pkg = tmp_path / "graphrag"
+    pkg.mkdir()
+    (pkg / "__init__.py").write_text(
+        '"""The GraphRAG package."""\n',
+        encoding="utf-8",
+    )
+    (pkg / "query.py").write_text("def search():\n    pass\n", encoding="utf-8")
+    picked = select_listed_code_files(
+        tmp_path,
+        ["README.md", "graphrag/__init__.py", "graphrag/query.py"],
+    )
+    names = [p.relative_to(tmp_path).as_posix() for p in picked.files]
+    assert names == ["README.md", "graphrag/query.py"]
+    assert any(
+        row["path"] == "graphrag/__init__.py" and row["reason"] == "stub"
+        for row in picked.skipped
+    )
+
+
+def test_code_listed_paths_skip_empty_files(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("# Mem0\n", encoding="utf-8")
+    memory = tmp_path / "mem0" / "memory"
+    memory.mkdir(parents=True)
+    (memory / "main.py").write_text("def add():\n    pass\n", encoding="utf-8")
+    (memory / "__init__.py").write_bytes(b"")
+    picked = select_listed_code_files(
+        tmp_path,
+        ["README.md", "mem0/memory/main.py", "mem0/memory/__init__.py"],
+    )
+    names = [p.relative_to(tmp_path).as_posix() for p in picked.files]
+    assert names == ["README.md", "mem0/memory/main.py"]
+    assert any(
+        row["path"] == "mem0/memory/__init__.py" and row["reason"] == "empty"
+        for row in picked.skipped
+    )
+
+
 def test_code_steals_infra_slots_for_high_packages(tmp_path: Path) -> None:
     (tmp_path / "README.md").write_text("# Honcho\n", encoding="utf-8")
     src = tmp_path / "src"
