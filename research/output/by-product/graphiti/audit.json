@@ -1,0 +1,2880 @@
+{
+  "identity": {
+    "id": "graphiti",
+    "name": "Graphiti",
+    "repo": "https://github.com/getzep/graphiti",
+    "docs": "https://help.getzep.com/graphiti",
+    "license": "Apache-2.0",
+    "version_or_commit": "c035afb7990b6077331a81e98b04efcfd9bf8184",
+    "observed_at": "2026-09-13"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Addresses failures in fact reconciliation across long, complex conversations that defeated prior RAG-based approaches"
+    },
+    {
+      "text": "Graphiti is positioned as simpler and easier to start with for GraphRAG use cases"
+    },
+    {
+      "text": "Graphiti is characterized as episodic memory optimized for knowledge that evolves through dialogue"
+    },
+    {
+      "text": "Intended as a replacement for standard chat memory nodes, combining short-term memory with graph database retrieval/write"
+    },
+    {
+      "text": "Graphiti uses communities to provide high-level synthesized information about graph contents, complementing granular edge-level facts."
+    },
+    {
+      "text": "Persistent context across conversations and sessions via temporally-aware knowledge graphs"
+    },
+    {
+      "text": "Graphiti is positioned as a framework for building temporal knowledge graphs (called Context Graphs) that power persistent memory for AI agents."
+    },
+    {
+      "text": "Open-source framework for temporal knowledge graphs for AI agents, with real-time updates and hybrid retrieval"
+    },
+    {
+      "text": "Graphiti supports multiple graph database backends (Neo4j, FalkorDB) as a substrate-portability layer for memory ingestion"
+    },
+    {
+      "text": "Graphiti supports multi-tenant memory isolation via group_id, which can scope records within a shared physical graph."
+    },
+    {
+      "text": "Graphiti stores facts as edges in a graph with validity periods, enabling persistent memory across sessions"
+    },
+    {
+      "text": "Graphiti is described as an agent memory system, as named in the MCP server construction call."
+    },
+    {
+      "text": "Builds dynamic, temporally-aware knowledge graphs representing complex, evolving relationships between entities over time"
+    },
+    {
+      "text": "Graphiti provides high-level synthesized information about graph contents via community summaries, in addition to granular facts on edges."
+    },
+    {
+      "text": "One Context Graph per subject covering the data model, temporal logic, and hybrid retrieval API."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Contradictions are resolved by automatic fact invalidation with temporal history preserved, not by LLM summarization."
+    },
+    {
+      "text": "New data integrates immediately without batch recomputation; the graph evolves in real-time as episodes are ingested."
+    },
+    {
+      "text": "Retrieval uses hybrid search combining semantic embeddings, keyword (BM25), and graph traversal \u2014 not LLM summarization."
+    },
+    {
+      "text": "EntityEdge tracks temporal validity of a fact with separate valid_at, invalid_at, and expired_at timestamps, enabling supersession of outdated facts"
+    },
+    {
+      "text": "All edge types carry a group_id field used as a graph partition key, providing isolation between groups"
+    },
+    {
+      "text": "EpisodicEdge connects an Episodic node to an Entity node via a MENTIONS relation, representing the raw episode log layer distinct from curated EntityEdge facts"
+    },
+    {
+      "text": "Edges can be hard-deleted from the graph store by UUID, providing a true forget path"
+    },
+    {
+      "text": "Episodic nodes store raw episode content fields (content, source, source_description) and are indexed on created_at and valid_at, distinguishing them as a message-log layer."
+    },
+    {
+      "text": "Conflicting or superseded edges are invalidated (not deleted) and persisted alongside newly resolved edges"
+    },
+    {
+      "text": "Previous episodes are retrieved as context window for each new episode write, using either the most recent by created_at or caller-specified UUIDs"
+    },
+    {
+      "text": "Deletion of an episode removes only the edges it originated and nodes mentioned exclusively by that episode; shared nodes and edges are preserved"
+    },
+    {
+      "text": "EpisodicNode supports customer-defined metadata key-value pairs for filtering, enabling scoped retrieval of episodes."
+    },
+    {
+      "text": "CommunityNode persists a cluster of entity nodes with a shared summary and name embedding, representing a higher-level abstraction over groups of entities."
+    },
+    {
+      "text": "group_id is the isolation key: all node types carry it, and bulk delete and bulk retrieval are scoped by group_id, enabling per-user or per-agent graph partitioning."
+    },
+    {
+      "text": "Three distinct node types are persisted in the graph: EpisodicNode (raw episode/message log), EntityNode (curated entity), and CommunityNode (cluster summary). These are structurally separate, not a single flat log."
+    },
+    {
+      "text": "EpisodicNodes (raw message log) are linked to EntityNodes via MENTIONS edges; EntityNodes are linked to each other via RELATES_TO edges carrying facts. This separates the raw log from the curated knowledge graph."
+    },
+    {
+      "text": "CommunityNodes group EntityNodes via HAS_MEMBER edges, forming a higher-level summary layer retrieved separately."
+    },
+    {
+      "text": "Isolation is enforced via group_id: all node, edge, episode, and community queries accept a group_ids filter that restricts results to matching partitions."
+    },
+    {
+      "text": "Edge invalidation candidates are retrieved by finding edges sharing at least one endpoint node with a given edge and scoring them by fact_embedding cosine similarity \u2014 supporting a conflict/supersession write path."
+    },
+    {
+      "text": "Episode mentions reranker re-scores entity nodes by count of MENTIONS edges from Episodic nodes, so entities referenced most across the raw log rank first."
+    },
+    {
+      "text": "Contradicted (superseded) edges are invalidated by setting their invalid_at to the valid_at of the newer edge and stamping expired_at, effectively retiring them while keeping them in the store."
+    },
+    {
+      "text": "Edges are scoped to a group_id, providing isolation between groups (users, agents, or characters) at the edge level."
+    },
+    {
+      "text": "Prior RAG approach produced incomplete facts, poor recall, and hallucinations when conversations grew complex"
+    },
+    {
+      "text": "Future plan: community/cluster summary nodes to support graph-wide question answering (not yet implemented)"
+    },
+    {
+      "text": "Conflict resolution via temporal invalidation: conflicting facts are resolved using t_valid and t_invalid metadata rather than overwriting"
+    },
+    {
+      "text": "Three-tiered knowledge structure: episodes, semantic entities, and communities"
+    },
+    {
+      "text": "Graphiti relies on complex prompts as part of its core processing pipeline, which creates a bottleneck for smaller local models."
+    },
+    {
+      "text": "Repeated extraction of the same relationships (e.g. name\u2013company\u2013role) when those entities recur in input text"
+    },
+    {
+      "text": "Inspired or referenced by OpenAI cookbook material on temporal agents with knowledge graphs"
+    },
+    {
+      "text": "Bulk ingestion pipeline explicitly does not perform edge invalidation, which is the mechanism for conflict/supersession in the normal write path."
+    },
+    {
+      "text": "Episodes are the write path: text is passed to add_episode, which extracts entities, classifies and validates them against Pydantic models, populates custom attributes, and stores them in the graph."
+    },
+    {
+      "text": "Retrieve path supports filtering by entity type or edge type via SearchFilters, allowing targeted retrieval from the graph."
+    },
+    {
+      "text": "Re-ingestion is required to apply entity types to previously stored data; there is no in-place migration of existing nodes."
+    },
+    {
+      "text": "add_episode tool stores episodes and interactions in the knowledge graph (write path)"
+    },
+    {
+      "text": "group_id filtering used for multi-user data isolation"
+    },
+    {
+      "text": "Handles conflict/supersession via temporal edge invalidation rather than LLM summarization."
+    },
+    {
+      "text": "Ingests data as discrete episodes (episodic processing), maintaining data provenance and allowing incremental entity and relationship extraction."
+    },
+    {
+      "text": "Persistence is structured as episodes added to a knowledge graph; the store is a temporal graph of entities and relationships, not a flat log."
+    },
+    {
+      "text": "Graph namespacing via group_ids provides isolation between graph instances"
+    },
+    {
+      "text": "Hybrid retrieval combining semantic, full-text, and graph search"
+    },
+    {
+      "text": "CRUD operations exist for nodes and edges, implying update and delete on the store"
+    },
+    {
+      "text": "The low-level search method returns nodes, edges, and communities as distinct result types, configurable via SearchConfig."
+    },
+    {
+      "text": "The proposed FalkorLiteDriver subclasses the existing FalkorDriver, requiring no changes to query logic or search implementation."
+    },
+    {
+      "text": "edge_search uses multiple retrieval methods (bm25, cosine_similarity, bfs) merged into a candidate set before reranking"
+    },
+    {
+      "text": "MMR search has a known failure mode where applying a score cutoff discards nearly all results because MMR scores are not calibrated like cross-encoder scores."
+    },
+    {
+      "text": "The cross-encoder reranker has a candidate-truncation bug in the core path, making it unsuitable as a default."
+    },
+    {
+      "text": "There is an open question of whether reranking accounts for a fact's temporal validity; the proposed liveness filter is a partial practical answer."
+    },
+    {
+      "text": "Proposed record-level routing mode keeps the configured FalkorDB graph fixed and applies group_id as a record filter for episode ingestion, search/retrieval, and group-scoped cleanup."
+    },
+    {
+      "text": "edge_type_map supplies type definitions to the extraction prompt, but the write path does not reject an extracted relationship for violating those types"
+    },
+    {
+      "text": "No structured authority field distinguishes a direct user assertion from a model inference; the question is whether such a distinction can prevent an inferred claim from expiring or superseding a user assertion"
+    },
+    {
+      "text": "Traceability of retrieved facts to their originating episode is in question; no first-class document or source object above the episode is confirmed"
+    },
+    {
+      "text": "Whether source-code structure and organizational memory can be stored and retrieved in the same graph operation is in question"
+    },
+    {
+      "text": "Retrieval is scoped by group_id, providing isolation between memory partitions."
+    },
+    {
+      "text": "Graphiti persists episodic memory as nodes and edges across at least four entity types: Entity (name + summary), Episodic (content + source_description), Community (name + summary), and RELATES_TO edges (name + fact)."
+    },
+    {
+      "text": "When new memory overlaps old, incorrect data, the previous memory record is marked as invalid \u2014 a supersession/conflict resolution mechanism."
+    },
+    {
+      "text": "Community detection organises related entities to make future retrieval faster and more accurate"
+    },
+    {
+      "text": "Dynamic update of relationship/fact status when new information supersedes prior state"
+    },
+    {
+      "text": "Confirmed solutions are recorded back into the graph with updated timestamps on related entities and relationships"
+    },
+    {
+      "text": "Conflict/supersession: contradictions are resolved by invalidating edges temporally rather than by LLM summarization."
+    },
+    {
+      "text": "Write path: data is ingested as discrete episodes incrementally, with entity and relationship extraction happening per episode."
+    },
+    {
+      "text": "Episode ingestion costs one LLM call per episode for entity and relationship extraction, with latency of roughly half a second to a couple of seconds per episode."
+    },
+    {
+      "text": "Each user is isolated by a group_id namespace, preventing memory bleed between users."
+    },
+    {
+      "text": "Every edge carries four timestamps: when a fact became valid, when it stopped being valid, when Graphiti learned about it, and when it learned it was no longer true. Point-in-time queries follow from the data model."
+    },
+    {
+      "text": "Retrieval combines vector similarity, full-text search, and graph traversal in one ranked answer, with no LLM-in-the-loop reranking."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Episodes are the raw ingested data layer; entities and facts are derived and curated from them, separating transcript log from structured memory.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/README.md",
+      "quote": "Episodes (provenance) \u2014 Raw data as ingested \u2014 the ground truth stream. Every derived fact traces back here",
+      "locator": "README.md, ## What is a Context Graph?, table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Old facts are invalidated rather than deleted when information changes, preserving full temporal history for point-in-time queries.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/README.md",
+      "quote": "When information changes, old facts are invalidated \u2014 not deleted. Query what's true now, or what was true at any point in time.",
+      "locator": "README.md, ## Why Graphiti?, Temporal Fact Management bullet",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Contradiction/conflict handling uses automatic fact invalidation with history preserved, not generative summarization.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/README.md",
+      "quote": "Contradiction Handling: Automatic fact invalidation with temporal history preserved",
+      "locator": "README.md, ## Graphiti vs. GraphRAG, comparison table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is hybrid (semantic + BM25 keyword + graph traversal) and does not rely on LLM summarization at query time.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/README.md",
+      "quote": "Hybrid Retrieval: Combines semantic embeddings, keyword (BM25), and graph traversal for low-latency, high-precision queries without reliance on LLM summarization.",
+      "locator": "README.md, ## Why Graphiti?, Hybrid Retrieval bullet",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Graphiti supports incremental ingestion; new episodes integrate immediately without recomputing the full graph.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/README.md",
+      "quote": "Incremental Graph Construction: New data integrates immediately without batch recomputation. The graph evolves in real-time as episodes are ingested.",
+      "locator": "README.md, ## Why Graphiti?, Incremental Graph Construction bullet",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The MCP server exposes explicit delete on episodes, enabling a forget path at the stored-episode level.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/README.md",
+      "quote": "Episode management (add, retrieve, delete)",
+      "locator": "README.md, ## MCP Server, key features list",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Temporal supersession is encoded at the edge level: expired_at marks invalidation, invalid_at marks when the fact stopped being true, valid_at marks when it became true",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/edges.py",
+      "quote": "expired_at: datetime | None = Field(\n        default=None, description='datetime of when the node was invalidated'\n    )\n    valid_at: datetime | None = Field(\n        default=None, description='datetime of when the fact became true'\n    )\n    invalid_at: datetime | None = Field(\n        default=None, description='datetime of when the fact stopped being true'\n    )",
+      "locator": "graphiti_core/edges.py: EntityEdge class field definitions",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "group_id on every edge type provides graph-level partitioning, the isolation boundary between tenants or sessions",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/edges.py",
+      "quote": "group_id: str = Field(description='partition of the graph')",
+      "locator": "graphiti_core/edges.py: Edge base class field definitions",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is implemented as hard deletion (DELETE) from the graph store, not soft-hide or omission",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/edges.py",
+      "quote": "MATCH (n)-[e:MENTIONS|RELATES_TO|HAS_MEMBER {uuid: $uuid}]->(m)\n                DELETE e",
+      "locator": "graphiti_core/edges.py: Edge.delete",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The episodic log (EpisodicEdge via MENTIONS) and curated memory (EntityEdge via RELATES_TO) are separate graph layers",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/edges.py",
+      "quote": "MATCH (n:Episodic)-[e:MENTIONS {uuid: $uuid}]->(m:Entity)",
+      "locator": "graphiti_core/edges.py: EpisodicEdge.get_by_uuid",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Episodic nodes represent a raw message/episode log layer, storing content and source, separately indexed from curated Entity nodes.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/graph_queries.py",
+      "quote": "CREATE FULLTEXT INDEX episode_content IF NOT EXISTS\n        FOR (e:Episodic) ON EACH [e.content, e.source, e.source_description, e.group_id]",
+      "locator": "get_fulltext_indices, Neo4j branch",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "RELATES_TO edges carry valid_at and invalid_at timestamps, providing a schema for temporal scoping and supersession of relationship facts.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/graph_queries.py",
+      "quote": "'CREATE INDEX FOR ()-[e:RELATES_TO]-() ON (e.uuid, e.group_id, e.name, e.created_at, e.expired_at, e.valid_at, e.invalid_at)'",
+      "locator": "get_range_indices, FalkorDB branch",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per group_id across all node and edge types.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/graph_queries.py",
+      "quote": "'CREATE INDEX entity_group_id IF NOT EXISTS FOR (n:Entity) ON (n.group_id)'",
+      "locator": "get_range_indices, Neo4j branch",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval supports cosine vector similarity in addition to fulltext, with backend-specific implementations for Neo4j, FalkorDB, and Kuzu.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/graph_queries.py",
+      "quote": "return f'vector.similarity.cosine({vec1}, {vec2})'",
+      "locator": "get_vector_cosine_func_query, Neo4j branch",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy for previous episodes during write is adaptive: defaults to most recent N by created_at, but callers can supply explicit episode UUIDs to override",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/graphiti.py",
+      "quote": "previous_episode_uuids : list[str] | None\n            Optional.  list of episode uuids to use as the previous episodes. If this is not provided,\n            the most recent episodes by created_at date will be used.",
+      "locator": "add_episode docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Raw episode content storage is optional; setting store_raw_episode_content=False clears episode content before save, keeping only extracted graph structure",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/graphiti.py",
+      "quote": "if not self.store_raw_episode_content:\n                ep.content = ''",
+      "locator": "_process_episode_data method body",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Superseded/conflicting edges are invalidated with valid_at/invalid_at timestamps rather than hard-deleted, preserving temporal history",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/graphiti.py",
+      "quote": "Edge invalidation and date extraction (valid_at / invalid_at) are performed in the bulk path as well: edges flow through extract_edges and resolve_extracted_edges just like in add_episode, and any invalidated edges are persisted alongside the newly resolved ones.",
+      "locator": "add_episode_bulk docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget (remove_episode) is selective: only edges whose first episode matches the deleted episode UUID are removed; only nodes mentioned exclusively by that episode are deleted",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/graphiti.py",
+      "quote": "We should only delete edges created by the episode... We should delete all nodes that are only mentioned in the deleted episode",
+      "locator": "remove_episode method body comments",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Sagas provide a named lore/backstory layer: a SagaNode with a LLM-generated summary and two watermarks (wall-clock filter and event-time) sits above the episode log",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/graphiti.py",
+      "quote": "Two watermarks are maintained on the saga node, with deliberately different semantics:\n- last_summarized_at is wall-clock and is the filter watermark...\n- last_summarized_episode_valid_at is the temporal watermark",
+      "locator": "summarize_saga docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Community nodes are a higher-level cluster summary layer rebuilt per group_id; prior communities are deleted before rebuild",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/graphiti.py",
+      "quote": "# Clear existing communities (scoped: only the groups being rebuilt)\n        await remove_communities(driver, group_ids=group_ids)",
+      "locator": "build_communities method body",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Graphiti bundles a graph store driver alongside an embedder and cross-encoder, indicating that memory retrieval involves both vector similarity and reranking over a graph backend.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/graphiti_types.py",
+      "quote": "driver: GraphDriver\n    llm_client: LLMClient\n    embedder: EmbedderClient\n    cross_encoder: CrossEncoderClient",
+      "locator": "class GraphitiClients, lines 28\u201332",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Graphiti is licensed under Apache-2.0, as stated in the file header.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/graphiti_types.py",
+      "quote": "Licensed under the Apache License, Version 2.0",
+      "locator": "file header, line 3",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "EpisodicNode is the raw log layer: it persists verbatim episode content with a valid_at timestamp and source type.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/nodes.py",
+      "quote": "content: str = Field(description='raw episode data')\n    valid_at: datetime = Field(\n        description='datetime of when the original document was created',\n    )",
+      "locator": "EpisodicNode class",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "EntityNode is the curated memory layer: extracted named entities with summaries, attributes, and name embeddings persisted separately from the episode log.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/nodes.py",
+      "quote": "summary: str = Field(description='regional summary of surrounding edges', default_factory=str)\n    attributes: dict[str, Any] = Field(\n        default={}, description='Additional attributes of the node. Dependent on node labels'\n    )",
+      "locator": "EntityNode class",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "SagaNode is a multi-episode summary node with dual watermarks for incremental summarization: wall-clock last_summarized_at and episode-time last_summarized_episode_valid_at.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/nodes.py",
+      "quote": "last_summarized_at: datetime | None = None\n    # Maximum ``valid_at`` (episode reference time) across all episodes covered\n    # by the most recent summary. ``last_summarized_at`` is wall-clock and is\n    # used as the watermark for the next incremental summarize run; this field\n    # carries the episode-time semantics for public/temporal consumers.\n    last_summarized_episode_valid_at: datetime | None = None",
+      "locator": "SagaNode class",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "group_id partitions the graph for isolation; all bulk delete and retrieval operations are scoped by group_id.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/nodes.py",
+      "quote": "group_id: str = Field(description='partition of the graph')",
+      "locator": "Node.group_id field",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hard deletion is supported at three granularities: single node by UUID, batch by UUID list, and all nodes in a group_id partition.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/nodes.py",
+      "quote": "MATCH (n:Entity|Episodic|Community {group_id: $group_id})\n                        CALL (n) {\n                            DETACH DELETE n\n                        } IN TRANSACTIONS OF $batch_size ROWS",
+      "locator": "Node.delete_by_group_id method, Neo4J branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "EpisodicNode supports customer-defined metadata for filtering, enabling scoped retrieval.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/nodes.py",
+      "quote": "episode_metadata: dict[str, Any] | None = Field(\n        description='customer-defined metadata key-value pairs for filtering',\n        default=None,\n    )",
+      "locator": "EpisodicNode.episode_metadata field",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "CommunityNode stores a summary of member entity nodes and a name embedding, representing a higher-order abstraction over entity clusters.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/nodes.py",
+      "quote": "summary: str = Field(description='region summary of member nodes', default_factory=str)",
+      "locator": "CommunityNode class",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Graphiti stores four distinct graph memory types: EntityEdge (facts/relations), EntityNode (entities), EpisodicNode (message log episodes), and CommunityNode (community summaries), each independently searchable.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search.py",
+      "quote": "from graphiti_core.nodes import CommunityNode, EntityNode, EpisodicNode\nfrom graphiti_core.edges import EntityEdge",
+      "locator": "import block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is isolated by group_ids; queries scoped to specific group_ids will not return results from other groups.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search.py",
+      "quote": "group_ids: list[str] | None,\n...\ngroup_ids = group_ids if group_ids and group_ids != [''] else None",
+      "locator": "search() function signature and group_ids normalization",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Episodes (EpisodicNode) are distinguished from curated graph memory (EntityEdge, EntityNode, CommunityNode) and retrieved separately; episode retrieval uses only fulltext BM25, not vector similarity.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search.py",
+      "quote": "episode_fulltext_search(driver, query, search_filter, group_ids, 2 * limit),",
+      "locator": "episode_search() function, execute_methods phase",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "EntityEdge objects carry a .fact field and an .episodes list, linking curated facts back to the episodic log entries that sourced them.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search.py",
+      "quote": "fact_to_uuid_map = {edge.fact: edge.uuid for edge in rrf_edges}\n...\nreranked_edges.sort(reverse=True, key=lambda edge: len(edge.episodes))",
+      "locator": "edge_search() function, cross_encoder and episode_mentions reranker blocks",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph traversal (BFS) from a seed set of node UUIDs is a supported retrieval method for both edges and nodes, enabling associative recall through graph structure.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search.py",
+      "quote": "if EdgeSearchMethod.bfs in config.search_methods:\n    search_tasks.append(\n        edge_bfs_search(\n            driver,\n            bfs_origin_node_uuids,\n            config.bfs_max_depth,\n            search_filter,\n            group_ids,\n            2 * limit,\n        )\n    )",
+      "locator": "edge_search() function, bfs search task",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A center_node_uuid parameter enables node_distance reranking, biasing retrieved results toward graph-neighbors of a focal node (e.g., the current conversation subject or user entity).",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search.py",
+      "quote": "center_node_uuid: str | None = None,\n...\nelif config.reranker == EdgeReranker.node_distance:\n    if center_node_uuid is None:\n        raise SearchRerankerError('No center node provided for Node Distance reranker')",
+      "locator": "search() and edge_search() function signatures, node_distance reranker block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "SearchFilters is threaded through all retrieve calls for edges, nodes, and episodes, suggesting fine-grained filtering of what memory is visible at retrieval time.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search.py",
+      "quote": "search_filter: SearchFilters,\n...\nedge_fulltext_search(driver, query, search_filter, group_ids, 2 * limit)\n...\nnode_fulltext_search(driver, query, search_filter, group_ids, 2 * limit)\n...\nepisode_fulltext_search(driver, query, search_filter, group_ids, 2 * limit)",
+      "locator": "search(), edge_search(), node_search(), episode_search() function signatures and search_tasks",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Graphiti persists three structurally distinct node types: EpisodicNode (raw message log), EntityNode (curated entity), CommunityNode (cluster/summary), separating log from curated memory.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search_utils.py",
+      "quote": "from graphiti_core.nodes import (\n    CommunityNode,\n    EntityNode,\n    EpisodicNode,\n    get_community_node_from_record,\n    get_entity_node_from_record,\n    get_episodic_node_from_record,\n)",
+      "locator": "import block, lines 43-49",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "EntityEdges store a natural-language 'fact', a 'fact_embedding' vector, temporal validity fields (valid_at, invalid_at, expired_at), and back-references to source episodes.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search_utils.py",
+      "quote": "fact: e.fact,\n                        fact_embedding: e.fact_embedding,\n                        episodes: e.episodes,\n                        expired_at: e.expired_at,\n                        valid_at: e.valid_at,\n                        invalid_at: e.invalid_at,",
+      "locator": "get_relevant_edges, inner collect query",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Raw episodes link to entity nodes via MENTIONS; entity nodes link to each other via RELATES_TO carrying facts \u2014 raw log and curated graph are structurally separate layers.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search_utils.py",
+      "quote": "MATCH (episode:Episodic)-[:MENTIONS]->(n:Entity)\nWHERE episode.uuid IN $uuids\nRETURN DISTINCT",
+      "locator": "get_mentioned_nodes, execute_query block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "group_id enforces isolation across all node, edge, episode, and community queries, acting as a partition key.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search_utils.py",
+      "quote": "if group_ids is not None:\n        filter_queries.append('e.group_id IN $group_ids')\n        filter_params['group_ids'] = group_ids",
+      "locator": "edge_fulltext_search, group_ids filter block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval supports three modes: BM25 fulltext, vector cosine similarity (min_score 0.6), and BFS graph traversal (max depth 3).",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search_utils.py",
+      "quote": "DEFAULT_MIN_SCORE = 0.6\nDEFAULT_MMR_LAMBDA = 0.5\nMAX_SEARCH_DEPTH = 3",
+      "locator": "module-level constants",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hybrid node search merges fulltext and vector result lists using Reciprocal Rank Fusion before returning.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search_utils.py",
+      "quote": "ranked_uuids, _ = rrf(result_uuids)\n\n    relevant_nodes: list[EntityNode] = [node_uuid_map[uuid] for uuid in ranked_uuids]",
+      "locator": "hybrid_node_search, function body",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "get_edge_invalidation_candidates retrieves existing edges sharing endpoints with a new edge, scored by fact_embedding similarity \u2014 this is the read side of conflict/supersession detection.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search_utils.py",
+      "quote": "MATCH (n:Entity)-[e:RELATES_TO {group_id: edge.group_id}]->(m:Entity)\n                                                                                                                                        WHERE n.uuid IN [edge.source_node_uuid, edge.target_node_uuid] OR m.uuid IN [edge.target_node_uuid, edge.source_node_uuid]",
+      "locator": "get_edge_invalidation_candidates, query construction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Episode mentions reranker scores entity nodes by how many Episodic nodes MENTION them, surfacing entities with the most conversational history first.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search_utils.py",
+      "quote": "MATCH (episode:Episodic)-[r:MENTIONS]->(n:Entity {uuid: node_uuid})\n        RETURN count(*) AS score, n.uuid AS uuid",
+      "locator": "episode_mentions_reranker, query",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "CommunityNodes form a summary cluster layer, linked to EntityNodes via HAS_MEMBER and retrievable by BM25 or vector similarity over community names.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search_utils.py",
+      "quote": "MATCH (c:Community)-[:HAS_MEMBER]->(m:Entity)\nWHERE m.uuid IN $uuids\nRETURN DISTINCT",
+      "locator": "get_communities_by_nodes, execute_query block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "EntityEdge stores a fact string, source/target node UUIDs, relation_type name, group_id, episode provenance list, created_at, valid_at, invalid_at, and reference_time as its persisted representation of a curated memory fact.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/utils/maintenance/edge_operations.py",
+      "quote": "edge = EntityEdge(\n            source_node_uuid=source_node_uuid,\n            target_node_uuid=target_node_uuid,\n            name=edge_data.relation_type,\n            group_id=group_id or primary_episode.group_id,\n            fact=edge_data.fact,\n            episodes=edge_episode_uuids,\n            created_at=utc_now(),\n            valid_at=valid_at_datetime,\n            invalid_at=invalid_at_datetime,\n            reference_time=(...),\n        )",
+      "locator": "extract_edges function, edge construction loop",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Superseded edges are not deleted from the store; they are retired in place by setting invalid_at and expired_at, making the store an append-with-invalidation log rather than a mutable fact table.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/utils/maintenance/edge_operations.py",
+      "quote": "edge.invalid_at = resolved_edge.valid_at\n            edge.expired_at = edge.expired_at if edge.expired_at is not None else utc_now()\n            invalidated_edges.append(edge)",
+      "locator": "resolve_edge_contradictions function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Deduplication uses hybrid RRF search over the fact text as the retrieval step before LLM classification, meaning retrieval quality gates whether a conflict is detected at all.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/utils/maintenance/edge_operations.py",
+      "quote": "config=EDGE_HYBRID_SEARCH_RRF,\n                search_filter=SearchFilters(edge_uuids=[edge.uuid for edge in valid_edges]),",
+      "locator": "resolve_extracted_edges function, related_edges_results block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Group_id scopes edges (and community edges) to isolated namespaces, enabling per-user or per-agent memory separation at the graph level.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/utils/maintenance/edge_operations.py",
+      "quote": "group_id=group_id or primary_episode.group_id,",
+      "locator": "extract_edges and build_community_edges functions",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "EpisodicEdge (MENTIONED_IN) connects entity nodes to their source episode, distinguishing the raw episode log from the curated entity-relation memory layer.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/utils/maintenance/edge_operations.py",
+      "quote": "EpisodicEdge(\n                        source_node_uuid=episode_uuids[idx],\n                        target_node_uuid=node.uuid,\n                        created_at=created_at,\n                        group_id=node.group_id,\n                    )",
+      "locator": "build_episodic_edges function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "IS_DUPLICATE_OF edges between entity nodes are tracked in the graph and checked before writing new duplicate relationships, preventing redundant duplicate links.",
+      "kind": "code",
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/utils/maintenance/edge_operations.py",
+      "quote": "MATCH (n:Entity {uuid: duplicate_tuple[0]})-[r:RELATES_TO {name: 'IS_DUPLICATE_OF'}]->(m:Entity {uuid: duplicate_tuple[1]})",
+      "locator": "filter_existing_duplicate_of_edges function, Cypher query",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Previous RAG-based fact extraction produced incomplete facts, poor recall, and hallucinations on complex conversations",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=41445445",
+      "quote": "We saw incomplete facts, poor recall, and hallucinations. Our RAG search also failed at times to capture the nuanced relationships between facts, leading to irrelevant or contradictory information being retrieved.",
+      "locator": "top-level Show HN post, roseway4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Per-user subgraph isolation is supported via the message EpisodeType",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=41445445",
+      "quote": "Graphiti pays careful attention to \"users,\" creating nodes for them and maintaining \"fact\" context for each user subgraph.",
+      "locator": "comment by roseway4, reply to fudged71",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Chronological episode ingestion order is required to correctly reconstruct temporal fact history",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=41445445",
+      "quote": "please make sure to add the episodes from the interviews in their chronological order.",
+      "locator": "comment by thorax51, reply to fudged71",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Non-deterministic edge naming makes the graph schema vary across runs, a known limitation raised by community",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=41445445",
+      "quote": "graphiti could spit out edges IS_SIBLING_OF SIBLING SISTER BROTHER etc, its not standardized which makes it difficult to interact with computationally",
+      "locator": "comment by spothedog1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community/cluster summary nodes for wide-question retrieval are planned but not yet implemented",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=41445445",
+      "quote": "Our implementation will likely involve us adding community nodes that will contain a summary of the nodes in that community.",
+      "locator": "comment by prasmuss15, reply to fudged71",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Custom schema / ontology support for constrained node and edge extraction is planned but not yet available",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=41445445",
+      "quote": "adding support for custom schema is high on our to-do list... allowing end users to provide specific node types and edge types between those nodes.",
+      "locator": "comment by prasmuss15, reply to spothedog1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Failure mode motivating the product: AI that ignores updated user preferences and forgets key client history, undermining trust",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/graphiti",
+      "quote": "Imagine you tell a food delivery app that you've adopted veganism, but it keeps recommending your once-favorite burger joint. Or picture a sales assistant that forgets a key client's purchasing history and constraints, resulting in tone-deaf product pitches. That's the kind of experience that frustrates users and undermines trust in AI.",
+      "locator": "Maker comment / Daniel Chalef launch post",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User frustration: having to repeatedly remind chatbots of things already told to them",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/graphiti",
+      "quote": "you no longer have to keep reminding chatbots of things you've already told them",
+      "locator": "Hunter comment / Chris Messina",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User frustration corroborated by community: draining experience of repeating the same context to chatbots across sessions",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/graphiti",
+      "quote": "Lately, I've been feeling drained from repeatedly reminding chatbots to remember the same things",
+      "locator": "Community comment / Kay Kwak",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti is simpler and easier to start with compared to Cognee and Mem0 for GraphRAG",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qgbptg/which_one_is_better_for_graphrag_cognee_vs/",
+      "quote": "Graphiti is simpler and easier to start with",
+      "locator": "comment by u/artur5092619",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A user tried Graphiti and ultimately preferred Cognee, implying Graphiti lacked cutting-edge configurations",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qgbptg/which_one_is_better_for_graphrag_cognee_vs/",
+      "quote": "I prefer Cognee (no affiliation) after trying mem0 and Graphiti. Mem0 was easy-ish to get setup, but didn't offer the cutting edge configurations I was looking for.",
+      "locator": "comment by u/Crashbox3000",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Predecessor RAG-based memory pipeline produced incomplete facts, poor recall, and hallucinations under complex conversations",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1f8u0xk/graphiti_llmpowered_temporal_knowledge_graphs/",
+      "quote": "Reconciling facts from increasingly complex conversations challenged even frontier LLMs such as gpt-4o. We saw incomplete facts, poor recall, and hallucinations.",
+      "locator": "post body, 'Zep's Broken Fact Pipeline' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti improves fact reconciliation over long, complex conversations compared to the prior pipeline",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1f8u0xk/graphiti_llmpowered_temporal_knowledge_graphs/",
+      "quote": "Graphiti has significantly improved our ability to maintain accurate user context. It does a far better job of fact reconciliation over long, complex conversations.",
+      "locator": "post body, paragraph following feature bullet list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti is distinct from GraphRAG because GraphRAG is designed for static documents and does not natively handle temporality",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1f8u0xk/graphiti_llmpowered_temporal_knowledge_graphs/",
+      "quote": "GraphRAG is designed for static documents and doesn't natively handle temporality.",
+      "locator": "post body, 'Enter Graphiti' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LLM-based single-prompt extraction over the full graph was slow, unpredictable, and unsuitable for production",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1f8u0xk/graphiti_llmpowered_temporal_knowledge_graphs/",
+      "quote": "We used a single prompt to extract all fact triplets from a new episode, and provided the entirety of the current graph as context... this works for prototypes but is often slow, unpredictable, and unsuitable for production.",
+      "locator": "post body, 'A Key Learning: Task Decomposition' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agents that fail to remember changed facts (e.g. job change) or confuse chronology produce jarring, irrelevant, or inaccurate responses",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1f8u0xk/graphiti_llmpowered_temporal_knowledge_graphs/",
+      "quote": "If an AI agent doesn't remember that you've changed jobs or confuses the chronology of events, its responses can be jarring or irrelevant, or worse, inaccurate.",
+      "locator": "post body, context-setting paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conflict/supersession handled by edge invalidation with temporal tracking rather than LLM judgment",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1j0ca03/graphiti_knowledge_graph_agent_memory_gets_custom/",
+      "quote": "if they conflict with existing information, Graphiti uses temporal metadata (t_valid and t_invalid) to update or invalidate outdated information, maintaining historical accuracy.",
+      "locator": "Section: How They Work, Graphiti",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval latency P95 of 300ms in Zep's implementation, with near-constant time access regardless of graph size via Neo4j vector and BM25 indexes",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1j0ca03/graphiti_knowledge_graph_agent_memory_gets_custom/",
+      "quote": "Zep's implementation of Graphiti returning results with a P95 of 300ms... The use of vector and BM25 indexes offers near constant time access to nodes and edges, irrespective of graph size. This is made possible by Neo4j's extensive support for both of these index types.",
+      "locator": "Section: Query Speeds: Instant Retrieval Without LLM Calls",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti stores episodes (raw data events) as a distinct layer separate from extracted semantic entities and community structures",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1j0ca03/graphiti_knowledge_graph_agent_memory_gets_custom/",
+      "quote": "Three-tiered: episodes, semantic entities, communities",
+      "locator": "Key Characteristics Comparison Table, Knowledge Structure row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Incremental label propagation keeps community structures current without full graph recomputation when new data arrives",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1j0ca03/graphiti_knowledge_graph_agent_memory_gets_custom/",
+      "quote": "Its incremental label propagation ensures community structures are efficiently updated, reflecting new data quickly without extensive graph recalculations.",
+      "locator": "Section: Why Graphiti Shines with Dynamic Data",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti uses complex prompts internally, making it difficult to run on small local LLMs \u2014 models were too inconsistent or too slow to be practical.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1hft9va/graphiti_temporal_knowledge_graph_with_local_llms/",
+      "quote": "Given the complexity of the prompts involved, I am surprised how well the smallish models that I can run actually did. Ultimately they were either too inconsistent or too slow to be practical",
+      "locator": "post body, Bottom Line section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti combines short-term memory with graph DB retrieval/write as a drop-in replacement for Postgres Chat Memory in n8n",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/n8n/comments/1pbmlnj/awesome_graphiti_memory/",
+      "quote": "I wanted a seamless replacement for the usual Postgres Chat Memory node \u2014 a memory node that would combine simple short-term memory with a tool for retrieving/writing data in a graph database.",
+      "locator": "post body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graph produces disconnected nodes \u2014 plain relationships are skipped during extraction",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1kjgd8j/lightgraph_vs_graphitizep_or_else/",
+      "quote": "After adding labeled knowledge (in \u00b11000 character texts, labeled by category and sub-category for instance), I found lots of loose nodes. Plain relationships we're skipped.",
+      "locator": "OP post body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Deduplication of recurring entity relationships is weak \u2014 same triples are written repeatedly",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1kjgd8j/lightgraph_vs_graphitizep_or_else/",
+      "quote": "the connection between name, company name and role was made over and over again. When querying the graph this info was also presented over and over again.",
+      "locator": "comment: u/BARGOmusic (reply to u/Full_Trifle_8197)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti is used in production for long-running pipelines requiring persistent memory across sessions",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1kjgd8j/lightgraph_vs_graphitizep_or_else/",
+      "quote": "I am integrating graphiti into a pipeline which produces summaries of very long texts and image production. There I am in production",
+      "locator": "comment: u/JamesMada",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenAI cookbook references Graphiti as basis for temporal agent memory patterns",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1kjgd8j/lightgraph_vs_graphitizep_or_else/",
+      "quote": "Openai's cookbook also inspired from Graphiti https://cookbook.openai.com/examples/partners/temporal_agents_with_knowledge_graphs/temporal_agents_with_knowledge_graphs",
+      "locator": "comment: u/Embarrassed_Let_8571",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti lacks custom entity and relationship support out of the box",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1qgbm8d/which_one_is_better_for_graphrag_cognee_vs/",
+      "quote": "I am waiting for a PR to be reviewed to be able to work with custom entities and relationships since it does not work out of the box. And of course quality depends a lot on how the graph is being modelled so I can't understand why they haven't solved it yet.",
+      "locator": "comment by u/ubiquae",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti is a good starting point but users grow out of it and need custom solutions",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1qgbm8d/which_one_is_better_for_graphrag_cognee_vs/",
+      "quote": "Also used graphiti and its a good starting point, but you grow out of it, which isn't a bad thing. Depending on your use case, you'll want to do something custom.",
+      "locator": "comment by u/Unlucky_Comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti is optimized for episodic/conversational temporal memory, not static document corpora",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1qgbm8d/which_one_is_better_for_graphrag_cognee_vs/",
+      "quote": "graphiti is for use cases which are episodic - it's optimized for temporal knowledge that evolves through dialogue.",
+      "locator": "comment by u/hande__",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti handles fact supersession, relevant for versioned documents",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1qgbm8d/which_one_is_better_for_graphrag_cognee_vs/",
+      "quote": "handles fact updates and supersession better than the others. Most production-ready for the use case you're describing.",
+      "locator": "comment by u/sandstone-oli",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti code quality is a concern raised by a competitor evaluator",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1qgbm8d/which_one_is_better_for_graphrag_cognee_vs/",
+      "quote": "The quality of code at Graphiti's side is something that worries me and something that we've struggled with in the past when we were testing and evaluating it.",
+      "locator": "comment by u/Snoo-bedooo",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graph latency spikes at scale are a known production issue for Graphiti-style dense graph approaches",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1qgbm8d/which_one_is_better_for_graphrag_cognee_vs/",
+      "quote": "if your customer support use case is using voice with a dense graph the latency can spike aggressively leading to awkward pauses that make people scream \"human\". You'll see they all dance around the problem of graph latency at scale.",
+      "locator": "comment by u/Popular_Sand2773",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti reduces context window pressure by retrieving only relevant graph facts rather than pushing large amounts of text to the LLM",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/n8n/comments/1pbmlnj/awesome_graphiti_memory/",
+      "quote": "it will remember much more information and you don't need to push too many text to your llm's context",
+      "locator": "comment by u/Important_Reason_330",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Edge invalidation (conflict/supersession) is performed during normal add_episode ingestion but is absent from the bulk path.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/core-concepts/adding-episodes.md",
+      "quote": "Use `add_episode_bulk` only for populating empty graphs or when edge invalidation is not required. The bulk ingestion pipeline does not perform edge invalidation operations.",
+      "locator": "Adding Episodes > Loading Episodes in Bulk",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Three distinct episode types (text, message, json) are supported on the write path, with json processed distinctly from the others.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/core-concepts/adding-episodes.md",
+      "quote": "`text`: Unstructured text data\n* `message`: Conversational messages of the format `speaker: message...`\n* `json`: Structured data, processed distinctly from the other types",
+      "locator": "Adding Episodes > Adding Episodes",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path for communities supports both full rebuild (build_communities, which deletes existing communities) and incremental update (add_episode with update_communities=True).",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/core-concepts/communities.md",
+      "quote": "Once communities are built, they can also be updated with new episodes by passing in `update_communities=True` to the `add_episode` method... Whenever the `build_communities` method is called it will remove any existing communities before creating new ones.",
+      "locator": "Communities section, paragraph 3",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Graphiti stores two levels of memory granularity: granular facts on edges and higher-level synthesized summaries on community nodes.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/core-concepts/communities.md",
+      "quote": "This allows Graphiti to provide high-level synthesized information about what the graph contains in addition to the more granular facts stored on edges.",
+      "locator": "Communities section, paragraph 2",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "add_episode is the write path for persisting structured entities and edges extracted from text into the knowledge graph.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/core-concepts/custom-entity-and-edge-types.md",
+      "quote": "Pass your custom entity types and edge types to the add_episode method",
+      "locator": "Using Custom Entity and Edge Types",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Storage of entities includes custom attributes validated against Pydantic models.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/core-concepts/custom-entity-and-edge-types.md",
+      "quote": "Entities are stored with their custom attributes",
+      "locator": "How Custom Types Work > Entity Extraction Process",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Storage of edges includes custom attributes and relationship metadata.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/core-concepts/custom-entity-and-edge-types.md",
+      "quote": "Edges are stored with their custom attributes and relationship metadata",
+      "locator": "How Custom Types Work > Edge Extraction Process",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval can be scoped to specific entity or edge types via SearchFilters, enabling selective recall from the graph.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/core-concepts/custom-entity-and-edge-types.md",
+      "quote": "You can filter search results to specific entity types or edge types using SearchFilters",
+      "locator": "Searching with Custom Types",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Schema evolution allows adding attributes to entity types without migrating or modifying existing stored nodes.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/core-concepts/custom-entity-and-edge-types.md",
+      "quote": "existing nodes will preserve their original attributes while supporting the new ones for future updates. Your knowledge graph grows and adapts while preserving backward compatibility with historical data.",
+      "locator": "Schema Evolution",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Excluded entity types are not extracted or stored during an add_episode call, providing a selective write-path filter.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/core-concepts/custom-entity-and-edge-types.md",
+      "quote": "excluded_entity_types=[\"Person\"]  # Won't extract Person entities",
+      "locator": "Entity Type Exclusion",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Previously ingested data cannot be retroactively typed without full re-ingestion into a new graph.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/core-concepts/custom-entity-and-edge-types.md",
+      "quote": "To add types to previously ingested data, you need to re-ingest it with entity types set into a new graph.",
+      "locator": "Migration Guide",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is implemented at the node and edge level via group_id; data with different group_ids cannot leak into each other's query results.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/core-concepts/graph-namespacing.md",
+      "quote": "Nodes and edges with the same `group_id` form a cohesive, isolated graph that can be queried and manipulated independently from other namespaces.",
+      "locator": "How Namespacing Works",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "group_id scopes both the write path (episode ingestion, entity extraction) and the read path (search) to a single namespace.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/core-concepts/graph-namespacing.md",
+      "quote": "group_id=\"customer_team\"  # This namespaces the episode and its entities",
+      "locator": "Using group_ids in Graphiti / Adding Episodes with group_id",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Performance optimization is cited as a benefit of namespacing by reducing search space.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/core-concepts/graph-namespacing.md",
+      "quote": "Performance optimization: Improve query performance by limiting the search space",
+      "locator": "How Namespacing Works / Key Benefits",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Multi-tenant isolation maps one tenant to one namespace via a tenant_id-derived group_id.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/core-concepts/graph-namespacing.md",
+      "quote": "namespace = f\"tenant_{tenant_id}\"",
+      "locator": "Example: Multi-tenant Application",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Graphiti maintains persistent context across conversations and sessions via temporally-aware knowledge graphs",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/getting-started/mcp-server.md",
+      "quote": "The Graphiti MCP Server bridges AI assistants with Graphiti's temporally-aware knowledge graphs, allowing assistants to maintain persistent context across conversations and sessions.",
+      "locator": "What is the Graphiti MCP Server?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path: episodes (text, messages, JSON) are stored via add_episode into the knowledge graph",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/getting-started/mcp-server.md",
+      "quote": "add_episode - Store episodes and interactions in the knowledge graph",
+      "locator": "Available Tools",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per group via group_id, supporting multi-user scenarios",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/getting-started/mcp-server.md",
+      "quote": "Group Management: Organize data with group_id filtering for multi-user scenarios",
+      "locator": "Key Features",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MCP server is experimental and APIs may change",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/getting-started/mcp-server.md",
+      "quote": "The MCP server is experimental and under active development. Features and APIs may change between releases.",
+      "locator": "Next Steps",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Graphiti uses temporal edge invalidation to handle contradictions, superseding old facts rather than summarizing over them.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
+      "quote": "Contradiction Handling: Temporal edge invalidation",
+      "locator": "Overview, 'Why Graphiti?' comparison table, row 'Contradiction Handling'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti employs an explicit bi-temporal model for tracking when facts were valid versus when they were recorded.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
+      "quote": "the bi-temporal model, fact invalidation, and hybrid retrieval",
+      "locator": "Overview, 'Graphiti and Zep' section",
+      "confidence": "unknown",
+      "label": "unknown"
+    },
+    {
+      "claim": "Graphiti stores knowledge at the entity/relationship level (curated facts), not as a full conversation transcript log.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
+      "quote": "A Context Graph is a temporal knowledge graph \u2014 a graph of entities, relationships, and facts",
+      "locator": "Overview, 'What is a Context Graph?' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "On LoCoMo benchmark, Graphiti-based retrieval reaches 94.7% accuracy at 155ms retrieval latency; on LongMemEval, 90.2% accuracy at 162ms.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
+      "quote": "On the LoCoMo benchmark, Graphiti-based retrieval reaches 94.7% accuracy at 155ms retrieval latency. On LongMemEval, it reaches 90.2% accuracy at 162ms.",
+      "locator": "Overview, 'Why Graphiti?' section, 'Performance' paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti is open-source",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/getting-started/welcome.md",
+      "quote": "Graphiti is Zep's open-source framework for temporal knowledge graphs",
+      "locator": "page tagline / top of Welcome",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Updates to the graph are real-time and incremental with no batch recomputation",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/getting-started/welcome.md",
+      "quote": "real-time incremental updates to graphs for AI agents, with no batch recomputation, so relationships and facts evolve as your data does",
+      "locator": "Welcome \u2014 introductory paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The store accepts both text and JSON episodes as input units",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/getting-started/welcome.md",
+      "quote": "Learn how to add text and JSON episodes to build your knowledge graph.",
+      "locator": "Welcome \u2014 Adding Episodes section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is hybrid: semantic + keyword + graph-based",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/getting-started/welcome.md",
+      "quote": "hybrid search capabilities combining semantic, keyword, and graph-based retrieval",
+      "locator": "Welcome \u2014 Searching section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Graphiti is an open-source temporal knowledge graph framework for AI agents",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/llms.txt",
+      "quote": "Graphiti is Zep's open-source framework for temporal knowledge graphs \u2014 Context Graphs \u2014 for AI agents, with real-time updates and hybrid retrieval.",
+      "locator": "Docs index, Welcome to Graphiti! entry",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval uses a hybrid of semantic, full-text, and graph search",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/llms.txt",
+      "quote": "fusing semantic, full-text, and graph search over evolving entities, facts, and relationships",
+      "locator": "Docs index, Overview entry",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is implemented via group_id namespacing at the graph level",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/llms.txt",
+      "quote": "Using group_ids to create isolated graph namespaces",
+      "locator": "Docs index, Graph Namespacing entry",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The store supports CRUD \u2014 nodes and edges can be created, read, updated, and deleted",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/llms.txt",
+      "quote": "How to access and modify Nodes and Edges",
+      "locator": "Docs index, CRUD Operations entry",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is served with sub-200ms latency",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/llms.txt",
+      "quote": "served in under 200ms",
+      "locator": "Page header / tagline",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "EntityNode is persisted with a name_embedding field, indicating vector representation is stored alongside the entity in the graph.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/working-with-data/crud-operations.md",
+      "quote": "SET n = {uuid: $uuid, name: $name, name_embedding: $name_embedding, summary: $summary, created_at: $created_at}",
+      "locator": "CRUD Operations / EntityNode.save code",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete is hard delete (DETACH DELETE); no soft-delete, hide-at-retrieve, or omit-in-generation path is described on this page.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/working-with-data/crud-operations.md",
+      "quote": "Graphiti also supports hard deleting nodes and edges using the delete method",
+      "locator": "CRUD Operations / delete method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "CommunityNode and CommunityEdge exist as classes but are noted to lack fully supported CRUD operations on this page.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/working-with-data/crud-operations.md",
+      "quote": "Each of EpisodicNode, EntityNode, EpisodicEdge, and EntityEdge have fully supported CRUD operations.",
+      "locator": "CRUD Operations / intro",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Graphiti's primary retrieve interface returns 'facts' (edge-level statements) from the knowledge graph, not raw transcript segments.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/working-with-data/searching.md",
+      "quote": "def print_facts(edges):\n    print(\"\\n\".join([edge.fact for edge in edges]))",
+      "locator": "Searching the Graph > code example",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Entity-node isolation is supported at retrieval time: a focal_node_uuid scopes results toward a specific entity (e.g. Jane), surfacing her allergy over generic product facts.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/working-with-data/searching.md",
+      "quote": "await graphiti.search(query, focal_node_uuid) \u2026 Focuses on Jane-specific information, highlighting her wool allergy.",
+      "locator": "Searching the Graph > Node Distance Reranking",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The retrieve layer separates stored graph objects into three categories \u2014 edges (facts), nodes (entities), and communities \u2014 each searchable independently or together.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/working-with-data/searching.md",
+      "quote": "The `graphiti._search()` method returns a `SearchResults` object containing a list of nodes, edges, and communities.",
+      "locator": "Configurable Search Strategies",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Episode mentions can influence reranking, implying episodes are a stored unit in the graph that records which facts appeared in which ingested interaction.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/working-with-data/searching.md",
+      "quote": "EDGE_HYBRID_SEARCH_EPISODE_MENTIONS \u2014 Performs a hybrid search over edges with episode mention reranking.",
+      "locator": "Configurable Search Strategies > table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Writes on the FalkorDB backend permanently mutate the shared Graphiti client's driver to the last-written group, causing all subsequent reads to execute against the wrong group's graph and silently return empty results.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1795",
+      "quote": "Any long-lived multi-group client \u2014 the MCP server is exactly that \u2014 then runs all subsequent reads inside whichever group wrote last. `get_episodes` / searches for another group execute in the wrong graph with a `group_id` property filter that matches nothing, and return empty with no error. Scoped memory appears to work until a second group writes; after that, cross-group reads silently return nothing.",
+      "locator": "Summary",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti's knowledge graph can persist across sessions via file-based storage when using an embedded backend.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1240",
+      "quote": "A personal agent running on a laptop shouldn't need Docker or a database server to maintain a knowledge graph across sessions",
+      "locator": "Motivation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti's driver abstraction is modular enough that a new embedded storage backend requires no changes to core query or search logic.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1240",
+      "quote": "This requires no changes to the existing driver architecture, query logic, or search implementation.",
+      "locator": "Proposed approach",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Advanced retrieval features (vector search, full-text indexing) have not been validated against the embedded engine, leaving their behavior unconfirmed.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1240",
+      "quote": "Advanced features (vector search, full-text indexing) need validation against the embedded engine",
+      "locator": "Constraints",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "FalkorDriver rejects group_id values containing backslash-escaped characters that Neo4jDriver accepts, breaking backend portability in 0.29.0",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1465",
+      "quote": "FalkorDriver (graphiti-core 0.29.0, falkordb 1.6.1) rejects `group_id` values that `Neo4jDriver` accepts. Specifically, when `add_episode()` triggers entity-extraction and an entity name contains a backslash-escaped underscore (`\\_`), FalkorDB writes fail",
+      "locator": "## Summary",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "LLM-extracted entity names containing markdown backslash-escape patterns (e.g. \\_internal\\_var\\_) are used verbatim to derive group_id, propagating illegal characters into the store",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1465",
+      "quote": "The backslash-escape commonly originates from markdown source: `\\_internal\\_var\\_` etc. that the LLM extracts verbatim into entity names.",
+      "locator": "## Diagnosis (best guess)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cross-backend swap from Neo4j to FalkorDB is advertised as a drop-in env-var change but fails approximately 60% of corpus ingest at scale due to this group_id validation gap",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1465",
+      "quote": "Cross-backend swap from Neo4j \u2192 FalkorDB (advertised as a drop-in env-var change in some downstream docs) actually fails ~60% of corpus ingest at scale",
+      "locator": "## Impact",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The reporter fell back to Neo4jDriver for production use and will retry FalkorDriver once the upstream fix lands, confirming the continuity gap is a blocking issue for the FalkorDB substrate",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1465",
+      "quote": "We're falling back to `Graphiti(uri=..., user=..., password=...)` (Neo4jDriver) for v1.1 production. Will retry FalkorDriver swap once a fix lands.",
+      "locator": "## Workaround",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti's deduplication pipeline uses only Jaccard similarity as a single signal, with hard cutoffs (Jaccard \u2265 0.9, entropy \u2265 1.5), and escalates all unresolved nodes to LLM with no cross-batch learning",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1600",
+      "quote": "Each batch evaluated independently with no memory of successful past matches",
+      "locator": "Problem Statement / No Learning Across Batches",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Current deduplication produces approximately 40-50 LLM calls per 100 nodes with a dedup F1 score of 0.92 and 2-3% false merge rate",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1600",
+      "quote": "LLM calls: 40-50 per 100 nodes / Dedup F1 score: 0.92 / False merge rate: 2-3%",
+      "locator": "Problem Statement / Current Performance",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti stores all facts as nodes and edges regardless of signal value, causing graph bloat and degraded retrieval precision over time.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1602",
+      "quote": "Today Graphiti stores all of these. The result is graph bloat: the graph grows faster than meaningful knowledge accumulates, and retrieval precision degrades over time.",
+      "locator": "## Problem",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Low-signal facts accumulating in the graph increase retrieval noise and slow queries \u2014 a continuity-relevant failure mode where irrelevant facts pollute recall.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1602",
+      "quote": "the graph fills with low-signal facts that increase retrieval noise, inflate storage, and slow down queries \u2014 without adding useful knowledge.",
+      "locator": "## The Story",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti's architecture already distinguishes episodic storage (episode node only, no graph edges) from full entity and relationship extraction.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1602",
+      "quote": "episodic-only storage is already a concept in the architecture",
+      "locator": "### 2. Multi-Tier Storage Policy",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "edge_search merges candidates from bm25, cosine_similarity, and bfs retrieval methods, each contributing up to 2*limit candidates",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1642",
+      "quote": "the retrieval stage collects candidates from multiple search methods (`bm25`, `cosine_similarity`, `bfs`) with `2 * limit` candidates each",
+      "locator": "## Description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Proposed fix introduces a separate cross_encoder_candidate_limit and a round-robin balanced merge across retrieval methods to ensure each method is represented before reranking",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1642",
+      "quote": "A better approach would be to use a balanced merge strategy before reranking... select candidates in a round-robin manner",
+      "locator": "## Suggested Fix",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti's MCP server search is hardcoded to RRF ranking, 10-result cap, no relevance scores, and does not filter superseded facts.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1645",
+      "quote": "results are ordered by reciprocal-rank fusion (RRF), capped at 10, returned without relevance scores, and mixed together with facts that have since been superseded by newer information. None of this is configurable.",
+      "locator": "Summary, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti's temporal model marks old facts invalid when contradicted by new information, but stale facts still surface equally in search results \u2014 a continuity failure where agents receive multiple conflicting answers.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1645",
+      "quote": "Graphiti's temporal model marks old facts as invalid when new information contradicts them, but the search tools still return those stale facts ranked equally with current ones. An agent asking \"where does X work?\" shouldn't have to guess which of three answers is the live one.",
+      "locator": "Summary, point 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MMR search has a live-graph failure mode: score cutoffs on MMR output discard nearly all results due to uncalibrated scores.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1645",
+      "quote": "We hit the same failure mode on a live graph: applying a score cutoff to MMR output discards nearly everything, because MMR scores aren't calibrated the way cross-encoder scores are.",
+      "locator": "How this relates to existing issues and PRs, bullet on #777",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cross-encoder reranker client is hardcoded to OpenAI and crashes without an OpenAI key.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1645",
+      "quote": "Those all solve \"the reranker client is hardcoded to OpenAI and crashes without an OpenAI key.\"",
+      "locator": "How this relates to existing issues and PRs, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cross-encoder path has a candidate-truncation bug, making it unsuitable as a default ranking strategy.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1645",
+      "quote": "#1642 documents a candidate-truncation bug in the core cross-encoder path. It's one of the reasons `cross_encoder` is offered as an option here but **not** made the default.",
+      "locator": "How this relates to existing issues and PRs, bullet on #1642",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Reranking does not account for a fact's temporal validity; expired facts compete equally with live ones during ranking.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1645",
+      "quote": "#1571 asks whether reranking accounts for a fact's temporal validity. The default-on liveness filter in point 2 is a practical partial answer: expired facts don't compete with live ones in the first place.",
+      "locator": "How this relates to existing issues and PRs, bullet on #1571",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Unrelated still-true facts are silently retired (forgotten) because edge invalidation searches the whole group with no endpoint scoping, a regression introduced in PR #906",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1728",
+      "quote": "Saving a memory that merely mentions an entity can retire an unrelated, still-true fact about that entity. The retired fact stays in the graph but is stamped with an invalid_at date, so searches downrank or drop it and the knowledge is effectively gone \u2014 silently, with no signal that anything was lost.",
+      "locator": "Problem section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A proposed opt-in mode allows group_id to act as a record-level tenant filter within a single shared physical graph, covering ingestion, search/retrieval, and cleanup.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1684",
+      "quote": "record (opt-in): keep the configured Falkor graph fixed and apply `group_id` as a record filter for episode ingestion, search/retrieval, and group-scoped cleanup.",
+      "locator": "Proposal section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti supports a shared-memory deployment pattern where multiple projects share one physical graph and stay logically isolated by group_id.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1684",
+      "quote": "A local shared-memory deployment uses a single physical graph such as `graphiti_personal` for several projects. Each project supplies a stable `group_id`, and all reads, writes, and cleanup stay logically isolated inside the shared graph.",
+      "locator": "Use case section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti supports per-group (per-tenant) isolation: facts and episodes are stored and deleted by group_id.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1716",
+      "quote": "DELETE /group/{group_id} -> ZepGraphiti.delete_group (zep_graphiti.py:46-64); POST /search with arbitrary group_ids -> graphiti.search (no ownership check)",
+      "locator": "Core vulnerable code path",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval of memory is available via POST /get-memory and POST /search, scoped by group_id.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1716",
+      "quote": "POST /search with victim group_ids reads cross-tenant facts",
+      "locator": "Attack vector(s)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A new fact about a person's side project can retire the fact recording their job title \u2014 a continuity failure where a correct persistent fact is silently overwritten",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1728",
+      "quote": "without this, any semantically similar edge in the group is eligible, and a new fact about a person's side project can retire the fact recording their job.",
+      "locator": "Proposed fix, _could_replace docstring",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The LLM contradiction judge on small non-reasoning models is unreliable in both directions: it misses genuine contradictions (per issue #1666) and generates false positives that retire unrelated facts",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1728",
+      "quote": "#1666 measures how unreliable that judge is on non-reasoning small models, reporting the opposite symptom \u2014 genuine contradictions missed. Both failures point at the same place, and a structural check helps in a way a better prompt cannot: it bounds what a wrong answer can destroy.",
+      "locator": "Why it happens, point 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Facts wrongly retired before a fix cannot be automatically recovered; determining whether each invalid_at reflects real change or a bad match requires per-edge review",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1728",
+      "quote": "This change stops further collateral but does not undo any that has already happened. Facts wrongly retired before the fix stay retired, and any deployment that has been ingesting for a while will have some. Identifying and reviving them means deciding, per edge, whether its invalid_at reflects real change or a bad match \u2014 separate work, with its own risk of clearing dates that were correct.",
+      "locator": "Out of scope section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Relation names in the graph are not normalized at extraction time (Uses and USES coexist), causing inconsistency in edge identity",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1728",
+      "quote": "Names are not normalized in the graph above (Uses and USES coexist, likewise Affects/AFFECTS), which is why the comparison folds case and separators rather than comparing raw strings.",
+      "locator": "Trade-offs section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The /search endpoint is useful for display but hard to integrate into ranking or citation pipelines due to missing provenance fields, even though the data is already in the graph.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1735",
+      "quote": "In practice this makes `/search` results useful for display but hard to integrate into ranking or citation pipelines, and the information is already in the graph.",
+      "locator": "Why it matters section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti's MCP server is named 'Graphiti Agent Memory' and is the delivery mechanism for memory to agents.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1745",
+      "quote": "FastMCP('Graphiti Agent Memory', instructions=...)",
+      "locator": "Bug report body, code block in 'Why it can't be configured off' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The MCP server binary is implemented in graphiti_mcp_server.py and exposes memory over HTTP POST /mcp.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1745",
+      "quote": "graphiti_mcp_server.py constructs FastMCP('Graphiti Agent Memory', instructions=...) ... and only afterwards sets mcp.settings.host = config.server.host",
+      "locator": "Bug report body, 'Why it can't be configured off' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti's isolation boundary is group_id, which maps to a realm in the PostgreSQL backend, preventing cross-group data leakage at the structural level",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1781",
+      "quote": "post-graph's `FK(realm, from_id)` constraint structurally prevents cross-realm edges, providing stronger isolation guarantees than application-level filtering",
+      "locator": "Technical Design / Design Decisions",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti uses both name embeddings and fact embeddings as distinct vector fields on nodes/edges",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1781",
+      "quote": "Embeddings (name_embedding, fact_embedding) | `embedding` vector column",
+      "locator": "Technical Design / Schema mapping",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti supports delete operations at the node level and at the group_id (bulk) level",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1781",
+      "quote": "Node CRUD (6 tests) \u2014 save, get_by_uuid, get_by_uuids, get_by_group_ids, delete, delete_by_group_id, embedding roundtrip",
+      "locator": "Test Results",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "edge_type_map provides type definitions to the extraction prompt but the write path may not enforce those types at runtime",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1789",
+      "quote": "Our reading is that edge_type_map supplies type definitions to the extraction prompt, but the write path does not reject an extracted relationship for violating those types. Is that accurate? If not, where is the runtime validation performed?",
+      "locator": "issue body, question 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "EntityEdge or related records may lack a structured authority field distinguishing user assertions from model inferences, raising the risk that inferred claims can supersede or expire user-asserted facts",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1789",
+      "quote": "Does an EntityEdge or related record contain a structured authority field distinguishing a direct user assertion from a model inference? Can that distinction prevent an inferred claim from expiring or superseding a user assertion?",
+      "locator": "issue body, question 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieved facts may be traceable to an originating episode, but the existence of a first-class document or source object above the episode is unconfirmed",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1789",
+      "quote": "Can every retrieved fact be traced to the exact originating episode? Is there also a first-class document or source object above the episode?",
+      "locator": "issue body, question 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Whether Graphiti's open-source implementation supports source-code structure and organizational memory in the same graph and retrieval operation is unconfirmed",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1789",
+      "quote": "Does the open-source implementation support source-code structure and ordinary organizational memory in the same graph and retrieval operation, or is that outside Graphiti's intended scope?",
+      "locator": "issue body, question 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "build_indices_and_constraints() never creates a vector index on the Neo4j path; only range and fulltext indexes are created.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1793",
+      "quote": "`Neo4jDriver.build_indices_and_constraints()` creates range and fulltext indexes only",
+      "locator": "## Current behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A HNSW index path was introduced in PR #859 then removed in PR #894 with no recorded rationale; as of commit 993e081 / v0.29.2 the brute-force path is the only option on Neo4j.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1793",
+      "quote": "I could not find a recorded rationale for the removal, so this issue is written as a question as much as a report: **was the HNSW path dropped intentionally \u2026 or did it fall out as collateral during cleanup?**",
+      "locator": "## This was implemented once and then removed",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval is isolated per group_id; searches filter to edges/nodes matching the caller's group.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1793",
+      "quote": "WHERE e.group_id IN ['<group>']",
+      "locator": "## Reproduction / measurements, Query A",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Concurrent memory retrievals degrade severely at scale: stopping the MCP server dropped Neo4j CPU from thousands of percent to 0.85%.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1793",
+      "quote": "Stopping the MCP server dropped Neo4j to **0.85%** CPU.",
+      "locator": "## Why this matters beyond raw latency",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The same O(N) brute-force retrieval problem also affects the FalkorDB backend, per related issues #1335 and #1287.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1793",
+      "quote": "**#1335** (open since 2026-03-20) \u2014 `feat(falkordb): Use HNSW vector index procedures for similarity search`. Same root cause, FalkorDB driver. Reports 6-8 s per query on 3072-dim embeddings.",
+      "locator": "## Related work",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The isolation failure was confirmed live: a get_episodes call for group 'quarantine' executed its graph query against the 'helpscout-sync' graph after that group had written last.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1795",
+      "quote": "GRAPH.QUERY \"helpscout-sync\" \"MATCH (e:Episodic) WHERE e.group_id IN $group_ids ...\" \u2014 the Episodic query for group `quarantine` executed against the `helpscout-sync` graph.",
+      "locator": "Evidence",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The workaround (pinning FalkorDriver.clone() to a no-op) restores correct isolation semantics using the group_id property filters already present in every query.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1795",
+      "quote": "We deployed the single-graph variant locally (make `FalkorDriver.clone()` a no-op so `_database` stays fixed) and all semantics \u2014 scalar reads after interleaved writes, list searches, isolation between groups \u2014 behave correctly since.",
+      "locator": "Workaround",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The 0.29.3 'namespace operations routing' release does not fully cover this isolation bug.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1795",
+      "quote": "The 0.29.3 \"namespace operations routing\" fixes appear related but do not cover this.",
+      "locator": "Suggested fix",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti stores episodic memory nodes with content and source_description fields indexed for fulltext BM25 search.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1851",
+      "quote": "store a morpheme-analyzed copy of the BM25 fields in a new `search_text` property on `Entity` (name + summary), `Episodic` (content + source_description), `Community` (name + summary) and `RELATES_TO` (name + fact)",
+      "locator": "Proposal, item 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is isolated per group_id at both index write and query time.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1851",
+      "quote": "`(@group_id:\"...\") (@search_text:(\uac80\uc0c9\ud300 | \uc774\ub04c | \uc0ac\ub78c))`",
+      "locator": "Proposal, item 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti's retrieve policy for BM25 is always-retrieve (node_fulltext_search and edge_fulltext_search called directly per query), not adaptive.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1851",
+      "quote": "`node_fulltext_search` / `edge_fulltext_search` called directly",
+      "locator": "Evidence section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Turning off the Korean tokenizer flag after a run does not delete stored data; search_text property and index field remain but are not referenced, restoring previous behavior without data migration.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1851",
+      "quote": "Turning the flag off after a run restores the previous behavior without touching data (the `search_text` property and index field stay but are not referenced).",
+      "locator": "Activation and rollback section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Silent failure: memory appears to work (ingestion succeeds, no error on read) but past episodes are not returned \u2014 a continuity failure indistinguishable from misconfiguration",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1876",
+      "quote": "Ingestion reports success, the data is genuinely persisted, and the read returns an empty result rather than an error \u2014 so it presents as \"memory not working\" rather than as a misconfiguration.",
+      "locator": "## Why this is easy to miss",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The ambiguity in whether group_id names a database or partitions within it is the root cause of the read/write asymmetry",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1876",
+      "quote": "The choice depends on whether group_id is intended to name the database or merely to partition within it. Right now the write path treats it as the former and the read path as the latter, and that disagreement is the bug.",
+      "locator": "## Suggested fix",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Upstream LLM extraction can misattribute entity relationships during multi-party dialogue ingestion, a continuity failure where the wrong entity is linked to the user.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1880",
+      "quote": "During multi-party dialogues or entries involving third parties (e.g., \"My brother is a lawyer\"), upstream LLMs can occasionally misattribute entity relationships during the initial extraction pass.",
+      "locator": "issue body, The Structural Gap section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graph compaction pressure can cause relationship collapse \u2014 an intermediary person (e.g., 'colleague') is dropped and the relationship is incorrectly attributed directly to the primary User entity, a continuity/identity failure.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/1880",
+      "quote": "accidentally collapsing a relationship through a \"colleague\" directly into the primary User entity",
+      "locator": "issue body, An Open Question on Topology Pressures section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti's label_propagation in graphiti_core/utils/maintenance/community_operations.py has no maximum iteration limit, causing infinite loops on non-converging graphs and making the MCP server unresponsive.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/402",
+      "quote": "label_propagation uses while True: and only exits when no_change is True. There is no safeguard like a maximum iteration count.",
+      "locator": "Issue body, Current Behavior section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "In a real agent-memory deployment the oscillating community assignments caused the server to stall during initial ingestion of a code structure, producing over 30 logged iterations with 16/96 nodes still changing at each step.",
+      "kind": "issue",
+      "url": "https://github.com/getzep/graphiti/issues/402",
+      "quote": "2025-04-26 19:16:58,988 - graphiti_core.utils.maintenance.community_operations - INFO - \ud83e\udde9 Label snapshot: {'iteration': 30, 'changed': 16/96 (16.7%)",
+      "locator": "Issue body, example log output",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti is a real-time, temporally-aware knowledge graph engine that incrementally processes incoming data without batch recomputation",
+      "kind": "blog",
+      "url": "https://neo4j.com/blog/developer/graphiti-knowledge-graph-memory/",
+      "quote": "It's a real-time, temporally-aware knowledge graph engine that incrementally processes incoming data, instantly updating entities, relationships, and communities without batch recomputation.",
+      "locator": "Section: Graphiti with Neo4j: Real-time dynamic agent memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti's bi-temporal model enables conflict resolution: outdated edges are invalidated but retained, not deleted",
+      "kind": "blog",
+      "url": "https://neo4j.com/blog/developer/graphiti-knowledge-graph-memory/",
+      "quote": "When conflicts arise, Graphiti intelligently uses the temporal metadata to update or invalidate, but not discard, outdated information, preserving historical accuracy without large-scale recomputation.",
+      "locator": "Section: Why Graphiti works better with dynamic data",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "P95 retrieval latency of 300ms in Zep's own Graphiti implementation",
+      "kind": "blog",
+      "url": "https://neo4j.com/blog/developer/graphiti-knowledge-graph-memory/",
+      "quote": "Zep's own Graphiti implementation achieves extremely low-latency retrieval, returning results at a P95 latency of 300ms.",
+      "locator": "Section: Fast query speeds: Instant retrieval without LLM calls",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval does not invoke LLM calls",
+      "kind": "blog",
+      "url": "https://neo4j.com/blog/developer/graphiti-knowledge-graph-memory/",
+      "quote": "By removing the bottleneck of LLM-driven summarization at query time, Graphiti achieves practical latency levels that engineers require for interactive real-world applications.",
+      "locator": "Section: Graph memory powering an agentic future",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Custom entity types include personalized user preferences/interests, standard user attributes, procedural memory, and domain-specific business objects",
+      "kind": "blog",
+      "url": "https://neo4j.com/blog/developer/graphiti-knowledge-graph-memory/",
+      "quote": "Personalized user preferences and interests (like favorite restaurants, contacts, hobbies), along with standard attributes (name, birthdate, address) / Procedural memory, capturing instructions for actions / Domain-specific business objects (e.g., products, sales orders)",
+      "locator": "Section: Custom entity types: a simple ontology implementation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti includes temporal understanding so that stale information can be identified.",
+      "kind": "blog",
+      "url": "https://www.falkordb.com/blog/implementing-agentic-memory-graphiti/",
+      "quote": "Without that context, your agent can never make good recommendations. And without temporal understanding, yesterday's relevant information might be stale today \u2013 but your agent doesn't know that.",
+      "locator": "intro section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti supports a conflict/supersession write path: overlapping new memory invalidates the prior record.",
+      "kind": "blog",
+      "url": "https://www.falkordb.com/blog/implementing-agentic-memory-graphiti/",
+      "quote": "When you add new memory that overlaps old, incorrect data, the previous memory record is marked as invalid.",
+      "locator": "Q&A: How do you correct or invalidate inaccurate memory?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti uses a predefined ontology schema that can be expanded, with a trade-off between adaptability and noise.",
+      "kind": "blog",
+      "url": "https://www.falkordb.com/blog/implementing-agentic-memory-graphiti/",
+      "quote": "We expand the predefined Graphiti ontology, which makes the schema fixed. Flexible ontologies add adaptability but may introduce noise.",
+      "locator": "Q&A: Do you define entities and ontologies with Graphiti, or do you use a predefined schema?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Temporal invalidation: old facts are marked superseded with an end timestamp, not deleted, so both old and new states are queryable by time",
+      "kind": "blog",
+      "url": "https://dev.to/clawbase/your-ai-agent-forgets-everything-after-every-session-graphiti-fixes-that-3163",
+      "quote": "A fact in Graphiti looks like: 'Kendra prefers Adidas shoes (as of March 2026).' If she switches to Nike in June, the old fact gets invalidated \u2014 not deleted \u2014 and the new one takes its place. Both are queryable. You can ask 'what does Kendra prefer now?' and 'what did Kendra prefer in March?'",
+      "locator": "What Graphiti Actually Is",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graph-based retrieval uses roughly 1.6K tokens versus ~115K tokens for full-context approach, with 90% lower latency per Zep benchmarks",
+      "kind": "blog",
+      "url": "https://dev.to/clawbase/your-ai-agent-forgets-everything-after-every-session-graphiti-fixes-that-3163",
+      "quote": "Zep's benchmarks show their graph-based approach uses ~1.6K tokens for the same queries \u2014 roughly 2% of the baseline \u2014 with 90% lower latency.",
+      "locator": "Why This Matters More Than You Think",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "On LongMemEval (500 human-curated temporal reasoning questions), Zep hit 63.8% accuracy vs full-context baseline's 55.4% with GPT-4o-mini, using 2% of tokens and 90% less latency",
+      "kind": "blog",
+      "url": "https://dev.to/clawbase/your-ai-agent-forgets-everything-after-every-session-graphiti-fixes-that-3163",
+      "quote": "on LongMemEval \u2014 a much harder benchmark with 500 human-curated temporal reasoning questions \u2014 Zep hit 63.8% accuracy versus the full-context baseline's 55.4% with GPT-4o-mini. And it did it with 2% of the tokens and 90% less latency.",
+      "locator": "The Benchmarks Tell a Clear Story",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Episodes are the ground truth; every derived fact traces back to the source episode",
+      "kind": "blog",
+      "url": "https://dev.to/clawbase/your-ai-agent-forgets-everything-after-every-session-graphiti-fixes-that-3163",
+      "quote": "Episodes are the ground truth. Every derived fact traces back to the episode that produced it.",
+      "locator": "1. Episodes (the raw data)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti builds dynamic, temporally-aware knowledge graphs for evolving entity relationships",
+      "kind": "blog",
+      "url": "https://dev.to/gaodalie_ai/langgraph-graphiti-long-term-memory-powerful-agentic-memory-1iag",
+      "quote": "Graphiti builds dynamic, temporally-aware knowledge graphs that represent complex, evolving relationships between entities over time.",
+      "locator": "Section: intro paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Relationship facts can be updated (superseded) when new information contradicts prior state",
+      "kind": "blog",
+      "url": "https://dev.to/gaodalie_ai/langgraph-graphiti-long-term-memory-powerful-agentic-memory-1iag",
+      "quote": "Graphiti updates the solution status of [Clear Background Apps] from [Solution] to [Unresolved] since the problem remains.",
+      "locator": "Section: How does it work? \u2014 step 5: Dynamic Information Update",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Confirmed new facts are written back to the graph with updated timestamps",
+      "kind": "blog",
+      "url": "https://dev.to/gaodalie_ai/langgraph-graphiti-long-term-memory-powerful-agentic-memory-1iag",
+      "quote": "Graphiti will record [Turn off 5G] as a valid solution for [Overheating Problem] and update the timestamps of related entities and relationships for future cases.",
+      "locator": "Section: How does it work? \u2014 step 8: Knowledge Update",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval is user-node-centred: edges farther from the user node rank lower",
+      "kind": "blog",
+      "url": "https://dev.to/gaodalie_ai/langgraph-graphiti-long-term-memory-powerful-agentic-memory-1iag",
+      "quote": "graph edges (facts) further from the Jess node will be ranked lower",
+      "locator": "Code: chatbot function comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Each conversation turn is asynchronously written back to the graph as a new episode for future retrieval",
+      "kind": "blog",
+      "url": "https://dev.to/gaodalie_ai/langgraph-graphiti-long-term-memory-powerful-agentic-memory-1iag",
+      "quote": "add the response to the graphiti graph. this will allow us to use the graphiti search later in the conversation",
+      "locator": "Code: chatbot function \u2014 post-response episode write comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory store is backed by Neo4j; Graphiti client connects via bolt URI with credentials",
+      "kind": "blog",
+      "url": "https://dev.to/gaodalie_ai/langgraph-graphiti-long-term-memory-powerful-agentic-memory-1iag",
+      "quote": "client = Graphiti(\n    neo4j_uri,\n    neo4j_user,\n    neo4j_password,\n)",
+      "locator": "Section: Configure Graphiti",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community detection groups related entities to accelerate and improve retrieval accuracy",
+      "kind": "blog",
+      "url": "https://dev.to/gaodalie_ai/langgraph-graphiti-long-term-memory-powerful-agentic-memory-1iag",
+      "quote": "The system organises all information about the Samsung Galaxy S23 into a community to make future retrieval faster and more accurate.",
+      "locator": "Section: How does it work? \u2014 step 4: Community Detection",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti differs from GraphRAG in being a dynamic memory system that updates over time rather than a static retrieval graph",
+      "kind": "blog",
+      "url": "https://dev.to/gaodalie_ai/langgraph-graphiti-long-term-memory-powerful-agentic-memory-1iag",
+      "quote": "Graphiti acts like a dynamic memory system that constantly updates over time, handling both structured and unstructured data, tracking new information, and maintaining historical context.",
+      "locator": "Section: GraphRag Vs Graphiti",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti persists facts as temporal knowledge graph triplets with edge-level temporal metadata, enabling point-in-time recall.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
+      "quote": "Graph edges include temporal metadata to record relationship lifecycles.",
+      "locator": "Overview, Why Graphiti? \u2014 Temporal Awareness",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict resolution uses temporal edge invalidation, not LLM summarization.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
+      "quote": "Contradiction Handling: Temporal edge invalidation",
+      "locator": "Overview, comparison table \u2014 Contradiction Handling row",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path is episodic and incremental, maintaining data provenance per episode.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
+      "quote": "Episodic Processing: Ingests data as discrete episodes, maintaining data provenance and allowing incremental entity and relationship extraction.",
+      "locator": "Overview, Why Graphiti? \u2014 Episodic Processing",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is hybrid (vector + BM25 + graph traversal) with no LLM reranking in the loop; can be reranked by graph distance from a named node.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
+      "quote": "Combines vector similarity, BM25 full-text, and graph traversal into a single ranked answer, with no LLM-in-the-loop reranking. Results can be reranked by distance from a central node e.g. 'Kendra'.",
+      "locator": "Overview, Why Graphiti? \u2014 Hybrid Search",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LoCoMo benchmark: 94.7% accuracy at 155ms retrieval latency; LongMemEval: 90.2% accuracy at 162ms.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
+      "quote": "On the LoCoMo benchmark, Graphiti-based retrieval reaches 94.7% accuracy at 155ms retrieval latency. On LongMemEval, it reaches 90.2% accuracy at 162ms.",
+      "locator": "Overview, Why Graphiti? \u2014 Performance",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti is open-source and builds/queries a single Context Graph per subject locally.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
+      "quote": "Graphiti is the open-source temporal knowledge graph framework. Use it to build and query a single Context Graph per subject locally \u2014 entity and edge extraction, the bi-temporal model, fact invalidation, and hybrid retrieval.",
+      "locator": "Overview, Graphiti and Zep",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Graphiti retrieval combines vector search, BM25, and graph traversal without LLM calls at query time, achieving sub-second p95 latency per Zep's own reporting.",
+      "kind": "blog",
+      "url": "https://theneuralmaze.substack.com/p/building-agent-memory-with-knowledge",
+      "quote": "Retrieval is fast because it avoids LLM calls at query time. Instead it combines vector (semantic) search, BM25 (keyword) search, and graph traversal into one hybrid query \u2014 Zep reports retrieval latencies low enough (sub-second at the 95th percentile) to sit comfortably behind a voice assistant.",
+      "locator": "section: How graphs are quietly replacing RAG (in some places)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is per user via a group_id namespace.",
+      "kind": "blog",
+      "url": "https://theneuralmaze.substack.com/p/building-agent-memory-with-knowledge",
+      "quote": "Each user gets their own group_id namespace, so one assistant can serve many people without their memories bleeding into each other.",
+      "locator": "section: The architecture",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Every episode ingestion costs one LLM call, adding half a second to a couple of seconds of latency and monetary cost at volume.",
+      "kind": "blog",
+      "url": "https://theneuralmaze.substack.com/p/building-agent-memory-with-knowledge",
+      "quote": "Every episode you ingest costs an LLM call (entity + relationship extraction), which means real latency (roughly half a second to a couple of seconds per episode) and real money at volume.",
+      "locator": "section: When to use each \u2014 A fair warning before we build",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti uses a bi-temporal data model on edges: valid-time (when fact was true in the world) and transaction-time (when Graphiti learned it), enabling point-in-time queries.",
+      "kind": "docs",
+      "url": "https://www.getzep.com/platform/graphiti/",
+      "quote": "Every edge carries timestamps for when a fact became valid, when it stopped being valid, when Graphiti learned about it, and when it learned it was no longer true. Point-in-time queries follow from the data model.",
+      "locator": "Temporal by design",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conflict/supersession: when a fact changes, the old edge is invalidated (preserved as history) rather than deleted, and the new fact becomes current state.",
+      "kind": "docs",
+      "url": "https://www.getzep.com/platform/graphiti/",
+      "quote": "Outdated facts are invalidated by temporal logic \u2014 preserved as history, removed from current state.",
+      "locator": "Dynamic updates",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval policy is hybrid (vector + full-text + graph traversal) in one ranked call, not adaptive or LLM-reranked.",
+      "kind": "docs",
+      "url": "https://www.getzep.com/platform/graphiti/",
+      "quote": "Vector similarity, full-text search, and graph traversal in one ranked answer. No LLM-in-the-loop reranking, no orchestration layer to maintain.",
+      "locator": "Hybrid retrieval",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti scope is one Context Graph per subject; isolation granularity is at the subject level.",
+      "kind": "docs",
+      "url": "https://www.getzep.com/platform/graphiti/",
+      "quote": "One Context Graph per subject. The data model, the temporal logic, the hybrid retrieval API. Run it locally.",
+      "locator": "Graphiti is the Context Graph framework. Zep is the Context Lake.",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LoCoMo benchmark: 94.7% accuracy, 155 ms retrieval latency, 5,760 token context size.",
+      "kind": "docs",
+      "url": "https://www.getzep.com/platform/graphiti/",
+      "quote": "94.7% Accuracy \u2014 Retrieval latency 155 ms \u2014 Context size 5,760 tokens",
+      "locator": "BENCHMARK \u00b7 LOCOMO",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval benchmark: 90.2% accuracy, 162 ms retrieval latency, 4,408 token context size.",
+      "kind": "docs",
+      "url": "https://www.getzep.com/platform/graphiti/",
+      "quote": "90.2% Accuracy \u2014 Retrieval latency 162 ms \u2014 Context size 4,408 tokens",
+      "locator": "BENCHMARK \u00b7 LONGMEMEVAL",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti exposes an MCP server so MCP-compatible clients can access graph-backed memory.",
+      "kind": "docs",
+      "url": "https://www.getzep.com/platform/graphiti/",
+      "quote": "Connect Graphiti directly to Claude, Cursor, and other MCP-compatible clients. Give your tools graph-backed memory without changing your workflow.",
+      "locator": "MCP Server",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/graphiti.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/nodes.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/edges.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/graphiti_types.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/graph_queries.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search_utils.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/utils/maintenance/edge_operations.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/graphiti/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/graphiti/getting-started/welcome.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/graphiti/core-concepts/adding-episodes.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/graphiti/core-concepts/custom-entity-and-edge-types.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/graphiti/core-concepts/graph-namespacing.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/graphiti/core-concepts/communities.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/graphiti/working-with-data/searching.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/graphiti/working-with-data/crud-operations.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/graphiti/getting-started/mcp-server.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1240",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/402",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1795",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1728",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1465",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1645",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1793",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1600",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1876",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1602",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1684",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1642",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1735",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1716",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1880",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1851",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1781",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1838",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1789",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/getzep/graphiti/issues/1745",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.getzep.com/platform/graphiti/",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://dev.to/clawbase/your-ai-agent-forgets-everything-after-every-session-graphiti-fixes-that-3163",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.falkordb.com/blog/implementing-agentic-memory-graphiti/",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://dev.to/gaodalie_ai/langgraph-graphiti-long-term-memory-powerful-agentic-memory-1iag",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://neo4j.com/blog/developer/graphiti-knowledge-graph-memory/",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://theneuralmaze.substack.com/p/building-agent-memory-with-knowledge",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://news.ycombinator.com/item?id=41445445",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/n8n/comments/1pbmlnj/awesome_graphiti_memory/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1j0ca03/graphiti_knowledge_graph_agent_memory_gets_custom/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/Rag/comments/1qgbm8d/which_one_is_better_for_graphrag_cognee_vs/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qgbptg/which_one_is_better_for_graphrag_cognee_vs/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.producthunt.com/products/graphiti",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/AI_Agents/comments/1m3814s/graphiti_vs_mem0/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1hft9va/graphiti_temporal_knowledge_graph_with_local_llms/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1f8u0xk/graphiti_llmpowered_temporal_knowledge_graphs/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/Rag/comments/1kjgd8j/lightgraph_vs_graphitizep_or_else/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Explicit delete/forget API: the page does not describe how to remove a fact or node from the graph once stored",
+      "url": "https://news.ycombinator.com/item?id=41445445",
+      "kind": "community"
+    },
+    {
+      "text": "Retrieve policy: the page does not describe when retrieval is triggered or whether it is always-on vs adaptive per turn",
+      "url": "https://news.ycombinator.com/item?id=41445445",
+      "kind": "community"
+    },
+    {
+      "text": "No description of how or whether facts are deleted or expired from the graph store (forget / delete path)",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1f8u0xk/graphiti_llmpowered_temporal_knowledge_graphs/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of isolation model \u2014 whether graph state is per-user, per-session, per-agent, or shared",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1f8u0xk/graphiti_llmpowered_temporal_knowledge_graphs/",
+      "kind": "community"
+    },
+    {
+      "text": "Forget / delete path: the page does not describe how facts or entities are removed from the graph, only invalidated via t_invalid",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1j0ca03/graphiti_knowledge_graph_agent_memory_gets_custom/",
+      "kind": "community"
+    },
+    {
+      "text": "Retrieve policy: the page does not describe when or whether retrieved facts are selectively surfaced to the model versus always injected into context",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1j0ca03/graphiti_knowledge_graph_agent_memory_gets_custom/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of what Graphiti persists (facts, events, summaries, full transcripts) or how the write path works (extract, update, conflict resolution, deletion).",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1hft9va/graphiti_temporal_knowledge_graph_with_local_llms/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of retrieval policy \u2014 when and how stored graph nodes are selected into a turn context.",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1hft9va/graphiti_temporal_knowledge_graph_with_local_llms/",
+      "kind": "community"
+    },
+    {
+      "text": "No description on this page of how Graphiti handles conflict resolution or supersession when updated facts contradict stored facts",
+      "url": "https://www.reddit.com/r/Rag/comments/1kjgd8j/lightgraph_vs_graphitizep_or_else/",
+      "kind": "community"
+    },
+    {
+      "text": "No description on this page of forget or delete behavior \u2014 whether stale or explicitly contradicted nodes are removed or hidden",
+      "url": "https://www.reddit.com/r/Rag/comments/1kjgd8j/lightgraph_vs_graphitizep_or_else/",
+      "kind": "community"
+    },
+    {
+      "text": "No discussion of how Graphiti handles the write path: how memories are extracted from conversation, updated, or deleted from the graph store",
+      "url": "https://www.reddit.com/r/Rag/comments/1qgbm8d/which_one_is_better_for_graphrag_cognee_vs/",
+      "kind": "community"
+    },
+    {
+      "text": "No discussion of retrieval policy: whether Graphiti retrieves always, adaptively, or based on relevance thresholds",
+      "url": "https://www.reddit.com/r/Rag/comments/1qgbm8d/which_one_is_better_for_graphrag_cognee_vs/",
+      "kind": "community"
+    },
+    {
+      "text": "Isolation model is not described: whether the graph store is scoped per user, session, agent, or character is absent from this page.",
+      "url": "https://help.getzep.com/graphiti/core-concepts/adding-episodes.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of how community summaries are retrieved into a turn or whether retrieval is always-on vs adaptive.",
+      "url": "https://help.getzep.com/graphiti/core-concepts/communities.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of conflict or supersession handling when community membership or summaries change on rebuild.",
+      "url": "https://help.getzep.com/graphiti/core-concepts/communities.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This page covers entity/edge schema definition and the write path but does not describe the retrieve policy: whether retrieval is always triggered, adaptive, or requires explicit query invocation.",
+      "url": "https://help.getzep.com/graphiti/core-concepts/custom-entity-and-edge-types.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of a forget or delete mechanism for removing specific entities, edges, or episodes from the store.",
+      "url": "https://help.getzep.com/graphiti/core-concepts/custom-entity-and-edge-types.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of conflict or supersession handling when a new episode contradicts an already-stored entity attribute.",
+      "url": "https://help.getzep.com/graphiti/core-concepts/custom-entity-and-edge-types.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of isolation scope: whether the graph and its entities are per-user, per-session, per-agent, or shared.",
+      "url": "https://help.getzep.com/graphiti/core-concepts/custom-entity-and-edge-types.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This page does not describe forget/delete behavior: whether removing a namespace or group_id deletes associated nodes and edges from the store, or whether individual facts can be deleted or superseded within a namespace.",
+      "url": "https://help.getzep.com/graphiti/core-concepts/graph-namespacing.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This page does not describe the retrieve policy within a namespace: whether retrieval is always exhaustive, adaptive, or ranked, or how conflicts between facts in the same namespace are resolved.",
+      "url": "https://help.getzep.com/graphiti/core-concepts/graph-namespacing.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession policy: this is a canonical integration doc for Graphiti's MCP server and does not describe how conflicting or outdated facts in the graph are resolved or superseded",
+      "url": "https://help.getzep.com/graphiti/getting-started/mcp-server.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy trigger: the page lists available search tools but does not specify whether retrieval is always-on, adaptive, or left entirely to the calling assistant to initiate",
+      "url": "https://help.getzep.com/graphiti/getting-started/mcp-server.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete path: this overview doc does not describe how facts or entities are deleted or hidden from retrieval, only that edges are invalidated temporally. A canonical architecture doc should address explicit deletion.",
+      "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Isolation model: the page does not state whether the Context Graph is isolated per user, per session, per agent, or per character. For a memory architecture overview this is a notable gap.",
+      "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy: the page describes hybrid search capabilities but does not specify when retrieval is triggered, what controls how much context is selected into a turn, or whether retrieval is always-on vs adaptive.",
+      "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Write path details \u2014 how facts are extracted from episodes, how conflicts or supersessions are handled, and whether old facts are deleted or marked invalid \u2014 are not described on this welcome page but should be covered in core architecture docs.",
+      "url": "https://help.getzep.com/graphiti/getting-started/welcome.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / deletion mechanics \u2014 whether facts can be removed from the graph and under what conditions \u2014 are absent from this page.",
+      "url": "https://help.getzep.com/graphiti/getting-started/welcome.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy \u2014 whether retrieval is always-on, adaptive, or caller-driven, and how retrieved nodes are scaffolded into the agent prompt \u2014 is not described here.",
+      "url": "https://help.getzep.com/graphiti/getting-started/welcome.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy not described: no detail on whether retrieval is always-on, adaptive, or query-triggered; Searching the Graph page is listed but not expanded here",
+      "url": "https://help.getzep.com/graphiti/working-with-data/searching.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession behavior not described: temporal graph implies fact versioning but write-path conflict resolution is not covered on this index page",
+      "url": "https://help.getzep.com/graphiti/core-concepts/adding-episodes.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete policy not described: CRUD Operations page is referenced but no detail on how deletion or fact expiry works",
+      "url": "https://help.getzep.com/graphiti/working-with-data/crud-operations.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy is not described: this canonical CRUD page shows get_by_uuid but does not explain when or how nodes/edges are selected into a conversation turn (adaptive vs always-on, search ranking, or context assembly).",
+      "url": "https://help.getzep.com/graphiti/working-with-data/crud-operations.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession logic is absent: the page shows upsert via MERGE but does not describe how contradictory or outdated facts are resolved or marked stale in the graph.",
+      "url": "https://help.getzep.com/graphiti/working-with-data/crud-operations.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Isolation scope is not stated: no indication of whether the graph store is partitioned per user, session, agent, or character.",
+      "url": "https://help.getzep.com/graphiti/working-with-data/crud-operations.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This page covers only the retrieve path. Write path (how facts/nodes/edges are extracted, updated, superseded, or deleted) is not described here, though this is a canonical data-working doc.",
+      "url": "https://help.getzep.com/graphiti/working-with-data/searching.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Vector search and full-text indexing behavior against the embedded FalkorDB Lite engine is explicitly unvalidated; retrieval correctness for memory recall in this mode is unknown.",
+      "url": "https://github.com/getzep/graphiti/issues/1240",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe how group_id is defined or documented as a namespace/isolation key \u2014 whether it scopes memory per user, session, agent, or character is not stated",
+      "url": "https://github.com/getzep/graphiti/issues/1465",
+      "kind": "issue"
+    },
+    {
+      "text": "The retrieve path (how episodics and entities are selected back into context) is not described; it is unclear whether a corrupted or missing group_id silently drops memories at retrieval or only at ingest",
+      "url": "https://github.com/getzep/graphiti/issues/1465",
+      "kind": "issue"
+    },
+    {
+      "text": "Forget / delete path is not described: how facts are removed or hidden from the store beyond temporal invalidation is not addressed.",
+      "url": "https://github.com/getzep/graphiti/issues/1602",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how edge facts are written to or updated in the store; the write path (extract, update, conflict/supersession) is absent from this page despite being a core memory behavior for a graph-based memory system",
+      "url": "https://github.com/getzep/graphiti/issues/1642",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe Graphiti's write path: how facts are extracted from conversation, how conflicts trigger supersession, or how deletes are handled.",
+      "url": "https://github.com/getzep/graphiti/issues/1645",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe isolation: whether memory stores are per-user, per-session, per-agent, or per-character.",
+      "url": "https://github.com/getzep/graphiti/issues/1645",
+      "kind": "issue"
+    },
+    {
+      "text": "The page references POST /get-memory as an endpoint but does not describe its retrieval policy (always retrieve vs. adaptive, embedding-based selection, or other filtering logic).",
+      "url": "https://github.com/getzep/graphiti/issues/1716",
+      "kind": "issue"
+    },
+    {
+      "text": "search_memory_facts interleaving of retired facts with live facts has no documented retrieve-side filtering policy; issue #1645 proposes a fix but this page does not describe the current or intended behavior",
+      "url": "https://github.com/getzep/graphiti/issues/1728",
+      "kind": "issue"
+    },
+    {
+      "text": "Authority/provenance field on EntityEdge distinguishing user assertion from model inference is not confirmed or denied on this page",
+      "url": "https://github.com/getzep/graphiti/issues/1789",
+      "kind": "issue"
+    },
+    {
+      "text": "No rationale is recorded for the removal of the HNSW path in PR #894; the architecture doc or PR description that would explain the deliberate vs. accidental drop is absent.",
+      "url": "https://github.com/getzep/graphiti/issues/1793",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how memories/facts are extracted from episodes or how the knowledge graph is updated on write \u2014 the page covers only routing, not the extraction or conflict/supersession logic.",
+      "url": "https://github.com/getzep/graphiti/issues/1795",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe Graphiti's conflict/supersession logic for facts \u2014 how a new episode overwrites or invalidates a prior fact in the store \u2014 despite this being a core memory write-path behavior for an architecture RFC on the same write path.",
+      "url": "https://github.com/getzep/graphiti/issues/1851",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe Graphiti's forget or delete path \u2014 whether facts or episodes can be removed from the store, hidden at retrieve time, or suppressed at generation time.",
+      "url": "https://github.com/getzep/graphiti/issues/1851",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether group_id is architecturally intended to name a distinct database or to partition within a single database \u2014 the page flags this as unresolved design ambiguity",
+      "url": "https://github.com/getzep/graphiti/issues/1876",
+      "kind": "issue"
+    },
+    {
+      "text": "This is a canonical architecture/ingestion issue report and does not describe how Graphiti handles conflict or supersession when a newly extracted triple contradicts an already-persisted one.",
+      "url": "https://github.com/getzep/graphiti/issues/1880",
+      "kind": "issue"
+    },
+    {
+      "text": "Forget / explicit deletion path: this page describes invalidation of outdated edges but does not describe any explicit delete-from-store or user-initiated forget mechanism",
+      "url": "https://neo4j.com/blog/developer/graphiti-knowledge-graph-memory/",
+      "kind": "blog"
+    },
+    {
+      "text": "Isolation model: the page does not state whether memory is scoped per user, per session, per agent, or per character",
+      "url": "https://neo4j.com/blog/developer/graphiti-knowledge-graph-memory/",
+      "kind": "blog"
+    },
+    {
+      "text": "Retrieve policy: the page does not describe when or whether Graphiti stays silent versus always retrieving context into a turn",
+      "url": "https://neo4j.com/blog/developer/graphiti-knowledge-graph-memory/",
+      "kind": "blog"
+    },
+    {
+      "text": "Retrieve policy \u2014 this page does not describe when or how Graphiti selects stored facts into a turn context (always vs. adaptive retrieval).",
+      "url": "https://www.falkordb.com/blog/implementing-agentic-memory-graphiti/",
+      "kind": "blog"
+    },
+    {
+      "text": "Forget / delete mechanism \u2014 the page describes invalidation (marking invalid) but does not clarify whether records are deleted from the store or only hidden at retrieval.",
+      "url": "https://www.falkordb.com/blog/implementing-agentic-memory-graphiti/",
+      "kind": "blog"
+    },
+    {
+      "text": "Isolation scope: the page does not specify whether memory is isolated per user, per session, per agent, or per character",
+      "url": "https://dev.to/clawbase/your-ai-agent-forgets-everything-after-every-session-graphiti-fixes-that-3163",
+      "kind": "blog"
+    },
+    {
+      "text": "Explicit forget/delete mechanism: the page describes invalidation (end timestamp) but does not describe whether a hard delete from the store is possible",
+      "url": "https://dev.to/clawbase/your-ai-agent-forgets-everything-after-every-session-graphiti-fixes-that-3163",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of explicit delete / forget mechanism \u2014 this is a canonical memory architecture concern and the page is silent on it",
+      "url": "https://dev.to/gaodalie_ai/langgraph-graphiti-long-term-memory-powerful-agentic-memory-1iag",
+      "kind": "blog"
+    },
+    {
+      "text": "Forget / delete path: this overview doc does not describe how facts or edges are deleted or hidden from retrieval, only that edges are invalidated temporally. The precise mechanics of invalidation (soft hide vs hard delete) are not stated.",
+      "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Isolation model: the page does not state whether the Context Graph is isolated per user, session, agent, or character.",
+      "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Scaffold / prompt injection: the page does not describe what instructions, if any, are given to the model about how to use retrieved graph context in generation.",
+      "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This page describes community storage and update but does not explain how communities are retrieved into a turn context or whether they are included in search/retrieval results automatically.",
+      "url": "https://help.getzep.com/graphiti/core-concepts/communities.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete path: the page describes supersession (marking edges as no longer valid) but does not describe any explicit delete-from-store or user-initiated forget API.",
+      "url": "https://theneuralmaze.substack.com/p/building-agent-memory-with-knowledge",
+      "kind": "blog"
+    },
+    {
+      "text": "Forget / explicit delete: the page describes invalidation (preserve as history, remove from current state) but does not describe whether a hard delete from the store is possible or how it is triggered.",
+      "url": "https://www.getzep.com/platform/graphiti/",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy \u2014 adaptive vs always: the page describes the hybrid mechanism but does not state whether retrieval is always performed or conditionally triggered per turn.",
+      "url": "https://www.getzep.com/platform/graphiti/",
+      "kind": "docs"
+    }
+  ]
+}
