@@ -57,6 +57,8 @@ def merge_text_lists(
 def merge_audits(
     existing: dict[str, object] | None,
     candidate: dict[str, object],
+    *,
+    clone_skipped: bool = False,
 ) -> dict[str, object]:
     if existing is None:
         return candidate
@@ -64,6 +66,8 @@ def merge_audits(
     identity = identity_dict(candidate.get("identity"))
     existing_identity = identity_dict(existing.get("identity"))
     for field, value in existing_identity.items():
+        if field == "repo" and clone_skipped:
+            continue
         if identity.get(field) in (None, "") and value not in (None, ""):
             identity[field] = value
     merged["identity"] = identity
@@ -120,7 +124,12 @@ def apply_slug(slug: str, *, write: bool) -> dict[str, object]:
     candidate = load_json(candidate_path)
     dest = product_output(slug) / "audit.json"
     existing = load_json(dest) if dest.exists() else None
-    merged = merge_audits(existing, candidate)
+    manifest_path = cache / "manifest.json"
+    clone_skipped = False
+    if manifest_path.exists():
+        manifest = load_json(manifest_path)
+        clone_skipped = bool(manifest.get("clone_skipped"))
+    merged = merge_audits(existing, candidate, clone_skipped=clone_skipped)
     with PipelineLogger("apply", source=slug, write=write) as log:
         log.info(
             "apply_started",

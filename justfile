@@ -35,6 +35,9 @@ audit-write-all:
 lint-audits:
     {{pipeline}} python -m companmem_pipeline.lint
 
+lint-seed:
+    {{pipeline}} python -m companmem_pipeline.seed_lint --check-urls
+
 synthesize:
     {{pipeline}} python -m companmem_pipeline.synthesize
 

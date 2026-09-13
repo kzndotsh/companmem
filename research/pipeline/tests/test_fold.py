@@ -24,6 +24,28 @@ def _manifest() -> dict[str, object]:
     }
 
 
+def test_fold_skips_repo_hint_when_clone_skipped() -> None:
+    manifest = {
+        **_manifest(),
+        "repo": None,
+        "clone_skipped": True,
+        "pages": [],
+    }
+    extracts = [
+        {
+            "identity_hints": {
+                "repo": "https://github.com/getzep/zep",
+            },
+            "claimed_purpose": [],
+            "mechanisms": [],
+            "ledger": [],
+            "unknowns": [],
+        }
+    ]
+    audit = fold_pages(extracts, manifest)
+    assert audit["identity"]["repo"] is None
+
+
 def test_fold_prefers_longer_quote_and_drops_uncited() -> None:
     extracts = [
         {

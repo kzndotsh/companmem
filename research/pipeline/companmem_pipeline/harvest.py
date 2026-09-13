@@ -302,8 +302,29 @@ def product_mentioned(text: str, product: dict[str, object]) -> bool:
     return False
 
 
+def reddit_subreddit(url: str) -> str | None:
+    if not host_of(url).endswith("reddit.com"):
+        return None
+    parts = [part for part in urlparse(url).path.split("/") if part]
+    if len(parts) >= 2 and parts[0].lower() == "r":
+        return parts[1].lower()
+    return None
+
+
+def reddit_subreddit_prefix_collision(subreddit: str, product: dict[str, object]) -> bool:
+    """Drop homonym subreddits like r/Zepbound for Zep Cloud."""
+    product_id = str(product.get("id") or "").strip().lower()
+    if not product_id or not subreddit.startswith(product_id):
+        return False
+    suffix = subreddit[len(product_id) :]
+    return bool(suffix) and suffix[0] not in {"_", "-"}
+
+
 def product_named_in_url_or_title(url: str, title: str, product: dict[str, object]) -> bool:
     """True when the page is about this product, not a sibling that mentions it in a snippet."""
+    subreddit = reddit_subreddit(url)
+    if subreddit is not None and reddit_subreddit_prefix_collision(subreddit, product):
+        return False
     return product_mentioned(url, product) or product_mentioned(title, product)
 
 

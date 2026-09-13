@@ -161,6 +161,8 @@ def fold_pages(
         hints = extract.get("identity_hints")
         if isinstance(hints, dict):
             for field in ("name", "repo", "docs", "license", "version_or_commit"):
+                if field == "repo" and manifest.get("clone_skipped"):
+                    continue
                 if identity.get(field) in (None, "") and hints.get(field):
                     identity[field] = hints[field]
         for item in extract.get("claimed_purpose") or []:

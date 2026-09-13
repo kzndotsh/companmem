@@ -59,6 +59,7 @@ just audit mem0          # extract → fold → apply dry-run
 just audit-write mem0    # lint temp, then write audit.json
 just audit-write-all
 just lint-audits
+just lint-seed          # validate seed.json URLs and zep/graphiti rules
 just synthesize
 just test-pipeline
 ```

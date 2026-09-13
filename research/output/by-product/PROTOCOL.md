@@ -80,7 +80,7 @@ Every id in [`../../pipeline/seed.json`](../../pipeline/seed.json) is in scope. 
 | --- | --- | --- | --- | --- |
 | mem0 | Mem0 | https://github.com/mem0ai/mem0 | https://docs.mem0.ai/llms.txt | |
 | graphiti | Graphiti | https://github.com/getzep/graphiti | https://help.getzep.com/graphiti | First-party on help.getzep.com is `/graphiti` only. Do not treat Zep Cloud SDK/docs as Graphiti |
-| zep | Zep Cloud | none (closed core) | https://help.getzep.com/llms.txt | Skip clone. Docs, blog, search only. Skip `help.getzep.com/graphiti` and the Graphiti GitHub repo. Do not treat Graphiti code as Zep Cloud behavior |
+| zep | Zep Cloud | none (closed core) | https://help.getzep.com/llms.txt | Skip clone. Pin Context Lake / graph / retrieval docs in `open_docs` (not search-only). Skip `help.getzep.com/graphiti`, `help.getzep.com/v2`, marketing on `getzep.com`, and the Graphiti GitHub repo. Do not treat Graphiti code or legacy v2 session APIs as Zep Cloud behavior |
 | letta | Letta | https://github.com/letta-ai/letta | https://docs.letta.com/llms.txt | Follow GitHub redirect to letta-code. Current memory is MemFS / dreaming / Agent SDK. Skip `v1-sdk` memory-blocks |
 | cognee | Cognee | https://github.com/topoteretes/cognee | census | |
 | memos | MemOS | https://github.com/MemTensor/MemOS | census | |

@@ -3,6 +3,43 @@ from __future__ import annotations
 from companmem_pipeline.apply import merge_audits
 
 
+def test_merge_does_not_resurrect_repo_for_clone_skipped_products() -> None:
+    existing = {
+        "identity": {
+            "id": "zep",
+            "name": "Zep Cloud",
+            "repo": "https://github.com/getzep/zep",
+        },
+        "claimed_purpose": [],
+        "mechanisms": [],
+        "ledger": [],
+        "sources": [],
+        "copy": [],
+        "refuse": [],
+        "consensus": [],
+        "contested": [],
+        "unknowns": [],
+    }
+    candidate = {
+        "identity": {
+            "id": "zep",
+            "name": "Zep Cloud",
+            "repo": None,
+        },
+        "claimed_purpose": [],
+        "mechanisms": [],
+        "ledger": [],
+        "sources": [],
+        "copy": [],
+        "refuse": [],
+        "consensus": [],
+        "contested": [],
+        "unknowns": [],
+    }
+    merged = merge_audits(existing, candidate, clone_skipped=True)
+    assert merged["identity"]["repo"] is None
+
+
 def test_merge_replaces_purpose_and_drops_off_source_ledger() -> None:
     existing = {
         "identity": {"id": "honcho", "name": "Honcho", "observed_at": "2026-09-11"},

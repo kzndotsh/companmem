@@ -260,14 +260,35 @@ def test_shared_docs_host_is_path_scoped() -> None:
         "skip_url_prefixes": [
             "https://github.com/getzep/graphiti",
             "https://help.getzep.com/graphiti",
+            "https://help.getzep.com/v2",
+            "https://www.getzep.com/",
+            "https://getzep.com/",
         ],
     }
     assert docs_host_path_prefix(zep) is None
     assert allowed_source_url("https://help.getzep.com/eve.md", zep, {})
-    assert search_url_skip_reason(
-        "https://help.getzep.com/graphiti/getting-started/overview.md",
-        list(zep["skip_url_prefixes"]),
-    ) == "skip_prefix"
+    prefixes = list(zep["skip_url_prefixes"])
+    assert (
+        search_url_skip_reason(
+            "https://help.getzep.com/graphiti/getting-started/overview.md",
+            prefixes,
+        )
+        == "skip_prefix"
+    )
+    assert (
+        search_url_skip_reason(
+            "https://help.getzep.com/v2/sdk-reference/memory/get.md",
+            prefixes,
+        )
+        == "skip_prefix"
+    )
+    assert (
+        search_url_skip_reason(
+            "https://www.getzep.com/mem0-alternative/",
+            prefixes,
+        )
+        == "skip_prefix"
+    )
 
 
 def test_select_code_files_skips_generic_meta(tmp_path: Path) -> None:
@@ -561,6 +582,20 @@ def test_docs_rank_drops_old_version_and_collapses_api() -> None:
     assert is_community_thread("https://news.ycombinator.com/item?id=47831013")
     assert not is_community_thread("https://x.com/honchodotdev")
     assert is_community_thread("https://x.com/honchodotdev/status/123")
+
+
+def test_reddit_subreddit_prefix_collision_drops_homonyms() -> None:
+    zep = {"id": "zep", "name": "Zep Cloud"}
+    assert product_named_in_url_or_title(
+        "https://www.reddit.com/r/Zepbound/comments/abc/on_zep_cloud_9/",
+        "On Zep Cloud 9",
+        zep,
+    ) is False
+    assert product_named_in_url_or_title(
+        "https://www.reddit.com/r/LocalLLaMA/comments/abc/zep_cloud_review/",
+        "Zep Cloud memory review",
+        zep,
+    )
 
 
 def test_community_confirm_drops_sibling_producthunt_pages() -> None:
