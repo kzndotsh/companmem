@@ -6,8 +6,10 @@ from companmem_pipeline.httputil import (
     decode_body,
     fetch_prose,
     format_arctic_thread,
+    markdown_index_url,
     markdown_new_url,
     markdown_suffix_url,
+    markdown_variant_urls,
     reddit_post_id,
     reset_markdown_new,
     unwrap_markdown_new,
@@ -35,6 +37,14 @@ def test_markdown_suffix_url_appends_md() -> None:
     assert markdown_suffix_url("https://docs.example.com/llms.txt") is None
     assert markdown_suffix_url("https://docs.example.com/guide.md") is None
     assert markdown_suffix_url("https://example.com/") is None
+    assert markdown_index_url("https://docs.example.com/guide/") == (
+        "https://docs.example.com/guide/index.md"
+    )
+    assert markdown_index_url("https://docs.example.com/llms.txt") is None
+    assert markdown_variant_urls("https://docs.example.com/guide") == [
+        "https://docs.example.com/guide.md",
+        "https://docs.example.com/guide/index.md",
+    ]
 
 
 def test_decode_body_keeps_origin_markdown() -> None:
@@ -104,6 +114,38 @@ def test_fetch_prose_prefers_md_suffix_over_markdown_new() -> None:
     assert page is not None
     assert page.converter == "origin_markdown"
     assert page.url == "https://example.com/guide.md"
+    assert posts == []
+
+
+def test_fetch_prose_tries_index_md_when_html_is_not_thin() -> None:
+    reset_markdown_new()
+    fat_html = (
+        "<html><body>"
+        + "<p>This paragraph has enough words to pass the HTML quality gate. " * 12
+        + "</p></body></html>"
+    )
+    posts: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "POST":
+            posts.append(str(request.url))
+            return httpx.Response(500)
+        path = request.url.path
+        if path.endswith("/index.md"):
+            return httpx.Response(
+                200,
+                text=GOOD_MARKDOWN,
+                headers={"content-type": "text/plain"},
+            )
+        if path.endswith(".md"):
+            return httpx.Response(404)
+        return httpx.Response(200, text=fat_html, headers={"content-type": "text/html"})
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    page = fetch_prose(client, "https://docs.example.com/memory")
+    assert page is not None
+    assert page.converter == "origin_markdown"
+    assert page.url == "https://docs.example.com/memory/index.md"
     assert posts == []
 
 

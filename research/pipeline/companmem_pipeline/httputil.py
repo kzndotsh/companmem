@@ -70,6 +70,27 @@ def markdown_suffix_url(url: str) -> str | None:
     return urlunparse(parsed._replace(path=path + ".md"))
 
 
+def markdown_index_url(url: str) -> str | None:
+    """Same path with `/index.md`. Mintlify and similar hosts use this instead of `{path}.md`."""
+    parsed = urlparse(url)
+    path = parsed.path.rstrip("/")
+    if not path:
+        return None
+    last = path.rsplit("/", 1)[-1]
+    if "." in last:
+        return None
+    return urlunparse(parsed._replace(path=path + "/index.md"))
+
+
+def markdown_variant_urls(url: str) -> list[str]:
+    """Native markdown candidates. `.md` first, then `/index.md`."""
+    variants: list[str] = []
+    for candidate in (markdown_suffix_url(url), markdown_index_url(url)):
+        if candidate and candidate not in variants:
+            variants.append(candidate)
+    return variants
+
+
 def get_client() -> httpx.Client:
     return httpx.Client(
         headers={
@@ -294,7 +315,7 @@ def fetch_arctic_shift(client: httpx.Client, url: str) -> FetchedText | None:
 
 
 def fetch_prose(client: httpx.Client, url: str) -> FetchedText | None:
-    """Reddit via Arctic Shift, else origin markdown, `{url}.md`, HTML strip, markdown.new."""
+    """Reddit via Arctic Shift, else origin markdown, `{url}.md` / `{path}/index.md`, HTML, markdown.new."""
     emit_console("httputil", url, "info", "fetch_prose_start")
     arctic = fetch_arctic_shift(client, url)
     if arctic is not None:
@@ -314,31 +335,33 @@ def fetch_prose(client: httpx.Client, url: str) -> FetchedText | None:
             thin_html=thin,
             status=resp.status_code,
         )
-        if not thin:
+        if origin.converter != "clean_html" and not thin:
             return origin
-        emit_console("httputil", origin.url, "info", "fetch_prose_origin_thin")
+        if thin:
+            emit_console("httputil", origin.url, "info", "fetch_prose_origin_thin")
+        else:
+            emit_console("httputil", origin.url, "info", "fetch_prose_origin_html")
     else:
         emit_console("httputil", url, "warn", "fetch_prose_origin_failed")
-    suffix = markdown_suffix_url(url)
-    if suffix:
-        emit_console("httputil", suffix, "info", "fetch_prose_md_suffix")
-        md_resp = fetch_with_retry(client, suffix)
-        if md_resp is not None:
-            md_page = _from_response(md_resp)
-            thin = _thin_html(md_page)
-            emit_console(
-                "httputil",
-                md_page.url,
-                "info",
-                "fetch_prose_md_suffix_ok",
-                converter=md_page.converter,
-                chars=len(md_page.text),
-                thin_html=thin,
-            )
-            if not thin:
-                return md_page
-        else:
-            emit_console("httputil", suffix, "info", "fetch_prose_md_suffix_miss")
+    for variant in markdown_variant_urls(url):
+        emit_console("httputil", variant, "info", "fetch_prose_md_suffix")
+        md_resp = fetch_with_retry(client, variant)
+        if md_resp is None:
+            emit_console("httputil", variant, "info", "fetch_prose_md_suffix_miss")
+            continue
+        md_page = _from_response(md_resp)
+        thin = _thin_html(md_page)
+        emit_console(
+            "httputil",
+            md_page.url,
+            "info",
+            "fetch_prose_md_suffix_ok",
+            converter=md_page.converter,
+            chars=len(md_page.text),
+            thin_html=thin,
+        )
+        if not thin:
+            return md_page
     requested = origin.url if origin is not None else url
     emit_console("httputil", requested, "info", "fetch_prose_markdown_new")
     md = fetch_markdown_new(client, requested)

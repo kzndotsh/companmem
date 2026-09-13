@@ -54,7 +54,7 @@ Absence needs a search boundary **and the page it was checked on**: "not in the 
 
 Search snippets are not evidence. `ledger.kind` is `docs \| code \| issue \| community \| blog`. The `search/` folder is where the file was saved.
 
-**Prose conversion.** Docs, blog, search, and community GET with `Accept: text/markdown`. Native markdown is stored as-is. HTML is stripped locally. If origin fails or the strip is thin, try the same path with `.md` (skip if the URL already has an extension). Then one [markdown.new](https://markdown.new/) POST (`method=auto`). A first-party `.md` URL is the source; markdown.new keeps the origin URL. Reddit thread URLs try Arctic Shift first (`converter: arctic_shift`) and fall back to that HTML path if the API misses. Do not use `/crawl`. Git clone and GitHub issue search stay as they are. markdown.new is 500 requests/day/IP; a 429 disables it for the rest of the process.
+**Prose conversion.** Docs, blog, search, and community GET with `Accept: text/markdown`. Native markdown is stored as-is. HTML is stripped locally. If origin is HTML (or fails / the strip is thin), try the same path with `.md`, then `{path}/index.md` (skip if the URL already has an extension). Then one [markdown.new](https://markdown.new/) POST (`method=auto`). A first-party `.md` URL is the source; markdown.new keeps the origin URL. Reddit thread URLs try Arctic Shift first (`converter: arctic_shift`) and fall back to that HTML path if the API misses. Do not use `/crawl`. Git clone and GitHub issue search stay as they are. markdown.new is 500 requests/day/IP; a 429 disables it for the rest of the process.
 
 ## Extraction and fold
 
@@ -81,7 +81,7 @@ Every id in [`../../pipeline/seed.json`](../../pipeline/seed.json) is in scope. 
 | mem0 | Mem0 | https://github.com/mem0ai/mem0 | https://docs.mem0.ai/llms.txt | |
 | graphiti | Graphiti | https://github.com/getzep/graphiti | https://help.getzep.com/graphiti | First-party on help.getzep.com is `/graphiti` only. Do not treat Zep Cloud SDK/docs as Graphiti |
 | zep | Zep Cloud | none (closed core) | https://help.getzep.com/llms.txt | Skip clone. Docs, blog, search only. Skip `help.getzep.com/graphiti` and the Graphiti GitHub repo. Do not treat Graphiti code as Zep Cloud behavior |
-| letta | Letta | https://github.com/letta-ai/letta | https://docs.letta.com/llms.txt | Follow GitHub redirect to letta-code |
+| letta | Letta | https://github.com/letta-ai/letta | https://docs.letta.com/llms.txt | Follow GitHub redirect to letta-code. Current memory is MemFS / dreaming / Agent SDK. Skip `v1-sdk` memory-blocks |
 | cognee | Cognee | https://github.com/topoteretes/cognee | census | |
 | memos | MemOS | https://github.com/MemTensor/MemOS | census | |
 | memoryos | MemoryOS | https://github.com/BAI-LAB/MemoryOS | census | |

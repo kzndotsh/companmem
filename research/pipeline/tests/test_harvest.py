@@ -74,6 +74,29 @@ def test_seed_has_inclusion_lists() -> None:
             assert product["open_code"] == []
 
 
+def test_letta_seed_skips_legacy_memory_blocks() -> None:
+    letta = load_seed()["products"]["letta"]
+    prefixes = list(letta["skip_url_prefixes"])
+    assert any("memfs" in url for url in letta["open_docs"])
+    assert any("agent-sdk/memory" in url for url in letta["open_docs"])
+    assert search_url_skip_reason(
+        "https://docs.letta.com/v1-sdk/memory/memory-blocks",
+        prefixes,
+    ) == "skip_prefix"
+    assert search_url_skip_reason(
+        "https://www.letta.com/blog/memory-blocks/",
+        prefixes,
+    ) == "skip_prefix"
+    assert search_url_skip_reason(
+        "https://www.letta.com/constitution/",
+        prefixes,
+    ) == "skip_prefix"
+    assert search_url_skip_reason(
+        "https://docs.letta.com/concepts/memfs/index.md",
+        prefixes,
+    ) is None
+
+
 def test_blog_seed_skips_github_forge() -> None:
     urls = blog_seed_urls(
         {
