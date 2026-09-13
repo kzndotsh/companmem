@@ -17,8 +17,8 @@ from urllib.parse import urljoin, urlparse
 
 import httpx
 
-from companmem_pipeline.html import clean_html
 from companmem_pipeline.httputil import (
+    fetch_prose,
     fetch_with_retry,
     get_client,
     jitter,
@@ -32,7 +32,7 @@ from companmem_pipeline.paths import (
     load_dotenv,
     product_cache,
 )
-from companmem_pipeline.search import host_of, web_search
+from companmem_pipeline.search import host_of, web_search_stats
 
 load_dotenv()
 
@@ -201,6 +201,11 @@ COMMUNITY_HOST_SUFFIXES = (
     "x.com",
     "twitter.com",
     "lobste.rs",
+)
+SEARCH_MIRROR_HOSTS = (
+    "deepwiki.com",
+    "deepwiki.dev",
+    "sourcegraph.com",
 )
 GITHUB_BLOB_RE = re.compile(
     r"https?://(?:www\.)?github\.com/[^/]+/[^/]+/(?:blob|tree|raw)/",
@@ -746,6 +751,147 @@ def community_search_queries(name: str) -> list[str]:
         f'{name} memory "hacker news"',
         f"{name} memory forum",
     ]
+
+
+def has_listed_docs(product: dict[str, object]) -> bool:
+    listed = product.get("open_docs")
+    if not isinstance(listed, list):
+        return False
+    return any(isinstance(item, str) and item.strip() for item in listed)
+
+
+def search_queries(product: dict[str, object]) -> list[str]:
+    """Claim-shaped web queries. Wikipedia only for closed products. Not forums."""
+    name = str(product.get("name") or product["id"])
+    queries = [
+        f'{name} "doesn\'t remember" OR "does not remember"',
+        f'{name} "lost context" OR forget',
+        f"{name} LoCoMo",
+        f"{name} graph memory OR vector memory",
+        f"{name} companion memory",
+    ]
+    docs = product.get("docs")
+    if isinstance(docs, str) and docs:
+        host = host_of(docs)
+        if host and host not in FORGE_HOSTS:
+            queries.append(f"site:{host} forget OR memory OR companion")
+    if not product.get("clone"):
+        queries.append(f"site:en.wikipedia.org {name}")
+    return queries
+
+
+def is_search_mirror_host(host: str) -> bool:
+    host = host.lower().removeprefix("www.")
+    if host.endswith(".github.io"):
+        return True
+    return any(host == suffix or host.endswith("." + suffix) for suffix in SEARCH_MIRROR_HOSTS)
+
+
+def search_url_skip_reason(
+    url: str,
+    prefixes: list[str],
+    *,
+    skip_home: bool = False,
+) -> str | None:
+    """Why this URL is not a search landing page. None means fetch it."""
+    if not url:
+        return "empty"
+    if not url.startswith(("http://", "https://")):
+        return "not_http"
+    if skip_url(url, prefixes):
+        return "skip_prefix"
+    if GITHUB_BLOB_RE.match(url):
+        return "github_blob"
+    if ARXIV_RE.match(url):
+        return "arxiv"
+    if LOGIN_PATH_RE.search(urlparse(url).path):
+        return "login"
+    host = host_of(url)
+    if not host:
+        return "no_host"
+    if is_community_host(host):
+        return "community_host"
+    if host in FORGE_HOSTS:
+        return "forge"
+    if is_search_mirror_host(host):
+        return "mirror"
+    if is_generic_docs_url(url):
+        return "generic_docs"
+    if skip_home and is_marketing_home(url):
+        return "marketing_home"
+    return None
+
+
+def is_search_url(url: str, prefixes: list[str], *, skip_home: bool = False) -> bool:
+    """True for a fetchable search landing page. Community and forge stay other lanes."""
+    return search_url_skip_reason(url, prefixes, skip_home=skip_home) is None
+
+
+def community_url_skip_reason(
+    url: str,
+    prefixes: list[str],
+    seed_urls: set[str],
+) -> str | None:
+    if not url:
+        return "empty"
+    if skip_url(url, prefixes):
+        return "skip_prefix"
+    if GITHUB_BLOB_RE.match(url):
+        return "github_blob"
+    if ARXIV_RE.match(url):
+        return "arxiv"
+    if LOGIN_PATH_RE.search(urlparse(url).path):
+        return "login"
+    if not is_community_host(host_of(url)):
+        return "not_community_host"
+    if normalize_url(url) not in seed_urls and not is_community_thread(url):
+        return "not_thread"
+    return None
+
+
+def select_search_urls(
+    urls: list[str],
+    product: dict[str, object],
+    repo_meta: dict[str, object],
+    already: set[str],
+    *,
+    cap: int = SEARCH_CAP,
+) -> tuple[list[str], bool]:
+    """Dedupe search hits. First-party extras first. Cap without filling docs."""
+    prefixes = [str(p) for p in (product.get("skip_url_prefixes") or [])]
+    skip_home = has_listed_docs(product)
+    seen: set[str] = set()
+    first_party: list[str] = []
+    third_party: list[str] = []
+    for url in urls:
+        key = normalize_url(url)
+        if key in seen or key in already:
+            continue
+        reason = search_url_skip_reason(url, prefixes, skip_home=skip_home)
+        if reason:
+            continue
+        seen.add(key)
+        if allowed_source_url(url, product, repo_meta):
+            first_party.append(url)
+        else:
+            third_party.append(url)
+    unique = first_party + third_party
+    return unique[:cap], len(unique) > cap
+
+
+def search_page_meta(
+    url: str,
+    product: dict[str, object],
+    repo_meta: dict[str, object],
+) -> tuple[str, str]:
+    """ledger kind and quality. Third-party stays discovery until a first-party page."""
+    if allowed_source_url(url, product, repo_meta):
+        path = urlparse(url).path.lower()
+        host = host_of(url)
+        if "/blog" in path or host.startswith("blog."):
+            return "blog", "high"
+        return "docs", "high"
+    return "blog", "medium"
 
 
 def run_git(args: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
@@ -1304,6 +1450,10 @@ def harvest_repo(
             }
         )
     result["pages"] = pages
+    for row in files.skipped:
+        log.info("code_skipped", path=row.get("path"), reason=row.get("reason"))
+    for page in pages:
+        log.info("code_kept", path=page.get("path"), url=page.get("url"))
     log.info(
         "repo_pages",
         count=len(pages),
@@ -1386,8 +1536,17 @@ def harvest_docs(
     skipped: list[dict[str, str]] = []
     for url in listed:
         key = normalize_url(url)
-        if key in seen_local or key in already or skip_url(url, prefixes):
-            skipped.append({"path": url, "reason": "skip"})
+        if key in seen_local:
+            skipped.append({"path": url, "reason": "dup"})
+            log.info("docs_skipped", url=url, reason="dup")
+            continue
+        if key in already:
+            skipped.append({"path": url, "reason": "already"})
+            log.info("docs_skipped", url=url, reason="already")
+            continue
+        if skip_url(url, prefixes):
+            skipped.append({"path": url, "reason": "skip_prefix"})
+            log.info("docs_skipped", url=url, reason="skip_prefix")
             continue
         seen_local.add(key)
         unique.append(url)
@@ -1404,32 +1563,37 @@ def harvest_docs(
         slug = page_slug(url)
         page_dir = docs_root / slug
         final_url = url
+        converter: str | None = None
         if force or not page_exists(page_dir):
-            resp = fetch_with_retry(client, url)
+            page = fetch_prose(client, url)
             jitter()
-            if resp is None:
+            if page is None:
                 log.warn("docs_fetch_failed", url=url)
                 continue
-            final_url = str(resp.url)
+            final_url = page.url
             if not allowed_source_url(final_url, product, repo_meta):
                 log.warn("docs_skipped_off_product", url=final_url)
                 continue
             if is_generic_docs_url(final_url):
+                log.info("docs_skipped", url=final_url, reason="generic_docs")
                 continue
-            body = resp.text
-            if "html" in resp.headers.get("content-type", "") or body.lstrip()[:80].startswith(
-                "<"
-            ):
-                body = clean_html(body)
-            save_page(page_dir, final_url, body[:MAX_FILE_CHARS], {"kind": "docs"})
+            converter = page.converter
+            save_page(
+                page_dir,
+                final_url,
+                page.text[:MAX_FILE_CHARS],
+                {"kind": "docs", "converter": converter},
+            )
         else:
             final_url = (page_dir / "url.txt").read_text(encoding="utf-8").strip()
             if not allowed_source_url(final_url, product, repo_meta):
                 log.warn("docs_skipped_off_product", url=final_url)
                 continue
             if is_generic_docs_url(final_url):
+                log.info("docs_skipped", url=final_url, reason="generic_docs")
                 continue
         already.add(normalize_url(final_url))
+        log.info("docs_kept", url=final_url, converter=converter)
         pages.append(
             {
                 "id": f"docs_{slug}",
@@ -1500,7 +1664,20 @@ def harvest_issues(
         return result
 
     raw_items = [item for item in (payload.get("items") or []) if isinstance(item, dict)]
-    ranked = [item for item in raw_items if not is_noisy_issue(item)]
+    ranked: list[dict[str, object]] = []
+    noisy = 0
+    for item in raw_items:
+        if is_noisy_issue(item):
+            noisy += 1
+            log.info(
+                "issues_skipped",
+                url=item.get("html_url"),
+                number=item.get("number"),
+                title=str(item.get("title") or "")[:120],
+                reason="noisy",
+            )
+            continue
+        ranked.append(item)
     ranked.sort(key=issue_sort_key)
     total = int(payload.get("total_count") or 0)
     if total > ISSUES_CAP or len(ranked) > ISSUES_CAP:
@@ -1522,6 +1699,7 @@ def harvest_issues(
                 text[:MAX_FILE_CHARS],
                 {"kind": "issue", "number": number, "state": item.get("state")},
             )
+        log.info("issues_kept", url=html_url, number=number, title=str(title)[:120])
         pages.append(
             {
                 "id": f"issue_{slug}",
@@ -1540,7 +1718,9 @@ def harvest_issues(
         count=len(pages),
         truncated=result["truncated"],
         fetched=len(raw_items),
-        kept=len(ranked),
+        kept=len(pages),
+        noisy=noisy,
+        total_count=total,
     )
     return result
 
@@ -1622,8 +1802,19 @@ def blog_seed_urls(product: dict[str, object]) -> list[str]:
         host = host_of(docs)
         if host and host not in FORGE_HOSTS:
             parsed = urlparse(docs)
-            candidates.append(f"{parsed.scheme}://{parsed.netloc}/blog")
-    return candidates
+            blog_host = host
+            if host.startswith("docs.") or host.startswith("help."):
+                blog_host = host.split(".", 1)[1]
+            candidates.append(f"{parsed.scheme}://{blog_host}/blog")
+    seen: set[str] = set()
+    unique: list[str] = []
+    for url in candidates:
+        key = normalize_url(url)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(url)
+    return unique
 
 
 def harvest_blog(
@@ -1636,17 +1827,32 @@ def harvest_blog(
     force: bool,
 ) -> dict[str, object]:
     result: dict[str, object] = {"lane": "blog", "truncated": False, "pages": []}
+    seeds = blog_seed_urls(product)
+    log.info("blog_seeds", count=len(seeds), urls=seeds)
     unique: list[str] = []
     seen: set[str] = set()
-    for url in blog_seed_urls(product):
+    skipped: dict[str, int] = {}
+    for url in seeds:
         key = normalize_url(url)
-        if key in seen or key in already:
+        if key in seen:
+            skipped["dup"] = skipped.get("dup", 0) + 1
+            log.info("blog_skipped", url=url, reason="dup")
+            continue
+        if key in already:
+            skipped["already"] = skipped.get("already", 0) + 1
+            log.info("blog_skipped", url=url, reason="already")
             continue
         seen.add(key)
         unique.append(url)
     if len(unique) > BLOG_CAP:
         result["truncated"] = True
+        for url in unique[BLOG_CAP:]:
+            skipped["cap"] = skipped.get("cap", 0) + 1
+            log.info("blog_skipped", url=url, reason="cap")
         unique = unique[:BLOG_CAP]
+    if not unique:
+        log.info("blog_skipped", reason="no_seeds", skipped_by=skipped)
+        return result
 
     pages: list[dict[str, object]] = []
     blog_root = cache / "blog"
@@ -1654,19 +1860,23 @@ def harvest_blog(
         slug = page_slug(url)
         page_dir = blog_root / slug
         if force or not page_exists(page_dir):
-            resp = fetch_with_retry(client, url)
+            page = fetch_prose(client, url)
             jitter()
-            if resp is None:
+            if page is None:
+                skipped["fetch_failed"] = skipped.get("fetch_failed", 0) + 1
+                log.info("blog_skipped", url=url, reason="fetch_failed")
                 continue
-            body = resp.text
-            if "html" in resp.headers.get("content-type", "") or body.lstrip()[:80].startswith(
-                "<"
-            ):
-                body = clean_html(body)
-            save_page(page_dir, str(resp.url), body[:MAX_FILE_CHARS], {"kind": "blog"})
-            final_url = str(resp.url)
+            save_page(
+                page_dir,
+                page.url,
+                page.text[:MAX_FILE_CHARS],
+                {"kind": "blog", "converter": page.converter},
+            )
+            final_url = page.url
+            log.info("blog_kept", url=final_url, converter=page.converter)
         else:
             final_url = (page_dir / "url.txt").read_text(encoding="utf-8").strip()
+            log.info("blog_kept", url=final_url)
         already.add(normalize_url(final_url))
         pages.append(
             {
@@ -1681,7 +1891,12 @@ def harvest_blog(
             }
         )
     result["pages"] = pages
-    log.info("blog_pages", count=len(pages), truncated=result["truncated"])
+    log.info(
+        "blog_pages",
+        count=len(pages),
+        truncated=result["truncated"],
+        skipped_by=skipped,
+    )
     return result
 
 
@@ -1695,9 +1910,138 @@ def harvest_search(
     *,
     force: bool,
 ) -> dict[str, object]:
-    del cache, product, repo_meta, already, client, force
     result: dict[str, object] = {"lane": "search", "truncated": False, "pages": []}
-    log.info("search_skipped", reason="open_docs_lists_only")
+    prefixes = [str(p) for p in (product.get("skip_url_prefixes") or [])]
+    skip_home = has_listed_docs(product)
+    skipped: dict[str, int] = {}
+    candidates: list[str] = []
+    seen: set[str] = set()
+    found = 0
+    queries = search_queries(product)
+    log.info("search_queries", queries=queries, skip_home=skip_home)
+    for query in queries:
+        hits, stats = web_search_stats(query, count=8)
+        log.info("search_query", query=query, **stats)
+        for hit in hits:
+            found += 1
+            url = hit.get("url") or ""
+            title = (hit.get("title") or "")[:120]
+            source = hit.get("source") or ""
+            log.info("search_hit", url=url, title=title, source=source, query=query)
+            blob = f"{hit.get('title') or ''} {hit.get('snippet') or ''} {url}"
+            if not url:
+                skipped["empty"] = skipped.get("empty", 0) + 1
+                log.info("search_skipped", url=url, reason="empty", query=query)
+                continue
+            if not allowed_source_url(url, product, repo_meta) and not product_mentioned(
+                blob, product
+            ):
+                skipped["product_not_in_snippet"] = skipped.get("product_not_in_snippet", 0) + 1
+                log.info("search_skipped", url=url, reason="product_not_in_snippet", query=query)
+                continue
+            reason = search_url_skip_reason(url, prefixes, skip_home=skip_home)
+            if reason:
+                skipped[reason] = skipped.get(reason, 0) + 1
+                log.info("search_skipped", url=url, reason=reason, query=query)
+                continue
+            key = normalize_url(url)
+            if key in already:
+                skipped["already"] = skipped.get("already", 0) + 1
+                log.info("search_skipped", url=url, reason="already", query=query)
+                continue
+            if key in seen:
+                skipped["dup"] = skipped.get("dup", 0) + 1
+                log.info("search_skipped", url=url, reason="dup", query=query)
+                continue
+            seen.add(key)
+            candidates.append(url)
+
+    first_party = [
+        url for url in candidates if allowed_source_url(url, product, repo_meta)
+    ]
+    third_party = [
+        url for url in candidates if not allowed_source_url(url, product, repo_meta)
+    ]
+    unique = first_party + third_party
+    if len(unique) > SEARCH_CAP:
+        result["truncated"] = True
+        for url in unique[SEARCH_CAP:]:
+            skipped["cap"] = skipped.get("cap", 0) + 1
+            log.info("search_skipped", url=url, reason="cap")
+        unique = unique[:SEARCH_CAP]
+    if not unique:
+        log.info(
+            "search_skipped",
+            reason="no_hits",
+            found=found,
+            skipped_by=skipped,
+        )
+        return result
+
+    pages: list[dict[str, object]] = []
+    root = cache / "search"
+    for url in unique:
+        slug = page_slug(url)
+        page_dir = root / slug
+        converter: str | None = None
+        if force or not page_exists(page_dir):
+            page = fetch_prose(client, url)
+            jitter()
+            if page is None:
+                skipped["fetch_failed"] = skipped.get("fetch_failed", 0) + 1
+                log.info("search_skipped", url=url, reason="fetch_failed")
+                continue
+            final_url = page.url
+            reason = search_url_skip_reason(final_url, prefixes, skip_home=skip_home)
+            if reason:
+                skipped[f"redirect_{reason}"] = skipped.get(f"redirect_{reason}", 0) + 1
+                log.info("search_skipped", url=final_url, reason=reason, via="redirect")
+                continue
+            body = page.text
+            first_party_page = allowed_source_url(final_url, product, repo_meta)
+            if not first_party_page and not product_mentioned(body, product):
+                skipped["product_not_in_body"] = skipped.get("product_not_in_body", 0) + 1
+                log.info("search_skipped", url=final_url, reason="product_not_in_body")
+                continue
+            kind, quality = search_page_meta(final_url, product, repo_meta)
+            converter = page.converter
+            save_page(
+                page_dir,
+                final_url,
+                body[:MAX_FILE_CHARS],
+                {"kind": kind, "converter": converter},
+            )
+        else:
+            final_url = (page_dir / "url.txt").read_text(encoding="utf-8").strip()
+            body = (page_dir / "content.txt").read_text(encoding="utf-8", errors="replace")
+            first_party_page = allowed_source_url(final_url, product, repo_meta)
+            if not first_party_page and not product_mentioned(body, product):
+                skipped["product_not_in_body"] = skipped.get("product_not_in_body", 0) + 1
+                log.info("search_skipped", url=final_url, reason="product_not_in_body")
+                continue
+            kind, quality = search_page_meta(final_url, product, repo_meta)
+        already.add(normalize_url(final_url))
+        log.info("search_kept", url=final_url, kind=kind, quality=quality, converter=converter)
+        pages.append(
+            {
+                "id": f"search_{slug}",
+                "lane": "search",
+                "kind": kind,
+                "url": final_url,
+                "path": str(page_dir.relative_to(cache) / "content.txt"),
+                "quality": quality,
+                "score_as_prose": True,
+                "accessed_at": utc_date(),
+            }
+        )
+    result["pages"] = pages
+    log.info(
+        "search_pages",
+        count=len(pages),
+        found=found,
+        truncated=result["truncated"],
+        skipped_by=skipped,
+    )
     return result
 
 
@@ -1715,43 +2059,68 @@ def harvest_community(
     prefixes = [str(p) for p in (product.get("skip_url_prefixes") or [])]
     seed_urls: set[str] = set()
     candidates: list[str] = []
+    skipped: dict[str, int] = {}
+    found = 0
     for url in product.get("community") or []:
         if isinstance(url, str) and url:
             candidates.append(url)
             seed_urls.add(normalize_url(url))
-    for query in community_search_queries(name):
-        hits = web_search(query, count=6)
-        log.info("community_query", query=query, hits=len(hits))
+            log.info("community_seed", url=url)
+    queries = community_search_queries(name)
+    log.info("community_queries", queries=queries)
+    for query in queries:
+        hits, stats = web_search_stats(query, count=6)
+        log.info("community_query", query=query, **stats)
         for hit in hits:
+            found += 1
             url = hit.get("url") or ""
+            title = (hit.get("title") or "")[:120]
+            source = hit.get("source") or ""
+            log.info("community_hit", url=url, title=title, source=source, query=query)
             blob = f"{hit.get('title') or ''} {hit.get('snippet') or ''} {url}"
             if not product_mentioned(blob, product):
+                skipped["product_not_in_snippet"] = skipped.get("product_not_in_snippet", 0) + 1
+                log.info("community_skipped", url=url, reason="product_not_in_snippet", query=query)
                 continue
-            if not is_community_host(host_of(url)):
-                continue
-            if normalize_url(url) not in seed_urls and not is_community_thread(url):
+            reason = community_url_skip_reason(url, prefixes, seed_urls)
+            if reason:
+                skipped[reason] = skipped.get(reason, 0) + 1
+                log.info("community_skipped", url=url, reason=reason, query=query)
                 continue
             candidates.append(url)
 
     unique: list[str] = []
     seen: set[str] = set()
     for url in candidates:
-        if skip_url(url, prefixes) or GITHUB_BLOB_RE.match(url) or ARXIV_RE.match(url):
-            continue
-        if LOGIN_PATH_RE.search(urlparse(url).path):
-            continue
-        if normalize_url(url) not in seed_urls and not is_community_thread(url):
+        reason = community_url_skip_reason(url, prefixes, seed_urls)
+        if reason:
+            skipped[reason] = skipped.get(reason, 0) + 1
+            log.info("community_skipped", url=url, reason=reason)
             continue
         key = normalize_url(url)
-        if key in seen or key in already:
+        if key in seen:
+            skipped["dup"] = skipped.get("dup", 0) + 1
+            log.info("community_skipped", url=url, reason="dup")
+            continue
+        if key in already:
+            skipped["already"] = skipped.get("already", 0) + 1
+            log.info("community_skipped", url=url, reason="already")
             continue
         seen.add(key)
         unique.append(url)
     if len(unique) > COMMUNITY_CAP:
         result["truncated"] = True
+        for url in unique[COMMUNITY_CAP:]:
+            skipped["cap"] = skipped.get("cap", 0) + 1
+            log.info("community_skipped", url=url, reason="cap")
         unique = unique[:COMMUNITY_CAP]
     if not unique:
-        log.info("community_skipped", reason="no_hits")
+        log.info(
+            "community_skipped",
+            reason="no_hits",
+            found=found,
+            skipped_by=skipped,
+        )
         return result
 
     pages: list[dict[str, object]] = []
@@ -1759,22 +2128,36 @@ def harvest_community(
     for url in unique:
         slug = page_slug(url)
         page_dir = root / slug
+        converter: str | None = None
         if force or not page_exists(page_dir):
-            resp = fetch_with_retry(client, url)
+            page = fetch_prose(client, url)
             jitter()
-            if resp is None:
+            if page is None:
+                skipped["fetch_failed"] = skipped.get("fetch_failed", 0) + 1
+                log.info("community_skipped", url=url, reason="fetch_failed")
                 continue
-            body = clean_html(resp.text)
+            body = page.text
             if not product_mentioned(body, product):
+                skipped["product_not_in_body"] = skipped.get("product_not_in_body", 0) + 1
+                log.info("community_skipped", url=page.url, reason="product_not_in_body")
                 continue
-            save_page(page_dir, str(resp.url), body[:MAX_FILE_CHARS], {"kind": "community"})
-            final_url = str(resp.url)
+            converter = page.converter
+            save_page(
+                page_dir,
+                page.url,
+                body[:MAX_FILE_CHARS],
+                {"kind": "community", "converter": converter},
+            )
+            final_url = page.url
         else:
             final_url = (page_dir / "url.txt").read_text(encoding="utf-8").strip()
             body = (page_dir / "content.txt").read_text(encoding="utf-8", errors="replace")
             if not product_mentioned(body, product):
+                skipped["product_not_in_body"] = skipped.get("product_not_in_body", 0) + 1
+                log.info("community_skipped", url=final_url, reason="product_not_in_body")
                 continue
         already.add(normalize_url(final_url))
+        log.info("community_kept", url=final_url, converter=converter)
         pages.append(
             {
                 "id": f"community_{slug}",
@@ -1788,7 +2171,13 @@ def harvest_community(
             }
         )
     result["pages"] = pages
-    log.info("community_pages", count=len(pages), truncated=result["truncated"])
+    log.info(
+        "community_pages",
+        count=len(pages),
+        found=found,
+        truncated=result["truncated"],
+        skipped_by=skipped,
+    )
     return result
 
 
@@ -1845,13 +2234,19 @@ def harvest(
         log.info("harvest_started", slug=slug)
         client = get_client()
         try:
+            log.info("lane_start", lane="repo")
             repo_meta = harvest_repo(cache, product, log, force=force)
+            log.info("lane_start", lane="docs")
             docs = harvest_docs(cache, product, repo_meta, already, log, client, force=force)
+            log.info("lane_start", lane="issues")
             issues = harvest_issues(cache, product, repo_meta, log, force=force)
+            log.info("lane_start", lane="blog")
             blog = harvest_blog(cache, product, already, log, client, force=force)
+            log.info("lane_start", lane="search")
             search = harvest_search(
                 cache, product, repo_meta, already, log, client, force=force
             )
+            log.info("lane_start", lane="community")
             community = harvest_community(cache, product, already, log, client, force=force)
         finally:
             client.close()

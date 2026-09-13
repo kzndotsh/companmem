@@ -6,6 +6,7 @@ from companmem_pipeline.harvest import (
     ISSUE_NOISE_RE,
     ISSUE_UX_RE,
     LOGIN_PATH_RE,
+    SEARCH_CAP,
     allowed_source_url,
     blog_seed_urls,
     detect_license,
@@ -18,6 +19,7 @@ from companmem_pipeline.harvest import (
     is_marketing_home,
     is_memory_path,
     is_noisy_issue,
+    is_search_url,
     issue_sort_key,
     load_seed,
     parse_llms_links,
@@ -27,10 +29,14 @@ from companmem_pipeline.harvest import (
     product_mentioned,
     product_path_tokens,
     public_https_repo,
+    search_page_meta,
+    search_queries,
+    search_url_skip_reason,
     select_code_files,
     select_code_inventory,
     select_docs_urls,
     select_listed_code_files,
+    select_search_urls,
 )
 
 
@@ -82,7 +88,7 @@ def test_blog_seed_skips_github_forge() -> None:
             "skip_url_prefixes": [],
         }
     )
-    assert urls == ["https://docs.mem0.ai/blog"]
+    assert urls == ["https://mem0.ai/blog"]
 
 
 def test_detect_license_agpl_before_gpl(tmp_path: Path) -> None:
@@ -257,6 +263,84 @@ def test_generic_docs_and_github_chrome() -> None:
     assert is_community_host("old.reddit.com")
     assert is_community_host("forum.honcho.dev")
     assert not is_community_host("docs.honcho.dev")
+
+
+def test_search_lane_filters_without_filling_docs() -> None:
+    mem0 = {
+        "id": "mem0",
+        "name": "Mem0",
+        "docs": "https://docs.mem0.ai/llms.txt",
+        "repo": "https://github.com/mem0ai/mem0",
+        "clone": True,
+        "open_docs": ["https://docs.mem0.ai/llms.txt"],
+        "skip_url_prefixes": [],
+    }
+    repo_meta = {"origin": "https://github.com/mem0ai/mem0"}
+    queries = search_queries(mem0)
+    assert any("doesn't remember" in q for q in queries)
+    assert any("LoCoMo" in q for q in queries)
+    assert any(q.startswith("site:docs.mem0.ai") for q in queries)
+    assert all("wikipedia" not in q.lower() for q in queries)
+    assert all("reddit" not in q.lower() for q in queries)
+    closed = search_queries(
+        {"id": "replika", "name": "Replika", "clone": False, "docs": "https://help.replika.com/"}
+    )
+    assert any(q.startswith("site:en.wikipedia.org") for q in closed)
+    assert is_search_url("https://docs.mem0.ai/platform/overview", [])
+    assert search_url_skip_reason("https://mem0.ai/", [], skip_home=True) == "marketing_home"
+    assert search_url_skip_reason("https://deepwiki.com/mem0ai/mem0", []) == "mirror"
+    assert search_url_skip_reason("https://news.ycombinator.com/item?id=1", []) == (
+        "community_host"
+    )
+    assert search_url_skip_reason("https://github.com/mem0ai/mem0/issues/1", []) == "forge"
+    assert search_url_skip_reason("https://arxiv.org/abs/2401.0001", []) == "arxiv"
+    assert is_search_url("https://example.com/mem0-forgets-names", [])
+    already = {"https://docs.mem0.ai/llms.txt"}
+    kept, truncated = select_search_urls(
+        [
+            "https://docs.mem0.ai/llms.txt",
+            "https://mem0.ai/",
+            "https://docs.mem0.ai/platform/overview",
+            "https://news.ycombinator.com/item?id=1",
+            "https://blog.example.com/mem0-review",
+            "https://github.com/mem0ai/mem0",
+            "https://deepwiki.com/mem0ai/mem0",
+            "https://microsoft.github.io/autogen/0.2/docs/ecosystem/mem0/",
+        ],
+        mem0,
+        repo_meta,
+        already,
+        cap=SEARCH_CAP,
+    )
+    assert "https://docs.mem0.ai/llms.txt" not in kept
+    assert "https://mem0.ai/" not in kept
+    assert kept[0] == "https://docs.mem0.ai/platform/overview"
+    assert "https://blog.example.com/mem0-review" in kept
+    assert "https://news.ycombinator.com/item?id=1" not in kept
+    assert "https://deepwiki.com/mem0ai/mem0" not in kept
+    assert not truncated
+    assert search_page_meta("https://docs.mem0.ai/platform/overview", mem0, repo_meta) == (
+        "docs",
+        "high",
+    )
+    assert search_page_meta("https://blog.example.com/mem0-review", mem0, repo_meta) == (
+        "blog",
+        "medium",
+    )
+    home_kept, _ = select_search_urls(
+        ["https://kindroid.ai/"],
+        {
+            "id": "kindroid",
+            "name": "Kindroid",
+            "clone": False,
+            "open_docs": [],
+            "docs": None,
+            "skip_url_prefixes": [],
+        },
+        {},
+        set(),
+    )
+    assert home_kept == ["https://kindroid.ai/"]
 
 
 def test_issue_rank_prefers_ux_over_noise() -> None:

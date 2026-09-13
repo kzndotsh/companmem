@@ -37,9 +37,9 @@ BRAVE_API_KEY: str | None = _load_brave_key()
 SearchHit = dict[str, str]
 
 
-def _brave_search(query: str, count: int = 8) -> list[SearchHit]:
+def _brave_search(query: str, count: int = 8) -> tuple[list[SearchHit], str | None]:
     if not BRAVE_API_KEY:
-        return []
+        return [], "no_brave_key"
     try:
         resp = httpx.get(
             "https://api.search.brave.com/res/v1/web/search",
@@ -72,12 +72,17 @@ def _brave_search(query: str, count: int = 8) -> list[SearchHit]:
                     "source": "brave_news",
                 }
             )
-        return results[:count]
-    except (httpx.HTTPError, ValueError):
-        return []
+        kept = results[:count]
+        if not kept:
+            return [], "brave_empty"
+        return kept, None
+    except httpx.HTTPStatusError as exc:
+        return [], f"brave_http_{exc.response.status_code}"
+    except (httpx.HTTPError, ValueError) as exc:
+        return [], f"brave_error:{type(exc).__name__}"
 
 
-def _ddg_search(query: str, count: int = 6) -> list[SearchHit]:
+def _ddg_search(query: str, count: int = 6) -> tuple[list[SearchHit], str | None]:
     try:
         resp = httpx.get(
             "https://html.duckduckgo.com/html/",
@@ -109,9 +114,13 @@ def _ddg_search(query: str, count: int = 6) -> list[SearchHit]:
                 )
             if len(results) >= count:
                 break
-        return results
-    except (httpx.HTTPError, ValueError):
-        return []
+        if not results:
+            return [], "ddg_empty"
+        return results, None
+    except httpx.HTTPStatusError as exc:
+        return [], f"ddg_http_{exc.response.status_code}"
+    except (httpx.HTTPError, ValueError) as exc:
+        return [], f"ddg_error:{type(exc).__name__}"
 
 
 def _dedup_results(results: list[SearchHit]) -> list[SearchHit]:
@@ -134,16 +143,27 @@ def _dedup_results(results: list[SearchHit]) -> list[SearchHit]:
     return deduped
 
 
+def web_search_stats(query: str, count: int = 8) -> tuple[list[SearchHit], dict[str, object]]:
+    """Brave then DuckDuckGo. Stats explain empty results without logging the API key."""
+    brave_hits, brave_error = _brave_search(query, count=count)
+    ddg_count = count if not brave_hits else max(4, count - len(brave_hits))
+    ddg_hits, ddg_error = _ddg_search(query, count=ddg_count)
+    merged = _dedup_results([*brave_hits, *ddg_hits])[:count]
+    stats: dict[str, object] = {
+        "brave_key": bool(BRAVE_API_KEY),
+        "brave_hits": len(brave_hits),
+        "ddg_hits": len(ddg_hits),
+        "merged_hits": len(merged),
+        "brave_error": brave_error,
+        "ddg_error": ddg_error,
+    }
+    return merged, stats
+
+
 def web_search(query: str, count: int = 8) -> list[SearchHit]:
     """Brave if BRAVE_API_KEY is set, else DuckDuckGo. Returns hit dicts with urls."""
-    all_results: list[SearchHit] = []
-    brave = _brave_search(query, count=count)
-    all_results.extend(brave)
-    if not brave:
-        all_results.extend(_ddg_search(query, count=count))
-    else:
-        all_results.extend(_ddg_search(query, count=max(4, count - len(brave))))
-    return _dedup_results(all_results)[:count]
+    hits, _stats = web_search_stats(query, count=count)
+    return hits
 
 
 def fetch_url_text(url: str, max_chars: int = 200_000) -> str | None:
