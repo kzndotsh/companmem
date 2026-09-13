@@ -276,12 +276,23 @@ def extract_page(
     product_name: str,
     force: bool,
     log: PipelineLogger,
+    index: int = 0,
+    total: int = 0,
 ) -> str:
     page_id = str(page["id"])
     out_dir = cache / "extract" / page_id
     out_dir.mkdir(parents=True, exist_ok=True)
     meta_path = out_dir / "meta.json"
     extract_path = out_dir / "extract.json"
+    log.info(
+        "extract_page_begin",
+        page_id=page_id,
+        index=index,
+        total=total,
+        url=str(page.get("url") or ""),
+        kind=str(page.get("kind") or "docs"),
+        path=str(page.get("path") or ""),
+    )
     if not force and meta_path.exists() and extract_path.exists():
         meta = json.loads(meta_path.read_text(encoding="utf-8"))
         if meta.get("prompt_hash") == prompt_hash():
@@ -318,8 +329,22 @@ def extract_page(
     kind = str(page.get("kind") or "docs")
     url = str(page.get("url") or "")
     chunks = chunk_text(text)
+    log.info(
+        "extract_page_ready",
+        page_id=page_id,
+        chars=len(text),
+        chunks=len(chunks),
+        word_count=score.get("word_count"),
+    )
     chunk_results: list[dict[str, object]] = []
-    for chunk in chunks:
+    for chunk_i, chunk in enumerate(chunks, start=1):
+        log.info(
+            "extract_chunk",
+            page_id=page_id,
+            chunk=chunk_i,
+            chunks=len(chunks),
+            chars=len(chunk),
+        )
         user = (
             f"Product: {product_name} (id: {product_id}). Extract only this product.\n"
             f"Source kind: {kind}\n"
@@ -336,11 +361,19 @@ def extract_page(
             temperature=0.1,
         )
         if parsed is None:
-            log.error("extract_kiro_failed", page_id=page_id)
+            log.error("extract_kiro_failed", page_id=page_id, chunk=chunk_i, chunks=len(chunks))
             continue
         chunk_results.append(normalize_extract(parsed, kind=kind, url=url))
+        log.info(
+            "extract_chunk_ok",
+            page_id=page_id,
+            chunk=chunk_i,
+            ledger=len(chunk_results[-1]["ledger"]),
+        )
         time.sleep(random.uniform(0.4, 1.2))
     merged = merge_chunks(chunk_results)
+    if not chunk_results:
+        log.warn("extract_empty", page_id=page_id, reason="all_chunks_failed")
     extract_path.write_text(json.dumps(merged, indent=2), encoding="utf-8")
     meta_path.write_text(
         json.dumps(
@@ -373,7 +406,9 @@ def extract(slug: str, *, force: bool = False, dry_run: bool = False) -> None:
         raise SystemExit("ERROR: Set KIRO_GATEWAY_API_KEY or PROXY_API_KEY")
     with PipelineLogger("extract", source=slug, pages=len(pages), force=force) as log:
         counts = {"ok": 0, "skipped": 0, "low_quality": 0, "missing": 0}
-        for page in pages:
+        total = len(pages)
+        log.info("extract_pages", total=total, product_id=product_id, product_name=product_name)
+        for index, page in enumerate(pages, start=1):
             if not isinstance(page, dict):
                 continue
             status = extract_page(
@@ -383,8 +418,17 @@ def extract(slug: str, *, force: bool = False, dry_run: bool = False) -> None:
                 product_name=product_name,
                 force=force,
                 log=log,
+                index=index,
+                total=total,
             )
             counts[status] = counts.get(status, 0) + 1
+            log.info(
+                "extract_page_done",
+                page_id=str(page.get("id") or ""),
+                status=status,
+                index=index,
+                total=total,
+            )
         log.info("extract_finished", **counts)
         print(f"extract {slug}: {counts}")
 

@@ -1,12 +1,83 @@
-"""Structured JSONL logging for pipeline steps."""
+"""Structured JSONL logging for pipeline steps. Echoes the same events to stderr."""
 
 from __future__ import annotations
 
 import json
+import os
+import sys
 import time
 from datetime import UTC, datetime
+from typing import TextIO
 
 from companmem_pipeline.paths import LOGS_DIR
+
+_REDACT_NAMES = {
+    "token",
+    "api_key",
+    "apikey",
+    "password",
+    "authorization",
+    "github_token",
+    "brave_api_key",
+    "proxy_api_key",
+    "kiro_gateway_api_key",
+    "x-api-key",
+    "x-subscription-token",
+}
+_CONSOLE_VALUE_CHARS = 300
+
+
+def console_enabled() -> bool:
+    return os.environ.get("COMPANMEM_LOG_CONSOLE", "1") not in {"0", "false", "no"}
+
+
+def _is_sensitive(name: str, value: object) -> bool:
+    n = name.lower().replace("-", "_")
+    if n in _REDACT_NAMES:
+        return True
+    if "token" in n and isinstance(value, str) and len(value) > 12:
+        return True
+    return False
+
+
+def _short(value: object) -> str:
+    if isinstance(value, str):
+        text = value.replace("\n", " ")
+    else:
+        try:
+            text = json.dumps(value, ensure_ascii=False, default=str)
+        except TypeError:
+            text = str(value)
+    if len(text) > _CONSOLE_VALUE_CHARS:
+        return text[: _CONSOLE_VALUE_CHARS - 3] + "..."
+    return text
+
+
+def emit_console(
+    step: str,
+    source: str,
+    level: str,
+    event: str,
+    *,
+    elapsed: float | None = None,
+    file: TextIO | None = None,
+    **data: object,
+) -> None:
+    """One-line progress on stderr. No secrets. Always flushed."""
+    if not console_enabled():
+        return
+    parts = [datetime.now(UTC).isoformat(timespec="seconds"), step]
+    if source:
+        parts.append(source)
+    parts.append(level.upper())
+    parts.append(event)
+    if elapsed is not None:
+        parts.append(f"elapsed={elapsed}")
+    for key, value in data.items():
+        if value is None or _is_sensitive(key, value):
+            continue
+        parts.append(f"{key}={_short(value)}")
+    print(" ".join(parts), file=file or sys.stderr, flush=True)
 
 
 class PipelineLogger:
@@ -28,6 +99,13 @@ class PipelineLogger:
             "decisions": 0,
             "actions": 0,
         }
+        emit_console(
+            self.step,
+            self.source,
+            "info",
+            "log_file",
+            path=str(self.log_path),
+        )
         self._write("info", "run_started", **metadata)
 
     def _ts(self) -> str:
@@ -37,6 +115,7 @@ class PipelineLogger:
         return round(time.time() - self.start_time, 2)
 
     def _write(self, level: str, event: str, **data: object) -> None:
+        safe = {k: v for k, v in data.items() if v is not None and not _is_sensitive(k, v)}
         entry: dict[str, object] = {
             "ts": self._ts(),
             "elapsed": self._elapsed(),
@@ -46,9 +125,17 @@ class PipelineLogger:
             "step": self.step,
             "source": self.source,
         }
-        entry.update({k: v for k, v in data.items() if v is not None})
-        self._file.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        entry.update(safe)
+        self._file.write(json.dumps(entry, ensure_ascii=False, default=str) + "\n")
         self._file.flush()
+        emit_console(
+            self.step,
+            self.source,
+            level,
+            event,
+            elapsed=self._elapsed(),
+            **safe,
+        )
 
     def debug(self, event: str, **data: object) -> None:
         self._write("debug", event, **data)
@@ -88,4 +175,6 @@ class PipelineLogger:
         exc: BaseException | None,
         tb: object,
     ) -> None:
+        if exc is not None:
+            self.error("run_failed", error_type=type(exc).__name__, error=str(exc)[:500])
         self.close()

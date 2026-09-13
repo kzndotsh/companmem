@@ -123,7 +123,11 @@ def fold_page_absence_unknowns(
     return kept
 
 
-def fold_pages(extracts: list[dict[str, object]], manifest: dict[str, object]) -> dict[str, object]:
+def fold_pages(
+    extracts: list[dict[str, object]],
+    manifest: dict[str, object],
+    log: PipelineLogger | None = None,
+) -> dict[str, object]:
     identity = {
         "id": str(manifest.get("id") or ""),
         "name": str(manifest.get("name") or ""),
@@ -138,6 +142,7 @@ def fold_pages(extracts: list[dict[str, object]], manifest: dict[str, object]) -
     mechanisms: list[dict[str, object]] = []
     unknowns: list[dict[str, object]] = []
     sources_by_url: dict[str, dict[str, object]] = {}
+    dropped_uncited = 0
 
     for page in manifest.get("pages") or []:
         if not isinstance(page, dict):
@@ -184,6 +189,7 @@ def fold_pages(extracts: list[dict[str, object]], manifest: dict[str, object]) -
             unknowns.append(row)
         for row in extract.get("ledger") or []:
             if not isinstance(row, dict) or not has_citation(row):
+                dropped_uncited += 1
                 continue
             key = ledger_key(row)
             existing = ledger_by_key.get(key)
@@ -193,8 +199,10 @@ def fold_pages(extracts: list[dict[str, object]], manifest: dict[str, object]) -
     ledger = list(ledger_by_key.values())
     audit = empty_audit(identity)
     audit["ledger"] = ledger
-    audit["claimed_purpose"] = cited_summaries(purposes, ledger)
-    audit["mechanisms"] = cited_summaries(mechanisms, ledger)
+    purpose_kept = cited_summaries(purposes, ledger)
+    mechanism_kept = cited_summaries(mechanisms, ledger)
+    audit["claimed_purpose"] = purpose_kept
+    audit["mechanisms"] = mechanism_kept
     seen_unknown: set[str] = set()
     unique_unknowns: list[dict[str, object]] = []
     for item in unknowns:
@@ -205,12 +213,31 @@ def fold_pages(extracts: list[dict[str, object]], manifest: dict[str, object]) -
             continue
         seen_unknown.add(key)
         unique_unknowns.append(item)
+    absence_in = sum(
+        1 for item in unique_unknowns if is_page_absence(str(item.get("text") or ""))
+    )
     audit["unknowns"] = fold_page_absence_unknowns(unique_unknowns)
     audit["sources"] = list(sources_by_url.values())
     audit["copy"] = []
     audit["refuse"] = []
     audit["consensus"] = []
     audit["contested"] = []
+    if log is not None:
+        log.info(
+            "fold_stats",
+            extracts=len(extracts),
+            purpose_in=len(purposes),
+            purpose_kept=len(purpose_kept),
+            mechanisms_in=len(mechanisms),
+            mechanisms_kept=len(mechanism_kept),
+            unknowns_in=len(unknowns),
+            unknowns_unique=len(unique_unknowns),
+            unknowns_kept=len(audit["unknowns"]),
+            absence_unknowns_in=absence_in,
+            ledger=len(ledger),
+            ledger_dropped_uncited=dropped_uncited,
+            sources=len(audit["sources"]),
+        )
     return audit
 
 
@@ -254,13 +281,18 @@ def fold(slug: str) -> dict[str, object]:
     manifest = load_json(manifest_path)
     extracts = load_extracts(cache, manifest)
     with PipelineLogger("fold", source=slug, extracts=len(extracts)) as log:
-        candidate = fold_pages(extracts, manifest)
+        log.info("fold_started", extract_files=len(extracts), manifest=str(manifest_path))
+        candidate = fold_pages(extracts, manifest, log=log)
         out = cache / "candidate.json"
         out.write_text(json.dumps(candidate, indent=2), encoding="utf-8")
         log.action(
             "candidate_written",
+            path=str(out),
             ledger=len(candidate["ledger"]),
             sources=len(candidate["sources"]),
+            purpose=len(candidate["claimed_purpose"]),
+            mechanisms=len(candidate["mechanisms"]),
+            unknowns=len(candidate["unknowns"]),
         )
         print(
             f"fold {slug}: {len(candidate['ledger'])} ledger rows, "

@@ -8,6 +8,7 @@ from pathlib import Path
 
 import jsonschema
 
+from companmem_pipeline.log import PipelineLogger
 from companmem_pipeline.paths import OUTPUT_DIR, SCHEMA_PATH
 
 _schema_cache: dict[str, object] | None = None
@@ -65,15 +66,25 @@ def lint_all() -> int:
         print("no audit.json files")
         return 0
     failed = 0
-    for path in paths:
-        errors = lint_path(path)
-        if errors:
-            failed += 1
-            print(f"FAIL {path}")
-            for err in errors:
-                print(f"  {err}")
-        else:
-            print(f"ok {path}")
+    with PipelineLogger("lint", source="seed", files=len(paths)) as log:
+        log.info("lint_started", files=len(paths))
+        for path in paths:
+            errors = lint_path(path)
+            if errors:
+                failed += 1
+                log.error(
+                    "lint_fail",
+                    path=str(path),
+                    error_count=len(errors),
+                    errors=errors[:20],
+                )
+                print(f"FAIL {path}")
+                for err in errors:
+                    print(f"  {err}")
+            else:
+                log.info("lint_ok", path=str(path))
+                print(f"ok {path}")
+        log.info("lint_finished", ok=len(paths) - failed, failed=failed)
     return 1 if failed else 0
 
 
@@ -82,12 +93,16 @@ def main() -> None:
     parser.add_argument("--path", help="Single audit.json path")
     args = parser.parse_args()
     if args.path:
-        errors = lint_path(Path(args.path))
-        if errors:
-            for err in errors:
-                print(err)
-            raise SystemExit(1)
-        print(f"ok {args.path}")
+        path = Path(args.path)
+        with PipelineLogger("lint", source=path.stem) as log:
+            errors = lint_path(path)
+            if errors:
+                log.error("lint_fail", path=str(path), errors=errors[:20])
+                for err in errors:
+                    print(err)
+                raise SystemExit(1)
+            log.info("lint_ok", path=str(path))
+            print(f"ok {args.path}")
         return
     raise SystemExit(lint_all())
 

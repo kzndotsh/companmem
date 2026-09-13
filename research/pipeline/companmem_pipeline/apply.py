@@ -122,20 +122,45 @@ def apply_slug(slug: str, *, write: bool) -> dict[str, object]:
     existing = load_json(dest) if dest.exists() else None
     merged = merge_audits(existing, candidate)
     with PipelineLogger("apply", source=slug, write=write) as log:
-        log.info("apply_started", dest=str(dest), exists=dest.exists())
+        log.info(
+            "apply_started",
+            dest=str(dest),
+            exists=dest.exists(),
+            candidate=str(candidate_path),
+        )
         print(("WRITE " if write else "DRY-RUN ") + summarize(merged))
         if existing is not None:
             log.info("existing_summary", summary=summarize(existing))
+            for field in INTERPRETATION_FIELDS:
+                kept = object_rows(merged.get(field))
+                incoming = object_rows(candidate.get(field))
+                existing_rows = object_rows(existing.get(field))
+                log.info(
+                    "apply_interpretation",
+                    field=field,
+                    existing=len(existing_rows),
+                    incoming=len(incoming),
+                    merged=len(kept),
+                    preserved=bool(existing_rows and not incoming),
+                )
+        log.info(
+            "apply_merged",
+            summary=summarize(merged),
+            purpose=len(object_rows(merged.get("claimed_purpose"))),
+            mechanisms=len(object_rows(merged.get("mechanisms"))),
+            unknowns=len(object_rows(merged.get("unknowns"))),
+        )
         errors = lint_audit(merged)
         if errors:
-            log.error("lint_failed", errors=errors)
+            log.error("lint_failed", error_count=len(errors), errors=errors[:20])
             raise SystemExit("lint failed on merged audit:\n" + "\n".join(errors))
+        log.info("lint_ok", dest=str(dest))
         if write:
             write_if_linted(merged, dest)
-            log.action("audit_written", path=str(dest))
+            log.action("audit_written", path=str(dest), summary=summarize(merged))
             print(f"wrote {dest}")
         else:
-            log.decision("apply_dry_run", path=str(dest))
+            log.decision("apply_dry_run", path=str(dest), summary=summarize(merged))
     return merged
 
 

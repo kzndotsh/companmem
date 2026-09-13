@@ -101,6 +101,12 @@ def synthesize(*, write: bool = True) -> dict[str, object]:
         + json.dumps(payload, indent=2)
     )
     with PipelineLogger("synthesize", source="seed", products=present) as log:
+        log.info(
+            "synthesize_started",
+            present=len(present),
+            missing=len(missing),
+            missing_ids=missing,
+        )
         parsed = call_kiro(
             user,
             SYSTEM_PROMPT
@@ -120,11 +126,25 @@ def synthesize(*, write: bool = True) -> dict[str, object]:
             "unknowns": parsed.get("unknowns") or [],
         }
         dest = OUTPUT_DIR / "_synthesis.json"
+        log.info(
+            "synthesize_parsed",
+            themes=len(record["themes"]) if isinstance(record["themes"], list) else 0,
+            recurring=len(record["recurring_mechanisms"])
+            if isinstance(record["recurring_mechanisms"], list)
+            else 0,
+            gaps=len(record["shared_gaps"]) if isinstance(record["shared_gaps"], list) else 0,
+        )
         if write:
             dest.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
-            log.action("synthesis_written", path=str(dest), products=len(present))
+            log.action(
+                "synthesis_written",
+                path=str(dest),
+                products=len(present),
+                missing=len(missing),
+            )
             print(f"wrote {dest} ({len(present)} products, {len(missing)} missing)")
         else:
+            log.decision("synthesize_dry_run", products=len(present))
             print(json.dumps(record, indent=2))
         return record
 

@@ -8,6 +8,7 @@ import time
 
 import httpx
 
+from companmem_pipeline.log import emit_console
 from companmem_pipeline.paths import load_dotenv
 
 load_dotenv()
@@ -84,10 +85,32 @@ def call_kiro(
         "content-type": "application/json",
     }
     url = f"{KIRO_URL.rstrip('/')}/v1/messages"
+    chosen = model or MODEL
     last_error: Exception | None = None
+    started = time.time()
+    emit_console(
+        "kiro",
+        "",
+        "info",
+        "kiro_request",
+        model=chosen,
+        user_chars=len(user_text),
+        timeout=timeout,
+        temperature=temperature,
+    )
     for attempt in range(3):
+        emit_console("kiro", "", "info", "kiro_attempt", attempt=attempt + 1, attempts=3)
         try:
             resp = httpx.post(url, headers=headers, json=payload, timeout=timeout)
+            emit_console(
+                "kiro",
+                "",
+                "info",
+                "kiro_response",
+                attempt=attempt + 1,
+                status=resp.status_code,
+                elapsed=round(time.time() - started, 2),
+            )
             resp.raise_for_status()
             body = resp.json()
             text_out = "".join(
@@ -97,12 +120,48 @@ def call_kiro(
             )
             parsed = parse_json_object(text_out)
             if parsed is not None:
+                emit_console(
+                    "kiro",
+                    "",
+                    "info",
+                    "kiro_ok",
+                    attempt=attempt + 1,
+                    elapsed=round(time.time() - started, 2),
+                    reply_chars=len(text_out),
+                )
                 return parsed
             last_error = ValueError("response was not a JSON object")
+            emit_console(
+                "kiro",
+                "",
+                "warn",
+                "kiro_not_json",
+                attempt=attempt + 1,
+                reply_chars=len(text_out),
+                preview=text_out[:120].replace("\n", " "),
+            )
         except (httpx.HTTPStatusError, httpx.TimeoutException, json.JSONDecodeError) as exc:
             last_error = exc
+            emit_console(
+                "kiro",
+                "",
+                "warn",
+                "kiro_http_error",
+                attempt=attempt + 1,
+                error_type=type(exc).__name__,
+                error=str(exc)[:300],
+            )
         if attempt < 2:
             time.sleep(min(2**attempt, 8))
     if last_error is not None:
+        emit_console(
+            "kiro",
+            "",
+            "error",
+            "kiro_failed",
+            error_type=type(last_error).__name__,
+            error=str(last_error)[:300],
+            elapsed=round(time.time() - started, 2),
+        )
         print(f"kiro failed: {type(last_error).__name__}: {last_error}")
     return None
