@@ -12,7 +12,6 @@ LOGS_DIR = CACHE_DIR / "logs"
 OUTPUT_DIR = ROOT / "research" / "output" / "by-product"
 SCHEMA_PATH = PIPELINE_DIR / "audit.schema.json"
 SEED_PATH = PIPELINE_DIR / "seed.json"
-CENSUS_CARDS = ROOT / "sandbox" / "research" / "census" / "cards"
 
 
 def load_dotenv(path: Path | None = None) -> None:

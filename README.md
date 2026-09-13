@@ -28,7 +28,6 @@ Agent skills in [`.agents/skills/`](.agents/skills/) back this up: research, sum
 | [`docs/`](docs/) | Active research; start with `QUESTIONS.md` |
 | [`research/pipeline/`](research/pipeline/) | Harvest / extract / fold / apply |
 | [`research/output/`](research/output/) | Product `audit.json` records; see `by-product/PROTOCOL.md` |
-| [`sandbox/`](sandbox/) | Archived sprint 1: harness, eval fixtures, census, reference impl. Reference only. Do not extend in place. See [`sandbox/README.md`](sandbox/README.md). |
 | [`.agents/skills/`](.agents/skills/) | Project agent skills, git-tracked |
 
 ## What this is not (yet)
@@ -36,8 +35,6 @@ Agent skills in [`.agents/skills/`](.agents/skills/) back this up: research, sum
 - Not a shipped memory product or library
 - Not a push for LoCoMo leaderboard scores alone
 - Not a bet on one storage architecture (vector DB, graph, files, OS-style paging)
-
-Sprint 1 in `sandbox/` built comparison harnesses and census work. That code stays for reference. It is not the active direction.
 
 ## Contributing / using agents
 

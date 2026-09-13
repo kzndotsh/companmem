@@ -52,7 +52,7 @@ Phase 1 and Phase 2 can overlap. Do not wait to finish every audit before this s
 
 Turn those behaviors into something we can run. A third party runs the same thing on us and on other products.
 
-The exam is the hard problem. We do not have it yet. Long-chat QA might be one probe. It is not automatically winning. The archived sandbox eval stays archived. Do not extend it.
+The exam is the hard problem. We do not have it yet. Long-chat QA might be one probe. It is not automatically winning.
 
 Expect two comparison tracks, because they are not the same engineering:
 
@@ -94,5 +94,4 @@ Keep running the Phase 3 exam on us and on others. If we stop beating them, the 
 - Treat a layer sketch as the product
 - Ship the industry default because every audit showed it
 - Treat an easy leaderboard as winning
-- Extend the archived sandbox
 - Implement before Phase 4

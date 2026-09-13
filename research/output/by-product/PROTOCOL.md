@@ -6,7 +6,7 @@ Not a medical systematic review. Steal Kitchenham protocol-first discipline, Woh
 
 **Decision.** If we built companion memory tomorrow, what in this system is load-bearing, what is cargo-cult, and what would we refuse? Being wrong means cloning a retrieve-then-speak stack or missing a real technique.
 
-Census JSON cards under `sandbox/research/census/cards/` are harvest leads (URLs). Do not copy `companion_fit` or 12-axis scores into `audit.json`. Do not edit sandbox.
+Do not write `companion_fit` or 12-axis scores into `audit.json`.
 
 ## Research questions
 
@@ -74,9 +74,7 @@ After `audit.json` files exist, write [`_synthesis.json`](_synthesis.json) over 
 
 ## Seed
 
-Every id in [`../../pipeline/seed.json`](../../pipeline/seed.json) is in scope. No priority slices. Census cards are URL leads only.
-
-Ids from [`sandbox/research/_contracts/PLAYER-LIST.md`](../../../sandbox/research/_contracts/PLAYER-LIST.md).
+Every id in [`../../pipeline/seed.json`](../../pipeline/seed.json) is in scope. No priority slices.
 
 | id | name | repo | docs | notes |
 | --- | --- | --- | --- | --- |

@@ -468,7 +468,7 @@ Answers are working notes — revise as we learn. **Citations** are inline links
   - **Reviewed** diff — human or separate verifier ([AVP](https://github.com/ontojoseki/agentic-verification-protocol)).
 
 - How do we structure the repo so research and code don't blur together?
-  - Separate `docs/` from implementation; archive experiments in `sandbox/`.
+  - Separate `docs/` from implementation; keep throwaway spikes out of git.
   - Harbor pattern: task = instruction + environment + verifier, kept distinct ([Harbor](https://www.harborframework.com/docs/run-jobs/run-evals)).
 
 - What belongs in version control vs notes vs throwaway experiments?

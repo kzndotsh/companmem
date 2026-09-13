@@ -7,7 +7,6 @@ Research on memory for realistic human and companion communication. Not a retrie
 ## Constraints
 
 - No product implementation at the repo root until groups of questions are `settled` and the user asks for code
-- Do not extend [`sandbox/`](sandbox/). Sprint 1 is archived reference (harness, census cards, fixtures)
 - Do not commit unless asked
 - Cite primary sources. Do not invent citations
 - Do not draft an ADR, product spec, or implementation for a question that is `open` or `deferred`
@@ -25,12 +24,9 @@ research/output/
   by-product/             # audit.json per product
   by-paper/               # reserved
   by-eval/                # reserved
-sandbox/                   # archived sprint 1. read-only
 .agents/skills/            # git-tracked agent skills
 .cache/                    # harvest clones and extracts. gitignored + cursorignored
 ```
-
-Census JSON under `sandbox/research/census/` is a lead (URLs). Do not copy FIT scores into new audits. Do not edit sandbox.
 
 ## Research gate
 
@@ -73,6 +69,6 @@ Env: `KIRO_GATEWAY_URL`, `KIRO_GATEWAY_API_KEY` (fallback `PROXY_API_KEY`). Harv
 
 ## Style
 
-- Conventional commits: `type(scope): subject` (no trailing period). Types: `docs`, `feat`, `fix`, `chore`, `ci`, `refactor`. Scope when useful: `research`, `pipeline`, `sandbox`
+- Conventional commits: `type(scope): subject` (no trailing period). Types: `docs`, `feat`, `fix`, `chore`, `ci`, `refactor`. Scope when useful: `research`, `pipeline`
 - Python (when added): Ruff, 4-space, typed, `Type | None`, no bare `except`, no inline imports, no `any`
 - Nested `AGENTS.md` files stay thin. Do not duplicate QUESTIONS.md or schema here

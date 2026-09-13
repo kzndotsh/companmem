@@ -27,7 +27,6 @@ from companmem_pipeline.httputil import (
 )
 from companmem_pipeline.log import PipelineLogger
 from companmem_pipeline.paths import (
-    CENSUS_CARDS,
     SEED_PATH,
     load_dotenv,
     product_cache,
@@ -262,16 +261,7 @@ def load_product(slug: str) -> dict[str, object]:
     if not isinstance(products, dict) or slug not in products:
         raise SystemExit(f"unknown product slug: {slug}")
     product = dict(products[slug])
-    card_path = CENSUS_CARDS / f"{slug}.json"
-    census_sources: list[str] = []
-    if card_path.exists():
-        card = json.loads(card_path.read_text(encoding="utf-8"))
-        if not product.get("repo") and card.get("repo"):
-            product["repo"] = card["repo"]
-        if not product.get("docs") and card.get("docs"):
-            product["docs"] = card["docs"]
-        census_sources = [s for s in (card.get("sources") or []) if isinstance(s, str)]
-    product["census_sources"] = census_sources
+    product["census_sources"] = []
     return product
 
 
@@ -1943,7 +1933,7 @@ def harvest_search(
             url = hit.get("url") or ""
             title = (hit.get("title") or "")[:120]
             source = hit.get("source") or ""
-            log.info("search_hit", url=url, title=title, source=source, query=query)
+            log.info("search_hit", url=url, title=title, engine=source, query=query)
             blob = f"{hit.get('title') or ''} {hit.get('snippet') or ''} {url}"
             if not url:
                 skipped["empty"] = skipped.get("empty", 0) + 1
@@ -2093,7 +2083,7 @@ def harvest_community(
             url = hit.get("url") or ""
             title = (hit.get("title") or "")[:120]
             source = hit.get("source") or ""
-            log.info("community_hit", url=url, title=title, source=source, query=query)
+            log.info("community_hit", url=url, title=title, engine=source, query=query)
             blob = f"{hit.get('title') or ''} {hit.get('snippet') or ''} {url}"
             if not product_mentioned(blob, product):
                 skipped["product_not_in_snippet"] = skipped.get("product_not_in_snippet", 0) + 1
