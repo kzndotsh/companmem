@@ -92,7 +92,7 @@ Every id in [`../../pipeline/seed.json`](../../pipeline/seed.json) is in scope. 
 | everos | EverOS | https://github.com/EverMind-AI/EverOS | census | |
 | lightrag | LightRAG | census | census | Graph-RAG cargo-cult. Same schema |
 | microsoft-graphrag | Microsoft GraphRAG | census | census | Graph-RAG cargo-cult. Same schema |
-| honcho | Honcho | https://github.com/plastic-labs/honcho | https://docs.honcho.dev/llms.txt | |
+| honcho | Honcho | https://github.com/plastic-labs/honcho | https://honcho.dev/docs/llms.txt | |
 | telemem | TeleMem | https://github.com/TeleAI-UAGI/telemem | census | |
 | sillytavern | SillyTavern | https://github.com/SillyTavern/SillyTavern | census | One audit covers worldinfo/vectors/summarize |
 | agnai | Agnai | census | census | If the repo is still alive |

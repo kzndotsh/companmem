@@ -139,7 +139,7 @@ def test_allowed_source_url_first_party_only() -> None:
         "id": "honcho",
         "name": "Honcho",
         "repo": "https://github.com/plastic-labs/honcho",
-        "docs": "https://docs.honcho.dev/llms.txt",
+        "docs": "https://honcho.dev/docs/llms.txt",
     }
     repo_meta = {"origin": "ssh://git@github.com/plastic-labs/honcho"}
     hosts = first_party_hosts(product, repo_meta)
