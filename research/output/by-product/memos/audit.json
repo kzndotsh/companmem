@@ -1,0 +1,3018 @@
+{
+  "identity": {
+    "id": "memos",
+    "name": "MemOS",
+    "repo": "https://github.com/MemTensor/MemOS",
+    "docs": "https://memos-docs.openmem.net/llms.txt",
+    "license": "Apache-2.0",
+    "version_or_commit": "de8069428a9247bfa7a3d35f59a9b39fa8f231d2",
+    "observed_at": "2026-09-13"
+  },
+  "claimed_purpose": [
+    {
+      "text": "MemOS is a Memory Operating System for LLMs and AI agents that unifies store, retrieve, and manage for long-term memory"
+    },
+    {
+      "text": "MOSCore manages multiple MemCube objects and acts as an OS layer for orchestrating memory instances across multi-user scenarios"
+    },
+    {
+      "text": "Organizes memory into three named subtypes: objective, subjective, and scene"
+    },
+    {
+      "text": "MemOS is described as a Memory Operating System for LLMs and autonomous agents, treating memory as a first-class, orchestrated, and explainable resource rather than an opaque layer inside model weights."
+    },
+    {
+      "text": "Long-term memory system for AI agents and applications that persists memories across sessions"
+    },
+    {
+      "text": "Event Memory complements Profile \u2014 Profile maintains a stable picture of who someone is, while Event Memory records what they went through."
+    },
+    {
+      "text": "MemOS uses a three-state memory model covering Activation, Plaintext, and Parameter memory"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Memory cubes provide isolation and controlled sharing across users, projects, and agents"
+    },
+    {
+      "text": "Memory can be corrected, supplemented, or replaced via natural-language feedback \u2014 a curated write path rather than append-only log"
+    },
+    {
+      "text": "DSH cloud plugin recalls relevant memories before the first model step and saves user and assistant messages after a successful turn"
+    },
+    {
+      "text": "Local plugin uses persistent SQLite storage, hybrid retrieval (FTS5 + vector), and smart dedup"
+    },
+    {
+      "text": "Archive (soft-delete) is performed via graph_db.update_node setting status to archived, with gradual confidence decay as an alternative to hard-delete"
+    },
+    {
+      "text": "Maintenance is scoped per user and per mem_cube, indicating isolation at user and cube level"
+    },
+    {
+      "text": "Memory nodes carry a status field (e.g., 'activated', 'archived') that can be used to filter retrieval"
+    },
+    {
+      "text": "Memory is scoped into three named tiers: WorkingMemory, LongTermMemory, and UserMemory"
+    },
+    {
+      "text": "Conflict detection identifies pairs of nodes with logical or semantic inconsistency"
+    },
+    {
+      "text": "User isolation is supported via an optional user_name parameter on write operations"
+    },
+    {
+      "text": "MemCube holds four typed memory stores: textual, activation, parametric, and preference memory"
+    },
+    {
+      "text": "Memory can be persisted to and loaded from a directory, indicating file-backed storage"
+    },
+    {
+      "text": "Three distinct memory types are stored per MemCube: textual memory (text_mem), activation memory (act_mem), and preference memory (pref_mem)"
+    },
+    {
+      "text": "Chat history is maintained as a per-user in-memory log (message list), separate from the curated textual memory store"
+    },
+    {
+      "text": "Delete by memory_id removes a single textual memory item from the store"
+    },
+    {
+      "text": "Isolation is per-user and per-cube: cube access is validated against user_id before any read or write; a user can only access cubes they are registered to"
+    },
+    {
+      "text": "Query rewriting uses chat history to produce a context-resolved query before retrieval"
+    },
+    {
+      "text": "Chat history is maintained per user as a mutable list and updated after every turn"
+    },
+    {
+      "text": "user_name is an optional isolation scope on read operations get and get_by_ids"
+    },
+    {
+      "text": "Write path: conversations are posted to /add/message; MemOS automatically processes them into structured memories"
+    },
+    {
+      "text": "Update: manual update of existing memory content, title, or status"
+    },
+    {
+      "text": "Memory scheduling decides which memories are prepared in advance, prioritized, or temporarily downgraded during a session"
+    },
+    {
+      "text": "Memory recall selects the most relevant, trustworthy content to inject into context at request time"
+    },
+    {
+      "text": "Memory lifecycle management: generation, use, merging, archiving, and cleanup so the memory base stays accurate and traceable"
+    },
+    {
+      "text": "Isolation: memory scoped per user, agent, conversation; multi-user and multi-agent isolation is a named feature"
+    },
+    {
+      "text": "Time awareness: memories update over time, keep history, and understand 'now' and 'before' during retrieval"
+    },
+    {
+      "text": "Profile: structured per-user or per-agent profile automatically distilled from conversations and continuously updated"
+    },
+    {
+      "text": "Event memory: structured events with time, location, participants extracted from conversations"
+    },
+    {
+      "text": "Async write path: add/message returns immediately while processing is queued in background"
+    },
+    {
+      "text": "MemCube container manages three memory types: textual, activation (KV cache), and parametric memory"
+    },
+    {
+      "text": "MemScheduler asynchronously coordinates working memory, long-term memory, and activation memory in the background"
+    },
+    {
+      "text": "Self-developed extraction model (memos-extractor-0.6b) extracts fact and preference memories from dialogue"
+    },
+    {
+      "text": "Self-developed reranker model reranks memory relevance at retrieval"
+    },
+    {
+      "text": "Write path: after messages are added via addMessage, MemOS automatically extracts structured events and stores them."
+    },
+    {
+      "text": "Store is per user and per conversation: addMessage requires user_id and conversation_id; retrieved events carry conversation_id in the response."
+    },
+    {
+      "text": "Extraction is triggered by including 'event' in allow_memory_view when adding messages; it is not unconditional."
+    },
+    {
+      "text": "Recall scope is filtered by user, conversation, time, tags, type, and other conditions before retrieval \u2014 isolation is enforced at the filter stage."
+    },
+    {
+      "text": "Injection is governed to exclude excessive, outdated, or non-compliant memories \u2014 a soft forget-at-retrieve mechanism rather than deletion."
+    },
+    {
+      "text": "Fact, preference, event, and skill memories are automatically extracted and updated after messages are added"
+    },
+    {
+      "text": "include_memory_view controls which memory categories can be retrieved at search time; if omitted, fact and preference memories are recalled by default"
+    },
+    {
+      "text": "Profile memories are structured with predefined fields stored centrally and continuously updated; individual fields can be locked to prevent automatic updates"
+    },
+    {
+      "text": "Self-Evolving Skills are automatically extracted from historical messages; existing skill packages can also be uploaded"
+    },
+    {
+      "text": "Fact and preference memories may change over time; MemOS uses Time Awareness and Memory Lifecycle Management to handle these changes"
+    },
+    {
+      "text": "Delete operation exists as a separate endpoint for removing specific memory entries or all memories for a user."
+    },
+    {
+      "text": "Memory isolation per agent is a concern in multi-agent deployments"
+    },
+    {
+      "text": "CompositeCubeView fans out writes and feedback to all cube views, and merges search results from all cubes \u2014 the current baseline strategy."
+    },
+    {
+      "text": "The proposed routing improvement would direct add/feedback operations based on cube responsibility, request context, memory type, or user/session metadata rather than blindly writing to all cubes."
+    },
+    {
+      "text": "MemOS has a MemScheduler component that migrates memories between the three states (Activation, Plaintext, Parameter)"
+    },
+    {
+      "text": "Activation memory uses KV-Cache with distinct access patterns from Plaintext memory"
+    },
+    {
+      "text": "Plaintext memory uses vector search for retrieval"
+    },
+    {
+      "text": "Parameter memory is implemented via LoRA"
+    },
+    {
+      "text": "The local plugin exposes memory search, retrieval, and skill tools"
+    },
+    {
+      "text": "On transformers >= 4.57, merged activation memory is silently discarded on the first forward pass due to is_initialized staying False, meaning the model behaves as if no memory was attached."
+    },
+    {
+      "text": "l3 abstraction output is validated for a non-empty string 'title' field; failure at this validation aborts the entire abstraction stage rather than skipping the bad cluster."
+    },
+    {
+      "text": "Feedback classification is performed by an LLM call with a dedicated op parameter, and the resulting rationale is persisted into the store, making it retrieval-visible memory."
+    },
+    {
+      "text": "Memory is typed into at least four categories: main memories, preference memories, tool memories, and skill memories, each retrievable separately with independent limits."
+    },
+    {
+      "text": "Fact, preference, event, and skill memories are automatically extracted and updated after adding messages."
+    },
+    {
+      "text": "Retrieve policy: fact and preference memories are recalled by default if include_memory_view is omitted; other categories are opt-in via include_memory_view values."
+    },
+    {
+      "text": "Self-evolving skills are automatically extracted from historical messages; existing skill packages can also be uploaded."
+    },
+    {
+      "text": "Knowledge Base memories are project-level and shared by multiple users or agents, not part of a single user's personal history."
+    },
+    {
+      "text": "Memories may change over time; MemOS combines Time Awareness and Memory Lifecycle Management to handle these changes."
+    },
+    {
+      "text": "Working memory in MemCube can be replaced wholesale and retrieved, distinct from the main memory store."
+    },
+    {
+      "text": "MemOS memory is isolated per user_id; a user must be explicitly created before use."
+    },
+    {
+      "text": "Isolation: memories are scoped per user_id and per named Cube (MemCube); different Cubes can hold different memory partitions for the same user"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "MemOS unifies store, retrieve, and manage for long-term memory across LLMs and AI agents",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/README.md",
+      "quote": "MemOS is a Memory Operating System for LLMs and AI agents that unifies store / retrieve / manage for long-term memory, enabling context-aware and personalized interactions",
+      "locator": "## \ud83d\udc7e MemOS: Memory Operating System for LLM & AI Agents",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is structured as a graph (Neo4j), inspectable and editable \u2014 not a black-box embedding store",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/README.md",
+      "quote": "structured as a graph, inspectable and editable by design, not a black-box embedding store.",
+      "locator": "### Key Features \u2014 Unified Memory API",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory cubes provide per-user, per-project, and per-agent isolation and controlled sharing",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/README.md",
+      "quote": "Manage multiple knowledge bases as composable memory cubes, enabling isolation, controlled sharing, and dynamic composition across users, projects, and agents.",
+      "locator": "### Key Features \u2014 Multi-Cube Knowledge Base Management",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path supports correction and supersession: natural-language feedback can correct, supplement, or replace existing memories",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/README.md",
+      "quote": "Refine memory with natural-language feedback\u2014correcting, supplementing, or replacing existing memories over time.",
+      "locator": "### Key Features \u2014 Memory Feedback & Correction",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Local storage backend is SQLite with hybrid FTS5 + vector retrieval; cloud backend uses Qdrant for vectors",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/README.md",
+      "quote": "Features: hybrid retrieval (FTS5 + vector), smart dedup, tiered skill evolution (L1 traces / L2 policies / L3 world model), multi-agent collaboration, local-first SQLite storage.",
+      "locator": "#### 2. Local Plugin",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy is adaptive/triggered: memories are recalled before a turn and new messages saved after a successful turn \u2014 not always-on injection",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/README.md",
+      "quote": "Before the first model step of each user request, the plugin recalls relevant cloud memories; after a successful turn, it saves the new user and assistant messages back to MemOS Cloud.",
+      "locator": "#### 1. MemOS Cloud Plugin \u2014 DeepSeek Harness",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MemOS scores 88.83 on LoCoMo and 89.20 on LongMemEval under OmniMemEval harness",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/README.md",
+      "quote": "MemOS also achieves 88.83 on LoCoMo and 89.20 on LongMemEval, and leads in OmniMemEval, a unified evaluation of 14 commercial memory products across ten datasets.",
+      "locator": "### News \u2014 2026-07-02",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget path is soft-delete (archive via graph_db.update_node) rather than hard-delete, with optional gradual confidence decay",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/dream/maintenance.py",
+      "quote": "Use `graph_db.update_node(id, None, {\"status\": \"archived\", ...})` to archive memories that fail the above checks. \u2014 Consider a gradual decay: lower confidence over time rather than hard-deleting on first miss.",
+      "locator": "module docstring, Implementation hints",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict/supersession: a contradicting new memory can set invalidated_by_feedback=True triggering immediate archival",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/dream/maintenance.py",
+      "quote": "register a hook on the feedback endpoint to mark conflicting Dream memories.",
+      "locator": "module docstring, Cleanup rules, 3. INVALIDATED",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per user (user_name) and per mem_cube (mem_cube_id)",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/dream/maintenance.py",
+      "quote": "def run_maintenance(self, *, user_name: str, mem_cube_id: str) -> MaintenanceReport:",
+      "locator": "module docstring, Entry point suggestion",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Dream memories are stored in a graph_db and queried by metadata fields (source, lifecycle timestamps)",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/dream/maintenance.py",
+      "quote": "query graph_db for nodes where metadata.source == \"dream\" and lifecycle.last_hit_at < threshold.",
+      "locator": "module docstring, Cleanup rules, 1. STALE",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is stored as nodes in a graph with typed relational edges between them",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/graph_dbs/base.py",
+      "quote": "Add a memory node to the graph. ... Create an edge from source node to target node. ... type: Relationship type (e.g., 'FOLLOWS', 'CAUSES', 'PARENT').",
+      "locator": "BaseGraphDB.add_node and add_edge docstrings",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory nodes carry raw text content plus a structured metadata dict including timestamp, tags, and source",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/graph_dbs/base.py",
+      "quote": "memory: Raw memory content (e.g., text). metadata: Dictionary of metadata (e.g., timestamp, tags, source).",
+      "locator": "BaseGraphDB.add_node docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Three memory scopes exist: WorkingMemory, LongTermMemory, UserMemory \u2014 indicating isolation by tier",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/graph_dbs/base.py",
+      "quote": "scope (str): Must be one of 'WorkingMemory', 'LongTermMemory', or 'UserMemory'.",
+      "locator": "BaseGraphDB.get_all_memory_items docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Nodes have a status lifecycle (e.g., activated, archived) that governs retrieval inclusion",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/graph_dbs/base.py",
+      "quote": "status (str, optional): Filter by status (e.g., 'activated', 'archived'). If None, no status filter is applied.",
+      "locator": "BaseGraphDB.get_by_metadata and get_all_memory_items docstrings",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall supports two parallel paths: vector-similarity search and structured metadata filtering, combinable via pre-filter then rerank",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/graph_dbs/base.py",
+      "quote": "Can be used for faceted recall or prefiltering before embedding rerank.",
+      "locator": "BaseGraphDB.get_by_metadata Notes",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict detection and merge are first-class graph maintenance operations, not post-hoc cleanup",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/graph_dbs/base.py",
+      "quote": "Detect conflicting nodes based on logical or semantic inconsistency. Returns: A list of (node_id1, node_id2) tuples that conflict.",
+      "locator": "BaseGraphDB.detect_conflicts docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "User-scoped writes are supported but optional; a config default applies when user_name is absent",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/graph_dbs/base.py",
+      "quote": "user_name: Optional user name (will use config default if not provided)",
+      "locator": "BaseGraphDB.add_nodes_batch docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph can be fully cleared, supporting a hard-delete / reset path",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/graph_dbs/base.py",
+      "quote": "Clear the entire graph.",
+      "locator": "BaseGraphDB.clear docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemOS distinguishes at least three memory modalities: textual (BaseTextMemory), activation (BaseActMemory), and parametric (BaseParaMemory), plus a preference store also typed as BaseTextMemory",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_cube/base.py",
+      "quote": "self.text_mem: BaseTextMemory\n        self.act_mem: BaseActMemory\n        self.para_mem: BaseParaMemory\n        self.pref_mem: BaseTextMemory",
+      "locator": "src/memos/mem_cube/base.py:BaseMemCube.__init__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory in MemOS is persisted to and restored from a directory via load/dump, not held only in-process",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_cube/base.py",
+      "quote": "def load(self, dir: str) -> None:\n        \"\"\"Load memories from a directory.\"\"\"\n\n    @abstractmethod\n    def dump(self, dir: str) -> None:\n        \"\"\"Dump memories to a directory.\"\"\"",
+      "locator": "src/memos/mem_cube/base.py:BaseMemCube.load and BaseMemCube.dump",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MOSCore is a Memory Operating System Core that orchestrates MemCube instances for multi-user memory management",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/core.py",
+      "quote": "The MOSCore (Memory Operating System Core) class manages multiple MemCube objects and their operations. It provides methods for creating, searching, updating, and deleting MemCubes, supporting multi-user scenarios. MOSCore acts as an operating system layer for handling and orchestrating MemCube instances.",
+      "locator": "class MOSCore docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Three persistent memory stores exist per MemCube: textual (text_mem), activation (act_mem), parametric (para_mem), and preference (pref_mem)",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/core.py",
+      "quote": "result: MOSSearchResult = {\n            \"text_mem\": [],\n            \"act_mem\": [],\n            \"para_mem\": [],\n            \"pref_mem\": [],\n        }",
+      "locator": "search method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Chat history (message log) is separate from and not equivalent to the curated memory store; it is an in-memory per-user session log",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/core.py",
+      "quote": "self.chat_history_manager: dict[str, ChatHistory] = {}",
+      "locator": "MOSCore.__init__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval selects memories from text_mem by query and top_k, then injects them into the system prompt scaffold for the current turn",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/core.py",
+      "quote": "memories = mem_cube.text_mem.search(\n                    query,\n                    top_k=self.config.top_k,\n                    ...)\n                memories_all.extend(memories)\n            system_prompt = self._build_system_prompt(memories_all, base_prompt=base_prompt)",
+      "locator": "chat method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The prompt scaffold instructs the model to reference memories naturally without explicitly acknowledging memory access",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/core.py",
+      "quote": "\"If memories are provided, reference them naturally when relevant, but don't explicitly mention having memories.\"",
+      "locator": "_build_system_prompt method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Async write mode defers deep memory extraction to the scheduler (MEM_READ_TASK_LABEL); sync mode runs extraction immediately then notifies scheduler (ADD_TASK_LABEL)",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/core.py",
+      "quote": "if sync_mode == \"async\":\n                            message_item = ScheduleMessageItem(\n                                user_id=target_user_id,\n                                mem_cube_id=mem_cube_id,\n                                label=MEM_READ_TASK_LABEL,\n                                ...\n                        else:\n                            message_item = ScheduleMessageItem(\n                                user_id=target_user_id,\n                                mem_cube_id=mem_cube_id,\n                                label=ADD_TASK_LABEL,",
+      "locator": "add method, process_textual_memory inner function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete operations exist at individual memory item level (delete by id) and bulk level (delete_all)",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/core.py",
+      "quote": "self.mem_cubes[mem_cube_id].text_mem.delete(memory_id)\n        logger.info(f\"MemCube {mem_cube_id} deleted memory {memory_id}\")",
+      "locator": "delete method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Update is not supported for the tree_text backend; it is supported for other backends",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/core.py",
+      "quote": "if self.mem_cubes[mem_cube_id].config.text_mem.backend != \"tree_text\":\n            self.mem_cubes[mem_cube_id].text_mem.update(memory_id, memories=text_memory_item)\n        else:\n            logger.warning(\n                f\" {self.mem_cubes[mem_cube_id].config.text_mem.backend} does not support update memory\"\n            )",
+      "locator": "update method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is enforced per user_id and cube_id; access is validated before every read and write operation",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/core.py",
+      "quote": "if not self.user_manager.validate_user_cube_access(user_id, cube_id):\n            raise ValueError(\n                f\"User '{user_id}' does not have access to cube '{cube_id}'. Please register the cube first or request access.\"\n            )",
+      "locator": "_validate_cube_access method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Activation memory provides KV-cache injection into LLM generate for huggingface backend only",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/core.py",
+      "quote": "if self.config.chat_model.backend not in [\"huggingface\", \"huggingface_singleton\"]:\n                logger.error(\n                    \"Activation memory only used for huggingface backend. Skipping activation memory.\"\n                )\n            else:\n                ...\n                past_key_values = (\n                    kv_cache.memory if (kv_cache and hasattr(kv_cache, \"memory\")) else None\n                )",
+      "locator": "chat method, enable_activation_memory branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Query rewriting resolves ambiguous queries against chat history before retrieval",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/core.py",
+      "quote": "dialogue = \"\u2014\u2014\u2014\u2014{}\".format(\"\\n\u2014\u2014\u2014\u2014\".join(chat_history.chat_history))\n        user_prompt = QUERY_REWRITING_PROMPT.format(dialogue=dialogue, query=query)\n        ...\n        if rewritten_result.get(\"former_dialogue_related\", False):\n            rewritten_query = rewritten_result.get(\"rewritten_question\")\n            return rewritten_query if len(rewritten_query) > 0 else query",
+      "locator": "get_query_rewrite method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Chat history is a per-user message log (role/content pairs) that grows by appending every user and assistant turn",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/main.py",
+      "quote": "chat_history.chat_history.append({\"role\": \"user\", \"content\": query})\nchat_history.chat_history.append({\"role\": \"assistant\", \"content\": enhanced_response})\nself.chat_history_manager[target_user_id] = chat_history",
+      "locator": "_chat_with_cot_enhancement, Step 6",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Textual memory is distinct from the chat log: it is searched by query and injected as a system prompt prefix, not replayed as conversation turns",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/main.py",
+      "quote": "system_prompt = self._build_system_prompt(\n    search_memories, base_prompt=base_prompt\n)",
+      "locator": "_generate_enhanced_response_with_context, enable_textual_memory branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Activation memory (KV-cache) is a third memory type alongside textual and chat-history, scoped per MemCube",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/main.py",
+      "quote": "if self.config.enable_activation_memory:\n    if self.config.chat_model.backend not in [\"huggingface\", \"huggingface_singleton\"]:\n        logger.error(\n            \"Activation memory only used for huggingface backend. Skipping activation memory.\"\n        )",
+      "locator": "_generate_enhanced_response_with_context, enable_activation_memory branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per-user and per-cube: a user_manager maps user IDs to accessible cube IDs, and searches are restricted to those cubes",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/main.py",
+      "quote": "accessible_cubes = self.user_manager.get_user_cubes(target_user_id)\nuser_cube_ids = [cube.cube_id for cube in accessible_cubes]\n...\nfor mem_cube_id, mem_cube in self.mem_cubes.items():\n    if mem_cube_id not in user_cube_ids:\n        continue",
+      "locator": "_chat_with_cot_enhancement, Step 1; _generate_enhanced_response_with_context, enable_activation_memory branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A mem_scheduler receives assistant responses asynchronously for downstream memory processing; the scheduler path is only triggered when a user has exactly one accessible cube",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/main.py",
+      "quote": "if len(accessible_cubes) == 1:\n    mem_cube_id = accessible_cubes[0].cube_id\n    if self.enable_mem_scheduler and self.mem_scheduler is not None:\n        ...\n        self.mem_scheduler.submit_messages(messages=[message_item])",
+      "locator": "_chat_with_cot_enhancement, Step 7",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "base_prompt supports a {memories} placeholder for custom memory injection into the system prompt",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/main.py",
+      "quote": "base_prompt (str, optional): A custom base prompt to use for the chat.\n    It can be a template string with a `{memories}` placeholder.\n    If not provided, a default prompt is used.",
+      "locator": "chat method docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MemReader extracts curated TextualMemoryItem objects from scene data rather than logging raw transcripts, distinguishing a curated memory write from a message log",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_reader/base.py",
+      "quote": "Various types of memories extracted from scene_data",
+      "locator": "BaseMemReader.get_memory docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A fine-transfer LLM pass refines extracted memories before they are written, implying a two-stage write path: extract then transform",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_reader/base.py",
+      "quote": "Fine Transform TextualMemoryItem List into another list of TextualMemoryItem objects via calling llm to better understand users.",
+      "locator": "BaseMemReader.fine_transfer_simple_mem docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict detection against existing memories is part of the MemReader write path, enabled via an optional graph database",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_reader/base.py",
+      "quote": "Conflict detection: detect contradictions with existing memories",
+      "locator": "BaseMemReader.set_graph_db docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The graph database is optional and can be set to None, meaning deduplication and conflict detection are not always active",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_reader/base.py",
+      "quote": "graph_db: \"BaseGraphDB | None\" = None",
+      "locator": "BaseMemReader class body, graph_db field",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per user and per session; user_id and session_id are constructor parameters stored in all scene_memory info blocks",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_reader/memory.py",
+      "quote": "user_id: User identifier\nsession_id: Session identifier",
+      "locator": "memory.py:Memory.__init__ docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Three distinct memory stores exist: objective_memory (stable user facts), subjective_memory (dynamic user state/preferences), scene_memory (conversation Q&A and documents) \u2014 this is curated memory, not a raw transcript log",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_reader/memory.py",
+      "quote": "self.objective_memory: dict[str, dict[str, Any]] = {}\nself.subjective_memory: dict[str, dict[str, Any]] = {}\nself.scene_memory = {...}",
+      "locator": "memory.py:Memory.__init__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Update/supersession: when a key already exists in objective or subjective memory, the old and new values are joined with ' | ' and the metadata is replaced with the latest write",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_reader/memory.py",
+      "quote": "combined_value = f\"{existing_item['value']} | {value}\"\nmemory_dict[key] = {\n    \"value\": combined_value,\n    \"info\": memory_item[\"info\"],  # Use the new info\n}",
+      "locator": "memory.py:Memory.update_user_memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Scene memory stores summarized Q&A batches (not raw turns), with themes, ordering, and per-pair time extraction \u2014 distinguishing it from a message log",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_reader/memory.py",
+      "quote": "\"time\": pair.get(\"time\", \"\"),  # Add time field with default empty string",
+      "locator": "memory.py:Memory.add_qa_batch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Section-level summarization can use an LLM to compress multiple subsection summaries into one sentence, then writes the result back to scene_memory info",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_reader/memory.py",
+      "quote": "Summarize this text into a concise and objective sentence that captures its main idea. Provide only the required content directly, without including any additional information.",
+      "locator": "memory.py:Memory.process_qa_pair_summaries",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is stored in files scoped to a directory and a configured filename, implying per-agent or per-session isolation is achieved by varying the directory path.",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/base.py",
+      "quote": "os.path.join(dir, self.config.memory_filename)",
+      "locator": "BaseMemory.load and BaseMemory.dump docstrings",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The base class defines only load (read from disk) and dump (write to disk); update, delete, retrieve, and forget operations are not defined at this layer.",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/base.py",
+      "quote": "@abstractmethod\n    def load(self, dir: str) -> None",
+      "locator": "BaseMemory class body",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MemOS distinguishes preference-oriented textual memory (PreferenceTextMemory, SimplePreferenceTextMemory) from general or naive textual memory as separate named backends.",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/factory.py",
+      "quote": "\"pref_text\": PreferenceTextMemory,\n\"simple_pref_text\": SimplePreferenceTextMemory,",
+      "locator": "MemoryFactory.backend_to_class",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory backend selection and instantiation is fully config-driven; invalid backend names raise a ValueError rather than falling back silently.",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/factory.py",
+      "quote": "if backend not in cls.backend_to_class:\n    raise ValueError(f\"Invalid backend: {backend}\")",
+      "locator": "MemoryFactory.from_config",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MemOS defines a textual memory abstraction that separates extraction from a message log into curated TextualMemoryItem objects, distinct from a raw transcript",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/textual/base.py",
+      "quote": "def extract(self, messages: MessageList) -> list[TextualMemoryItem]:\n        \"\"\"Extract memories based on the messages.\"\"\"",
+      "locator": "BaseTextMemory.extract",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path includes add, update, and delete by ID \u2014 supporting supersession without requiring full-store wipe",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/textual/base.py",
+      "quote": "def add(...) -> list[str] ... def update(self, memory_id: str, ...) -> None ... def delete(self, memory_ids: list[str]) -> None",
+      "locator": "BaseTextMemory.add / update / delete",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is query-driven and top-k limited, not full-store injection",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/textual/base.py",
+      "quote": "def search(self, query: str, top_k: int, info=None, **kwargs) -> list[TextualMemoryItem]",
+      "locator": "BaseTextMemory.search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-user isolation is supported at the read layer via optional user_name parameter on get and get_by_ids",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/textual/base.py",
+      "quote": "def get(self, memory_id: str, user_name: str | None = None) -> TextualMemoryItem",
+      "locator": "BaseTextMemory.get signature",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A drop operation exists that destroys all databases, distinct from delete_all which removes records",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/textual/base.py",
+      "quote": "def drop(self) -> None:\n        \"\"\"Drop all databases.\"\"\"",
+      "locator": "BaseTextMemory.drop",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory store is a vector database (Qdrant); persisted unit is a TextualMemoryItem with embedded text, not a raw message log.",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/textual/general.py",
+      "quote": "self.vector_db: QdrantVecDB = VecDBFactory.from_config(config.vector_db)",
+      "locator": "method __init__, line ~35",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path: LLM extracts structured facts from conversation, each fact is embedded and upserted into Qdrant as a VecDBItem.",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/textual/general.py",
+      "quote": "extracted_memories = [\n            TextualMemoryItem(\n                memory=memory_dict[\"value\"],\n                metadata={\n                    \"key\": memory_dict[\"key\"],\n                    \"source\": \"conversation\",\n                    \"tags\": memory_dict[\"tags\"],\n                    \"updated_at\": datetime.now().isoformat(),\n                },\n            )\n            for memory_dict in response_json[\"memory list\"]\n        ]",
+      "locator": "method extract, lines ~62\u201374",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy is on-demand vector search (top-k by similarity score); no evidence of always-on or adaptive injection policy in this file.",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/textual/general.py",
+      "quote": "def search(self, query: str, top_k: int, info=None, **kwargs) -> list[TextualMemoryItem]:",
+      "locator": "method search, line ~110",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget via delete: specific IDs removed from vector DB; full wipe drops and recreates the collection.",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/textual/general.py",
+      "quote": "def delete(self, memory_ids: list[str]) -> None:\n        \"\"\"Delete a memory.\"\"\"\n        self.vector_db.delete(memory_ids)\n\n    def delete_all(self) -> None:\n        \"\"\"Delete all memories.\"\"\"\n        self.vector_db.delete_collection(self.vector_db.config.collection_name)\n        self.vector_db.create_collection()",
+      "locator": "methods delete and delete_all, lines ~155\u2013162",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Disk persistence via dump/load: all VecDBItems serialized to a JSON file; reload re-inserts them into the vector DB.",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/textual/general.py",
+      "quote": "def dump(self, dir: str) -> None:\n        \"\"\"Dump memories to os.path.join(dir, self.config.memory_filename)\"\"\"",
+      "locator": "method dump, line ~172",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No isolation scope (per-user, per-session, per-agent) is expressed in this file; the vector DB collection name comes from config.",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/textual/general.py",
+      "quote": "self.vector_db.delete_collection(self.vector_db.config.collection_name)",
+      "locator": "method delete_all, line ~161",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MemOS is positioned as a Memory OS for AI systems, referenced via an arxiv paper",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=44510395",
+      "quote": "MemOS: A Memory OS for AI System ( arxiv.org )",
+      "locator": "submission headline",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS frames KV cache reuse across inferences as 'working memory', which a community member argues is memoization rather than genuine working memory",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1lyvnqm/memos_new_ai_architecture/",
+      "quote": "they are saving KV caches across inferences. My understanding of KV caches is that they store key and value tensors from previous inferences so that future inferences don't need to calculate them again saving inference compute... But what I don't get, is how can they call that working memory? This is memoization which I think is far from the needs of a working memory.",
+      "locator": "comment by u/epreisz",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS treats memory as schedulable, shareable, and evolvable \u2014 analogous to how an OS manages CPU and storage.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Futurology/comments/1lyr3su/chinese_researchers_unveil_memos_the_first_memory/",
+      "quote": "MemOS, treats memory as a core computational resource that can be scheduled, shared and evolved over time \u2014 similar to how traditional operating systems manage CPU and storage resources.",
+      "locator": "u/MetaKnowing submission statement",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A community commenter questions whether MemOS's architectural framing (scheduled, shared, evolved memory) is meaningfully distinct from existing OS concepts like schedulers, IPC, and dynamic allocation.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Futurology/comments/1lyr3su/chinese_researchers_unveil_memos_the_first_memory/",
+      "quote": "How does this text distinguish this from every other operating system? \"Scheduled?\" The scheduler? \"Shared\"? IPC or threads? \"Evolve\"? So it can dynamically allocate memory for processes, like the other operating systems?",
+      "locator": "u/Mundane-Raspberry963 comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Users expect a reset/forget capability for privacy or emotional reasons, raising questions about whether persistent memory can truly support growth if users always have a reset option.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Futurology/comments/1lyr3su/chinese_researchers_unveil_memos_the_first_memory/",
+      "quote": "I believe users will always want the ability to reset that memory\u2014for privacy or emotional reasons. If that becomes the norm, we might end up with AIs that seem to remember, but are ultimately designed to forget.",
+      "locator": "u/AggravatingRise6176 comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community characterizes current AI as lacking persistence between sessions \u2014 waking up, following instructions, then forgetting everything, unable to accumulate intelligence over time.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Futurology/comments/1lyr3su/chinese_researchers_unveil_memos_the_first_memory/",
+      "quote": "currently the AI's are basically wake up, get instructions follow them then fall asleep forgetting everything they just did never learning anything",
+      "locator": "u/dejamintwo comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS treats memory as a manageable OS-level resource, unifying plaintext, activation, and parameter memory with lifecycle control \u2014 contrasting with RAG's stateless retrieval.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1lv9m3j/memos_a_memory_os_for_ai_system/",
+      "quote": "we propose MemOS, a memory operating system that treats memory as a manageable system resource. It unifies the representation, scheduling, and evolution of plaintext, activation-based, and parameter-level memories",
+      "locator": "Abstract",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community skepticism: the system is viewed as repackaging existing KV store, vector store, and RAG concepts under new invented names, without clear novelty.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1lv9m3j/memos_a_memory_os_for_ai_system/",
+      "quote": "I haven't read their paper I read their landing page which is pretty much felt like the same thing just with new invented names.",
+      "locator": "u/ahmadawaiscom comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No benchmarks are provided in the paper or associated materials, making comparative performance claims unverifiable.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1lv9m3j/memos_a_memory_os_for_ai_system/",
+      "quote": "there aren't any benchmarks. Apart from the OpenAI comparison on github.",
+      "locator": "u/hideo_kuze_ comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community concern about opacity of memory failure modes: users don't know when memories go wrong or how to fix them, contrasting MemOS unfavorably with simpler alternatives.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1lv9m3j/memos_a_memory_os_for_ai_system/",
+      "quote": "It's really complex and powered by LLM. I doubt myself will use this in production, because I don't know when the memories go wrong and how can I fix it.",
+      "locator": "u/GusYe1234 comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The use case of saving and loading context is seen as valuable for small/local agents specifically.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1lv9m3j/memos_a_memory_os_for_ai_system/",
+      "quote": "while this is useful for outside models like OpenAI etc. it is much more interesting for tiny agents where saving and loading context could be a lifesaver.",
+      "locator": "u/zcomputerwiz comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community observer notes KV cache storage on disk is not clearly described in the materials, and that it would require very large storage that scales with model size.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1lv9m3j/memos_a_memory_os_for_ai_system/",
+      "quote": "It looks like RAG and it doesn't mention loading KV caches or any LLM-specific memory structures from disk. Saving KV caches to disk requires a huge amount of storage that gets larger with larger models.",
+      "locator": "u/SkyFeistyLlama8 comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS treats memory as a first-class, orchestrated, and explainable resource rather than hiding it inside model weights.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mb6rre/is_anyone_using_memos_what_are_the_pros_and_cons/",
+      "quote": "MemOS is a Memory Operating System for large language models (LLMs) and autonomous agents. It treats memory as a first-class, orchestrated, and explainable resource, rather than an opaque layer hidden inside model weights.",
+      "locator": "post body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "At least one evaluator felt MemOS might still not satisfy their need for authentic memory and statefulness, leaving uncertainty about whether MemOS delivers on companion continuity for demanding use cases.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mb6rre/is_anyone_using_memos_what_are_the_pros_and_cons/",
+      "quote": "I feel as though I have personally pushed Letta to the absolute limit in terms of how much authentic memory and statefulness I need for the project I am developing. Letta would not get the job done for what I'm doing. (Then again I'm not entirely sure MemOS will either).",
+      "locator": "comment by u/Jazzlike_Source_5983",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The MemOS docs website had availability issues, with at least one user receiving a 405 error on content queries and another unable to access docs via a third-party tool.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mb6rre/is_anyone_using_memos_what_are_the_pros_and_cons/",
+      "quote": "[POST] \"/__nuxt_content/docs/query?v=v3.5.0--k5oMxbWwGzUlRFByL4JuyiVniiYCf49YLKAa1hzn-b0\": 405",
+      "locator": "comment by u/MelodicRecognition7",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS lacks differentiation clarity from existing memory systems like A-Mem, Mem0, and MemGPT/Letta according to a community observer.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1lb9yo0/memos_a_memorycentric_operating_system_for/",
+      "quote": "the white paper style abstract makes me wonder how/whether its fundamentally different from A-Mem, the recent Mem0, trusty MemGPT (now Letta), etc.",
+      "locator": "comment by u/vornamemitd",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community finds the 'operating system' framing unusual or overstated.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1lb9yo0/memos_a_memorycentric_operating_system_for/",
+      "quote": "Weird to call it an operating system.",
+      "locator": "comment by u/Fast-Satisfaction482",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A commenter suggests the graph in the paper is the main substantive contribution, implying the rest is filler \u2014 raising questions about depth of the memory architecture claims.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1lb9yo0/memos_a_memorycentric_operating_system_for/",
+      "quote": "a screenshot of this graph is probably whole value of this paper, the rest are fillers. Is there no longer difference between blog articles and papers?",
+      "locator": "comment by u/wolfy-j",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS manages three distinct memory types under MemCube: parametric (weights), activation (in-context), and plaintext (explicit storage).",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1lb9yo0/memos_a_memorycentric_operating_system_for/",
+      "quote": "MemCube, a unified memory abstraction that manages parametric, activation, and plaintext memory",
+      "locator": "post body, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS positions memory as schedulable infrastructure, analogous to how an OS schedules compute resources.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1lb9yo0/memos_a_memorycentric_operating_system_for/",
+      "quote": "a new system that treats memory as a core, schedulable resource",
+      "locator": "post body, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS tops all baselines on LOCOMO benchmark, excelling in multi-hop and temporal tasks",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/singularity/comments/1lvg6ea/chinese_researchers_unveil_memos_the_first_memory/",
+      "quote": "MemOS tops all baselines, excelling in multi-hop & temporal tasks.",
+      "locator": "comment by u/Classic-Choice3618, section 3 Experimental findings, LOCOMO overall score row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Advertised gains are largely against GPT-4o-mini with Memory; gains over prior proper memory systems are smaller",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/singularity/comments/1lvg6ea/chinese_researchers_unveil_memos_the_first_memory/",
+      "quote": "the advertised numbers come from comparing MemOS to GPT-4o-mini with Memory. The actual gains compared to previous proper memory systems are neat but far smaller.",
+      "locator": "comment by u/Gold_Cardiologist_46",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community skeptic argues MemOS is effectively equivalent to OpenAI memory when the shared GPT-4o-mini backbone is factored out",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/singularity/comments/1lvg6ea/chinese_researchers_unveil_memos_the_first_memory/",
+      "quote": "(GPT-4o-mini + MemOS) \u2248 (GPT-4o-mini + OpenAI memory) ... you can cancel out both GPT-4o-minis and end up with MemOS \u2248 OpenAI memory",
+      "locator": "comment by u/Pyros-SD-Models",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community reviewer sees no deep need for an OS abstraction; believes MemOS could be a library, and questions whether weights, KV-cache, query-history and RAG should share one library",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/singularity/comments/1lvg6ea/chinese_researchers_unveil_memos_the_first_memory/",
+      "quote": "Reading through the paper and code, I don't see much deep demand for an OS. It manages the data/history in its APIs so that a developer can interact with them more easily. Can be a library. ... I am not fully convinced that weights (LoRA/adapter), KV-cache, query-history, and knowledge RAG/DB, should be managed/encapsulated in the same library.",
+      "locator": "comment by u/Barronli",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community reviewer argues OS-like stack introduces significant engineering overhead",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/singularity/comments/1lvg6ea/chinese_researchers_unveil_memos_the_first_memory/",
+      "quote": "OS-like stack (schedulers, loaders, policy engines) may introduce significant engineering overhead.",
+      "locator": "comment by u/Classic-Choice3618, section 5 Limitations & open questions, Operational complexity row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Only evaluated on LOCOMO; lacks diverse real-world deployment studies",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/singularity/comments/1lvg6ea/chinese_researchers_unveil_memos_the_first_memory/",
+      "quote": "Only LOCOMO; lacks diverse, real-world deployment studies (e.g., code assistants, enterprise chat).",
+      "locator": "comment by u/Classic-Choice3618, section 5 Limitations & open questions, Benchmark scope row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Experiments use GPT-4o-mini backbone; behaviour on large or multimodal models is unclear",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/singularity/comments/1lvg6ea/chinese_researchers_unveil_memos_the_first_memory/",
+      "quote": "Experiments use GPT-4o-mini backbone; unclear behaviour on truly large (>70 B) or multimodal models.",
+      "locator": "comment by u/Classic-Choice3618, section 5 Limitations & open questions, Model scale row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Governance APIs are described abstractly; threat-modeling and compliance validation are absent",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/singularity/comments/1lvg6ea/chinese_researchers_unveil_memos_the_first_memory/",
+      "quote": "Governance APIs described abstractly; need threat-modeling & compliance validation for sensitive domains.",
+      "locator": "comment by u/Classic-Choice3618, section 5 Limitations & open questions, Security details row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Deeper ablations of each module's contribution (MemGovernance, fingerprints) are absent",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/singularity/comments/1lvg6ea/chinese_researchers_unveil_memos_the_first_memory/",
+      "quote": "While chunk/Top-K sweeps are shown, deeper ablations of each module's contribution (MemGovernance, fingerprints) are absent.",
+      "locator": "comment by u/Classic-Choice3618, section 5 Limitations & open questions, Ablations row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "One practitioner argues OS abstraction is unnecessary and memory-based MCP servers with a scheduling library are more flexible",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/singularity/comments/1lvg6ea/chinese_researchers_unveil_memos_the_first_memory/",
+      "quote": "OS is not needed. It does too much and locks users down. Better to use memory-based MCP servers and whatever scheduling you want from a library or another MCP server - much more flexible.",
+      "locator": "comment by u/Jugales",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS automatically extracts, stores, and retrieves personalized memories from conversations across sessions",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "MemOS is a long-term memory system for AI agents and applications. It automatically extracts, stores, and retrieves personalized memories from conversations so your AI remembers users across sessions.",
+      "locator": "Page header / overview",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path: POST /add/message ingests conversation turns and produces structured retrievable memories",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "MemOS automatically processes multimodal content such as text, files, and images into retrievable personal memories.",
+      "locator": "Core Operations / Add Message",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve path: POST /search/memory uses semantic retrieval and filtering to return relevant memory fragments",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "This API retrieves memories for a specified user or Agent and returns the fragments most relevant to the query.",
+      "locator": "API Documentation / Core Operations / Search Memory",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete path: POST /delete/memory supports per-memory-id deletion and full wipe by user_id or agent_id",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "Delete memories for a user or Agent. Supports deletion by memory_ids or clearing all memories by user_id/agent_id.",
+      "locator": "API Documentation / Core Operations / Delete Memory",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Update path: POST /update/memory allows manual correction of memory content, title, or status across all memory categories",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "Manually update the content, title, or status of an existing memory. Supports all memory categories, including fact memories, preference memories, Event Memory, and Profile attribute values.",
+      "locator": "API Documentation / Core Operations / Update Memory",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Feedback-driven memory correction: POST /add/feedback accepts natural-language feedback and triggers automatic memory update",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "This API is used to add feedback to current session messages, allowing MemOS to correct memories based on user feedback.",
+      "locator": "API Documentation / Core Operations / Add Feedback",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory lifecycle includes generation, use, merging, archiving, and cleanup to keep the store accurate and traceable",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "Memory lifecycle management keeps memories evolving through generation, use, merging, archiving, and cleanup, so the memory base stays accurate, clean, and traceable.",
+      "locator": "How MemOS Works / Memory Lifecycle Management",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory scheduling prioritizes or temporarily downgrades memories during live conversations",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "Memory scheduling decides which memories should be prepared in advance, prioritized, or temporarily downgraded while conversations and tasks are running.",
+      "locator": "How MemOS Works / Memory Scheduling",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory recall selects most relevant and trustworthy content to inject into context at request time",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "Memory recall finds the content that is most relevant, trustworthy, and suitable to inject into context when a user makes a request.",
+      "locator": "How MemOS Works / Memory Recall",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is per user, per agent, and per conversation; sharing across those boundaries is also supported",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "Implement memory sharing and isolation across users, Agents, conversations, and more.",
+      "locator": "Concepts / Multi-user / Multi-Agent Isolation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Time awareness: memories carry temporal context and retrieval understands relative time (now vs before)",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "How memories update over time, keep history, and understand 'now' and 'before' during retrieval.",
+      "locator": "Concepts / Time Awareness",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Profile memory is a structured per-subject store automatically distilled from conversations and continuously updated",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "Maintain a structured profile for a user or AI Agent, automatically distilled from conversations and continuously updated.",
+      "locator": "More Features / Profile",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Event memory stores structured events (time, location, participants) extracted from conversations",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "Automatically extract structured events from conversations, including time, location, participants, and other key elements.",
+      "locator": "More Features / Event Memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemCube manages three tiers: textual memory, activation memory (KV cache), and parametric memory",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "MemCube is your memory container that manages three types of memories: textual memory, activation memory, and parametric memory.",
+      "locator": "Open Source / MOS / MemCube",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MemScheduler runs asynchronously in the background coordinating working memory, long-term memory, and activation memory",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "MemScheduler is your 'memory organization scheduler'. It asynchronously manages memory flow and updates in the background, coordinating interactions between working memory, long-term memory, and activation memory.",
+      "locator": "Open Source / MOS / MemScheduler",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Self-developed memos-extractor-0.6b model extracts fact and preference memories from dialogue",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "Extract fact and preference memories from dialogue using the in-house memos-extractor-0.6b model.",
+      "locator": "Self-developed Models / Extraction Model / Usage Examples",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Self-developed memos-reranker model reranks candidate memories by relevance to a user query",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "Rerank memory relevance based on the self-developed memos-reranker small model.",
+      "locator": "Self-developed Models / Reranker Model / Usage Examples",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Async write: add/message returns immediately; processing is queued in the background by MemOS",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "Use async mode when adding messages; the interface returns immediately while actual processing is queued in the background by MemOS.",
+      "locator": "More Features / Async Mode",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Profile template bindings auto-update structured attribute fields whenever new messages are added",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "quote": "After binding, the corresponding attribute fields are automatically updated whenever new messages are added.",
+      "locator": "API Documentation / Profile / Bind Profile Template",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Event Memory stores structured events (title, content, time, participants) extracted automatically from conversation after addMessage is called.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/event_memory.md",
+      "quote": "Extract: After messages are added, MemOS automatically extracts structured events and stores them.",
+      "locator": "Section 3: Workflow, Flow summary step 3",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is not automatic \u2014 caller must explicitly opt in by passing 'event' in include_memory_view on searchMemory.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/event_memory.md",
+      "quote": "When calling searchMemory, pass \"event\" in `include_memory_view` to recall Event Memory (not included by default).",
+      "locator": "Section 4: Search Event Memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Extraction is also opt-in at write time, gated by including 'event' in allow_memory_view on addMessage.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/event_memory.md",
+      "quote": "Include `\"event\"` in `allow_memory_view` when adding messages to trigger Event Memory extraction.",
+      "locator": "Section 4: Add messages",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is at least per user and per conversation, as both user_id and conversation_id are required fields on addMessage and are stored with each event record.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/event_memory.md",
+      "quote": "\"user_id\": \"memos_user_123\", \"conversation_id\": \"conv_0624\"",
+      "locator": "Section 4: Add messages, Python (HTTP) code example",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The product distinguishes stable profile (lore/backstory) from event memory (things that happened), positioning them as complementary.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/event_memory.md",
+      "quote": "Event Memory complements Profile \u2014 Profile maintains a stable picture of who someone is, while Event Memory records what they went through.",
+      "locator": "Section 1: What is Event Memory?",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Relevance scoring is returned at retrieval time (relativity field in response), suggesting adaptive rather than always-retrieve policy, though the selection logic is not described on this page.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/event_memory.md",
+      "quote": "\"relativity\": 0.6364",
+      "locator": "Section 4: Search Event Memory, Example response",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Profile stores structured field values extracted from conversations, persisted per user or agent instance, not as raw log.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/profile.md",
+      "quote": "the profile is made up of predefined fields, stored together and directly usable, instead of being scattered across individual memories",
+      "locator": "## 1. What is Profile?, Structured bullet",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Automatic write path: addMessage triggers extraction and field update without developer intervention.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/profile.md",
+      "quote": "as conversations continue, MemOS automatically updates the fields so the profile keeps catching up with the user's latest state \u2014 no manual maintenance required",
+      "locator": "## 1. What is Profile?, Continuously updated bullet",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Field-level algorithm_updatable flag prevents specific fields from being overwritten by automatic extraction, enabling conflict/supersession control.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/profile.md",
+      "quote": "algorithm_updatable: controls whether a field can be automatically updated by the algorithm.",
+      "locator": "## 2. Key Concepts, Algorithm-updatable flag",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve is query-driven via searchMemory with explicit include_memory_view=[\"profile\"]; not always-on injection.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/profile.md",
+      "quote": "call Search Memory and pass \"profile\" in include_memory_view to recall Profile",
+      "locator": "## 4. Examples, Search Profile",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete instance removes binding and clears all field values; delete template cascades to all bound instances.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/profile.md",
+      "quote": "delete the instance. This removes the binding and clears all field values \u2026 Deleting a template also deletes all of its bound instances",
+      "locator": "## 4. Examples, Delete an instance; Create a template warning note",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per user_id by default; per-agent isolation requires an explicit flag to create independent memory for an agent.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/profile.md",
+      "quote": "After enabling Create Independent Memory for an Agent, each Agent gets its own Profile.",
+      "locator": "## 1. What is Profile?, Note",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No retroactive population of Profile from historical conversations; only new messages after binding are processed.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/profile.md",
+      "quote": "Binding a template currently does not retroactively fill in field values from past conversations.",
+      "locator": "## 3. How It Works, note",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemOS positions memory recall as the solution to cross-session continuity failures where users must repeat themselves and historical information is lost.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/mem_recall.md",
+      "quote": "Users must repeat themselves: preferences, background, and long-term matters cannot continue naturally. Historical information is easily lost: earlier conversations, cross-session behavior, and tool results do not automatically appear in the current context.",
+      "locator": "## 2. Why Context Alone Is Not Enough",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieve policy is adaptive, not always-retrieve: the pipeline first understands what the request needs, then filters scope, then retrieves candidates \u2014 implying silence when no relevant memory exists.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/mem_recall.md",
+      "quote": "Together, these stages determine whether recalled memories are actually useful. Too little recall leaves the model without background; too much recall adds noise and cost.",
+      "locator": "## 4. Key Stages in Recall",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget at retrieve (governance) is present; hard delete from store is not described on this page.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/mem_recall.md",
+      "quote": "Control which memories enter model context, avoiding excessive, outdated, or non-compliant content",
+      "locator": "## 4. Key Stages in Recall \u2014 Govern injection row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is per-user and per-conversation at minimum, enforced during scope filtering.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/mem_recall.md",
+      "quote": "Limit candidate memories by user, conversation, time, tags, type, and other conditions",
+      "locator": "## 4. Key Stages in Recall \u2014 Filter the scope row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS has eight distinct memory categories: fact, preference, profile, event, self-evolving skills, tool memories, knowledge base memories",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "quote": "MemOS generates and uses different categories of memories. They play different roles during recall: some confirm facts, some describe preferences, some summarize user profiles and complete events, some guide how an Agent should complete a task, and some provide supporting knowledge.",
+      "locator": "intro paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Fact memories capture objective user information from explicit statements, behavior events, files, or feedback",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "quote": "Fact memories describe relatively objective information, usually from explicit user statements, behavior events, files, or feedback.",
+      "locator": "## 1. Fact Memories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Preference memories capture long-term or stage-specific user tendencies from explicit statements or inferences from repeated behavior",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "quote": "Preference memories describe long-term or stage-specific user tendencies. They may come from explicit user statements, or from summaries and inferences based on repeated behavior.",
+      "locator": "## 2. Preference Memories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Profile is a structured, centrally stored memory type distinct from scattered per-fact memories, with per-field lock control",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "quote": "Structured: the profile is made up of predefined fields, stored centrally and ready to use directly, instead of being scattered across separate memories.",
+      "locator": "## 3. Profile",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory lifecycle management and time awareness handle fact/preference changes and supersession over time",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "quote": "Memories may change over time. MemOS combines Time Awareness and Memory Lifecycle Management to handle these changes.",
+      "locator": "## 1. Fact Memories / Note",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is per-user; user_id is the key in the search API",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "quote": "{\"user_id\": \"memos_user_123\", \"query\": \"What is coming up recently?\", \"knowledgebase_ids\": [\"memos_kb_001\"]}",
+      "locator": "## 8. How to Generate and Use Them / Using memories",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Tool memories are distilled from tool schemas, call parameters, results, and trajectories to help agents select and use tools",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "quote": "Tool memories record \"how to use tools\". They are distilled from Tool Schemas, tool call parameters, tool results, and tool trajectories. They help the Agent select tools, fill parameters, and use returned results more reliably.",
+      "locator": "## 6. Tool Memories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Knowledge base memories are shared across users/agents and combine with personal user memories at retrieve time",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "quote": "Knowledge Base memories can participate in recall together with user memories. For example, when an employee asks \"The intranet proxy does not open. Which version should I reinstall?\", the knowledge base provides installation instructions, while user fact memory adds that the employee uses an Intel MacBook Pro.",
+      "locator": "## 7. Knowledge Base Memories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemOS supports three mutually exclusive deletion methods: by memory_id list, by user_id, or by agent_id.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/mem_operations/delete_memory.md",
+      "quote": "MemOS Cloud currently supports the following three deletion methods. Choose one based on your scenario.",
+      "locator": "Section 1. Choose a Deletion Method",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory records carry typed fields including memory_key, memory_value, memory_type (e.g. WorkingMemory), tags, status, and relativity score.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/mem_operations/delete_memory.md",
+      "quote": "\"memory_key\": \"User ice cream preference\", \"memory_value\": \"[user opinion] The user likes ice cream.\", \"memory_type\": \"WorkingMemory\", ... \"status\": \"activated\", ... \"tags\": [\"food\", \"preference\", \"ice cream\"], ... \"relativity\": 0.7524414",
+      "locator": "Section 2.1 Find the Memory to Delete, JSON example",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Deletion is a hard remove; the success response is data.success: true and subsequent search confirms absence.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/mem_operations/delete_memory.md",
+      "quote": "The API returns data.success: true when the delete request succeeds. After deletion, call Search Memory again to check whether the memory still appears.",
+      "locator": "Section 2.3 Verify the Result",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory store organises at least six typed categories: fact, preference, Profile, Event Memory, skill, and tool.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/mem_operations/delete_memory.md",
+      "quote": "You no longer need this Agent's fact, preference, Profile, Event Memory, skill, or tool memories in the current project.",
+      "locator": "Section 4. Delete All Memories for an Agent, Warning",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MemOS retrieval pipeline includes query rewriting, hybrid retrieval, ranking, filtering, deduplication, and returns results within 600 ms.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/mem_operations/search_memory.md",
+      "quote": "Memory output: final results are returned according to the configured memory limit, within 600 ms, for later reasoning and answer generation.",
+      "locator": "## 3. How It Works",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS memory store separates at least four categories retrievable by name: event, profile, fact, preference.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/mem_operations/search_memory.md",
+      "quote": "include_memory_view\": [\"event\", \"profile\"]  # search only Event Memory and Profile",
+      "locator": "## 6. More Usage \u2014 `include_memory_view`",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is implemented across three axes: user_id, agent_id, and conversation_id, with global vs. conversation-scoped retrieval modes.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/mem_operations/search_memory.md",
+      "quote": "When searching memories, you can pass a specific `conversation_id`. MemOS prioritizes memories related to the current conversation. If you omit it, MemOS searches the user's long-term memories globally",
+      "locator": "## 6. More Usage \u2014 `conversation_id`",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory store is partitioned into at least three scopes: user memories, knowledge base memories, and public memories, each supporting independent filters.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/mem_operations/search_memory.md",
+      "quote": "You can also set separate filters for user memories, knowledge base memories, and public memories.",
+      "locator": "## 6. More Usage \u2014 `filter`",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The product describes a retrieve-then-prompt architecture; retrieved memories are injected into a prompt template for the model to reason over.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/mem_operations/search_memory.md",
+      "quote": "Recalled memories can be added directly to the prompt of your AI application.",
+      "locator": "## 5. Prompt Template with Memories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/delete is available but described only by reference to a separate page; this page does not describe the delete mechanism.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/mem_operations/search_memory.md",
+      "quote": "Delete Memory: Delete specific memory entries or all memories for a user.",
+      "locator": "## 8. More Features",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Multi-agent deployments require per-agent memory isolation for privacy and security",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/1105",
+      "quote": "In multi-agent deployments, isolating memory access is critical for user privacy and security.",
+      "locator": "Context section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Embeddings are intended to remain searchable even with encrypted content, subject to vector store capability",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/1105",
+      "quote": "Ensure embeddings remain searchable (if vector store supports encrypted vectors or trusted enclave), but raw content is opaque until decrypted by the authorized agent.",
+      "locator": "Proposal section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "When too many memory embeddings are missing at search time, the embedder returns None, causing a failure in the MMR deduplication path.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/1482",
+      "quote": "I find an embedder call error when memos extracts too many missing_documents embeddings.",
+      "locator": "Bug Description | \u95ee\u9898\u63cf\u8ff0",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory records carry an embedding field in their metadata, used during retrieval/deduplication.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/1482",
+      "quote": "memories[idx][\"metadata\"][\"embedding\"] = embedding",
+      "locator": "Bug Description | \u95ee\u984c\u63cf\u8ff0 \u2014 src/memos/api/handlers/search_handler.py:448",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The bug is reproducible by inserting a large number of messages and then issuing a search query, implicating the write (insert) and read (search) paths of the memory store.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/1482",
+      "quote": "1. insert a lot of messages\n2. search a query",
+      "locator": "How to Reproduce | \u5982\u4f55\u91cd\u73b0",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The issue persists in MemOS v2.0.13, indicating it was not resolved in that patch release.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/1482",
+      "quote": "MemOS v2.0.13 still has same problem.",
+      "locator": "Additional Context | \u5176\u4ed6\u4fe1\u606f",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "CompositeCubeView currently uses unconditional fan-out: every write and feedback operation is sent to all cube views, and search merges results from all cubes.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/1705",
+      "quote": "writes and feedback are fanned out to all cube views, while search results are merged from all cubes",
+      "locator": "Issue body, paragraph 1",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The fan-out strategy is explicitly marked as a temporary fast mode with smarter routing planned as a future slow mode.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/1705",
+      "quote": "For now (fast mode), it simply fan-out writes to all cubes;\nlater we can add smarter routing / slow mode here.",
+      "locator": "Context > Current design note (code comment)",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Future routing policy in CompositeCubeView may be rule-based, metadata-based, model-assisted, or configurable \u2014 no final design has been chosen.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/1705",
+      "quote": "Should routing be rule-based, metadata-based, model-assisted, or configurable?",
+      "locator": "Questions to Consider, bullet 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation at the cube level is under design: cubes are expected to declare responsibility, and a memory should be routed to the cube whose responsibility best matches it.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/1705",
+      "quote": "a new memory should not automatically be added to every accessible cube. It should be routed to the cube or cubes whose responsibility best matches that memory.",
+      "locator": "Issue body, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Routing may incorporate user/session metadata as a dimension for deciding which cube receives a memory.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/1705",
+      "quote": "Route add/feedback operations based on cube responsibility, request context, memory type, user/session metadata, or another explicit policy.",
+      "locator": "Goals, bullet 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS has a three-state memory architecture: Activation (KV-Cache), Plaintext (vector search), and Parameter (LoRA)",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/1829",
+      "quote": "The three-state memory model (Activation / Plaintext / Parameter) is one of the most ambitious memory architectures I've seen.",
+      "locator": "issue body, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemScheduler manages migration of memories between the three states and its decisions directly affect retrieval quality",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/1829",
+      "quote": "when MemScheduler migrates memories between states, how do we verify that the right memories are accessible at the right time? ... The scheduler's migration decisions (what gets promoted/demoted) directly impact retrieval quality",
+      "locator": "issue body, paragraph 2 and bullet 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Activation memory is backed by KV-Cache; Plaintext memory is backed by vector search",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/1829",
+      "quote": "Activation memory (KV-Cache) has different access patterns than Plaintext memory (vector search)",
+      "locator": "issue body, bullet 1 under paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Parameter memory is implemented via LoRA and is difficult to measure quantitatively",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/1829",
+      "quote": "Parameter memory (LoRA) effectiveness is difficult to measure quantitatively",
+      "locator": "issue body, bullet 3 under paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The system is expected to make the right memories accessible at the right time, implying a retrieve policy tied to scheduler state",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/1829",
+      "quote": "when MemScheduler migrates memories between states, how do we verify that the right memories are accessible at the right time?",
+      "locator": "issue body, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "search_memories in SingleCubeView logs full embedding vectors at INFO level by default due to dedup=mmr triggering include_embedding=True in format_memory_item",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2103",
+      "quote": "self.logger.info(f\"Search memories result: {memories_result}\")",
+      "locator": "Bug Description / src/memos/multi_mem_cube/single_cube.py:132-133",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory search results are structured with a text_mem key containing cube_id and per-memory metadata including embedding",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2103",
+      "quote": "Search memories result: {'text_mem': [{'cube_id': '...', 'memories': [{..., 'metadata': {'embedding': [0.0123, -0.0456, ...], ...}}]}], ...}",
+      "locator": "How to Reproduce",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "dedup supports at least three modes: mmr, sim, and no \u2014 affecting whether embeddings are included in formatted memory items",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2103",
+      "quote": "\u7576 `dedup` \u70ba `mmr` \u6216 `sim` \u6642\uff0c`format_memory_item(..., include_embedding=True)` ... \u5c07\u8acb\u6c42\u6539\u70ba `\"dedup\": \"no\"` \u518d\u641c\u7d22\u4e00\u6b21\uff0c\u65e5\u8a8c\u4e2d `embedding` \u61c9\u8b8a\u70ba\u7a7a\u5217\u8868 `[]`",
+      "locator": "Bug Description / How to Reproduce",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS graph memory is logically represented without requiring a native graph database, as shown by the existing PostgreSQL+pgvector backend",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2109",
+      "quote": "This implementation shows that graph data can be represented as a logical graph without requiring a native graph database.",
+      "locator": "Problem Statement | \u95ee\u9898\u9648\u8ff0",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS stores traces in SQLite with summary, agent_text, and user_text fields used as embedding source text, with no truncation or chunking before embedding.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2121",
+      "quote": "Three places feed source text straight into `embedMany` with no length guard\u2026 `grep` for `chunk|truncat|slice|max.*token|token.*limit` in `embedder.ts` returns only one hit \u2014 an unrelated `.slice(0, 300)` on tool-call **inputs**. The main text path is unguarded.",
+      "locator": "Evidence \u00a73",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "When a batch embedding call fails, all entries in the batch (including short valid ones) are marked failed and receive null vectors, degrading vector search recall silently over time.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2121",
+      "quote": "A 30k-char trace anywhere in the batch \u2192 400 \u2192 the whole batch (every other short, valid trace included) is counted as failed.",
+      "locator": "Evidence \u00a74",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS v2.0.13 has the same embedding incompleteness problem, per a user in issue #1482.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2121",
+      "quote": "MemOS v2.0.13 still has the same problem (per a user in #1482), though that issue is about *count* of missing_documents, not *length*.",
+      "locator": "Additional Context",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "HTTP 400 errors from the embedding provider are logged without the response body, making embedding failures hard to diagnose; the error body that identifies the root cause is swallowed.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2121",
+      "quote": "Right now `gateway.log` shows `embedding_unavailable: HTTP 400 from openai_compatible` with no response body, which is why this bug took so long to pin down \u2014 the `code:1210` message that points at the real cause is swallowed.",
+      "locator": "Suggested Fixes \u00a74",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Install scripts for key native dependencies (better-sqlite3, onnxruntime-node, sharp) were blocked by npm's allowScripts policy, which can prevent the memory store from being properly initialized.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2160",
+      "quote": "npm warn install-scripts 6 packages had install scripts blocked because they are not covered by allowScripts:\nnpm warn install-scripts   better-sqlite3@12.11.1 (install: node-gyp rebuild)\nnpm warn install-scripts   onnxruntime-node@1.21.0 (postinstall: node ./script/install)",
+      "locator": "Bug Description \u2014 npm install output",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The plugin's Memory Viewer daemon failed to become ready within 120 seconds on Ubuntu 24.04 with Node v26.5.0, indicating a startup continuity failure where the memory UI is unavailable.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2160",
+      "quote": "[10] Starting Memory Viewer daemon\n\u26a0  Memory Viewer not ready after 120s\n\u2718 Memory Viewer did not respond within 120s.",
+      "locator": "Bug Description \u2014 install log, step [10]",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Provider verification step did not return OK, suggesting the memtensor memory provider could not be confirmed as functional during install.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2160",
+      "quote": "[8] Verifying provider & patching config\n\u26a0  Provider verification didn't return OK",
+      "locator": "Bug Description \u2014 install log, step [8]",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation appears to be per-profile: the install patches separate config files for distinct agent profiles (coder, fast, researcher).",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2160",
+      "quote": "Hermes configs patched:\n   /home/cog5/.hermes/profiles/coder/config.yaml\n   /home/cog5/.hermes/profiles/fast/config.yaml\n   /home/cog5/.hermes/profiles/researcher/config.yaml",
+      "locator": "Bug Description \u2014 install log, step [9]",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The cloud MCP bridge is named @memtensor/memos-api-mcp and requires a cloud API key",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2188",
+      "quote": "integrate MemOS via the MCP bridge (`@memtensor/memos-api-mcp`), which requires a cloud API key and internet connection",
+      "locator": "Feature Request body, 'Problem' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory retrieval tools exposed by the local plugin include memory_search and memory_get; skill tools include skill_list and skill_get",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2188",
+      "quote": "Expose `memory_search`, `memory_get`, `skill_list`, `skill_get` etc. as OpenCode tools",
+      "locator": "Feature Request body, 'Requested Solution' section, item 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The /product router has no authentication dependency; admin router does gate routes with verify_api_key",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2202",
+      "quote": "Every `/product` handler is a plain `def f(req)` with no `Depends(verify_api_key)` \u2014 e.g. `search_memories` (`server_router.py:112`), `add_memories` (`:128`), `create_cube` (`:143`), `chat_complete` (`:271`), `scheduler_status` (`:208`). Compare the admin router, which gates every route with `auth: dict = Depends(verify_api_key)` (`admin_router.py:81,128,158,190`)",
+      "locator": "## What",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cross-user memory read is reproducible: a search POST with an arbitrary user_id returns 200 with that user's memory data",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2202",
+      "quote": "curl -s -X POST http://127.0.0.1:5050/product/search \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"user_id\":\"victim\",\"query\":\"*\",\"cube_id\":\"default\"}' | head",
+      "locator": "## How to reproduce",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Suggested fix is to derive user_id from the authenticated principal rather than a client-supplied field",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2202",
+      "quote": "Derive `user_id` from the authenticated principal instead of a client-supplied query/body field.",
+      "locator": "## Suggested change",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A broken method reference (`_vector_recall` instead of `_vector_recall_ORIGINAL`) causes vector search to silently return 0 results for affected memory cubes \u2014 a continuity failure where stored memories become unretrievable.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2231",
+      "quote": "In `recall.py`, the `GraphMemoryRetriever` class references `self._vector_recall` at lines 144, 212, and 232, but **no such method exists** on the class. Only `_vector_recall_ORIGINAL` is defined (line 370)",
+      "locator": "Investigation Findings > 4. Critical finding: `_vector_recall` method missing",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The failure is silent: no AttributeError surfaces to the caller; affected cubes return an empty text_mem list as if no memories exist.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2231",
+      "quote": "Response for affected cubes: `{\"data\": {\"text_mem\": []}}`",
+      "locator": "Investigation Findings > 5. API Request Used",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "WorkingMemory is a distinct memory type stored in Neo4j and queried separately from long-term/user memory; at time of report it contained 0 entries for all cubes.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2231",
+      "quote": "`_retrieve_from_working_memory` \u2192 Neo4j query for WorkingMemory (0 entries exist for any cube)",
+      "locator": "Investigation Findings > 3. Search pipeline analysis",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memories are durably stored in both Qdrant (vectors) and Neo4j (graph/metadata); the two stores can diverge in count (e.g. 29 Neo4j vs 27 Qdrant for one cube).",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2231",
+      "quote": "hermes-mac-mini-private | 29 | 27 | \u2713 3 results",
+      "locator": "Actual Behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "In fast mode, MemOS is supposed to extract memories from conversation context before storing them, but the reporter observed raw conversation context being stored verbatim \u2014 a memory extraction continuity failure",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2290",
+      "quote": "\u4f7f\u7528\u7684\u662f mode=fast\n\u4f46\u662f\u770b\u843d\u5e93\u7684\u4fe1\u606f\uff0c\u611f\u89c9\u5c31\u662f\u6211\u5bf9\u8bdd\u7684\u4e0a\u4e0b\u6587\u539f\u6587\uff0c\u5e76\u6ca1\u6709\u7ecf\u8fc7\u63d0\u53d6",
+      "locator": "Bug Description section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS can optionally enable internet search as part of memory/context resolution, triggered by LLM parsing internet_search=True",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2290",
+      "quote": "\u82e5\u60f3\u8ba9 LLM \u89e3\u6790\u51fa\u7684 internet_search=True \u771f\u6b63\u8054\u7f51",
+      "locator": "env file comment block, issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS uses an embedder (bge-m3, 1024-dim) and a reranker (bge-reranker-v2-m3) as part of its memory retrieval pipeline",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2290",
+      "quote": "MOS_EMBEDDER_MODEL=bge-m3\n...EMBEDDING_DIMENSION=1024\nMOS_RERANKER_BACKEND=http_bge\nMOS_RERANKER_MODEL=bge-reranker-v2-m3",
+      "locator": "env file block, issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Merged activation memory is silently discarded with no error or warning on transformers >= 4.57, causing the model to answer as if no memory was attached \u2014 a continuity failure invisible to the user.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2313",
+      "quote": "The failure is invisible: the model just answers as though no memory were attached.",
+      "locator": "section: Why it matters",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The declared transformers dependency range (>=4.51.3,<5.0.0 in pyproject.toml:41) permits versions where activation memory silently does nothing; the lock file pins 4.53.2 where the bug does not occur.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2313",
+      "quote": "Version-gated: applies to transformers >= 4.57.0, which is inside the declared range in pyproject.toml:41 (>=4.51.3,<5.0.0). poetry.lock pins 4.53.2, where this does not occur.",
+      "locator": "section: Environment",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The test fixture for activation memory merge (test_kv.py) is broken on current installs and never reaches the layers path where the bug lives, meaning CI does not catch the continuity failure.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2313",
+      "quote": "the test fixture in tests/memories/activation/test_kv.py also needs repairing to see this: make_filled_cache appends to cache.key_cache, which was removed in 4.57, so test_get_cache_merge and test_delete_and_get_all fail with AttributeError on any current install and never reach the layers path where the bug lives.",
+      "locator": "section: Related (note)",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The same silent-drop symptom was previously misclassified as a test nuisance in PR #2204 rather than recognized as data loss.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2313",
+      "quote": "This is very likely the same thing as the test_get_cache_merge failure that PR #2204 describes as a 'transformers-API-version issue unrelated to this patch' \u2014 it is a version issue, but it is silent data loss rather than a test nuisance.",
+      "locator": "section: Summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The delete/memory interface returns success but the memory is not actually deleted; the memory persists and remains retrievable after refresh, reproducible across three repeated attempts",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2331",
+      "quote": "\u5220\u9664\u4e00\u6761\u8bb0\u5fc6\u540e\u63a5\u53e3\u8fd4\u56de\u6210\u529f\uff0c\u4f46\u5237\u65b0\u9875\u9762\u540e\u8be5\u8bb0\u5fc6\u4ecd\u7136\u5b58\u5728\u5e76\u53ef\u4ee5\u88ab\u68c0\u7d22\u5230\uff0c\u91cd\u590d\u5220\u9664\u4e09\u6b21\u7ed3\u679c\u76f8\u540c\u3002\u9884\u671f\u5f7b\u5e95\u5220\u9664\uff0c\u5b9e\u9645\u5220\u9664\u672a\u751f\u6548\u3002",
+      "locator": "issue body",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Thinking suppression is op-scoped at the provider layer; capture.summarize is the only op that currently disables thinking, exposing all other write-path ops to raw model completions.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2336",
+      "quote": "The existing thinking-disable only covers capture.summarize; every other op (e.g. feedback.classify) can receive thinking-enabled model output, and nothing strips think-tags from message.content before it is stored.",
+      "locator": "Summary",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS uses an LLM call inside the abstraction stage to generate structured output (including a 'title') for world models; the output is parsed and validated before storage.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2335",
+      "quote": "throw new MemosError(ERROR_CODES.LLM_OUTPUT_MALFORMED, \"l3.abstraction: 'title' must be a non-empty string\", { got: o.title });",
+      "locator": "Location \u2014 dist/core/memory/l3/abstract.js (v2.0.17), line ~56",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The l3 world-model write path has been observed failing in production (1 failure in 12 attempts in v2.0.17) due to this validation throw, confirming the bug is reproducible in a real deployment.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2335",
+      "quote": "2.0.17 (Aug 30 \u2192 Sep 3) | 12 | 1 | **`'title' must be a non-empty string`**",
+      "locator": "Observed behavior (production evidence) \u2014 table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The plugin package is distributed via npm as 'memtensor-memos-local-plugin' and uses an adapter model (Hermes) with an openai_compatible LLM provider.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2335",
+      "quote": "memos-local plugin 2.0.17 (npm `memtensor-memos-local-plugin-2.0.17`) \u2014 Adapter: Hermes (`adapters/hermes/memos_provider`)",
+      "locator": "Environment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The suggested fix includes sanitizing at the provider level (strip think blocks and special tokens from message.content before return) and extending thinking-disable to deterministic ops including feedback.classify, l3.abstraction, verifier, and retrieval filter.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2336",
+      "quote": "Sanitize at the provider choke point: strip <think>\u2026</think> blocks, orphan closing </think> fragments, and DeepSeek special tokens \u2026 from choice.message.content before returning from the provider \u2014 one place, fixes all ops. Extend thinking-disable to deterministic/analytical ops (feedback.classify, l3.abstraction, verifier, retrieval filter), not just capture.summarize.",
+      "locator": "Suggested fix",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "feedback.rationale is persisted verbatim into the memory store and is retrieval-visible, so polluted LLM output (think tags, special tokens) becomes part of retrievable memory.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2336",
+      "quote": "dist/core/experience/feedback-builder.js then persists feedback.rationale (and raw verifier text) verbatim into the store \u2014 polluted text becomes retrieval-visible memory.",
+      "locator": "Code path (v2.0.17), step 4",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Two confirmed cases of polluted persisted memory were observed in a real deployment, with raw model completion artifacts stored as feedback rationale.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2336",
+      "quote": "Two feedback rows stored on 2026-09-02 in our deployment contain a rationale that is clearly a raw model completion, not classified output:\nrationale: \"</think>\\n<\uff5cend\u2581of\u2581sentence\uff5c>\\n<\uff5cend\u2581of\u2581session\uff5c>\\n\\n---\\n\\n[Writing Rule]...\"\npolarity: negative",
+      "locator": "Reproduction / evidence",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "L3 world-model generation almost always fails under full self-evolution mode with @memtensor/memos-local-plugin v2.0.18 due to LLM output truncation at maxTokens",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2356",
+      "quote": "With `@memtensor/memos-local-plugin` v2.0.18 (Hermes local adapter, full self-evolution mode), **L3 world-model generation fails almost always** with a misleading validation error",
+      "locator": "## Summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Raising maxTokens to 32768 and timeoutMs to 300000 restores successful world-model merging with confidence ~1.0",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/MemOS/issues/2356",
+      "quote": "```yaml\nllm:\n  maxTokens: 32768\n  timeoutMs: 300000\n```\nAfter restarting the bridge/daemon, a manual L3 run over the live DB:\n```\nrun.done: clusters=6 created=0 merged=6 skipped=0\n```",
+      "locator": "## Fix that works locally",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS is evaluated via its online API endpoint to reflect real production behavior",
+      "kind": "blog",
+      "url": "https://evermind.ai/blogs/a-unified-evaluation-framework-for-ai-memory-systems",
+      "quote": "we evaluate all systems via their online API endpoints to reflect real production behavior and ensure apples-to-apples comparison",
+      "locator": "Implementation Approach",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS uses its own official prompting strategy rather than a unified template",
+      "kind": "blog",
+      "url": "https://evermind.ai/blogs/a-unified-evaluation-framework-for-ai-memory-systems",
+      "quote": "Each memory system uses its own official prompting strategy, rather than force-fitting a unified template",
+      "locator": "Key Adjustments",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS memory persistence is write-on-every-turn: add_message must be called after every answer regardless of content.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/dashboard/mcp/",
+      "quote": "Note that calling add_message is mandatory. Regardless of what the user says or asks, it must be recorded",
+      "locator": "Section 3 \u2014 Claude Desktop system prompt",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS memory retrieval is always-on, not adaptive: search_memory must be called before every answer including simple greetings.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/dashboard/mcp/",
+      "quote": "Must be auto-called before generating any answer (including simple greetings).",
+      "locator": "Section 3 \u2014 Cline global rules, Search Memory step",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The 3-step workflow (search \u2192 answer \u2192 save) is enforced by client-side scaffold rules, not by MemOS internals; the model itself may fail to invoke tools depending on the underlying model's proficiency.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/dashboard/mcp/",
+      "quote": "Due to the different underlying models used, different agents have different proficiency in using tools. When the agent forgets to use the tool, you can guide the model to call the corresponding tool through instructions",
+      "locator": "Section 4 \u2014 Q&A",
+      "confidence": "unknown",
+      "label": "unknown"
+    },
+    {
+      "claim": "User isolation is per MEMOS_USER_ID; the same ID must be used across sessions and devices for memory continuity.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/dashboard/mcp/",
+      "quote": "For the same user, this environment variable needs to remain consistent across different devices/clients",
+      "locator": "Section 2 \u2014 MEMOS_USER_ID env var description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemOS CLI wraps add, search, get, delete, extract, and chat as discrete memory operations accessible from the command line or agent shell execution.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/mcp_agent/cli/guide.md",
+      "quote": "MemOS CLI is designed for Agents and development environments that can execute shell commands. It wraps common memory operations into the `memos` command",
+      "locator": "title section / opening paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The agent skill pattern performs retrieve-before-answer and write-after-answer automatically each turn, constituting a structured read-write lifecycle around each conversation turn.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/mcp_agent/cli/guide.md",
+      "quote": "Before answering \u2014 automatically run `memos search` to retrieve long-term memories related to the current task\nAfter answering \u2014 automatically run `memos add` to write new facts, preferences, etc. into MemOS",
+      "locator": "Section 3.1 Use with Agents",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per user; conversation ID provides a secondary scope for raw message retrieval.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/mcp_agent/cli/guide.md",
+      "quote": "| `--user-id` | User identifier; defaults to `defaults.user_id` in config |\n| `--conversation-id` | Conversation ID; defaults to `defaults.conversation_id` in config |",
+      "locator": "Section 5 / memos add and memos message",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemOS distinguishes at least four memory subtypes (main, preference, tool, skill) with independent include flags and recall limits at retrieve time.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/mcp_agent/cli/guide.md",
+      "quote": "| `--include-preference` | Include preference memories (`true` / `false`); defaults to `true` |\n| `--include-tool-memory` | Include tool memories (`true` / `false`); defaults to `false` |\n| `--include-skill-memory` | Include skill memories (`true` / `false`); defaults to `false` |",
+      "locator": "Section 5 / memos search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemOS separates the curated memory (`memos origin`) from the raw source message (`memos message`), indicating a log layer distinct from the memory store.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/mcp_agent/cli/guide.md",
+      "quote": "Query the original text of a memory by memory ID.\nmemos origin mem_123456",
+      "locator": "Section 5 / memos origin",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is implemented as explicit deletion: by individual memory ID or by bulk deletion of all memories for a user.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/mcp_agent/cli/guide.md",
+      "quote": "Delete one memory, or delete all memories for a user:\n| `[MEMORY_ID]` | Memory ID to delete; pass this to delete a single memory |\n| `--user-id` | Delete all memories for this user; use either this or `MEMORY_ID` |",
+      "locator": "Section 5 / memos delete",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "In the LOCOMO evaluation, using MemOS CLI alone reduced token usage by approximately 65.5%; integrating MemOS Cloud + CLI improved accuracy from 66.60% to 77.27% versus a baseline.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/mcp_agent/cli/guide.md",
+      "quote": "in the LOCOMO evaluation, using MemOS CLI alone reduced token usage by about 65.5%; integrating MemOS Cloud + CLI improved accuracy from 66.60% to 77.27%.",
+      "locator": "Section 3.1 Use with Agents / Tip callout",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write operations via `memos add` and `memos feedback` are asynchronous; a task_id is returned and polled via `memos status`.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/mcp_agent/cli/guide.md",
+      "quote": "The task ID comes from the `task_id` returned by `add` or `feedback` in async mode.\nReturned status values include `running`, `completed`, and `failed`.",
+      "locator": "Section 5 / memos status",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The CLI attaches source and framework tags to all memory API requests for provenance tracking.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/mcp_agent/cli/guide.md",
+      "quote": "All CLI requests include a `source=cli` tag. When the framework can be identified from environment variables or parent processes, the `framework` info is also attached to memory API requests.",
+      "locator": "Section 7. Configuration Commands and Environment Variables",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Fact and preference memories are the default retrieval set; other categories must be explicitly included via include_memory_view.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "quote": "When searching memories, use `include_memory_view` to control which memory categories can be retrieved. If omitted, fact memories and preference memories are recalled by default.",
+      "locator": "Section 8: Using memories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Profile fields can be locked to prevent automatic updates, giving field-level write control.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "quote": "Field-level control: you can configure whether each field allows automatic updates. Key fields can be locked to keep core settings stable.",
+      "locator": "Section 3: Profile",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory lifecycle management (including time awareness) handles fact changes over time, implying update and possibly supersession logic exists.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "quote": "Memories may change over time. MemOS combines Time Awareness and Memory Lifecycle Management to handle these changes.",
+      "locator": "Section 1: Fact Memories, note",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is per-user for personal memories (user_id scoped) and per-project for knowledge base memories.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "quote": "Knowledge Base memories come from project-level documents, policies, manuals, FAQs, process files, or Skill files. They are not part of a single user's personal history and are better shared by multiple users or Agents.",
+      "locator": "Section 7: Knowledge Base Memories",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write path for most memory types is extraction triggered by adding messages, not manual insertion.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "quote": "Fact, preference, event, and skill memories are automatically extracted and updated after adding messages.",
+      "locator": "Section 8: Generating memories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Self-evolving skill memory is extracted from historical messages and can also be seeded by uploading skill packages.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "quote": "MemOS automatically extracts skills from historical messages to enable self-evolving memory. You can also upload existing skill packages to a knowledge base.",
+      "locator": "Section 5: Self-Evolving Skills",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemOS provides a TreeTextMemory component that persists memory nodes to disk and supports semantic search retrieval with relevance scoring.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/open_source/cookbook/chapter3/overview.md",
+      "quote": "tree_memory = TreeTextMemory(config)\ntree_memory.load(\"/root/Test\")\nresults = tree_memory.search(\"Duan Yu's first encounter with the fairy sister\", top_k=5)",
+      "locator": "Recipe 3.5: MemOS Integration and Query Validation \u2014 \ud83d\udd17 MemOS Connector",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS memory nodes have a 'status' field (e.g., 'activated'), suggesting memory items can have lifecycle states, though other states are not described on this page.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/open_source/cookbook/chapter3/overview.md",
+      "quote": "\"status\": \"activated\"",
+      "locator": "Recipe 3.5: Memory Graph Structure Transformer \u2014 \ud83c\udfd7\ufe0f Memory Node Generation \u2014 create_memory_node",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Working memory in MemCube is a distinct layer from the main memory store, supporting full replacement (replace_working_memory) and retrieval (get_working_memory).",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/open_source/cookbook/chapter3/overview.md",
+      "quote": "mem_cube.text_mem.replace_working_memory(world_state_memories)\ncurrent_working_memory = mem_cube.text_mem.get_working_memory()",
+      "locator": "Creative 2: Dynamic Working Memory World Background",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MOS.add writes new memory content to the per-user store; MOS.search retrieves relevant memories; MOS.chat generates a response using retrieved context.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/open_source/cookbook/chapter3/overview.md",
+      "quote": "self.world_memory.add(\n            memory_content=memory_content,\n            user_id=\"game_master\"\n        )\n...\ncontext = self.world_memory.search(\n            query=player_input, \n            user_id=\"game_master\"\n        )\n...\nreturn self.world_memory.chat(\n             query=query,\n             user_id=\"game_master\"\n         )",
+      "locator": "Creative 3: MemOS-Driven Interactive Text Game \u2014 WuxiaTextGame methods",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation in MemOS is per user_id; users are explicitly created before memory operations.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/open_source/cookbook/chapter3/overview.md",
+      "quote": "self.world_memory.create_user(\"game_master\")",
+      "locator": "Creative 3: MemOS-Driven Interactive Text Game \u2014 WuxiaTextGame.__init__",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemCube tracks event completion state (if_completed) and passes only unfinished events as context to the next extraction round, effectively gating what is scaffolded into the prompt.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/open_source/cookbook/chapter3/overview.md",
+      "quote": "return [event for event in memcube.get(\"events\", []) if not event.get(\"if_completed\", False)]",
+      "locator": "Recipe 3.2: Structured Memory Content Extraction \u2014 \ud83d\udd04 Intelligent Data Merging Algorithm \u2014 get_unfinished_events",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The data pipeline produces a memory_graph.json with nodes and edges, which is then loaded into MemOS \u2014 not written directly via an API.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/open_source/cookbook/chapter3/overview.md",
+      "quote": "json.dump({\n        \"nodes\": nodes,\n        \"edges\": edges\n    }, f, ensure_ascii=False, indent=2)\n...\ntree_memory.load(\"/root/Test\")",
+      "locator": "Recipe 3.5: Memory Graph Structure Transformer \u2014 \ud83d\udd04 Batch Conversion Processing; Recipe 3.5: MemOS Integration and Query Validation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "search_memories retrieves memories from one or more MemCubes by vector query, with optional preference inclusion",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/open_source/getting_started/examples.md",
+      "quote": "search_req = APISearchRequest(\n    user_id=user_id,\n    readable_cube_ids=[\"cube_test_user_1\"],\n    query=\"Please recommend a hotel that I haven't stayed at before.\",\n    include_preference=True,\n)\nsearch_rsp = search_memories(search_req).data",
+      "locator": "Example 1: Minimal Pipeline / Full Example Code",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "KVCacheMemory lifecycle is extract \u2192 add \u2192 merge \u2192 get \u2192 delete, with dump/load for cross-session persistence",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/open_source/getting_started/examples.md",
+      "quote": "Demonstrates extract \u2192 add \u2192 merge \u2192 get \u2192 delete. Shows how to dump/load KV caches.",
+      "locator": "Example 4: KVCacheMemory Only / Key Points",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "TreeTextMemory uses Neo4j as its graph backend for long-term structured memory",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/open_source/getting_started/examples.md",
+      "quote": "For graph memory, you'll need Neo4j Desktop (community version support coming soon).",
+      "locator": "Next Steps / Note: Keep in Mind",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are isolated per user and per MemCube; separate Cube IDs create separate memory partitions",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/open_source/getting_started/examples.md",
+      "quote": "Add memories to separate, isolated Cube spaces",
+      "locator": "Example 3: Multi-Cube addition and retrieval / When to Use",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "WorkingMemory is a distinct memory_type within TreeTextMemory nodes, visible at retrieval time",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/open_source/getting_started/examples.md",
+      "quote": "if node[\"metadata\"][\"memory_type\"] == \"WorkingMemory\":",
+      "locator": "Example 6: Multi-Memory Scheduling / Full Example Code",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Multi-source ingestion supports text, files (by URL), images (by URL), and tool call/result turns following OpenAI Messages format",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/open_source/getting_started/examples.md",
+      "quote": "The added information must strictly follow the OpenAI Messages format. The tool schema in the system prompt needs to be wrapped in <tool_schema> </tool_schema>.",
+      "locator": "Example 2: Adding and retrieving multi-source memories / Key Points",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Parametric Memory is not yet released; APIs for generating, compressing, and hot-swapping parametric modules are planned for future versions.",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/open_source/modules/memories/parametric_memory.md",
+      "quote": "Parametric Memory is currently under design and prototyping. APIs for generating, compressing, and hot-swapping parametric modules will be released in future versions \u2014 supporting multi-task, multi-role, and multi-agent architectures.",
+      "locator": "Current Status section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemOS describes a three-tier memory architecture: Parametric (embedded knowledge), Activation (ephemeral runtime states), and Plaintext (structured, traceable external memories).",
+      "kind": "docs",
+      "url": "https://memos-docs.openmem.net/open_source/modules/memories/parametric_memory.md",
+      "quote": "Parametric: Embedded knowledge / Activation: Ephemeral runtime states / Plaintext: Structured, traceable external memories",
+      "locator": "Developer Note section",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/base.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/factory.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/textual/base.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/textual/general.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/core.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_os/main.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_reader/memory.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_reader/base.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/dream/maintenance.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/graph_dbs/base.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_cube/base.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/mem_recall.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://memos-docs.openmem.net/memos_cloud/mem_operations/search_memory.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://memos-docs.openmem.net/memos_cloud/mem_operations/delete_memory.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/profile.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/event_memory.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/1383",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/1448",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/1829",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/1105",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/1217",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/2160",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/1482",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/2121",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/2109",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/2103",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/2202",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/2290",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/1705",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/2356",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/2231",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/2188",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/2335",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/2336",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/2331",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/MemOS/issues/2313",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://memos-docs.openmem.net/open_source/getting_started/examples.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://memos-docs.openmem.net/dashboard/mcp/",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://memos-docs.openmem.net/mcp_agent/cli/guide.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://memos-docs.openmem.net/open_source/modules/memories/parametric_memory.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://memos-docs.openmem.net/open_source/cookbook/chapter3/overview.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://gethppy.com/internalcommunication/memos-relevant-anymore",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://evermind.ai/blogs/a-unified-evaluation-framework-for-ai-memory-systems",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://news.ycombinator.com/item?id=44510395",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1lv9m3j/memos_a_memory_os_for_ai_system/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/singularity/comments/1lvg6ea/chinese_researchers_unveil_memos_the_first_memory/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/Futurology/comments/1lyr3su/chinese_researchers_unveil_memos_the_first_memory/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1lb9yo0/memos_a_memorycentric_operating_system_for/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mb6rre/is_anyone_using_memos_what_are_the_pros_and_cons/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/AIMemory/comments/1lyvnqm/memos_new_ai_architecture/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.producthunt.com/products/recaply-2",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.producthunt.com/products/music-memos/alternatives",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.producthunt.com/products/auro",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Forget / delete semantics: the API lists delete as a supported operation but this README does not describe whether deletion removes from the store, hides at retrieve, or omits in generation",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Conflict/supersession logic: how MemOS resolves contradictory memories (e.g., user changes preference) beyond the high-level claim of 'correcting or replacing' is not described here",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Scaffold / instruction layer: what prompt instructions (if any) tell the model how to use retrieved memories is not described",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "The actual DreamMemoryLifecycle type definition and full field schema are in types.py, which is not included in this page; write-path details (how Dream memories are initially created and persisted) are not described here",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/dream/maintenance.py",
+      "kind": "code"
+    },
+    {
+      "text": "Retrieve policy (always-on vs adaptive, when to stay silent) is not specified in this interface",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/graph_dbs/base.py",
+      "kind": "code"
+    },
+    {
+      "text": "This is the abstract base; write path details (extract, update, delete, conflict/supersession) are not defined here and should appear in concrete subclasses or BaseTextMemory/BaseActMemory/BaseParaMemory implementations",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/mem_cube/base.py",
+      "kind": "code"
+    },
+    {
+      "text": "Retrieve, update, delete, forget, and conflict-resolution operations are not defined in this base class; it is unclear whether they are defined in subclasses or elsewhere in the codebase.",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/base.py",
+      "kind": "code"
+    },
+    {
+      "text": "The memory_filename config field and the concrete subclasses that implement BaseMemory are not visible on this page, leaving the actual persistence format (log vs curated facts) unknown.",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/base.py",
+      "kind": "code"
+    },
+    {
+      "text": "Conflict and supersession logic during update is not specified \u2014 whether update merges, overwrites, or checks for contradictions is unknown",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/textual/base.py",
+      "kind": "code"
+    },
+    {
+      "text": "Retrieve policy \u2014 whether search is always called per turn or invoked adaptively \u2014 is not defined at this abstraction layer",
+      "url": "https://github.com/MemTensor/MemOS/blob/de8069428a9247bfa7a3d35f59a9b39fa8f231d2/src/memos/memories/textual/base.py",
+      "kind": "code"
+    },
+    {
+      "text": "The page contains only 2 comments, neither of which describes MemOS mechanisms \u2014 persist, retrieve, update, forget, conflict, or isolation are not discussed. The canonical arxiv paper linked is not reproduced here.",
+      "url": "https://news.ycombinator.com/item?id=44510395",
+      "kind": "community"
+    },
+    {
+      "text": "No detail on how MemOS handles write path operations \u2014 extract, update, delete, or conflict resolution \u2014 is present on this page despite it being a community discussion of MemOS's architecture.",
+      "url": "https://www.reddit.com/r/Futurology/comments/1lyr3su/chinese_researchers_unveil_memos_the_first_memory/",
+      "kind": "community"
+    },
+    {
+      "text": "No detail on memory isolation (per user, session, agent) is described on this page.",
+      "url": "https://www.reddit.com/r/Futurology/comments/1lyr3su/chinese_researchers_unveil_memos_the_first_memory/",
+      "kind": "community"
+    },
+    {
+      "text": "No description on this page of how memory conflicts or supersession are handled when new information contradicts stored MemCubes.",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1lv9m3j/memos_a_memory_os_for_ai_system/",
+      "kind": "community"
+    },
+    {
+      "text": "No description on this page of forget/delete mechanics \u2014 whether memories can be explicitly removed from the store or are only omitted at retrieval.",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1lv9m3j/memos_a_memory_os_for_ai_system/",
+      "kind": "community"
+    },
+    {
+      "text": "No description on this page of isolation boundaries \u2014 whether memory is scoped per user, per session, per agent, or globally.",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1lv9m3j/memos_a_memory_os_for_ai_system/",
+      "kind": "community"
+    },
+    {
+      "text": "No community discussion covers how MemOS handles retrieval policy (always-on vs. adaptive), conflict resolution between stored facts, or forgetting/deletion from the memory store. For a product positioning itself as a full memory OS these are core behaviors left unaddressed on this page.",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mb6rre/is_anyone_using_memos_what_are_the_pros_and_cons/",
+      "kind": "community"
+    },
+    {
+      "text": "No detail on retrieve policy: whether memory is always retrieved into context or selected adaptively per turn.",
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1lb9yo0/memos_a_memorycentric_operating_system_for/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of the write path: how facts are extracted, updated, or superseded within MemCube's plaintext store.",
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1lb9yo0/memos_a_memorycentric_operating_system_for/",
+      "kind": "community"
+    },
+    {
+      "text": "No mention of forget or delete behavior: whether memories can be removed or hidden from retrieval.",
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1lb9yo0/memos_a_memorycentric_operating_system_for/",
+      "kind": "community"
+    },
+    {
+      "text": "No clarity on isolation scope: whether memory is per-user, per-session, per-agent, or per-character.",
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1lb9yo0/memos_a_memorycentric_operating_system_for/",
+      "kind": "community"
+    },
+    {
+      "text": "Forget / deletion behavior: the page does not describe how MemOS removes, hides, or supersedes a stored memory unit",
+      "url": "https://www.reddit.com/r/singularity/comments/1lvg6ea/chinese_researchers_unveil_memos_the_first_memory/",
+      "kind": "community"
+    },
+    {
+      "text": "Isolation scope: the page does not state whether memories are isolated per user, per session, per agent, or per character",
+      "url": "https://www.reddit.com/r/singularity/comments/1lvg6ea/chinese_researchers_unveil_memos_the_first_memory/",
+      "kind": "community"
+    },
+    {
+      "text": "Write path conflict/supersession: no description of how MemOS handles contradictory or updated facts in the store",
+      "url": "https://www.reddit.com/r/singularity/comments/1lvg6ea/chinese_researchers_unveil_memos_the_first_memory/",
+      "kind": "community"
+    },
+    {
+      "text": "Conflict and supersession logic: how MemOS resolves contradictory memories (e.g., user changes a stated preference) is referenced under lifecycle and update but not detailed on this page",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy detail: when memory recall stays silent vs always injects \u2014 the page names the concept but does not describe the selection criteria beyond 'most relevant, trustworthy, and suitable'",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "kind": "docs"
+    },
+    {
+      "text": "Parametric memory is listed as Coming Soon with no mechanism described",
+      "url": "https://memos-docs.openmem.net/llms.txt",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete: this page is a feature doc for Event Memory and never describes how to delete or deactivate an event record, despite 'status': 'activated' implying other states exist.",
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/event_memory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession: no description of what happens when a newly extracted event contradicts or updates an existing one (e.g., rescheduled meeting).",
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/event_memory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy / ranking: the page shows a relativity score in the response but does not describe the retrieval or ranking algorithm, or when events are silently omitted from context.",
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/event_memory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy is not fully specified: the page shows profile can be included via include_memory_view but does not describe when or whether profile is automatically injected without an explicit flag, or any adaptive retrieval logic.",
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/profile.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict resolution when two messages in the same session supply contradicting values for the same field is not described; the algorithm_updatable flag prevents overwrites only when set to false, but the merge/supersession logic for updatable fields is absent.",
+      "url": "https://memos-docs.openmem.net/memos_cloud/features/profile.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete mechanism: this page is a canonical memory-types architecture doc but does not describe how memories are deleted, expired, or hidden at retrieval",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict / supersession logic: the page references Memory Lifecycle Management for handling changes but does not describe the conflict resolution or update rules on this page",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Scaffold / instruction layer: the page does not describe any system-prompt or instruction template that tells the model how to use retrieved memories in generation",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This delete API doc does not describe the write/extract path \u2014 how memories are created, deduplicated, or how conflicts or supersessions are handled.",
+      "url": "https://memos-docs.openmem.net/memos_cloud/mem_operations/delete_memory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No retrieve policy is described here \u2014 whether retrieval is always-on, adaptive, or threshold-gated before memories enter the prompt.",
+      "url": "https://memos-docs.openmem.net/memos_cloud/mem_operations/delete_memory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget mechanism detail (delete from store vs. hide at retrieve vs. omit in generation) is not described here; only a link to a separate delete page is provided.",
+      "url": "https://memos-docs.openmem.net/memos_cloud/mem_operations/search_memory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The page references src/memos/api/handlers/search_handler.py as a canonical retrieval path but does not describe the full retrieve policy (when MMR dedup is triggered vs. skipped) or how missing embeddings arise after insert.",
+      "url": "https://github.com/MemTensor/MemOS/issues/1482",
+      "kind": "issue"
+    },
+    {
+      "text": "No specification of how cubes declare or expose their responsibility domain \u2014 the issue raises this as an open question without answering it.",
+      "url": "https://github.com/MemTensor/MemOS/issues/1705",
+      "kind": "issue"
+    },
+    {
+      "text": "Behavior when no cube clearly matches a memory (fallback policy) is raised as an open question with no defined answer on this page.",
+      "url": "https://github.com/MemTensor/MemOS/issues/1705",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of the write path (extract, update, delete, conflict/supersession) is present in this issue, despite MemOS being the subject of an architectural discussion.",
+      "url": "https://github.com/MemTensor/MemOS/issues/1829",
+      "kind": "issue"
+    },
+    {
+      "text": "Forget/deletion behavior across the three states is not addressed anywhere in this issue.",
+      "url": "https://github.com/MemTensor/MemOS/issues/1829",
+      "kind": "issue"
+    },
+    {
+      "text": "The page references format_memory_item and include_embedding=True/False logic in formatters_handler.py but does not show the full retrieval/ranking logic or how mmr deduplication selects memories from the store",
+      "url": "https://github.com/MemTensor/MemOS/issues/2103",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how MemOS selects or retrieves stored traces/embeddings into the active context (retrieve policy, ranking, adaptive vs always-on).",
+      "url": "https://github.com/MemTensor/MemOS/issues/2121",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of forget/delete behavior: whether traces can be deleted from the store or suppressed at retrieval time.",
+      "url": "https://github.com/MemTensor/MemOS/issues/2121",
+      "kind": "issue"
+    },
+    {
+      "text": "The docs page linked as the install source (https://memos-claw.openmem.net/docs/index.html) is the canonical install reference but this issue does not describe what the Memory Viewer exposes \u2014 it is unclear whether it shows raw logs, curated memory facts, or summaries, and whether forget/delete operations are available through it.",
+      "url": "https://github.com/MemTensor/MemOS/issues/2160",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe how the 4 memory layers (Trace, Policy, World Model, Skill) each persist, are retrieved, updated, or forgotten \u2014 the layer names are mentioned but their mechanics are not defined here",
+      "url": "https://github.com/MemTensor/MemOS/issues/2188",
+      "kind": "issue"
+    },
+    {
+      "text": "Conflict resolution and supersession behavior during memory writes are not described",
+      "url": "https://github.com/MemTensor/MemOS/issues/2188",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how memories are curated, summarized, or selected into context at retrieval time (retrieve policy, adaptive selection, or silence conditions) \u2014 this is a core memory behavior absent from a server API issue that does touch search_memories and add_memories",
+      "url": "https://github.com/MemTensor/MemOS/issues/2202",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of forget / delete path: whether memories can be deleted from the store, suppressed at retrieval, or expire",
+      "url": "https://github.com/MemTensor/MemOS/issues/2202",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not explain why fast mode fails to extract memories before storing \u2014 no code path, logic, or fix is described for this extraction failure",
+      "url": "https://github.com/MemTensor/MemOS/issues/2290",
+      "kind": "issue"
+    },
+    {
+      "text": "No documentation on the full L3 world-model schema (required fields beyond 'title' and 'domain_tags', what 'body' is supposed to contain, how confidence is computed) is referenced or linked from this page",
+      "url": "https://github.com/MemTensor/MemOS/issues/2356",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how world models are retrieved into context or how they influence subsequent generation \u2014 only creation/merge is discussed",
+      "url": "https://github.com/MemTensor/MemOS/issues/2356",
+      "kind": "issue"
+    },
+    {
+      "text": "No MemOS-specific scores, results, or rankings are quoted or shown on this page despite it being a benchmarking post that covers LoCoMo and LongMemEval results",
+      "url": "https://evermind.ai/blogs/a-unified-evaluation-framework-for-ai-memory-systems",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of a forget or delete mechanism \u2014 how memories are removed or expired from the store is absent from this page despite it being an architecture-relevant MCP config doc.",
+      "url": "https://memos-docs.openmem.net/dashboard/mcp/",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession policy: this CLI reference does not describe how MemOS handles contradictory or updated facts at write time (e.g., whether a new `memos add` overwrites, merges, or appends to an existing memory about the same subject).",
+      "url": "https://memos-docs.openmem.net/mcp_agent/cli/guide.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy adaptiveness: the page describes a fixed retrieve-before-answer pattern but does not specify whether retrieval is always performed or conditionally triggered based on query relevance or a threshold.",
+      "url": "https://memos-docs.openmem.net/mcp_agent/cli/guide.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete path: this architecture doc describes generation and retrieval categories but does not state how memories are deleted or expired from the store.",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession: the page notes memories may change over time and defers to Memory Lifecycle Management, but does not describe how conflicting or outdated memories are resolved or suppressed.",
+      "url": "https://memos-docs.openmem.net/memos_cloud/introduction/memory_types.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This page does not describe how MemOS handles memory deletion or explicit forgetting from the store; the 'status' field implies lifecycle management but no delete or forget API is shown.",
+      "url": "https://memos-docs.openmem.net/open_source/cookbook/chapter3/overview.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The retrieve policy for MOS.chat is not described: it is unclear whether memory is always retrieved on every chat call or retrieved adaptively based on query relevance.",
+      "url": "https://memos-docs.openmem.net/open_source/cookbook/chapter3/overview.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No forget/delete mechanism described for text_mem (TreeTextMemory) \u2014 this is a canonical examples doc covering the write and retrieve paths but delete from the long-term graph store is not shown",
+      "url": "https://memos-docs.openmem.net/open_source/getting_started/examples.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This is a canonical architecture doc for Parametric Memory but does not describe any retrieve, forget, conflict, or isolation behavior \u2014 all deferred to future development with no API or design detail provided.",
+      "url": "https://memos-docs.openmem.net/open_source/modules/memories/parametric_memory.md",
+      "kind": "docs"
+    }
+  ]
+}
