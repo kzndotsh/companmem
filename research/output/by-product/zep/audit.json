@@ -1,0 +1,1762 @@
+{
+  "identity": {
+    "id": "zep",
+    "name": "Zep Cloud",
+    "repo": null,
+    "docs": "https://help.getzep.com/llms.txt",
+    "license": "Apache License",
+    "version_or_commit": "v3",
+    "observed_at": "2026-09-13"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Agent memory at enterprise scale"
+    },
+    {
+      "text": "Zep Cloud provides dashboards and usage insights as a managed alternative to self-hosting."
+    },
+    {
+      "text": "Zep exposes key concepts including Sessions and Facts as its memory model."
+    },
+    {
+      "text": "The Context Graph is described as the unit of agent memory"
+    },
+    {
+      "text": "Zep produces multiple context types from a Context Graph for retrieval into agent prompts"
+    },
+    {
+      "text": "Raw source material is stored as episodes and remains searchable and retrievable alongside the structured graph."
+    },
+    {
+      "text": "In-house agent and personal MCP client share one user graph so context written by one is available to the other."
+    },
+    {
+      "text": "Zep turns ingested data into agent memory represented as a temporal Context Graph, then produces a token-efficient context string for use in agent prompts."
+    },
+    {
+      "text": "Agent memory system with a temporal knowledge graph for tracking how facts change over time"
+    },
+    {
+      "text": "Managed cloud offering with compliance certifications"
+    },
+    {
+      "text": "Purpose-built persistent memory system for AI agents, providing searchable and context-aware recall across sessions"
+    },
+    {
+      "text": "Zep CE is positioned for agents that need time-aware queries across sessions, using a temporal knowledge graph."
+    },
+    {
+      "text": "Provides persistent memory backed by a temporal knowledge graph for CrewAI agents, enabling context across sessions and shared knowledge bases."
+    },
+    {
+      "text": "Zep is positioned as a long-term memory system for AI agents that retrieves past conversation and facts into prompts so the LLM can answer with awareness of prior exchanges."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Graph database (Konig) as the data plane for agent memory"
+    },
+    {
+      "text": "Observations: durable patterns and insights automatically discovered across Context Graphs"
+    },
+    {
+      "text": "Graph retrieval uses semantic and BM25 search as entrypoints"
+    },
+    {
+      "text": "Retrieval policy: adaptive context size trades accuracy for token cost"
+    },
+    {
+      "text": "Isolation per user: one governed user graph across agents"
+    },
+    {
+      "text": "Attribute-based access control (ABAC) on memory graph data via API key policies"
+    },
+    {
+      "text": "Batch ingestion of large datasets into agent memory"
+    },
+    {
+      "text": "Managed service \u2014 does not require user to select embedding models or deployment configuration"
+    },
+    {
+      "text": "Runs Graphiti under the hood to progressively build and update a temporal knowledge graph from chat interactions, tool use, and business data"
+    },
+    {
+      "text": "Zep structures memory around Sessions and Facts as named constructs."
+    },
+    {
+      "text": "Zep memory requires two HTTP nodes to function in n8n, suggesting a multi-step read/write interaction pattern."
+    },
+    {
+      "text": "The graph endpoint at api.getzep.com is the integration point used for memory operations."
+    },
+    {
+      "text": "Context scope is split between a user context graph (per-user state: chat history, preferences, support interactions) and a standalone context graph (domain/shared data: company policies, product data, runbooks), enabling per-user isolation as well as shared domain knowledge."
+    },
+    {
+      "text": "After messages are ingested via the Thread API, Zep automatically extracts facts and entities into the user's context graph (auto-extract write path from log to curated graph)."
+    },
+    {
+      "text": "Retrieval latency is stated as sub-200ms regardless of graph size, with optimizations including requesting context in the same call as message ingestion, running graph operations concurrently, and warming the user cache ahead of retrieval."
+    },
+    {
+      "text": "Context types include facts, entities, episodes, thread summaries, observations, and user summary \u2014 distinguishing lore/curated facts from episodic conversational events."
+    },
+    {
+      "text": "Conflict/supersession: when new data invalidates a prior fact, the invalidation time is stored on that fact's edge rather than deleting it"
+    },
+    {
+      "text": "All messages across all threads of a user are by default ingested into that user's graph (cross-thread aggregation)"
+    },
+    {
+      "text": "Scaffold/reader: an assembled Context Block string containing relevant context types is what gets passed into a turn"
+    },
+    {
+      "text": "Context types (facts, entities, episodes, thread summaries, observations, user summary) are the distinct primitives selected from the graph for a turn"
+    },
+    {
+      "text": "Governance layer controls account management and agent access to context"
+    },
+    {
+      "text": "Facts are discrete, time-scoped relationships between two entities, selected when relevant"
+    },
+    {
+      "text": "Zep automatically constructs a per-user temporal knowledge graph containing entities, relationships, and facts, with automatic handling of changes over time."
+    },
+    {
+      "text": "Entities (nodes) and relationships/facts (edges) are extracted from each episode by a language model guided by the graph's ontology and custom instructions."
+    },
+    {
+      "text": "Temporal bounds are assigned to facts using a separate model pass, anchored to the episode's event time."
+    },
+    {
+      "text": "Ingests data from multiple source types (chat, business data, documents, JSON) into a temporal knowledge graph called the Context Graph"
+    },
+    {
+      "text": "Serves retrieved context from a governed Context Lake with sub-200ms latency"
+    },
+    {
+      "text": "Governance layer controls which context agents can access via policies and provides audit trails"
+    },
+    {
+      "text": "add_memory is the write path: adds new information to the user's memory as text, JSON, or a message."
+    },
+    {
+      "text": "Identity is mapped from the IdP claim (sub by default) to a Zep user so a returning person reaches the same memory each time. If the Zep user is deleted, MCP recreates them on next sign-in with the same user ID but a new graph."
+    },
+    {
+      "text": "Zep isolates data by project, user, and graph"
+    },
+    {
+      "text": "Write path: content is added via graph.add with optional episode metadata; Zep associates the episode with derived facts, entities, observations, and summaries and projects episode metadata onto those artifacts"
+    },
+    {
+      "text": "Retrieve path: custom retrieval uses graph.search with episode_metadata_filters and search_filters to scope eligible episodes and derived artifacts; default retrieval is thread.get_user_context"
+    },
+    {
+      "text": "Retrieved context is delivered as a Zep Context Block or graph search result, treated as untrusted data in the data channel, not the instruction channel"
+    },
+    {
+      "text": "Forget / delete path: episode, thread, user, node, or edge deletion APIs exist; content can also be excluded without deletion by updating episode metadata and applying a matching filter or access policy"
+    },
+    {
+      "text": "Agent access policies (attribute-based) can restrict both reads and writes by projected episode metadata, scoped to an agent API key"
+    },
+    {
+      "text": "The path parameter explicitly ties deletion to memory removal, not just the thread record."
+    },
+    {
+      "text": "Retrieve stage: facts, entities, summaries, and other context types are assembled into a prompt-ready string."
+    },
+    {
+      "text": "Graph search, reads, and CRUD operations are available outside the main ingest-retrieve lifecycle."
+    },
+    {
+      "text": "Zep isolates memory per session at the database level, preventing cross-user contamination."
+    },
+    {
+      "text": "Zep CE uses a temporal knowledge graph combined with vector storage, requiring both an embedding model and a summarization LLM."
+    },
+    {
+      "text": "Zep CE uses pgvector as its vector store and a Neo4j-compatible graph store."
+    },
+    {
+      "text": "Failure isolation on write: save() logs a Zep failure and returns normally instead of raising, so a Zep outage does not crash a crew run."
+    },
+    {
+      "text": "The memory object contains both messages and a summary field, indicating Zep stores curated summaries alongside raw turns."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Zep is positioned as agent memory at enterprise scale",
+      "kind": "blog",
+      "url": "https://blog.getzep.com/",
+      "quote": "Zep - Agent memory at enterprise scale",
+      "locator": "page title / site name",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Konig is Zep's graph database service forming the data plane for agent memory",
+      "kind": "blog",
+      "url": "https://blog.getzep.com/",
+      "quote": "Konig, Zep's graph database service, is the data plane beneath our agent memory platform.",
+      "locator": "blog post blurb: 'Why we built a graph database service for agent memory'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Facts in the memory graph are LLM-derived from chat histories and documents, not raw transcripts",
+      "kind": "blog",
+      "url": "https://blog.getzep.com/",
+      "quote": "Agent memory is synthesized: an LLM derives facts from chat histories, documents, and business data. A derived fact matches no source word-for-word.",
+      "locator": "blog post blurb: 'How Zep tracks provenance in agent memory'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is isolated per user as a single governed graph accessible across multiple agents",
+      "kind": "blog",
+      "url": "https://blog.getzep.com/",
+      "quote": "The Memory MCP Server puts them on one governed user graph, gated by your enterprise single sign-on.",
+      "locator": "blog post blurb: 'Unified agent memory in any MCP client'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ABAC controls which endpoints and graph data each API key can access",
+      "kind": "blog",
+      "url": "https://blog.getzep.com/",
+      "quote": "Attach policies to any Zep API key to control the exact endpoints it can call and the graph data it can read.",
+      "locator": "blog post blurb: 'Securing Agent Memory with ABAC'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval uses semantic search and BM25 as graph entrypoints",
+      "kind": "blog",
+      "url": "https://blog.getzep.com/",
+      "quote": "Zep's graph retrieval starts from entrypoints selected by semantic and BM25 search, so embedding recall bounds everything downstream.",
+      "locator": "blog post blurb: 'Evaluating Nemotron 3 Embed for agent memory'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context retrieval shows diminishing accuracy returns at higher token budgets",
+      "kind": "blog",
+      "url": "https://blog.getzep.com/",
+      "quote": "Context retrieval shows diminishing returns: moving from a 5/2 to a 20/20 configuration adds +10.4 points of accuracy at roughly 4x the tokens, while pushing on to 30/30 adds just 0.26.",
+      "locator": "blog post blurb: 'The Retrieval Tradeoff: What 50 Experiments Taught Us About Context Engineering'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Persistent memory creates a durable prompt-injection attack surface across sessions",
+      "kind": "blog",
+      "url": "https://blog.getzep.com/",
+      "quote": "One poisoned message, web page, or document can shape every later session that reads the same memory. Persistent memory makes prompt injection durable.",
+      "locator": "blog post blurb: 'Defending Agent Memory Against Poisoning'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Observations are a context type that captures cross-session patterns automatically",
+      "kind": "blog",
+      "url": "https://blog.getzep.com/",
+      "quote": "Observations are a new context type in Zep that capture patterns and insights across your Context Graphs, automatically discovered and surfaced to agents.",
+      "locator": "blog post blurb: 'Observations: Patterns and Insights from the Context Graph'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Batch API supports ingestion of up to 50,000 items without impacting real-time ingestion",
+      "kind": "blog",
+      "url": "https://blog.getzep.com/",
+      "quote": "Zep's Batch API loads large datasets into agent memory faster, in batches up to 50,000 items, with a progress dashboard and no impact on real-time ingestion.",
+      "locator": "blog post blurb: 'The Batch API: Load Large Datasets into Agent Memory'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "PII retention and deletion obligations are a known challenge Zep aims to address",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=35889826",
+      "quote": "developers are exposed to privacy and regulatory obligations around PII, retention, and deletion of user data. Zep aims to solve these challenges.",
+      "locator": "Show HN submission text",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep's differentiator is conversation history as state, not vector search over documents",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=35889826",
+      "quote": "Many of the \"long-term memory\" services focus on vector search over a corpus of documents to offer the LLM domain context. Where Zep is different, is we focus on the conversation history, offering the stateless LLM a long-term state component",
+      "locator": "roseway4 comment, May 11 2023",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User felt Zep suited teams building products but not individuals wanting plug-and-play personal memory across tools",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qbmffy/i_tried_to_make_llm_agents_truly_understand_me/",
+      "quote": "Zep felt like excellent infrastructure if you are a team building a product, but less like a plug\u2011and\u2011play personal memory layer that follows you across tools and agents.",
+      "locator": "section: Zep: solid infrastructure, but very app\u2011centric",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep is a managed service and does not require users to configure embedding models",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qbmffy/i_tried_to_make_llm_agents_truly_understand_me/",
+      "quote": "Zep is a managed service and doesn't require selecting models, including embedding models.",
+      "locator": "comment: u/dccpt (Zep founder)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep API was updated without corresponding updates to Make integration modules, breaking existing automations",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qbmffy/i_tried_to_make_llm_agents_truly_understand_me/",
+      "quote": "note they have updayed their APIs without updating Make so if you use the existing modules you get an error. You need to use the generic API call module",
+      "locator": "comment: u/ArtPsychological823",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep Cloud offers dashboards and usage insights as part of its managed service, which self-hosted users must replicate themselves.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1s9q202/anyone_selfhosting_zep_graphiti_experiences/",
+      "quote": "Zep Cloud provides dashboards and usage insights, but I'll need to implement them myself if I self-host.",
+      "locator": "OP post body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep uses a temporal knowledge graph (Graphiti) to persist facts with validity windows rather than storing raw chat transcripts",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1fq302p/zep_opensource_graph_memory_for_ai_apps/",
+      "quote": "Zep runs Graphiti under the hood, progressively building and updating a temporal graph from chat interactions, tool use, and business data in JSON or unstructured text.",
+      "locator": "post body, second paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conflict/supersession is handled by marking old edges invalid rather than deleting them, preserving history with valid_at / invalid_at metadata",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1fq302p/zep_opensource_graph_memory_for_ai_apps/",
+      "quote": "Zep reconciles changes in facts as the agent's environment changes. We use temporal metadata on graph edges to track fact validity, allowing agents to reason with these state changes",
+      "locator": "post body, 'More about how Zep manages state changes' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval is deterministic and low-latency because the graph is precomputed asynchronously, not computed on demand by an agent",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1fq302p/zep_opensource_graph_memory_for_ai_apps/",
+      "quote": "Zep's approach, which asynchronously precomputes the graph and related facts, supports very low-latency, deterministic retrieval.",
+      "locator": "post body, second section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is scoped per user and optionally per group; entities can be added to either scope at write time",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1fq302p/zep_opensource_graph_memory_for_ai_apps/",
+      "quote": "You can specify if new entities should be added to a user and/or group of users.",
+      "locator": "post body, numbered list item 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community frustration: Zep's prior SDK was incompatible with local/CE installs and docs for local install were hidden, causing users to abandon the product",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1fq302p/zep_opensource_graph_memory_for_ai_apps/",
+      "quote": "The initial thing that gave me concern was hiding the docs for local install. Then your GitHub page for you SDK basically said 'You can't use the current version of the SDK, go use this branch'. I sent my team an email last week saying 'Looks like Zep is leaving OSS behind, time to bite the bullet and build a chat memory manager'.",
+      "locator": "comment thread, u/Jdonavan",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community criticism: Zep's pricing unit ('episode') is opaque and perceived as confusingly expensive compared to token-based alternatives",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1fq302p/zep_opensource_graph_memory_for_ai_apps/",
+      "quote": "each episode is one credit. what is episode? 350B data object if it's larger then multiples are counted what is that pricing? its designed to confuse us and is like $20/million tokens+!!",
+      "locator": "comment thread, u/CmdPlz",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Local embedding provider support (e.g. Ollama embeddings) is a gap; LiteLLM proxy is the suggested workaround but is cumbersome",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1fq302p/zep_opensource_graph_memory_for_ai_apps/",
+      "quote": "it's really not necessary when there's direct support for ollama, which almost every other (memory / rag) project has due to local LLMs are now on par with cloud based ones",
+      "locator": "comment thread, u/max2go",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep is a cloud service only; no local/self-hosted Docker deployment is offered outside enterprise BYOC.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LangChain/comments/1djkolz/zep_longterm_memory_free_plan_upgraded_to_10k/",
+      "quote": "Zep is a cloud service with a complex multi-container deployment. We offer a BYOC option for large enterprises, but not a docker image.",
+      "locator": "u/dccpt reply to u/ag-duck",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep's memory model includes named constructs called Sessions and Facts.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LangChain/comments/1djkolz/zep_longterm_memory_free_plan_upgraded_to_10k/",
+      "quote": "Learn about key Zep concepts such as Sessions, Facts, and more.",
+      "locator": "Getting Started section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep's free tier caps usage at a message-count limit (previously 1K/month, raised to 10K/month), suggesting memory store size is metered by messages.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LangChain/comments/1djkolz/zep_longterm_memory_free_plan_upgraded_to_10k/",
+      "quote": "we received some friendly criticism on this subreddit a while back about Zep's Free Plan limit of 1K messages per month. We've heard y'all and have increased the monthly limit 10x to 10K messages.",
+      "locator": "Post body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep had initial scaling/performance issues in production that were later addressed.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LangChain/comments/1p0e4nk/long_term_memory_mem0zeplangmem_what_made_you/",
+      "quote": "We did have initial performance issues with Zep, which was annoying. They wrote about these issues: https://blog.getzep.com/scaling-agent-memory-zep-30x/",
+      "locator": "comment/u/cloudynight3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep stores and retrieves well but does not govern temporal relevance over time \u2014 stale context is a known gap.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LangChain/comments/1p0e4nk/long_term_memory_mem0zeplangmem_what_made_you/",
+      "quote": "Zep \u2014 Solid for the self-hosted crowd. Good if you want to own the infrastructure and stay open-source. Pain point: similar temporal relevance gap. Stores and retrieves well. Doesn't govern relevance over time.",
+      "locator": "comment/u/sandstone-oli",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write-time importance scoring causes the knowledge base to fill with noise \u2014 low-signal facts compete with high-signal ones at retrieval.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LangChain/comments/1p0e4nk/long_term_memory_mem0zeplangmem_what_made_you/",
+      "quote": "All three extract facts from every conversation and score importance at write time. In practice this fills the KB with noise \u2014 you end up retrieving 'user mentioned the weather' alongside 'user is migrating to AWS by Q3.'",
+      "locator": "comment/u/brgsk",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep achieves ~80% LoCoMo accuracy at sub-200ms retrieval latency; the founder considers retrieval latency a critical production concern.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LangChain/comments/1p0e4nk/long_term_memory_mem0zeplangmem_what_made_you/",
+      "quote": "We recently published LoCoMo results showing Zep achieving ~80% accuracy with sub-200 ms retrieval latency. We're not especially fond of LoCoMo either, but since Hindsight uses Zep as a comparison point, we figured we'd participate.",
+      "locator": "comment/u/dccpt",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep supports persistent embeddings and multi-turn context for agent long-term memory.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LangChain/comments/1p0e4nk/long_term_memory_mem0zeplangmem_what_made_you/",
+      "quote": "I've used Mem0, Zep, and LangMem for agent long-term memory. I picked them for easy integration, persistent embeddings, and multi-turn context.",
+      "locator": "comment/u/drc1728",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep memory requires two HTTP requests to operate, indicating separate read and write (or session init and message post) calls.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/n8n/comments/1n0ntpx/anyone_got_zep_memory_working_recently/",
+      "quote": "I tried setting it up with HTTP nodes. It works, but I need two nodes for it to function.",
+      "locator": "post body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The /api/v2/graph endpoint is used for Zep Cloud memory operations when integrating via HTTP.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/n8n/comments/1n0ntpx/anyone_got_zep_memory_working_recently/",
+      "quote": "Url: https://api.getzep.com/api/v2/graph",
+      "locator": "comment by u/Away-Professional351",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "API key authentication through HTTP requests is reported as non-obvious or broken in n8n despite working in terminal, suggesting auth friction.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/n8n/comments/1n0ntpx/anyone_got_zep_memory_working_recently/",
+      "quote": "I cannot seem to connect my api key through http requests on N8N despite confirming that it works in my terminal.",
+      "locator": "comment by u/hehdbduddn",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep Cloud persists chat messages via Thread API and auto-extracts facts and entities into a per-user context graph, enabling retrieval of curated facts rather than raw transcript.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/architecture-patterns.md",
+      "quote": "Messages flow into Zep via the Thread API. Zep extracts facts and entities into the user's context graph.",
+      "locator": "Pattern 1 \u2014 Architecture diagram description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The page distinguishes curated memory primitives (facts, entities, episodes, thread summaries, observations, user summary) from raw log, but defers detail to a separate Context Types page.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/architecture-patterns.md",
+      "quote": "What kinds of context exist \u2014 facts, entities, episodes, thread summaries, observations, and the user summary \u2014 is a separate decision. See Context Types for descriptions of each primitive and when to reach for it.",
+      "locator": "Key architectural choices \u2014 Retrieval strategy",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "User-specific context is isolated per user via a user context graph; domain context is shared across users via a standalone context graph.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/architecture-patterns.md",
+      "quote": "Use a user context graph \u2026 Use a standalone context graph \u2026 Use user + standalone context graphs and assemble context from both",
+      "locator": "Key architectural choices \u2014 Context scope",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval latency is sub-200ms regardless of graph size; latency optimizations include concurrent graph operations and user cache warming.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/architecture-patterns.md",
+      "quote": "Zep retrieval is sub-200ms regardless of graph size or count \u2026 requesting context in the same call as message ingestion, running graph operations concurrently, and warming the user cache ahead of retrieval.",
+      "locator": "Pattern 5: low latency architecture",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep stores a temporal knowledge graph (entities, edges, facts) as the persistent memory unit, updating it as new data arrives",
+      "kind": "docs",
+      "url": "https://help.getzep.com/concepts.md",
+      "quote": "Zep's temporal Context Graph is the unit of agent memory. Nodes are entities, and edges are facts or relationships. The graph updates as new data arrives.",
+      "locator": "Key concepts / table row: Context Graph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Fact invalidation is handled by timestamping the invalidated edge rather than deleting it, preserving history",
+      "kind": "docs",
+      "url": "https://help.getzep.com/concepts.md",
+      "quote": "When new data invalidates a prior fact, the time the fact became invalid is stored on that fact's edge in the Context Graph.",
+      "locator": "Key concepts / table row: Fact Invalidation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per user; each user has a dedicated user graph and thread history",
+      "kind": "docs",
+      "url": "https://help.getzep.com/concepts.md",
+      "quote": "A Zep representation of an application user. Each user has a user graph and thread history.",
+      "locator": "Key concepts / table row: User",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Cross-session aggregation: all threads of a user feed into one user graph by default",
+      "kind": "docs",
+      "url": "https://help.getzep.com/concepts.md",
+      "quote": "By default, all messages added to any thread of that user are ingested into that user's graph.",
+      "locator": "Key concepts / table row: Threads",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval into a turn is mediated by an assembled Context Block string, not raw transcript injection",
+      "kind": "docs",
+      "url": "https://help.getzep.com/concepts.md",
+      "quote": "An assembled string that contains relevant context types from a user's Context Graph.",
+      "locator": "Key concepts / table row: Zep's Context Block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Multiple context type primitives (facts, entities, episodes, thread summaries, observations, user summary) can be selectively retrieved",
+      "kind": "docs",
+      "url": "https://help.getzep.com/concepts.md",
+      "quote": "The distinct primitives Zep produces from a user graph: facts, entities, episodes, thread summaries, observations, and user summary. Choose the type that fits the agent's task.",
+      "locator": "Key concepts / table row: Context Types",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Data ingest sources include chat messages, business data (JSON, text), and documents",
+      "kind": "docs",
+      "url": "https://help.getzep.com/concepts.md",
+      "quote": "Zep builds a Context Graph from chat messages, business data, documents, and JSON.",
+      "locator": "Key concepts / opening paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Governance layer controls which agents can access which context",
+      "kind": "docs",
+      "url": "https://help.getzep.com/concepts.md",
+      "quote": "Governance controls account management and agent access to context.",
+      "locator": "Key concepts / opening section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Zep stores six distinct persistent context types in a Context Graph: facts, entities, episodes, thread summaries, observations, and user summary",
+      "kind": "docs",
+      "url": "https://help.getzep.com/context-types.md",
+      "quote": "The context types Zep produces from a Context Graph \u2014 facts, entities, episodes, thread summaries, observations, and the user summary \u2014 and when to use each.",
+      "locator": "page subtitle",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Facts carry temporal validity (time-scoped), distinguishing them from static stored claims",
+      "kind": "docs",
+      "url": "https://help.getzep.com/context-types.md",
+      "quote": "Facts are relationships between two entities with temporal validity. Use facts when the agent needs an exact claim and its dates.",
+      "locator": "section: The types",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "User summary is a persistent, always-available baseline per user, distinct from per-session thread summaries",
+      "kind": "docs",
+      "url": "https://help.getzep.com/context-types.md",
+      "quote": "A persistent, baseline picture of who the user is \u2026 User summaries only exist on user graphs.",
+      "locator": "section: At a glance, table and section: The types",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Developers can override default retrieval by using per-type SDK APIs, context templates, or advanced context block construction",
+      "kind": "docs",
+      "url": "https://help.getzep.com/context-types.md",
+      "quote": "Retrieve them directly with the SDK using the per-type APIs documented on each page \u2026 Define a context template \u2026 Build a custom block with advanced context block construction",
+      "locator": "section: How to assemble these into a prompt",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Observations are gated to Flex Plus / Enterprise tier",
+      "kind": "docs",
+      "url": "https://help.getzep.com/context-types.md",
+      "quote": "Stable, Flex Plus / Enterprise",
+      "locator": "section: At a glance, table \u2014 Observations row",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Zep Cloud stores memory as a temporal knowledge graph scoped per user, persisting entities, relationships, and facts with valid/invalid timestamps to handle supersession.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graph-overview.md",
+      "quote": "Zep automatically constructs a temporal knowledge graph for each of your users. The knowledge graph contains entities, relationships, and facts related to your user, while automatically handling changing relationships and facts over time.",
+      "locator": "Graph Overview, What is a Knowledge Graph?",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The store distinguishes between raw episode data (log-level) and derived entity nodes and edges (curated memory), indicating a two-layer architecture of log vs. memory.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/graph-overview.md",
+      "quote": "Episodic nodes (episodes): Represent raw data stored in Zep, either through chat history or the `graph.add` endpoint.",
+      "locator": "Graph Overview, Graph Data Structure",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Raw episodes are persisted as-is and remain searchable/retrievable independently of the structured graph.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/how-graph-creation-works.md",
+      "quote": "When you send data to Zep, it is stored as an episode \u2014 the raw source material remains searchable and retrievable.",
+      "locator": "Introduction",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path is a six-step LLM pipeline: extract entities \u2192 extract relationships/facts \u2192 date facts \u2192 resolve entities \u2192 resolve relationships/facts \u2192 summarize entities.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/how-graph-creation-works.md",
+      "quote": "each major step below uses a language model, guided by the graph's ontology and any custom instructions",
+      "locator": "From episode to graph \u2014 table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict/supersession: contradicting a prior fact sets it to invalid (invalidates) rather than deleting or leaving it alongside the new fact \u2014 temporal invalidation is the supersession mechanism.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/how-graph-creation-works.md",
+      "quote": "contradictions invalidate older facts rather than leaving conflicting truths side by side",
+      "locator": "From episode to graph \u2014 Step 5: Resolve relationships / facts",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Facts carry temporal bounds (valid_at / invalid_at), making the graph explicitly temporal.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/how-graph-creation-works.md",
+      "quote": "A separate model pass assigns temporal bounds when the source supports them (valid_at / invalid_at), using the episode's event time as reference.",
+      "locator": "From episode to graph \u2014 Step 3: Date facts",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity resolution is best-effort and may leave duplicate nodes; the system deliberately under-merges to avoid identity corruption.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/how-graph-creation-works.md",
+      "quote": "Entity resolution is best-effort. Natural language varies (Sarah vs Sarah Brown, nicknames, abbreviations), and Zep will not always collapse every alias into one node.",
+      "locator": "How entity resolution works",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Zep stores data from chat, business data, documents, and JSON into a temporal knowledge graph (Context Graph)",
+      "kind": "docs",
+      "url": "https://help.getzep.com/llms.txt",
+      "quote": "From any source \u2014 chat, business data, documents, JSON \u2014 Zep builds a temporal knowledge graph (its Context Graph)",
+      "locator": "introductory paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieved context is served in under 200ms from a governed Context Lake",
+      "kind": "docs",
+      "url": "https://help.getzep.com/llms.txt",
+      "quote": "served in under 200ms",
+      "locator": "page header / hero",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Governance policies limit what context agents can retrieve, with audit and API activity review",
+      "kind": "docs",
+      "url": "https://help.getzep.com/llms.txt",
+      "quote": "Manage team access, limit what context agents can reach with policies, and review audit and API activity.",
+      "locator": "Governance section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graphiti (open-source) is the engine powering the temporal knowledge graph inside Zep",
+      "kind": "docs",
+      "url": "https://help.getzep.com/llms.txt",
+      "quote": "Zep's open-source temporal knowledge graph framework \u2014 the engine that powers Zep's agent memory",
+      "locator": "Graphiti section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is structured as a graph with distinct tiers: raw episodes (ingested messages/text/JSON), per-conversation thread summaries, durable observations (preferences), entities (nodes), and facts (edges).",
+      "kind": "docs",
+      "url": "https://help.getzep.com/memory-mcp-server.md",
+      "quote": "`scope`: `auto` (default, optimized context block), `observations` (durable patterns such as preferences), `thread_summaries` (per-conversation summaries), `episodes` (raw ingested messages/text/JSON), `nodes` (entities, each with its UUID and summary), or `edges` (facts between entities)",
+      "locator": "What users can access \u2014 tool table, search_graph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "add_memory is the write path for adding new information to a user's memory graph; no explicit update, delete, or conflict/supersession mechanism is described on this page.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/memory-mcp-server.md",
+      "quote": "Add new information to the user's memory as text, JSON, or a message",
+      "locator": "What users can access \u2014 tool table, add_memory",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "User graph isolation is enforced at the token level: the authenticated identity fixes the target graph and project; neither can be overridden by tool arguments.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/memory-mcp-server.md",
+      "quote": "The target is fixed by the authenticated identity, so one user's token cannot select another user's memory or another project.",
+      "locator": "What users can access",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory written by an organization-built agent and an MCP client is shared in one user graph \u2014 cross-client continuity is explicit.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/memory-mcp-server.md",
+      "quote": "Both work against the same memory. A user's in-house agent and their personal MCP client share one user graph, so context written by one is available to the other.",
+      "locator": "Who it's for",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Returning users reach the same memory via IdP claim mapping; deletion and recreation preserves user ID but produces a new (empty) graph.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/memory-mcp-server.md",
+      "quote": "Zep maps a claim from your identity provider to a Zep user, so a returning person reaches the same memory each time... If you later delete that Zep user, MCP recreates them on the next sign-in or request once the deletion finishes (same user ID, new graph).",
+      "locator": "How it works \u2014 Mapping identities to users",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Zep stores and retrieves context; application owns the security boundary",
+      "kind": "docs",
+      "url": "https://help.getzep.com/memory-security.md",
+      "quote": "Your application owns the security boundary around Zep. Zep stores and retrieves context.",
+      "locator": "intro paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Zep authenticates API requests and isolates data by project, user, and graph",
+      "kind": "docs",
+      "url": "https://help.getzep.com/memory-security.md",
+      "quote": "Zep authenticates API requests and isolates data by project, user, and graph.",
+      "locator": "## Control what enters memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path: graph.add persists text or JSON episodes with optional metadata; Zep derives facts, entities, observations, and summaries from episodes and projects metadata onto them",
+      "kind": "docs",
+      "url": "https://help.getzep.com/memory-security.md",
+      "quote": "When you add text or JSON with `graph.add`, attach metadata that identifies its source and review state... Zep associates the episode with the facts, entities, observations, and summaries derived from it. Zep then projects the episode metadata onto those artifacts.",
+      "locator": "## Record source provenance with episode metadata",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve path: graph.search with episode_metadata_filters and search_filters; default context retrieval is thread.get_user_context (no caller-supplied metadata filters)",
+      "kind": "docs",
+      "url": "https://help.getzep.com/memory-security.md",
+      "quote": "For custom retrieval, pass `episode_metadata_filters` and other `search_filters` to `graph.search`. These filters select eligible episodes and derived artifacts during retrieval... The default `thread.get_user_context` call does not accept caller-supplied metadata filters.",
+      "locator": "## Scope retrieval with Zep filters",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget path: episode, thread, user, node, or edge deletion APIs; soft-exclude by updating metadata and applying filter or access policy",
+      "kind": "docs",
+      "url": "https://help.getzep.com/memory-security.md",
+      "quote": "To exclude content without immediate deletion, update its episode metadata and apply a matching search filter or access policy. To remove content, use Zep's episode, thread, user, node, or edge deletion APIs.",
+      "locator": "## Investigate and remove affected memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieved context (Zep Context Block or graph search result) contains end-user messages, documents, tool output, and model-generated summaries \u2014 treated as untrusted data",
+      "kind": "docs",
+      "url": "https://help.getzep.com/memory-security.md",
+      "quote": "Treat every Zep Context Block and graph search result as untrusted data. The content can include end-user messages, documents, tool output, and model-generated summaries.",
+      "locator": "## Keep instructions separate from retrieved context",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Agent access policies restrict reads and writes by projected episode metadata, scoped to an agent API key",
+      "kind": "docs",
+      "url": "https://help.getzep.com/memory-security.md",
+      "quote": "Use Agent access policies to limit the actions and sources available to an agent API key... Agent access policies can also restrict reads by projected episode metadata. These policies apply to requests made with the scoped API key.",
+      "locator": "## Control what enters memory / ## Scope retrieval with Zep filters",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is positioned as evidence for a decision, not an instruction or authorization \u2014 a security framing of the retrieve-then-prompt pattern",
+      "kind": "docs",
+      "url": "https://help.getzep.com/memory-security.md",
+      "quote": "Memory is evidence for a decision. Memory is not an instruction, policy, credential, permission, or authorization to act.",
+      "locator": "## Keep instructions separate from retrieved context (central rule)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Zep achieves sub-200ms retrieval latency regardless of Context Graph size or count.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/retrieval-philosophy.md",
+      "quote": "Zep's retrieval architecture is optimized to return results in under 200ms regardless of Context Graph size or count, with no perceptible delay for the user.",
+      "locator": "## Why latency matters",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval filters can narrow results to specific time ranges and Entity or Edge labels.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/retrieval-philosophy.md",
+      "quote": "Narrow retrieval to specific time ranges, Entity and/or Edge labels, or other criteria",
+      "locator": "## Tuning the recall-precision tradeoff",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory in Zep Cloud is isolated per thread (threadId is the isolation key for deletion).",
+      "kind": "docs",
+      "url": "https://help.getzep.com/v3/sdk-reference/thread/delete-thread.md",
+      "quote": "threadId (string, required) \u2014 The ID of the thread for which memory should be deleted.",
+      "locator": "Request > Path parameters",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Successful deletion is confirmed by a message response, suggesting a hard delete rather than a soft hide.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/v3/sdk-reference/thread/delete-thread.md",
+      "quote": "{\"message\": \"Thread successfully deleted.\"}",
+      "locator": "Examples > Response",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep's memory is structured as a temporal Context Graph of entities, relationships, and facts.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/working-with-context.md",
+      "quote": "Zep turns the data you send into agent memory: a temporal Context Graph of entities, relationships, and facts, then a token-efficient context string for your agent's prompt.",
+      "locator": "Introduction paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve produces a prompt-ready string assembled from facts, entities, summaries, and other context types \u2014 describing a retrieve-then-prompt pattern.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/working-with-context.md",
+      "quote": "Assemble facts, entities, summaries, and other context types into a prompt-ready string",
+      "locator": "Stage table, Retrieve row",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Only Ingest and Retrieve are required stages; graph shaping is optional.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/working-with-context.md",
+      "quote": "Only Ingest and Retrieve are required.",
+      "locator": "Paragraph below stage table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The store supports CRUD operations on the graph, available outside the primary ingest-retrieve lifecycle.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/working-with-context.md",
+      "quote": "Graph search, reads, and CRUD sit outside this lifecycle under Working with Graphs",
+      "locator": "Final paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Automatic summarization compresses old messages above a configurable threshold, keeping recent messages verbatim.",
+      "kind": "blog",
+      "url": "https://theneuralbase.com/ai-memory-systems/learn/intermediate/when-zep-wins/",
+      "quote": "You set a threshold ('if this conversation is over 100 messages'), and Zep summarizes the oldest 80 messages into a single summary token. Your LLM still has the recent verbatim messages for nuance.",
+      "locator": "How it works",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is enforced per session_id at the database level.",
+      "kind": "blog",
+      "url": "https://theneuralbase.com/ai-memory-systems/learn/intermediate/when-zep-wins/",
+      "quote": "Zep isolates memory by session_id at the database level: each user's queries are independent.",
+      "locator": "Check your understanding \u2014 Show answer hint",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep launched in 2023 and combines vector search, hybrid retrieval, and automatic summarization into a single service.",
+      "kind": "blog",
+      "url": "https://theneuralbase.com/ai-memory-systems/learn/intermediate/when-zep-wins/",
+      "quote": "Zep (launched 2023) abstracted away the 'which old messages matter' problem by combining vector search, hybrid retrieval, and automatic summarization into a single service.",
+      "locator": "Background",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep Cloud is a managed deployment variant of Zep.",
+      "kind": "blog",
+      "url": "https://theneuralbase.com/ai-memory-systems/learn/intermediate/when-zep-wins/",
+      "quote": "Zep Cloud Managed Memory",
+      "locator": "Intermediate course outline \u2014 Zep and Graphiti section 6",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The Python client API changed substantially at v0.8.0+ and v0.10.0+: add_memory() replaced by memory.add() with Message objects; search() renamed to search_memory() returning SearchResults.",
+      "kind": "blog",
+      "url": "https://theneuralbase.com/ai-memory-systems/learn/intermediate/when-zep-wins/",
+      "quote": "add_memory() requires a Message object, not role/content kwargs... The search() method was renamed to search_memory() in v0.8.0+, and returns a SearchResults object where you access results via .messages",
+      "locator": "Team Note",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep Cloud's temporal knowledge graph is the strongest in the space for tracking entity and relationship changes over time via validity windows",
+      "kind": "blog",
+      "url": "https://vectorize.io/articles/zep-alternatives",
+      "quote": "its temporal knowledge graph is the best in the space for tracking how facts change over time",
+      "locator": "intro paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep Cloud is a managed, credit-based service; the self-hostable Community Edition is deprecated",
+      "kind": "blog",
+      "url": "https://vectorize.io/articles/zep-alternatives",
+      "quote": "Zep used to offer a self-hostable Community Edition. That's gone. Your options today are Zep Cloud (managed, credit-based) or building directly on the raw Graphiti library.",
+      "locator": "Community Edition Is Deprecated",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep Cloud free tier provides 1,000 credits, sufficient only for API testing",
+      "kind": "blog",
+      "url": "https://vectorize.io/articles/zep-alternatives",
+      "quote": "The free plan offers 1,000 credits. That's enough to test the API \u2014 not enough to prototype a real workflow.",
+      "locator": "Minimal Free Tier",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep Cloud scored 63.8% (GPT-4o) on LongMemEval per the Agent Memory Benchmark leaderboard",
+      "kind": "blog",
+      "url": "https://vectorize.io/articles/zep-alternatives",
+      "quote": "It scores 94.6% on LongMemEval \u2014 compared to Zep's 63.8% (GPT-4o) \u2014 the top officially reproduced result on the Agent Memory Benchmark leaderboard .",
+      "locator": "1. Hindsight / body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep Cloud has SOC2 Type 2 and HIPAA compliance",
+      "kind": "blog",
+      "url": "https://vectorize.io/articles/zep-alternatives",
+      "quote": "Zep Cloud offers SOC2 Type 2 and HIPAA compliance.",
+      "locator": "Why Look for a Zep Alternative? / Zep has real strengths",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No alternative matches Zep's temporal validity windows; temporal depth is Zep's primary differentiator",
+      "kind": "blog",
+      "url": "https://vectorize.io/articles/zep-alternatives",
+      "quote": "No alternative matches its temporal validity windows. The alternatives trade temporal depth for other strengths \u2014 broader retrieval, simpler ops, lower cost, or framework integration.",
+      "locator": "How to Choose the Right Zep Alternative",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep Memory Cloud provides persistent, searchable, context-aware memory for AI agents across sessions",
+      "kind": "blog",
+      "url": "https://aiagentmemory.org/articles/zep-memory-cloud/",
+      "quote": "Zep Memory Cloud provides AI agents with persistent, searchable, and context-aware recall capabilities, overcoming inherent limitations.",
+      "locator": "introduction paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Open-source and self-hosted; users retain full control over data and infrastructure",
+      "kind": "blog",
+      "url": "https://aiagentmemory.org/articles/zep-memory-cloud/",
+      "quote": "Its open-source and self-hosted nature gives users full control over their data and infrastructure, enhancing privacy and security.",
+      "locator": "Self-Hosted Architecture",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval is semantic similarity search over stored embeddings, not keyword matching",
+      "kind": "blog",
+      "url": "https://aiagentmemory.org/articles/zep-memory-cloud/",
+      "quote": "Zep enables retrieval of information based on meaning, not just keywords. This is vital for recalling contextually relevant details.",
+      "locator": "Semantic Search Capabilities",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is isolated per session via session_id in the API",
+      "kind": "blog",
+      "url": "https://aiagentmemory.org/articles/zep-memory-cloud/",
+      "quote": "session_id = \"my-unique-session-id\"\nclient.memory.add_memory(\n    session_id=session_id,\n    message_type=\"human\",\n    text=\"What are the main components of a Zep Memory Cloud setup?\"",
+      "locator": "Installation and Setup (code snippet)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Both conversational turns and standalone documents can be stored in the same session memory",
+      "kind": "blog",
+      "url": "https://aiagentmemory.org/articles/zep-memory-cloud/",
+      "quote": "client.memory.add_document(\n    session_id=session_id,\n    text=document_text,\n    metadata={\"source\": \"documentation\"}\n)",
+      "locator": "Data Ingestion and Indexing (code snippet)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Structured recallable memory helps agents maintain consistency and avoid contradictory outputs",
+      "kind": "blog",
+      "url": "https://aiagentmemory.org/articles/zep-memory-cloud/",
+      "quote": "By providing a structured and recallable memory, Zep helps agents maintain consistency and avoid generating contradictory information.",
+      "locator": "FAQ \u2014 How does Zep Memory Cloud contribute to AI safety and reliability?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep CE uses a temporal knowledge graph that is time-indexed, enabling queries about events from specific past sessions or dates.",
+      "kind": "blog",
+      "url": "https://www.spheron.network/blog/agent-memory-gpu-cloud-mem0-zep-guide/",
+      "quote": "Zep CE is the right choice when your agent needs to answer questions about what happened 'last Tuesday' or 'three sessions ago' because its knowledge graph is time-indexed.",
+      "locator": "The 2026 Agent Memory Landscape / When to use each",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep CE requires a summarization LLM to extract structured facts and entities from raw conversation transcripts.",
+      "kind": "blog",
+      "url": "https://www.spheron.network/blog/agent-memory-gpu-cloud-mem0-zep-guide/",
+      "quote": "Zep CE requires one. The model processes raw conversation transcripts and outputs structured facts: entities, relationships, timestamps.",
+      "locator": "GPU-Backed Components in a Memory Stack / Summarization LLM",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep CE's extraction is asynchronous and does not block the user-facing response path.",
+      "kind": "blog",
+      "url": "https://www.spheron.network/blog/agent-memory-gpu-cloud-mem0-zep-guide/",
+      "quote": "The extraction write path runs async because users don't wait for it. The agent fires a background task after each conversation turn. Extraction latency of 0.5-2 seconds per turn has no impact on user-facing response time.",
+      "locator": "Architecture: Memory Extractor + Vector Store + Graph Store on Spheron",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep CE uses pgvector for vector storage and a Neo4j-compatible store for graph storage.",
+      "kind": "blog",
+      "url": "https://www.spheron.network/blog/agent-memory-gpu-cloud-mem0-zep-guide/",
+      "quote": "Zep CE | Temporal knowledge graph + vector | Embedding model (required), Summarization LLM (required) | pgvector | Neo4j-compatible",
+      "locator": "The 2026 Agent Memory Landscape / comparison table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep CE's graph store write is a distinct step from the vector store write, occurring only for Zep.",
+      "kind": "blog",
+      "url": "https://www.spheron.network/blog/agent-memory-gpu-cloud-mem0-zep-guide/",
+      "quote": "Graph store write (pgvector or Neo4j, CPU, Zep only)",
+      "locator": "Architecture: Memory Extractor + Vector Store + Graph Store on Spheron / Write path",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "At 500 sessions/day with 10 messages per session, Zep triggers 500 LLM extraction calls per day.",
+      "kind": "blog",
+      "url": "https://www.spheron.network/blog/agent-memory-gpu-cloud-mem0-zep-guide/",
+      "quote": "Zep extraction: every 10 messages triggers one LLM call = 500 LLM calls/day",
+      "locator": "GPU Sizing and Cost Math / Memory operations cost math for 100 active users",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep CE's repo is at github.com/getzep/zep.",
+      "kind": "blog",
+      "url": "https://www.spheron.network/blog/agent-memory-gpu-cloud-mem0-zep-guide/",
+      "quote": "git clone https://github.com/getzep/zep",
+      "locator": "Deploying Zep CE with a Summarization LLM / Configure Zep CE",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep Cloud backs agent memory with a temporal knowledge graph that persists across sessions and crew runs.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/crewai-memory.md",
+      "quote": "The `zep-crewai` package gives CrewAI agents persistent memory backed by Zep's temporal knowledge graph. You persist conversation turns and business data with Zep storage adapters, and give your agents Zep tools so they can retrieve relevant context when they need it. This lets agents carry context across executions, share a common knowledge base, and ground their decisions in what was learned before.",
+      "locator": "CrewAI integration (opening paragraph)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path routes by metadata type: 'message' goes to Thread API; 'json' and 'text' go to the knowledge graph.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/crewai-memory.md",
+      "quote": "The adapter routes each item by its `type`: `message` \u2192 Thread API (Conversation turns, role-based); `json` \u2192 Knowledge graph (Structured data); `text` \u2192 Knowledge graph (Facts, preferences, free text)",
+      "locator": "How it works \u2014 Persisting context (routing table)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy is on-demand and agent-initiated through tools, not automatic or background injection.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/crewai-memory.md",
+      "quote": "There is no automatic retrieval or storage, and no `external_memory=` Crew wiring. \u2026 You decide what to save with `save(...)`, and the agent decides what to search through its tools.",
+      "locator": "How it works",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-user and per-thread for ZepUserStorage; per-graph (no user) for ZepGraphStorage.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/crewai-memory.md",
+      "quote": "Use `ZepUserStorage` for an individual user's conversation history and personal context. A `thread_id` is required and ties message storage to a conversation thread. \u2026 `ZepGraphStorage` is scoped to a standalone graph rather than a Zep user, so it has no lazy provisioning.",
+      "locator": "Storage types; How it works \u2014 Provisioning",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Knowledge extraction from saved turns is asynchronous; a delay is needed before facts become searchable.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/crewai-memory.md",
+      "quote": "Allow time for indexing \u2014 Zep extracts knowledge asynchronously, so facts from a turn are not instantly searchable.",
+      "locator": "Best practices \u2014 Tool usage",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write failures are silently logged rather than raised, providing soft fault tolerance on save().",
+      "kind": "docs",
+      "url": "https://help.getzep.com/crewai-memory.md",
+      "quote": "`save()` on every storage adapter logs a Zep failure and returns normally instead of raising, so a Zep outage never crashes a crew run.",
+      "locator": "How it works \u2014 Failure isolation",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The legacy 'all' search scope was removed in zep-crewai 1.2.x; 'auto' now lets Zep select scope server-side.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/crewai-memory.md",
+      "quote": "The compound `all` search scope is removed \u2014 use `auto` to let Zep pick a scope.",
+      "locator": "Upgrading from zep-crewai 1.1.x",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "ZepStorage preserves a legacy save/search/reset contract; new code should prefer ZepUserStorage.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/crewai-memory.md",
+      "quote": "`ZepStorage` is a standalone user-and-thread adapter that preserves the historical `save(value, metadata)` / `search(query, limit, score_threshold)` / `reset()` contract for existing callers. \u2026 New code should prefer `ZepUserStorage`.",
+      "locator": "Configuration options \u2014 ZepStorage parameters",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Zep indexes facts asynchronously; read-after-write within the same turn is not guaranteed.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/eve.md",
+      "quote": "Zep indexes knowledge asynchronously. Facts from a turn are not reliably searchable until processing finishes \u2014 often tens of seconds. Confirm facts in the Zep app before expecting preference recall in a new session.",
+      "locator": "## Automatic message capture",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is on-demand via graph.search with scope: \"auto\", scoped to a userId or graphId; it is not automatically injected into the prompt.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/eve.md",
+      "quote": "Expose graph.search as authored tools when the turn's memory section is incomplete. Pin userId / graphId from session auth or config \u2014 never from the model.",
+      "locator": "## On-demand search tools",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per user (userId) and per thread (threadId), mapped from authenticated session state, never from model output.",
+      "kind": "docs",
+      "url": "https://help.getzep.com/eve.md",
+      "quote": "Never accept userId or threadId from the model.",
+      "locator": "## Why this pattern",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Restore (write path) is accomplished by replaying individual messages back to Zep via memory.add(), not by bulk-importing a snapshot.",
+      "kind": "blog",
+      "url": "https://theneuralbase.com/zep/learn/advanced/backup-strategies/",
+      "quote": "On recovery, you either restore to Zep by replaying messages via client.memory.add() or read directly from your backup if Zep is unavailable.",
+      "locator": "Explanation section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory retrieval returns both messages and a summary, not just raw transcript turns.",
+      "kind": "blog",
+      "url": "https://theneuralbase.com/zep/learn/advanced/backup-strategies/",
+      "quote": "\"summary\": memory.summary if hasattr(memory, 'summary') else None",
+      "locator": "Code section, export_session_backup function",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Zep retrieves past conversation and facts as a context string injected into the LLM prompt, enabling personalized responses based on prior session history.",
+      "kind": "blog",
+      "url": "https://theneuralbase.com/zep/learn/beginner/context-string-for-prompt/",
+      "quote": "Without context strings, your LLM sees only the current user message. Zep's context string automatically pulls relevant past conversation and facts, making your AI assistant remember what matters: without you manually managing conversation history.",
+      "locator": "Why this matters section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context injection is not automatic; the developer must manually include the retrieved context string in the prompt sent to the LLM.",
+      "kind": "blog",
+      "url": "https://theneuralbase.com/zep/learn/beginner/context-string-for-prompt/",
+      "quote": "Developers often assume Zep automatically injects context into their LLM calls. It doesn't. Zep stores and retrieves memory; you must manually extract the context string and add it to your prompt.",
+      "locator": "Common gotcha section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memory.get() returns a SessionMemory object; messages are accessed as objects with .role (Enum) and .content attributes, not plain dicts.",
+      "kind": "blog",
+      "url": "https://theneuralbase.com/zep/learn/beginner/context-string-for-prompt/",
+      "quote": "session_memory.messages returns a list of Message objects, not dicts - accessing .role and .content as shown is correct, but .role.value is required because role is an Enum, not a string.",
+      "locator": "Team Note section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SessionMemory does not have a pre-built 'context' property; the context string must be built by iterating session_memory.messages.",
+      "kind": "blog",
+      "url": "https://theneuralbase.com/zep/learn/beginner/context-string-for-prompt/",
+      "quote": "SessionMemory doesn't have a pre-built 'context' property. Build the context string yourself by iterating session_memory.messages and formatting each message as shown in the code example.",
+      "locator": "Error recovery \u2014 AttributeError section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Data residency: Cloud is unsuitable when all data must remain on-premise or in air-gapped environments",
+      "kind": "blog",
+      "url": "https://theneuralbase.com/zep/learn/beginner/migration-ce-cloud/",
+      "quote": "You should NOT migrate to Cloud if you have strict data residency requirements where all data must remain on-premise, or if you're operating in an air-gapped environment with no external API access.",
+      "locator": "Skip if section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cloud SDK (zep_cloud) is a completely different package from the CE SDK (zep_python) and cannot be upgraded in-place",
+      "kind": "blog",
+      "url": "https://theneuralbase.com/zep/learn/beginner/migration-ce-cloud/",
+      "quote": "zep-python 2.x (Cloud SDK) is a breaking change from zep-python 1.x (CE SDK). The package name, import paths, and authentication pattern are completely different. Do not attempt to upgrade 1.x in-place; it requires a code migration.",
+      "locator": "VERSION note",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://help.getzep.com/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/concepts.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/context-types.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/architecture-patterns.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/how-graph-creation-works.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/graph-overview.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/working-with-context.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/retrieval-philosophy.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/memory-security.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/memory-mcp-server.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/v3/sdk-reference/memory/get.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/v3/sdk-reference/thread/delete-thread.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://blog.getzep.com/",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://help.getzep.com/eve.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://help.getzep.com/crewai-memory.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://theneuralbase.com/zep/learn/advanced/backup-strategies/",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://theneuralbase.com/zep/learn/beginner/context-string-for-prompt/",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.spheron.network/blog/agent-memory-gpu-cloud-mem0-zep-guide/",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://aiagentmemory.org/articles/zep-memory-cloud/",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://theneuralbase.com/ai-memory-systems/learn/intermediate/when-zep-wins/",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://theneuralbase.com/zep/learn/beginner/migration-ce-cloud/",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://vectorize.io/articles/zep-alternatives",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://news.ycombinator.com/item?id=35889826",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1fq302p/zep_opensource_graph_memory_for_ai_apps/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LangChain/comments/1p0e4nk/long_term_memory_mem0zeplangmem_what_made_you/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qbmffy/i_tried_to_make_llm_agents_truly_understand_me/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LangChain/comments/1djkolz/zep_longterm_memory_free_plan_upgraded_to_10k/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/AIMemory/comments/1s9q202/anyone_selfhosting_zep_graphiti_experiences/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/n8n/comments/1n0ntpx/anyone_got_zep_memory_working_recently/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Forget / delete path: this blog index is a canonical surface for Zep memory architecture but does not describe how facts are deleted or superseded from the graph",
+      "url": "https://blog.getzep.com/",
+      "kind": "blog"
+    },
+    {
+      "text": "Conflict and supersession: no description of how contradictory facts are resolved when the graph is updated",
+      "url": "https://blog.getzep.com/",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of retrieve policy \u2014 how or when stored history or summaries are selected back into a turn",
+      "url": "https://news.ycombinator.com/item?id=35889826",
+      "kind": "community"
+    },
+    {
+      "text": "No description of conflict or supersession handling when stored facts become stale or contradictory",
+      "url": "https://news.ycombinator.com/item?id=35889826",
+      "kind": "community"
+    },
+    {
+      "text": "No description on this page of Zep's write path: how memories are extracted, updated, superseded, or deleted from the store",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qbmffy/i_tried_to_make_llm_agents_truly_understand_me/",
+      "kind": "community"
+    },
+    {
+      "text": "No description on this page of Zep's retrieve policy: what triggers retrieval, how relevance is scored, or whether retrieval is adaptive",
+      "url": "https://www.reddit.com/r/AIMemory/comments/1qbmffy/i_tried_to_make_llm_agents_truly_understand_me/",
+      "kind": "community"
+    },
+    {
+      "text": "Forget / delete path: this post describes write and supersession but does not describe how facts or nodes are explicitly deleted from the graph store",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1fq302p/zep_opensource_graph_memory_for_ai_apps/",
+      "kind": "community"
+    },
+    {
+      "text": "Retrieve policy: the post does not describe when retrieval is triggered (always on every turn vs. adaptive) or how silence is handled when no relevant facts exist",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1fq302p/zep_opensource_graph_memory_for_ai_apps/",
+      "kind": "community"
+    },
+    {
+      "text": "Architecture of the long-term memory system was asked by a user but the reply deferred entirely to external docs rather than describing mechanisms on this page \u2014 write path, extraction, summarization, conflict handling, and forget behavior are all absent here.",
+      "url": "https://www.reddit.com/r/LangChain/comments/1djkolz/zep_longterm_memory_free_plan_upgraded_to_10k/",
+      "kind": "community"
+    },
+    {
+      "text": "No detail on Zep's forget/delete mechanism \u2014 whether facts are hard-deleted, hidden at retrieve, or only superseded via the bi-temporal model.",
+      "url": "https://www.reddit.com/r/LangChain/comments/1p0e4nk/long_term_memory_mem0zeplangmem_what_made_you/",
+      "kind": "community"
+    },
+    {
+      "text": "No detail on isolation boundaries \u2014 whether memory is scoped per user, per session, per agent, or per character.",
+      "url": "https://www.reddit.com/r/LangChain/comments/1p0e4nk/long_term_memory_mem0zeplangmem_what_made_you/",
+      "kind": "community"
+    },
+    {
+      "text": "Page does not clarify whether the two required HTTP nodes represent separate read vs write paths, or session init vs message operations \u2014 the split is unresolved.",
+      "url": "https://www.reddit.com/r/n8n/comments/1n0ntpx/anyone_got_zep_memory_working_recently/",
+      "kind": "community"
+    },
+    {
+      "text": "Forget / delete behavior: this architecture doc describes persist and retrieve paths but does not cover how facts or episodes are deleted from the graph, hidden at retrieval, or superseded when contradicted.",
+      "url": "https://help.getzep.com/architecture-patterns.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession policy: no description of what happens when a newly ingested fact contradicts an existing node in the user context graph.",
+      "url": "https://help.getzep.com/architecture-patterns.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / explicit delete: this concepts page does not describe how facts or episodes are explicitly deleted from the store, only invalidation by timestamping",
+      "url": "https://help.getzep.com/concepts.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy: no description of when retrieval is triggered (always vs adaptive) or how the graph search ranks or filters what enters the Context Block",
+      "url": "https://help.getzep.com/concepts.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / deletion mechanics: no description of how stored context is removed or hidden from retrieval",
+      "url": "https://help.getzep.com/context-types.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict / supersession: no description of how contradictory facts are resolved or which version wins",
+      "url": "https://help.getzep.com/context-types.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Isolation scope: no explicit statement of whether context graphs are isolated per user, per session, or per agent on this page",
+      "url": "https://help.getzep.com/context-types.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete behavior is not described: no mention of how facts or episodes are deleted from the store or suppressed at retrieval.",
+      "url": "https://help.getzep.com/graph-overview.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Scaffold / instruction layer is not described: no mention of what prompt instructions or system context are generated from retrieved graph facts.",
+      "url": "https://help.getzep.com/graph-overview.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / explicit delete path: this page describes invalidation of contradicted facts but does not describe whether nodes or edges can be explicitly deleted from the store.",
+      "url": "https://help.getzep.com/how-graph-creation-works.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Isolation scope: this page does not state whether the Context Graph is scoped per user, per session, per agent, or per character.",
+      "url": "https://help.getzep.com/how-graph-creation-works.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Write path not described: how facts are extracted, updated, deduplicated, or superseded within the Context Graph",
+      "url": "https://help.getzep.com/llms.txt",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete behavior not described: no mention of how data is removed from the store or hidden at retrieval",
+      "url": "https://help.getzep.com/llms.txt",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy not described: no detail on adaptive vs always-on retrieval, or conditions under which context is omitted",
+      "url": "https://help.getzep.com/llms.txt",
+      "kind": "docs"
+    },
+    {
+      "text": "Isolation model not described: no mention of per-user, per-session, per-agent, or per-character scoping",
+      "url": "https://help.getzep.com/llms.txt",
+      "kind": "docs"
+    },
+    {
+      "text": "No forget/delete mechanism is described for removing specific memories or episodes from a user's graph. This page describes the MCP tool surface (including a write tool) but omits any delete or forget path.",
+      "url": "https://help.getzep.com/memory-mcp-server.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy \u2014 whether retrieval is always-on (automatic on every turn) or adaptive \u2014 is not described here; only the mechanics of filtered graph.search and thread.get_user_context are mentioned",
+      "url": "https://help.getzep.com/memory-security.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This page describes only the retrieve step. It does not cover the write path (how facts are extracted, updated, or deleted from the Context Graph), conflict/supersession behavior, or forget mechanics \u2014 all of which would be expected in a canonical memory architecture doc.",
+      "url": "https://help.getzep.com/retrieval-philosophy.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Page does not describe what is physically removed on deletion (transcript, extracted facts, embeddings, summaries, or all of the above) \u2014 a canonical delete endpoint doc should specify this.",
+      "url": "https://help.getzep.com/v3/sdk-reference/thread/delete-thread.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete behavior: this is a top-level architecture/context doc that lists ingest, shape, and retrieve stages but does not describe how memories are deleted or superseded from the graph.",
+      "url": "https://help.getzep.com/working-with-context.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession policy: no description of how contradictory or outdated facts are resolved or overwritten in the Context Graph.",
+      "url": "https://help.getzep.com/working-with-context.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Isolation model: no statement about whether Context Graphs are scoped per user, session, agent, or character.",
+      "url": "https://help.getzep.com/working-with-context.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy: no detail on whether retrieval is always-on or adaptive (e.g., only triggered under certain conditions).",
+      "url": "https://help.getzep.com/working-with-context.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The page references Zep's hybrid retrieval and conversation semantics retrieval strategies but defers details to external docs; retrieve policy (always-on vs adaptive) is not described here.",
+      "url": "https://docs.getzep.com",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of a forget or delete mechanism \u2014 this page does not describe how memories are removed or expired from the store",
+      "url": "https://aiagentmemory.org/articles/zep-memory-cloud/",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of a write-path conflict or supersession policy \u2014 unclear how contradictory or outdated facts are handled on update",
+      "url": "https://aiagentmemory.org/articles/zep-memory-cloud/",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of a scaffold or retrieval policy \u2014 unclear whether memories are always retrieved, retrieved adaptively, or injected into the prompt automatically",
+      "url": "https://aiagentmemory.org/articles/zep-memory-cloud/",
+      "kind": "blog"
+    },
+    {
+      "text": "Forget / delete behavior: this page does not describe how Zep CE removes or supersedes stored facts or graph nodes.",
+      "url": "https://www.spheron.network/blog/agent-memory-gpu-cloud-mem0-zep-guide/",
+      "kind": "blog"
+    },
+    {
+      "text": "Retrieve policy: the page describes the general vector-search-then-rerank read path but does not specify whether Zep CE retrieves on every turn or uses an adaptive/conditional policy.",
+      "url": "https://www.spheron.network/blog/agent-memory-gpu-cloud-mem0-zep-guide/",
+      "kind": "blog"
+    },
+    {
+      "text": "Forget / delete: this page does not describe any API or mechanism for deleting facts, episodes, or threads from the Zep store, nor for hiding items at retrieval time.",
+      "url": "https://help.getzep.com/crewai-memory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict / supersession: the page does not describe how Zep handles contradictory facts written to the same user or graph (e.g., an old preference being overwritten by a new one).",
+      "url": "https://help.getzep.com/crewai-memory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete: this integration doc does not describe how to delete messages, facts, or user data from the Zep store. A canonical memory API doc would be expected to cover this.",
+      "url": "https://help.getzep.com/eve.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict / supersession: no description of how Zep handles contradictory facts (e.g., user changes a stated preference). Expected in a memory architecture doc.",
+      "url": "https://help.getzep.com/eve.md",
+      "kind": "docs"
+    },
+    {
+      "text": "graph.search scope: \"auto\" semantics: the page names the parameter but does not describe what \"auto\" selects or when it stays silent vs. returns results.",
+      "url": "https://help.getzep.com/eve.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The page describes memory.get() as returning messages and a summary but does not specify how or when the summary is generated, updated, or whether it replaces raw messages in retrieval.",
+      "url": "https://theneuralbase.com/zep/learn/advanced/backup-strategies/",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of forget/delete behavior: whether individual messages or facts can be deleted from the Zep store, or whether right-to-erasure affects the memory object structure.",
+      "url": "https://theneuralbase.com/zep/learn/advanced/backup-strategies/",
+      "kind": "blog"
+    },
+    {
+      "text": "The page does not describe how or when Zep deletes or forgets stored messages or facts (forget/delete path).",
+      "url": "https://theneuralbase.com/zep/learn/beginner/context-string-for-prompt/",
+      "kind": "blog"
+    },
+    {
+      "text": "The page does not describe conflict resolution or supersession when contradictory facts are added to the same session or user graph.",
+      "url": "https://theneuralbase.com/zep/learn/beginner/context-string-for-prompt/",
+      "kind": "blog"
+    },
+    {
+      "text": "This migration page does not describe how Zep Cloud handles fact extraction, graph updates, conflict resolution, or forget/delete behavior, despite being a canonical SDK migration doc where persist/retrieve/forget coverage would be expected.",
+      "url": "https://theneuralbase.com/zep/learn/beginner/migration-ce-cloud/",
+      "kind": "blog"
+    }
+  ]
+}
