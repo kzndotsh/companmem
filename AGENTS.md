@@ -17,6 +17,7 @@ Research on memory for realistic human and companion communication. Not a retrie
 ## Layout
 
 ```
+ROADMAP.md                 # human-like companion via memory; direction after evidence
 docs/QUESTIONS.md          # active research
 docs/decisions/            # ADRs, only after Decide gate (may not exist yet)
 research/pipeline/         # harvest / extract / fold / apply (when built)

@@ -4,21 +4,13 @@ Research on memory for realistic human and companion communication. Not another 
 
 Most agent-memory products follow the same pipeline: extract facts, embed, retrieve, stuff into context, generate. That works for assistants. For companions it often falls short. Users care when something is recalled, how it is said, and whether the relationship still feels continuous after weeks. They do not usually judge the system on whether a fact was technically present in the prompt.
 
-This repo is for figuring out what is missing, what the field might be getting wrong in parallel, and what would count as proof before we build anything at the root.
+This repo is for figuring out what memory has to be for a companion to feel human, what the field is getting wrong, and what would count as proof, before we pick a product shape.
 
 ## What we're investigating
 
-Memory is probably more than storage. We treat a complete system as having at least three layers:
+A companion that people would call human-like, through memory, not through a bigger prompt. We do not yet know the architecture.
 
-| Layer | Role |
-| --- | --- |
-| Store | Persists state across sessions (facts, events, relationship history) |
-| Reader | Decides what enters context this turn: selection, ordering, omission |
-| Scaffold | System prompt, instructions, tools; tells the model how to use what it sees |
-
-Retrieval can work and the interaction can still feel off: creepy timing, wrong intimacy, facts without relational knowing, lore mixed up with lived history. LoCoMo and similar benchmarks measure long-chat QA recall. They do not cover social timing, character consistency, or when silence is the right move.
-
-First user, product goal, eval bar, and what to refuse to optimize for are still open. See [`docs/QUESTIONS.md`](docs/QUESTIONS.md).
+Retrieval can work and the interaction can still feel off. Long-chat QA recall is not the same as a relationship that holds. Path: [`ROADMAP.md`](ROADMAP.md).
 
 ## How we work
 
@@ -32,6 +24,7 @@ Agent skills in [`.agents/skills/`](.agents/skills/) back this up: research, sum
 
 | Path | Purpose |
 | --- | --- |
+| [`ROADMAP.md`](ROADMAP.md) | Human-like companion via memory, plus an exam we can win |
 | [`docs/`](docs/) | Active research; start with `QUESTIONS.md` |
 | [`research/pipeline/`](research/pipeline/) | Harvest / extract / fold / apply |
 | [`research/output/`](research/output/) | Product `audit.json` records; see `by-product/PROTOCOL.md` |
