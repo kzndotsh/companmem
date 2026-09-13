@@ -1,0 +1,2988 @@
+{
+  "identity": {
+    "id": "mem0",
+    "name": "Mem0",
+    "repo": "https://github.com/mem0ai/mem0",
+    "docs": "https://docs.mem0.ai/llms.txt",
+    "license": "Apache-2.0",
+    "version_or_commit": "c7ee362aff94a369af70f13f2b4f853f6793ff4c",
+    "observed_at": "2026-09-13"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Mem0 addresses memory staleness as a product concern."
+    },
+    {
+      "text": "Mem0 offers background memory consolidation for AI agents."
+    },
+    {
+      "text": "Mem0 provides persistent memory across chat sessions."
+    },
+    {
+      "text": "Mem0 targets multi-level memory across user, session, and agent state"
+    },
+    {
+      "text": "Distinguishes between agent memory and user memory extraction, using separate prompts for each"
+    },
+    {
+      "text": "Mem0 is described as a memory-layer idea for AI applications"
+    },
+    {
+      "text": "Mem0 search lets agents retrieve relevant memories using natural-language questions"
+    },
+    {
+      "text": "Mem0 stores memories scoped by identifiers and can extract, update, or delete facts across sessions using a single LLM pipeline."
+    },
+    {
+      "text": "Adds persistent, self-improving memory to AI apps, available as a managed platform or self-hosted open source."
+    },
+    {
+      "text": "Provides long-term memory that persists across sessions, tools, and runs for AI agents."
+    },
+    {
+      "text": "Mem0 is a memory layer for LLM agents providing persistent, self-improving context across sessions"
+    },
+    {
+      "text": "Platform for richer add/search/update/delete memory flows with metadata, rerankers, and per-request controls"
+    },
+    {
+      "text": "Mem0 is used to provide per-user long-term memory in web applications, with methods to add, search, and retrieve memories scoped by user_id."
+    },
+    {
+      "text": "Mem0 is described as framework- and platform-agnostic, deployable as a managed platform, self-hosted package, or local MCP server."
+    },
+    {
+      "text": "Mem0 provides a managed AI memory layer that handles extraction, retrieval, and preference updates so agents remain consistent over time."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Mem0 uses an infer parameter (infer=True vs infer=False) that controls whether facts are extracted and stored from conversation."
+    },
+    {
+      "text": "Mem0 uses embeddings as part of its memory mechanism."
+    },
+    {
+      "text": "Mem0 claims significant token/context footprint reduction via its memory approach."
+    },
+    {
+      "text": "Mem0 supports shared memory for coding agents across services and repositories, suggesting cross-agent or cross-session isolation scope."
+    },
+    {
+      "text": "Mem0 claims cost reduction through its memory approach combined with reasoning tokens."
+    },
+    {
+      "text": "Temporal reasoning ranks the right dated memory instance for queries about current state, past events, and upcoming plans"
+    },
+    {
+      "text": "Managed platform includes proprietary optimizations not present in the open-source SDK; retrieval budget is top_200"
+    },
+    {
+      "text": "Message log vs curated memory: raw conversation messages are saved to a separate history/db store (saveMessages), while LLM-extracted facts are what get persisted as memories in the vector store."
+    },
+    {
+      "text": "Delete path: removes the vector from the vector store, records a DELETE history entry with the previous value, and removes the memory ID from any entity store records (deleting entity records that become empty)."
+    },
+    {
+      "text": "Expiration: memories carry an expiration_date in payload; expired memories are filtered out of search and getAll results by default, with opt-in showExpired flag."
+    },
+    {
+      "text": "This implementation is in-process (RAM only); the close() method is a no-op with an explicit comment confirming no durable storage is involved."
+    },
+    {
+      "text": "Write path: messages (str, dict, or list of dicts) are posted to /v3/memories/add/ to persist new memories"
+    },
+    {
+      "text": "History of a specific memory retrievable via /v1/memories/{id}/history/"
+    },
+    {
+      "text": "Isolation by entity type: memories are scoped to user_id, agent_id, app_id, or run_id; entity params must be passed as filters, not top-level"
+    },
+    {
+      "text": "Individual memory units can be permanently deleted by ID."
+    },
+    {
+      "text": "Retrieve uses hybrid scoring: semantic vector search combined with BM25 keyword search, plus per-memory entity boost, filtered by a threshold before returning top_k results."
+    },
+    {
+      "text": "Memory delete removes the vector from the vector store, writes a DELETE event (is_deleted=1) to SQLite history, and strips the memory id from any entity records."
+    },
+    {
+      "text": "Expired memories are hidden from search and get_all at retrieval time by checking expiration_date in payload; they are not physically deleted unless show_expired=True is passed."
+    },
+    {
+      "text": "Mem0 maintains two distinct SQLite tables: a curated 'history' table tracking memory-level add/update/delete events, and a 'messages' table storing the raw conversation log per session scope. These are separate stores."
+    },
+    {
+      "text": "The messages table enforces a rolling window of at most 10 messages per session scope; older messages are evicted on write."
+    },
+    {
+      "text": "Isolation: telemetry filters encode user_id, agent_id, and run_id \u2014 indicating memory is scoped per user, agent, and run/session"
+    },
+    {
+      "text": "Separate legacy extraction prompt path preserved for backward compatibility, implying the extraction prompt (and thus write schema) has evolved"
+    },
+    {
+      "text": "Long-term retention by default; data retained indefinitely unless instructed otherwise, unlike prompt caching which clears after 5 minutes"
+    },
+    {
+      "text": "Developer-reported community concern: exclusion of sensitive data relies on LLM instruction-following, not hard filtering"
+    },
+    {
+      "text": "LLM-based extraction: messages are sent through an LLM that pulls out key facts, decisions, or preferences to remember."
+    },
+    {
+      "text": "Additive storage: new memories are added without overwriting or deleting existing memories."
+    },
+    {
+      "text": "Isolation is per user_id, agent_id, and run_id; user_id scoping prevents cross-contamination"
+    },
+    {
+      "text": "Platform v3 uses Temporal Reasoning internally for time-aware queries while preserving normal search response shape"
+    },
+    {
+      "text": "Memory is scoped per entity: user, agent, app, or run"
+    },
+    {
+      "text": "Portable agent plugin provides search and skills but no automatic capture; its remember skill cannot save a new memory on its own"
+    },
+    {
+      "text": "Update: a retrieved memory can be updated inline by memory_id with new text"
+    },
+    {
+      "text": "Delete: memories can be deleted scoped to a single entity id (user_id or run_id); combining more than one entity filter in the same delete_all call is not guaranteed to AND them"
+    },
+    {
+      "text": "Memory operations are performed via AsyncMemory client methods: add(), search(), and get_all(), each scoped to a user via user_id."
+    },
+    {
+      "text": "Memories are stored as objects in a vector store (Weaviate) and listed via a fetch_objects method; the list method does not currently pass a sort parameter, defaulting to ascending order by created_at."
+    },
+    {
+      "text": "Stale entity relationships from failed cleanup can surface in later search and entity-boost flows, affecting retrieval"
+    },
+    {
+      "text": "Retrieval uses a combination of semantic search, BM25, and entity matching to rank candidate memories."
+    },
+    {
+      "text": "Retrieval scoring does not incorporate recency, allowing stale facts to rank above newer ones."
+    },
+    {
+      "text": "_upsert_entity merges a new memory_id into an existing entity's linked_memory_ids when similarity >= 0.95, without verifying the matched entity's scope matches the new memory's scope."
+    },
+    {
+      "text": "Optional inclusion of change history and recent session messages alongside memory facts"
+    },
+    {
+      "text": "Hosted platform export is lossy (schema-reshaped), has no import, and expires after 7 days \u2014 a gap relative to core SDK users"
+    },
+    {
+      "text": "When entity store isolation fails, extracted entities appear in getAll() and search() results as if they were real memories, and can rank above them in search."
+    },
+    {
+      "text": "Mem0 applies user_id, agent_id, and run_id as isolation filters at retrieval time; some filters are applied server-side and remaining metadata filters client-side."
+    },
+    {
+      "text": "Elasticsearch vector store maps only three metadata fields as keyword type; all other custom metadata keys fall through to dynamic mapping as analyzed text fields"
+    },
+    {
+      "text": "delete_all removes memories from an entity store that tracks linked_memory_ids per scope, listing up to 10,000 entity rows per deletion in the sync path"
+    },
+    {
+      "text": "The async delete_all skips per-memory entity cleanup and instead clears the entity store once in bulk after all deletions"
+    },
+    {
+      "text": "Entity store cleanup is scoped (filtered), implying isolation by some scope identifier (user, agent, or session)"
+    },
+    {
+      "text": "search() and get_all() require entity parameters inside a filters dict, not as top-level keyword arguments; top-level entity params raise ValueError"
+    },
+    {
+      "text": "The OpenSearch vector store silently drops enhanced metadata filters, causing search to run unfiltered and return results that violate the filter"
+    },
+    {
+      "text": "POST /generate-instructions calls the LLM directly on every request with no persistence"
+    },
+    {
+      "text": "Auto-Recall: before the agent responds, memories matching the current message are retrieved and injected directly into context \u2014 long-term memories first, then session memories \u2014 with no manual memory_search call required."
+    },
+    {
+      "text": "Session memory (short-term) is scoped to the current conversation using Mem0's run_id parameter and does not carry forward indefinitely."
+    },
+    {
+      "text": "memory_update preserves history when updating a memory's text in place."
+    },
+    {
+      "text": "The ADD-only architecture means older facts are preserved rather than overwritten, which can cause a semantically similar prior fact to surface alongside a newer one (a known trade-off)."
+    },
+    {
+      "text": "Mem0 uses priority scoring and contextual tagging to filter what gets stored, avoiding memory bloat."
+    },
+    {
+      "text": "Mem0 implements dynamic forgetting by decaying low-relevance entries over time rather than treating memory as a static store."
+    },
+    {
+      "text": "Mem0 moves information between short-term and long-term memory storage based on usage patterns, recency, and significance."
+    },
+    {
+      "text": "Mem0 maintains relevant context across sessions, devices, and time periods rather than resetting at session end."
+    },
+    {
+      "text": "Mem0 can be self-hosted inside a private VPC so that memory data never leaves the operator's own infrastructure."
+    },
+    {
+      "text": "Mem0 extracts discrete facts from conversational input rather than storing raw chunks, making memory more usable for the LLM."
+    },
+    {
+      "text": "Retrieval is semantic search via m.search(), filtering by user_id to return only relevant memories for the current query."
+    },
+    {
+      "text": "On conflict, Mem0 updates the existing memory rather than appending a duplicate, and preserves the context of the change (versioned changelog)."
+    },
+    {
+      "text": "Isolation is per user_id for long-term memory and per session_id for short-term memory; these are distinct scopes."
+    },
+    {
+      "text": "Default write path is extraction of discrete updateable facts, not summarization of conversation history into prose"
+    },
+    {
+      "text": "Managed platform includes proprietary optimizations not available in the open-source SDK"
+    },
+    {
+      "text": "Temporal reasoning classification happens at write time, keeping latency flat"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Mem0 has a 'Dream' feature for background memory consolidation targeting stale memory",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog",
+      "quote": "Dream: Background memory consolidation for AI agents",
+      "locator": "blog post title, Aug 4 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 addresses memory staleness as a named failure mode",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog",
+      "quote": "What Is Memory Staleness in AI? Causes, Risks & Solutions",
+      "locator": "blog post title, Aug 7 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 has an infer parameter controlling fact extraction from conversation",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog",
+      "quote": "Mem0's infer=True vs infer=False: The Fact Your AI Support Bot Forgot",
+      "locator": "blog post title, Jul 15 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 uses embeddings for memory retrieval",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog",
+      "quote": "How Mem0 uses embeddings, and why we are evaluating NVIDIA Nemotron 3 Embed",
+      "locator": "blog post title, Jul 16 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 added temporal reasoning to its memory algorithm",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog",
+      "quote": "Introducing Temporal Reasoning in Mem0",
+      "locator": "blog post title, May 12 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 claims 97% reduction in memory footprint for Claude Code",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog",
+      "quote": "How Mem0 Cut Claude Code's Memory Footprint by 97%",
+      "locator": "blog post title, Jul 23 2026",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 claims 8x cost reduction when combining reasoning tokens with memory",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog",
+      "quote": "Reasoning Tokens and Memory: 8x Cost Reduction Test",
+      "locator": "blog post title, Jul 31 2026",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 supports persistent memory across chat sessions via a Claude connector",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog",
+      "quote": "Mem0 Claude Connector: Persistent Memory Across Every Chat",
+      "locator": "blog post title, Jul 14 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 supports shared memory scoped across multiple coding agents, services, and repos",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog",
+      "quote": "Beyond AGENTS.md: Shared Memory For Coding Agents Across Services And Repos",
+      "locator": "blog post title, Jul 29 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Temporal reasoning is part of retrieval, ranking dated instances for current-state, past-event, and future-plan queries",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/README.md",
+      "quote": "Temporal Reasoning -- time-aware retrieval that ranks the right dated instance for queries about current state, past events, and upcoming plans.",
+      "locator": "## New Memory Algorithm (April 2026) > What changed",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is injected into a system prompt scaffold (not raw transcript replay), separating memory store from message log",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/README.md",
+      "quote": "system_prompt = f\"You are a helpful AI. Answer the question based on query and memories.\\nUser Memories:\\n{memories_str}\"",
+      "locator": "### Basic Usage (code example)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Multi-level isolation covers User, Session, and Agent state",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/README.md",
+      "quote": "Multi-Level Memory: Seamlessly retains User, Session, and Agent state with adaptive personalization",
+      "locator": "### Key Features & Use Cases > Core Capabilities",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LoCoMo score 92.5 and LongMemEval score 94.4 are for the managed platform, not the open-source SDK",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/README.md",
+      "quote": "Scores reflect Mem0's managed platform, which includes proprietary optimizations not available in the open-source SDK; open-source users should expect directionally similar gains but not identical numbers.",
+      "locator": "## New Memory Algorithm (April 2026) (benchmark table note)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are LLM-extracted facts, not raw message logs; the two are stored in separate systems (vector store vs history/db).",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/memory/index.ts",
+      "quote": "// Phase 8: Save messages + return\nif (typeof this.db.saveMessages === 'function') {\n  try {\n    await this.db.saveMessages(\n      messages.map((m) => ({\n        role: m.role,\n        content: m.content as string,\n      })),\n      sessionScope,\n    );\n  } catch {}\n}",
+      "locator": "file:index.ts, addToVectorStore(), Phase 8",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write deduplication is hash-based (MD5 of text); semantic near-duplicate detection is not applied on the write path.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/memory/index.ts",
+      "quote": "const memHash = createHash('md5').update(text).digest('hex');\nif (existingHashes.has(memHash) || seenHashes.has(memHash)) {\n  continue;\n}",
+      "locator": "file:index.ts, addToVectorStore(), Phase 4-5",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Temporal features (timestamp on add, referenceDate on search) are not implemented in the OSS SDK; calling them throws an error.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/memory/index.ts",
+      "quote": "if (config?.timestamp !== undefined) {\n  await this._getNoticeTelemetryId();\n  throw new Error(\n    await getTemporalFeatureErrorMessage(this, {\n      triggerFunction: 'add',\n      triggerParameter: 'timestamp',\n    }),\n  );\n}",
+      "locator": "file:index.ts, add()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity store is a separate vector store collection (collectionName + '_entities') maintaining named entity records linked to memory IDs, used to boost retrieval.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/memory/index.ts",
+      "quote": "const entityCollectionName = `${this.collectionName}_entities`;\n...\nconst entityPayload: Record<string, any> = {\n  data: entityText,\n  entityType,\n  linkedMemoryIds: Array.from(memoryIds).sort(),\n};",
+      "locator": "file:index.ts, getEntityStore() and addToVectorStore(), Phase 7",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Deletion removes the vector from the store, logs the DELETE event with prior value to history, and cleans up entity store links.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/memory/index.ts",
+      "quote": "await this.vectorStore.delete(memoryId);\nawait this.db.addHistory(\n  memoryId,\n  prevValue,\n  null,\n  'DELETE',\n  undefined,\n  undefined,\n  1,\n);\n// Entity-store cleanup: strip this memory's id from any entity records\n// that linked to it.",
+      "locator": "file:index.ts, deleteMemory()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Expiration is a stored metadata field; expired memories are silently omitted from search and getAll by default, not deleted.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/memory/index.ts",
+      "quote": "const candidates = semanticResults\n  .filter((mem) => showExpired || !payloadIsExpired(mem.payload))",
+      "locator": "file:index.ts, search(), Step 7",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval uses a hybrid pipeline: semantic vector search + optional BM25 keyword search + entity boost, then threshold and topK filtering.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/memory/index.ts",
+      "quote": "// Step 3: Semantic search (over-fetch for scoring pool)\n...\n// Step 4: Keyword search (if store supports it)\n...\n// Step 5: Compute BM25 scores from keyword results\n...\n// Step 6: Compute entity boosts\n...\n// Step 8: Score and rank\nconst scoredResults = scoreAndRank(\n  candidates,\n  bm25Scores,\n  entityBoosts,\n  threshold ?? 0.1,\n  topK,\n  explain,\n);",
+      "locator": "file:index.ts, search(), Steps 3\u20138",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Caller-supplied metadata cannot overwrite identity scope keys (user_id, agent_id, run_id, actor_id); they are stripped on add() and update().",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/memory/index.ts",
+      "quote": "// Caller metadata must not overwrite or inject an identity scope (#6342 / #6367 / #6371).\nfunction stripIdentityKeys(\n  metadata: Record<string, any> = {},\n): Record<string, any> {",
+      "locator": "file:index.ts, stripIdentityKeys()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Decay feature (automatic memory decay/forgetting) is not implemented in the OSS SDK; calling updateProject with decay:true throws an error.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/memory/index.ts",
+      "quote": "if (options?.decay === true) {\n  await this._getNoticeTelemetryId();\n  throw new Error(await getDecayFeatureErrorMessage(this));\n}",
+      "locator": "file:index.ts, updateProject()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemoryHistoryManager stores a changelog of curated memory mutations (previous_value \u2192 new_value + action), not a raw conversation transcript \u2014 distinguishing a memory write log from a message log.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/storage/MemoryHistoryManager.ts",
+      "quote": "previous_value: previousValue,\n      new_value: newValue,\n      action: action,",
+      "locator": "HistoryEntry interface; addHistory method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Soft-delete is the deletion mechanism: is_deleted is a numeric flag on the entry, defaulting to 0, rather than physical row removal.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/storage/MemoryHistoryManager.ts",
+      "quote": "is_deleted: number;\n...isDeleted: number = 0,",
+      "locator": "HistoryEntry interface; addHistory signature",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "History is isolated per memory_id; getHistory filters by memoryId before returning results.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/storage/MemoryHistoryManager.ts",
+      "quote": ".filter((entry) => entry.memory_id === memoryId)",
+      "locator": "getHistory method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "This MemoryHistoryManager is an in-memory (non-persistent) implementation of the HistoryManager interface; all data is lost when the process exits.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/storage/MemoryHistoryManager.ts",
+      "quote": "// No need to close anything for in-memory storage",
+      "locator": "close method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are persisted as discrete records server-side, not as a raw message log; the add endpoint accepts messages and produces stored memory objects with individual IDs",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/client/main.py",
+      "quote": "response = self.client.post(\"/v3/memories/add/\", json=payload)",
+      "locator": "MemoryClient.add method",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Each memory has a unique ID used for get, update, delete, history, and feedback operations \u2014 indicating curated records rather than a transcript log",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/client/main.py",
+      "quote": "def get(self, memory_id: str) ... def update(self, memory_id: str ... def delete(self, memory_id: str ... def history(self, memory_id: str)",
+      "locator": "MemoryClient.get / update / delete / history method signatures",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Supersession is modeled explicitly: a memory can supersede older ones via a linked_memory_ids chain; deleting with delete_linked removes the entire superseded chain to prevent resurfacing",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/client/main.py",
+      "quote": "also delete the older memories this one superseded (the v3 ``linked_memory_ids`` chain), transitively. This is the delete-side counterpart of ``latest_only`` \u2014 it stops a superseded memory from resurfacing after you delete the current one.",
+      "locator": "MemoryClient.delete docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per entity type (user, agent, app, run); filtering must be explicit via the filters parameter",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/client/main.py",
+      "quote": "ENTITY_PARAMS = frozenset({\"user_id\", \"agent_id\", \"app_id\", \"run_id\"})",
+      "locator": "module-level constant ENTITY_PARAMS",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory history per record is stored and retrievable, supporting audit of how a memory changed over time",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/client/main.py",
+      "quote": "response = self.client.get(f\"/v1/memories/{_encode_path_segment(memory_id)}/history/\", params=params)",
+      "locator": "MemoryClient.history method",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Project-level custom instructions and agent_custom_instructions act as a scaffold layer controlling how memories are extracted and stored",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/client/main.py",
+      "quote": "agent_custom_instructions: New extraction instructions for agent-scoped memories.",
+      "locator": "MemoryClient.update_project docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Search accepts top_k and rerank parameters, indicating adaptive retrieval depth rather than always returning a fixed full set",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/client/main.py",
+      "quote": "**kwargs: Additional parameters such as filters, top_k, rerank.",
+      "locator": "MemoryClient.search docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory store contains discrete curated facts, not a raw conversation log",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/configs/prompts.py",
+      "quote": "Your primary role is to extract relevant pieces of information from conversations and organize them into distinct, manageable facts.",
+      "locator": "FACT_RETRIEVAL_PROMPT",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path uses a four-operation decision (ADD / UPDATE / DELETE / NONE) comparing new facts against existing stored memories",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/configs/prompts.py",
+      "quote": "You can perform four operations: (1) add into the memory, (2) update the memory, (3) delete from the memory, and (4) no change.",
+      "locator": "DEFAULT_UPDATE_MEMORY_PROMPT",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "User memory and agent (assistant) memory are isolated into separate extraction prompts with separate attribution rules",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/configs/prompts.py",
+      "quote": "GENERATE FACTS SOLELY BASED ON THE USER'S MESSAGES. DO NOT INCLUDE INFORMATION FROM ASSISTANT OR SYSTEM MESSAGES. ... GENERATE FACTS SOLELY BASED ON THE ASSISTANT'S MESSAGES. DO NOT INCLUDE INFORMATION FROM USER OR SYSTEM MESSAGES.",
+      "locator": "USER_MEMORY_EXTRACTION_PROMPT / AGENT_MEMORY_EXTRACTION_PROMPT",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory linking builds a graph: each new memory can reference UUIDs of existing memories via linked_memory_ids",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/configs/prompts.py",
+      "quote": "include the Existing Memory's ID in the new memory's \"linked_memory_ids\" array. Your ADD output IDs remain sequential (\"0\", \"1\", ...) but linked_memory_ids uses the UUIDs from this list.",
+      "locator": "ADDITIVE_EXTRACTION_PROMPT",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Reader scaffold instructs the model never to admit no information was found, masking retrieval gaps",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/configs/prompts.py",
+      "quote": "If no relevant information is found, make sure you don't say no information is found. Instead, accept the question and provide a general response.",
+      "locator": "MEMORY_ANSWER_PROMPT",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Procedural memory is a verbatim execution log (action + exact unaltered output per step), distinct from the curated fact store",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/configs/prompts.py",
+      "quote": "Action Result (Mandatory, Unmodified): Immediately follow the agent action with its exact, unaltered output. Record all returned data, responses, HTML snippets, JSON content, or error messages exactly as received.",
+      "locator": "PROCEDURAL_MEMORY_SYSTEM_PROMPT",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Past messages injected into the extraction prompt are truncated to 300 characters each",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/configs/prompts.py",
+      "quote": "PAST_MESSAGE_TRUNCATION_LIMIT = 300",
+      "locator": "module-level constant",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Mem0 defines an abstract base class for a memory store with discrete addressable units, not a full message log.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/base.py",
+      "quote": "class MemoryBase(ABC):\n    @abstractmethod\n    def get(self, memory_id): ...",
+      "locator": "mem0/memory/base.py: MemoryBase class definition",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete is a hard-delete operation by memory ID, not a soft-hide or retrieval-time filter.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/base.py",
+      "quote": "def delete(self, memory_id):\n        \"\"\"\n        Delete a memory by ID.\n\n        Args:\n            memory_id (str): ID of the memory to delete.\n        \"\"\"",
+      "locator": "mem0/memory/base.py: MemoryBase.delete",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Update supersedes memory content by ID; the old content is not discarded \u2014 it is preserved in the per-memory history list.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/base.py",
+      "quote": "def update(self, memory_id, data): ... def history(self, memory_id):\n        \"\"\"\n        Get the history of changes for a memory by ID.\n\n        Returns:\n            list: List of changes for the memory.\n        \"\"\"",
+      "locator": "mem0/memory/base.py: MemoryBase.update and MemoryBase.history",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Primary memory store is a pluggable vector store (insert/search/update/delete/list) with payloads containing the memory text, hash, timestamps, and scope ids.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/main.py",
+      "quote": "self.vector_store = VectorStoreFactory.create(\n            self.config.vector_store.provider, self.config.vector_store.config\n        )",
+      "locator": "Memory.__init__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "On add with infer=True, the LLM receives up to 10 semantically-similar existing memories (from vector search) and the last 10 session messages (from SQLite) before producing curated facts to persist.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/main.py",
+      "quote": "existing_results = self.vector_store.search(\n            query=parsed_messages,\n            vectors=query_embedding,\n            top_k=10,\n            filters=search_filters,\n        )\n        ...\n        last_messages = self.db.get_last_messages(session_scope, limit=10)",
+      "locator": "Memory._add_to_vector_store, Phase 0\u20131",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write deduplication uses MD5 hash of memory text stored in payload; hashes are checked against existing vector store results and within the current batch before inserting.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/main.py",
+      "quote": "mem_hash = hashlib.md5(text.encode()).hexdigest()\n            if mem_hash in existing_hashes or mem_hash in seen_hashes:\n                logger.debug(f\"Skipping duplicate memory (hash match): {text[:50]}\")\n                continue\n            seen_hashes.add(mem_hash)",
+      "locator": "Memory._add_to_vector_store, Phase 5",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval uses hybrid scoring combining cosine/vector similarity, BM25 keyword score, and entity-graph boost; results below threshold (default 0.1) are dropped.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/main.py",
+      "quote": "scored_results = score_and_rank(\n            semantic_results=candidates,\n            bm25_scores=bm25_scores,\n            entity_boosts=entity_boosts,\n            threshold=threshold,\n            top_k=limit,\n            explain=explain,\n        )",
+      "locator": "Memory._search_vector_store, Step 8",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Expiration is stored as a date string in payload; expired memories are filtered out at read time (search, get_all) and not physically deleted unless explicitly requested.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/main.py",
+      "quote": "if not show_expired and _payload_is_expired(payload):\n                continue",
+      "locator": "Memory._search_vector_store, Step 7",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is enforced at per-entity-id granularity (user_id, agent_id, run_id); at least one must be provided for all write and read operations; combinations are supported.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/main.py",
+      "quote": "if not session_ids_provided:\n        raise Mem0ValidationError(\n            message=\"At least one of 'user_id', 'agent_id', or 'run_id' must be provided.\",",
+      "locator": "_build_filters_and_metadata",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity store is a separate vector collection (suffixed _entities) storing named entities linked to memory ids; used to boost retrieval scores for entity-bearing queries.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/main.py",
+      "quote": "entity_collection = _entity_collection_name(self.config.vector_store.provider, self.collection_name)\n            ...\n            self._entity_store = VectorStoreFactory.create(\n                self.config.vector_store.provider, entity_config\n            )",
+      "locator": "Memory.entity_store property",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Procedural memory is a distinct memory type: a single LLM-generated free-text summary of a conversation, tagged memory_type=procedural_memory, requires agent_id, stored in the same vector store.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/main.py",
+      "quote": "metadata = {**metadata, \"memory_type\": MemoryType.PROCEDURAL.value}\n        embeddings = self.embedding_model.embed(procedural_memory, memory_action=\"add\")\n        memory_id = self._create_memory(procedural_memory, {procedural_memory: embeddings}, metadata=metadata)",
+      "locator": "Memory._create_procedural_memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete physically removes the vector from the store and writes a tombstone (is_deleted=1) to SQLite history; entity links are also cleaned up.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/main.py",
+      "quote": "self.vector_store.delete(vector_id=memory_id)\n        self.db.add_history(\n            memory_id,\n            prev_value,\n            None,\n            \"DELETE\",\n            ...\n            is_deleted=1,\n        )\n        self._remove_memory_from_entity_store(memory_id, session_filters)",
+      "locator": "Memory._delete_memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "history() returns the full change log for a memory id from SQLite, including old_memory, new_memory, and event type (ADD/UPDATE/DELETE).",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/main.py",
+      "quote": "history = self.db.get_history(memory_id)",
+      "locator": "Memory.history",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Optional reranker (configurable provider) can re-order search results after scoring; falls back to original order on failure.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/main.py",
+      "quote": "if rerank and self.reranker and original_memories:\n            try:\n                reranked_memories = self.reranker.rerank(query, original_memories, limit)\n                original_memories = reranked_memories\n            except Exception as e:\n                logger.warning(f\"Reranking failed, using original results: {e}\")",
+      "locator": "Memory.search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Mem0 separates curated memory writes (history table) from raw session message logs (messages table) at the storage layer.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/storage.py",
+      "quote": "self._create_history_table()\n                self._create_messages_table()",
+      "locator": "SQLiteManager.__init__",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory mutations are stored with before/after values (old_memory, new_memory) and an event type, forming a versioned audit log per memory_id.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/storage.py",
+      "quote": "old_memory   TEXT,\n                        new_memory   TEXT,\n                        event        TEXT",
+      "locator": "SQLiteManager._create_history_table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Session message logs are hard-evicted beyond 10 entries per session scope on every write.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/storage.py",
+      "quote": "Evict old messages beyond the most recent 10 for this scope.",
+      "locator": "SQLiteManager.save_messages",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Message log isolation is per session_scope; history isolation is per memory_id.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/storage.py",
+      "quote": "WHERE session_scope = ?",
+      "locator": "SQLiteManager.get_last_messages",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A full reset permanently drops both tables, providing a destructive forget path.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/storage.py",
+      "quote": "Drop both tables. Caller is expected to replace this instance.",
+      "locator": "SQLiteManager.reset",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory write path extracts discrete facts from conversation messages via LLM, not storing raw message log",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/utils.py",
+      "quote": "def get_fact_retrieval_messages(message, is_agent_memory=False):\n    \"\"\"Get fact retrieval messages based on the memory type.\n    \n    Args:\n        message: The message content to extract facts from\n        is_agent_memory: If True, use agent memory extraction prompt, else use user memory extraction prompt",
+      "locator": "get_fact_retrieval_messages function definition",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is scoped (isolated) per user_id, agent_id, and run_id as distinct dimensions",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/utils.py",
+      "quote": "if \"user_id\" in filters:\n        encoded_ids[\"user_id\"] = hashlib.md5(filters[\"user_id\"].encode()).hexdigest()\n    if \"agent_id\" in filters:\n        encoded_ids[\"agent_id\"] = hashlib.md5(filters[\"agent_id\"].encode()).hexdigest()\n    if \"run_id\" in filters:\n        encoded_ids[\"run_id\"] = hashlib.md5(filters[\"run_id\"].encode()).hexdigest()",
+      "locator": "process_telemetry_filters function definition",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory has two distinct extraction modes: user memory and agent memory, using separate prompts",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/utils.py",
+      "quote": "if is_agent_memory:\n        return AGENT_MEMORY_EXTRACTION_PROMPT, f\"Input:\\n{message}\"\n    else:\n        return USER_MEMORY_EXTRACTION_PROMPT, f\"Input:\\n{message}\"",
+      "locator": "get_fact_retrieval_messages, lines 21-24",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph memory stores entity relations as (source, relationship, destination) triples, normalized and sanitized for a Cypher-based graph store",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/utils.py",
+      "quote": "item[\"source\"] = item[\"source\"].lower().replace(\" \", \"_\")\n        rel = item[\"relationship\"].lower().replace(\" \", \"_\")\n        item[\"relationship\"] = sanitize_relationship_for_cypher(rel) if sanitize_relationship else rel\n        item[\"destination\"] = item[\"destination\"].lower().replace(\" \", \"_\")",
+      "locator": "remove_spaces_from_entities function body",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Smaller LLMs may return malformed fact shapes; normalization is applied before facts are stored",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/utils.py",
+      "quote": "Smaller LLMs (e.g. llama3.1:8b) sometimes return facts as objects\n    like {\"fact\": \"...\"} or {\"text\": \"...\"} instead of plain strings.\n    This mirrors the TypeScript FactRetrievalSchema validation.",
+      "locator": "normalize_facts docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A legacy extraction prompt path exists for backward compatibility, indicating the memory write schema has changed over time",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/utils.py",
+      "quote": "def get_fact_retrieval_messages_legacy(message):\n    \"\"\"Legacy function for backward compatibility.\"\"\"\n    return FACT_RETRIEVAL_PROMPT, f\"Input:\\n{message}\"",
+      "locator": "get_fact_retrieval_messages_legacy function definition",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Mem0's vector store layer persists curated memory entries (vectors + payloads) rather than raw message transcripts, with explicit CRUD operations (insert, update, delete, get) and similarity-based retrieval.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/vector_stores/base.py",
+      "quote": "def insert(self, vectors, payloads=None, ids=None):\n    \"\"\"Insert vectors into a collection.\"\"\"\n...\ndef update(self, vector_id, vector=None, payload=None):\n    \"\"\"Update a vector and its payload.\"\"\"\n...\ndef delete(self, vector_id):\n    \"\"\"Delete a vector by ID.\"\"\"",
+      "locator": "mem0/vector_stores/base.py, VectorStoreBase",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is a hard delete from the store by vector ID; there is no soft-hide or omit-in-generation path visible at this layer.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/vector_stores/base.py",
+      "quote": "def delete(self, vector_id):\n    \"\"\"Delete a vector by ID.\"\"\"\n...\ndef reset(self):\n    \"\"\"Reset by delete the collection and recreate it.\"\"\"",
+      "locator": "mem0/vector_stores/base.py, delete and reset methods",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval policy is adaptive (top-k with optional filters) rather than always-retrieve-all; similarity scores are normalised to [0,1] across distance metric variants.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/vector_stores/base.py",
+      "quote": "def search(self, query, vectors, top_k=5, filters=None):\n    \"\"\"Search for similar vectors.\n\n    All implementations must return similarity scores where higher values\n    indicate greater similarity (range [0, 1] preferred).\"\"\"",
+      "locator": "mem0/vector_stores/base.py, search method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Metadata filters are available on both similarity search and list operations, enabling isolation by arbitrary payload fields (e.g., user_id, agent_id, session_id) \u2014 though the specific filter keys are not defined in this file.",
+      "kind": "code",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/vector_stores/base.py",
+      "quote": "def search(self, query, vectors, top_k=5, filters=None):\n...\ndef list(self, filters=None, top_k=None):\n    \"\"\"List all memories.\"\"\"\n...\ndef keyword_search(self, query: str, top_k: int = 5, filters: dict = None):",
+      "locator": "mem0/vector_stores/base.py, search, list, keyword_search methods",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Open-source core covers add/organize/retrieve; production-scale low-latency inference and scalable datastores are paid tier only",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=41447317",
+      "quote": "certain features that are optimized for production use, such as low latency inference, and the scalable graph and vector datastore for real-time memory updates, are part of our paid platform. These advanced capabilities are not part of the open-source package",
+      "locator": "top-level Show HN post by staranjeet",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "At write time, Mem0 automatically extracts what matters rather than storing full transcripts",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=41447317",
+      "quote": "it can take in any messages or interactions and automatically detects the important parts to remember",
+      "locator": "top-level Show HN post by staranjeet, 'Adding memories' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conflict handling: new contradictory information deprioritizes older memories automatically",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=41447317",
+      "quote": "Automatically deprioritizing older memories when new, contradictory information is added.",
+      "locator": "comment by staranjeet, reply to kaybi on forgetting",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget / privacy filtering is implemented via inclusion/exclusion prompts, not hard-coded filtering, raising a community concern about reliability",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=41447317",
+      "quote": "An exclusion... prompt? Do you just rely on the LLM to follow instructions perfectly?",
+      "locator": "comment by lionkor, reply to deshraj on privacy",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Per-user isolation is not yet configurable in the playground; the team acknowledged inability to switch user context at launch",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=41447317",
+      "quote": "Right now you cannot change the 'user' you are chatting as yet but we can definitely make it happen. Will ship this update later today.",
+      "locator": "comment by deshraj, reply to ezhang887",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieve policy prioritizes recency and relevance, not a flat always-retrieve-all approach",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=41447317",
+      "quote": "It prioritizes the most important, relevant, and recent information, making sure the AI always has the right context, no matter how much memory is stored.",
+      "locator": "top-level Show HN post by staranjeet, 'Retrieving memories' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community concern: the relevance scoring surfaced in the playground felt arbitrary (100% duplication scored 9/10, no-memory scored 4/10 rather than near 0)",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=41447317",
+      "quote": "It's interesting that 'With Memory' is 9/10 Relevancy even though it is 100% duplication of what I had said... It's also interesting that 'Without Memory' is 4/10 \u2014 it seems to be closer to 0/10? Curious how you thinking about calculating relevancy.",
+      "locator": "comment by weisser",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Long-term persistence is the design goal; data retained indefinitely unless deleted",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=41447317",
+      "quote": "Mem0 is built for long-term information storage, retaining data indefinitely unless instructed otherwise.",
+      "locator": "comment by staranjeet, reply to ksx098",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community sustainability concern: open-source version may be neglected in favor of paid tier over time",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=41447317",
+      "quote": "A lot of open source projects with a paid version follow a similar strategy. They use the open source repo to get traction, but then the open source version gets neglected and users are eventually pushed to the paid version. How committed are you to supporting the open source version long term?",
+      "locator": "comment by jedwhite",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Developer desire for control over memory granularity and structure is a known gap acknowledged by the team",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=41447317",
+      "quote": "We have seen similar things when talking to developers where they want: - Control over what to remember/forget - Ability to set how detailed memories should be (some want more detailed vs less detailed) - Different structure of the memories based on the use case",
+      "locator": "comment by deshraj, reply to yding",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 is associated with a 'memory-layer idea' for AI systems",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/gstack",
+      "quote": "Mem0/OpenMemory for the memory-layer idea",
+      "locator": "Reviews section, Minkyu Lee review",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context loss across AI tools is the core problem the product addresses \u2014 users repeat themselves because tools don't share memory",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/openmemory-chrome-extension",
+      "quote": "Maybe you use ChatGPT to brainstorm ideas, Claude to write code, and Perplexity for research. Each tool is great on its own but none of them remember what you've already told the others. That context loss is exactly what OpenMemory solves.",
+      "locator": "Maker comment, Taranjeet Singh",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Users feel the pain of losing track of context across tools as a real continuity failure",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/openmemory-chrome-extension",
+      "quote": "I always lose track of what I've said where, so this is instantly useful.",
+      "locator": "Comment, Nitesh Padghan",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Privacy handling for captured memory is an open community concern, not yet addressed on this page",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/openmemory-chrome-extension",
+      "quote": "Great idea! How are you handling privacy?",
+      "locator": "Comment, Preet Mishra (5 upvotes, no maker reply visible on page)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Users want to manually write to the memory store, not just have it captured automatically",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/openmemory-chrome-extension",
+      "quote": "Can I manually add notes or thoughts to the memory as well?",
+      "locator": "Comment, Kate Ramakaieva",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Extension coverage is limited to browser-based AI interfaces; API-based tools are not yet supported",
+      "kind": "community",
+      "url": "https://www.producthunt.com/products/openmemory-chrome-extension",
+      "quote": "any plans to support API-based AI tools beyond browser interfaces?",
+      "locator": "Comment, Rachit Magon",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 extracts structured facts from conversation turns via an LLM rather than storing raw transcripts by default.",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-operations/add",
+      "quote": "Mem0 sends the messages through an LLM that pulls out key facts, decisions, or preferences to remember.",
+      "locator": "How does it work? > Information extraction",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Storage is additive by default; there is no overwrite or delete on the add path.",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-operations/add",
+      "quote": "New memories are added without overwriting or deleting existing memories.",
+      "locator": "How does it work? > Additive storage",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Expiration hides memories from search/get_all but does not delete them; they remain retrievable by ID.",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-operations/add",
+      "quote": "Expired memories are hidden from search and get_all unless you pass show_expired (showExpired in JavaScript); fetching by ID still returns them.",
+      "locator": "Key terms",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The Platform automatically uses prior turns sharing the same user_id/run_id as context for coreference resolution during extraction, without the caller resending history.",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-operations/add",
+      "quote": "Mem0 automatically pulls the earlier messages that share the same identifiers (user_id, and run_id if you use one) and uses them as context when extracting memories, so you never need to resend conversation history.",
+      "locator": "Automatic conversation context",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "infer=False stores raw messages verbatim and skips LLM extraction, risking duplicate entries when mixed with infer=True for the same content.",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-operations/add",
+      "quote": "If you do choose infer=False, keep it consistent. Raw inserts skip inference, so a later infer=True call with the same content can create a second memory.",
+      "locator": "Warning under Add with Mem0 Open Source",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Search pipeline is identical for hosted Platform API and OSS SDK",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-operations/search",
+      "quote": "This pipeline runs the same way for the hosted Platform API and the OSS SDK.",
+      "locator": "Architecture",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieve policy is query-driven (on-demand), not always-on; agent calls search when context is needed",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-operations/search",
+      "quote": "Mem0's search operation lets agents ask natural-language questions and get back the memories that matter most.",
+      "locator": "How Mem0 Searches Memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is enforced at query time via filter parameters (user_id, agent_id, run_id), not at storage time on this page",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-operations/search",
+      "quote": "Always provide at least a user_id filter to scope searches to the right user's memories. This prevents cross-contamination between users.",
+      "locator": "How does it work? > Tip callout",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Temporal reasoning is an internal Platform v3 mechanism layered on top of standard search, not a separate API surface",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-operations/search",
+      "quote": "On Mem0 Platform v3, time-aware queries use Temporal Reasoning internally while preserving the normal search response shape.",
+      "locator": "Search with Mem0 Open Source > Note",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0's extraction pipeline uses ADD, UPDATE, DELETE decisions per fact via a single LLM call, enabling conflict/supersession during write.",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-types",
+      "quote": "a single LLM call compares the new messages against the retrieved candidates and decides, per fact, whether to `ADD`, `UPDATE`, `DELETE`, or leave a memory alone.",
+      "locator": "## How memories are extracted and updated",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is enforced by identifier scoping; run_id provides session-level isolation while user_id provides cross-session persistence.",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-types",
+      "quote": "Use `run_id` when you want a set of memories to stay tied to one session or task; use `user_id` alone for anything that should persist across every session for that person.",
+      "locator": "Tip block, 'How every other memory is scoped'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Only procedural_memory is a working memory_type value; semantic and episodic are defined in the enum but never wired into the pipeline and are rejected at runtime.",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-types",
+      "quote": "Only `procedural_memory` is a real, working value.",
+      "locator": "Warning block, ## Status",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve step embeds new messages and runs vector search against memories in the same scope before the LLM extraction call.",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-types",
+      "quote": "embeds the new messages and runs a vector search against memories already in that same scope, to find candidates that might need to change.",
+      "locator": "## How memories are extracted and updated, step 2",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Secrets and PII should not be stored unredacted because memories are retrievable by design.",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-types",
+      "quote": "Avoid storing secrets or unredacted PII in memories: they are retrievable by design. Encrypt or hash sensitive values before calling `add()`.",
+      "locator": "Warning block, ## How memories are extracted and updated",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Mem0 provides persistent memory that spans sessions, tools, and agent runs.",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/introduction",
+      "quote": "Mem0 gives your AI agents long-term memory that persists across sessions, tools, and runs.",
+      "locator": "hero section paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is described as self-improving, not merely stored and retrieved unchanged.",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/introduction",
+      "quote": "Add persistent, self-improving memory to your AI app with Mem0 Platform or self-hosted Open Source.",
+      "locator": "page subtitle / hero section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Core memory operations exposed to users include save and search.",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/introduction",
+      "quote": "get an API key, then save and search a memory in Python or JavaScript.",
+      "locator": "card: Store your first memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Self-hosted deployment option exists, keeping data on user infrastructure.",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/introduction",
+      "quote": "Run it as a library or a Docker stack, with your data on your infrastructure.",
+      "locator": "card: Run Mem0 on your own servers",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 is a persistent memory layer for LLM agents that survives across sessions",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/llms.txt",
+      "quote": "Mem0 is a memory layer for LLM agents - persistent, self-improving context that survives across sessions.",
+      "locator": "top-level description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "add() performs extraction-only distillation (ADD-only), resolves conflicts, and writes to vector, entity, and history stores",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/llms.txt",
+      "quote": "end-to-end pipeline: extraction (ADD-only distillation), storage across vector/entity/history stores, and multi-signal retrieval",
+      "locator": "Core Concepts > How Mem0 Works",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memories are scoped per entity (user, agent, app, run), enabling isolation across tenants",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/llms.txt",
+      "quote": "Entity-Scoped Memory [Platform]: Use when partitioning memories by user, agent, app, or run.",
+      "locator": "Platform > Features - Essential",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dream performs background supersession of outdated facts and merging of duplicates; synthesis of recurring patterns is opt-in",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/llms.txt",
+      "quote": "synthesizing recurring patterns, superseding outdated facts, and merging duplicates in the background. Synthesis is opt-in (Pro+); Supersede and Merge are always on.",
+      "locator": "Platform > Features - Advanced Retrieval > Dream",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory decay adjusts retrieval ranking at search time to favor recently-reinforced memories; never removes candidates from consideration",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/llms.txt",
+      "quote": "Opt in per project; applies at search time and never filters candidates out.",
+      "locator": "Platform > Features - Advanced Retrieval > Memory Decay",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory expiration hides a memory from retrieval after a set date without deleting it",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/llms.txt",
+      "quote": "a memory should stop surfacing after a known date without being deleted, e.g. trial facts, seasonal preferences, or retention windows",
+      "locator": "Platform > Features - Data Management > Memory Expiration",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conflict resolution happens at write time inside add()",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/llms.txt",
+      "quote": "how add() extracts facts, resolves conflicts, and writes to both stores",
+      "locator": "Core Concepts > Memory Operations - Add",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Update can reconcile a memory against new information",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/llms.txt",
+      "quote": "Use when memories need to be edited in place or reconciled against new info.",
+      "locator": "Core Concepts > Memory Operations - Update",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Full delete removes one memory or all memories matching a scope; batch delete removes many memories in one call",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/llms.txt",
+      "quote": "Delete All Memories [Platform]: Use when purging memories matching a scope. ... Batch Delete [Platform]: Use when deleting many memories in one call.",
+      "locator": "API Reference > Core Memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graph memory connects facts across memories through shared entities to support multi-hop questions",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/llms.txt",
+      "quote": "connecting facts across memories through shared entities for entity-centric or multi-hop questions",
+      "locator": "Platform > Features - Essential > Graph Memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Only procedural_memory is actually functional; semantic_memory and episodic_memory are enum values rejected by validation",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/llms.txt",
+      "quote": "procedural_memory is implemented, semantic_memory and episodic_memory are defined in the enum but rejected by validation",
+      "locator": "Core Concepts > Memory Types",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Portable agent plugin does not auto-capture; the remember skill cannot save memories without explicit action",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/llms.txt",
+      "quote": "The portable package provides search and skills but no automatic capture; its remember skill cannot save a new memory on its own.",
+      "locator": "Skills & Plugins > Coding-Agent Plugin Sources",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Claude Code plugin extracts memories in a detached background worker after turn completion",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/llms.txt",
+      "quote": "It captures evidence locally through lifecycle hooks, extracts memories in a detached background worker",
+      "locator": "Skills & Plugins > Claude Code Plugin",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Mem0 platform supports add, search, update, and delete_all as the four core memory operations",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/platform/advanced-memory-operations",
+      "quote": "Run richer add/search/update/delete flows on the managed platform with metadata, rerankers, and per-request controls.",
+      "locator": "page subtitle",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are stored with caller-supplied metadata and can be filtered by that metadata at retrieval time",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/platform/advanced-memory-operations",
+      "quote": "Successful calls return memories tagged with the metadata you passed.",
+      "locator": "Add memories with metadata / Info callout",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Search supports a rerank flag that boosts retrieval accuracy after the initial fetch",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/platform/advanced-memory-operations",
+      "quote": "rerank=True,",
+      "locator": "Retrieve and refine / Python / Filter by metadata + reranker step",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Individual memory records can be updated in-place by memory_id, replacing prior text",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/platform/advanced-memory-operations",
+      "quote": "await memory.update(\n    memory_id=matches[\"results\"][0][\"id\"],\n    text=\"Morgan avoids shellfish and prefers boutique hotels in central Tokyo.\",\n)",
+      "locator": "Retrieve and refine / Python / Update a memory inline step",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "delete_all scoped to a single entity id is reliable; multi-entity AND filter in one call is not guaranteed",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/platform/advanced-memory-operations",
+      "quote": "Scope each delete call to a single entity id where possible; combining more than one entity filter in the same `delete_all` call is not guaranteed to AND them together today.",
+      "locator": "Clean up / prose warning before tabs",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Metadata key matching at retrieval is case-sensitive; mismatched casing silently returns empty results",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/platform/advanced-memory-operations",
+      "quote": "log `filters` values and confirm metadata keys match (case-sensitive).",
+      "locator": "Quick recovery / bullet",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "AsyncMemory exposes add(), search(), and get_all() scoped by user_id for per-user long-term memory.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/2820",
+      "quote": "add(messages: List[Dict[str, str]], user_id: str), search(query: str, user_id: str, limit: int = 5), get_all(user_id: str, limit: int = 100)",
+      "locator": "Description section, bullet list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is per user via user_id parameter.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/2820",
+      "quote": "I'm building a web application where each user has their own long-term memory",
+      "locator": "Motivation / Use Case section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Token usage from underlying OpenAI calls is not currently exposed in method responses; this is a feature gap.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/2820",
+      "quote": "I couldn't find a way to programmatically access OpenAI token usage data from the AsyncMemory client methods such as add(), search(), and get_all()",
+      "locator": "Description section, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0's list method retrieves memories from a Weaviate vector store via fetch_objects, defaulting to ascending created_at order with no exposed sort control.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/3114",
+      "quote": "the `list` method dose not pass `sort` parameter to the underlying `fetch_objects` method which will return objects in ascending order by created_at by default",
+      "locator": "issue body, Motivation section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The relevant store implementation is in mem0/vector_stores/weaviate.py at line 289, commit 2992c298.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/3114",
+      "quote": "https://github.com/mem0ai/mem0/blob/2992c298cbce10ddd16cf4f322012fddb04aa315/mem0/vector_stores/weaviate.py#L289",
+      "locator": "issue body, code reference",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "_delete_memory() can skip entity cleanup when _entity_store is None in a fresh process, leaving stale linked_memory_ids on entity rows",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/4863",
+      "quote": "`Memory._delete_memory()` and `AsyncMemory._delete_memory()` can leave stale entity links behind in a fresh process. The cleanup helper returns immediately when `_entity_store is None`, but `entity_store` itself is lazy-initialized.",
+      "locator": "### Description / Summary",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Entity store is a separate, lazy-initialized component distinct from the vector store and history db",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/4863",
+      "quote": "m._entity_store = None  # fresh-process state",
+      "locator": "### Steps to Reproduce",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Stale entity links from incomplete deletes can affect subsequent retrieval via entity-boost flows",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/4863",
+      "quote": "it can surface stale entity relationships in later search/entity-boost flows",
+      "locator": "### Why this matters",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Enhanced metadata filters (gte/lte/in/OR/NOT/contains) are silently dropped by the OpenSearch vector store, causing memory retrieval to run unfiltered and return memories that violate the filter constraint",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7214",
+      "quote": "The OpenSearch vector store silently drops every enhanced metadata filter \u2014 comparison operators (`gt`/`gte`/`lt`/`lte`/`ne`), set operators (`in`/`nin`), substring operators (`contains`/`icontains`), and the logical trees (`OR`/`NOT`). `search()`, `keyword_search()`, and `list()` then run **unfiltered on that dimension** and return results that violate the filter, with no warning above `logger.debug`.",
+      "locator": "Description > Summary",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Stale memories can be retrieved as top-ranked results for time-sensitive attributes because scoring ignores recency.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/4956",
+      "quote": "retrieval (semantic + BM25 + entity matching) can return Company A as a top-ranked candidate because the scoring signals don't incorporate recency.",
+      "locator": "Description > Scenario",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Silent total loss of extracted memories when the extraction LLM response is truncated mid-JSON array \u2014 a continuity failure where facts (including user name, promotion, personal details) are fully written by the model but never persisted.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/5428",
+      "quote": "Every fact is silently dropped, including the memories the model fully wrote before the cut. The only signal is an ERROR-level log.",
+      "locator": "Description, paragraph 1",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The failure is distinct from prose-only responses (#4054) and reasoning-token leakage (#3918); truncation is a third silent drop mode triggered on long conversations or low max_tokens settings.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/5428",
+      "quote": "This is a distinct failure mode from two adjacent ones: #4054 is the model returning prose with no JSON object at all... #3918 is Gemini leaking reasoning tokens into the JSON",
+      "locator": "Description, paragraph 2",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write path for memory add() in the Python SDK uses an LLM extraction step that emits `{\"memory\": [...]}` JSON, which is then parsed and stored; `add()` returns `[]` on any parse failure.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/5428",
+      "quote": "json.loads fails, extract_json fails, add() returns [] - all three facts lost, including the two that were fully written.",
+      "locator": "Minimal synthetic repro, comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cross-scope entity linking allows memories from different user_id/agent_id to be merged into the same entity record, breaching isolation between users.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/5439",
+      "quote": "When `_upsert_entity` searches for an existing entity with `filters=search_filters`, it finds an entity belonging to `user_id=\"A\"`. If the similarity \u2265 0.95, it **merges** the new `memory_id` (belonging to `user_id=\"B\"`) into that entity's `linked_memory_ids`. The entity record now contains memory IDs from two different users.",
+      "locator": "Description / Problem / Failure Mode 1: Scope-filter bypass via entity merge",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Entity boost scores are computed from a full unscoped linked_memory_ids list, meaning one user's memory count can influence another user's retrieval ranking.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/5439",
+      "quote": "the **entity boost score itself** is computed from the entity's full `linked_memory_ids` list, including cross-scope entries. This means: `memory_count_weight = 1.0 / (1.0 + 0.001 * (num_linked - 1)^2)` \u2014 the count includes cross-scope memories, penalizing or boosting incorrectly.",
+      "locator": "Description / Problem / Failure Mode 2: Entity boost leaks cross-scope information in search",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is scoped by user_id, agent_id, and run_id, but the entity store's linked_memory_ids field does not enforce this isolation.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/5439",
+      "quote": "There is no per-scope accounting of which memory IDs belong to which `user_id`/`agent_id`/`run_id`.",
+      "locator": "Description / Root cause",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The _remove_memory_from_entity_store function handles deletion of memories from the entity store, but would need updating to support scoped linked_memory_ids cleanup.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/5439",
+      "quote": "Updating `_remove_memory_from_entity_store` to clean up scope entries.",
+      "locator": "Description / Proposed Solutions / Option A: Scoped linked_memory_ids (recommended)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "create_index() explicitly maps metadata.user_id, metadata.agent_id, metadata.run_id as keyword; all other metadata fields get dynamic text mapping",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7157",
+      "quote": "create_index() (mem0/vector_stores/elasticsearch.py:72-99) only explicitly maps three fields as keyword: metadata.user_id, metadata.agent_id, metadata.run_id. Every other key \u2014 category, actor_id, role, or any custom metadata a caller adds \u2014 falls through to Elasticsearch's default dynamic mapping",
+      "locator": "Description / Summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Suggested fixes include storing entity-memory edges separately, paging/sharding the links, enforcing a configurable bound, or allowing entity indexing and entity-boost to be disabled entirely.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/6923",
+      "quote": "Possible solutions include storing entity-memory edges separately, paging/sharding the links, enforcing a conservative configurable bound, or allowing entity indexing and entity boost to be disabled.",
+      "locator": "Expected Behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Affected component is the Core / Python SDK; reproduced on Python 3.12, macOS, mem0 latest main.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/5867",
+      "quote": "mem0 version:latest main / current OSS version\n- Python/Node version:Python 3.12\n- OS:macOS",
+      "locator": "Environment",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "No portable export/import exists on the core Memory SDK; portability is a current gap",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/6214",
+      "quote": "Using the core SDK directly (`from mem0 import Memory`), I have nothing.",
+      "locator": "Use Case",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 stores a change history for memories, separate from the memory facts themselves",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/6214",
+      "quote": "Optional `include_history` / `include_messages` to also carry change history and recent session messages.",
+      "locator": "Proposed Solution",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hosted platform export has a 7-day expiry and no import capability, making it unsuitable for archival or agent handoff",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/6214",
+      "quote": "Platform `create_memory_export` - hosted-only, schema-reshaped (lossy), no import, 7-day expiry.",
+      "locator": "Alternatives Considered",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Entity store isolation failure causes extracted entities to pollute getAll() and search() results, appearing alongside and potentially outranking real memories.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/6606",
+      "quote": "Extracted entities then show up in `getAll()` and `search()` as if they were memories. In search they can even rank above the real memory.",
+      "locator": "body: What happens section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 TS OSS separates entity records from memories by writing them to a distinct SQLite file derived from the main store path.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/6606",
+      "quote": "The comment right above it says \"always use a separate DB for entities\", so the intent is clearly universal separation \u2014 the regex just doesn't deliver it.",
+      "locator": "body: Why section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write path for entity store derivation is implemented in mem0-ts/src/oss/src/memory/index.ts via a path regex substitution.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/6606",
+      "quote": "TypeScript SDK (OSS), `memory` vector store provider \u2014 `mem0-ts/src/oss/src/memory/index.ts`",
+      "locator": "body: Component section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Entity-boost search failures during retrieval are silently swallowed; the caller sees no error and the boost is simply skipped.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/6923",
+      "quote": "The exception returned by `self.entity_store.search(...)` is caught and logged at lines 3126-3129 as: `Entity boost search failed for one entity: ...`",
+      "locator": "Description > Where this originates in Mem0",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 isolates memories per user, agent, and run via id filters applied at vector search time.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7064",
+      "quote": "`user_id` / `agent_id` / `run_id` filters applied server-side through the vector index search schema; remaining metadata filters applied client-side",
+      "locator": "Proposal section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 memories are stored as vector embeddings alongside arbitrary metadata in the vector store.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7064",
+      "quote": "embeddings are stored as an item attribute, indexed by a vector index declared on the table",
+      "locator": "Feature request section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "term queries on dynamically-mapped text fields silently return zero results for values with capitals or spaces, meaning custom metadata filters are effectively broken for real-world strings",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7157",
+      "quote": "search(filters={'category': 'Foo Bar'}) -> 0 hits (multi-word)\nlist(filters={'category': 'Foo Bar'}) -> 0 hits (multi-word)\nsearch(filters={'category': 'Billing'}) -> 0 hits (capitalized single word)\nsearch(filters={'category': 'billing'}) -> 1 hit (all-lowercase \u2014 matches by coincidence)",
+      "locator": "What I Saw",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The metadata filtering documentation does not document any caveat about Elasticsearch filter behavior for non-identity keys",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7157",
+      "quote": "Nothing documents a metadata-filtering caveat for Elasticsearch at docs/open-source/features/metadata-filtering.mdx, so the implicit contract is that a filter on any key works like it does for user_id.",
+      "locator": "Why This Is a Bug",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A related prior bug (OpenSearch, #6453/#6454) caused all non-identity filter keys to be silently ignored (over-returning); the Elasticsearch bug is the opposite \u2014 correct iteration but zero results for non-identity keys",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7157",
+      "quote": "#6453/#6454 (merged) fixed OpenSearch silently ignoring every filter key except user_id/agent_id/run_id (over-returning, unfiltered). That PR's own description cites Elasticsearch's 'iterate every key' as the correct reference behavior, but doesn't check whether the resulting query actually matches anything",
+      "locator": "Not the OpenSearch bug, though closely related",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 maintains an entity store that maps memories to entities via linked_memory_ids, rewritten on every delete in the sync path",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7173",
+      "quote": "each deleted memory runs `_remove_memory_from_entity_store`, which lists up to 10,000 entity rows for the scope and rewrites `linked_memory_ids`",
+      "locator": "issue body, paragraph 1",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Async and sync delete_all paths diverge in entity-store cleanup strategy, with async using skip_entity_cleanup=True and a single bulk clear",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7173",
+      "quote": "The async path already avoids this: `delete_all` passes `skip_entity_cleanup=True` per memory and clears the entity store once at the end via `_bulk_clear_entity_store`.",
+      "locator": "issue body, paragraph 2",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Entity store cleanup accepts scope filters, indicating delete_all is scoped rather than global",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7173",
+      "quote": "call a sync `_bulk_clear_entity_store(filters)` once after the delete loop",
+      "locator": "issue body, paragraph 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "search() rejects user_id as a top-level kwarg and requires filters={'user_id': ...} instead",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7202",
+      "quote": "ValueError: Top-level entity parameters {'user_id'} are not supported in search(). Use filters={'user_id': '...'} instead.",
+      "locator": "issue body, code block under 'Both classes reject that'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation scope identifiers are user_id, agent_id, and run_id, defined as ENTITY_PARAMS in mem0/memory/main.py:135",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7202",
+      "quote": "ENTITY_PARAMS = frozenset({\"user_id\", \"agent_id\", \"run_id\"})",
+      "locator": "issue body, paragraph beginning 'Both classes reject that'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory.search no longer accepts a limit parameter; top_k replaced it",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7202",
+      "quote": "Lines 705, 1020 and 1186 also pass `limit=`, which `top_k` replaced.",
+      "locator": "issue body, paragraph beginning 'Lines 705, 1020'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The v2-to-v3 migration changed how entity parameters are passed to search and get_all; migration docs at docs/migration/oss-v2-to-v3.mdx:485-495 document the correct form",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7202",
+      "quote": "The rule is already documented correctly in `docs/migration/oss-v2-to-v3.mdx:485-495`, `docs/open-source/python-quickstart.mdx:54`, `skills/mem0-oss-to-platform/references/api-mapping.md:48` and `README.md:211`",
+      "locator": "issue body, paragraph beginning 'The rule is already documented'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memories with priority: 0 are returned for a gte: 3 query against OpenSearch, a concrete continuity/correctness failure where the wrong memories surface",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7214",
+      "quote": "The full query body confirms: `\"filter\": [{\"term\": {\"payload.user_id.keyword\": \"alice\"}}]` and nothing else \u2014 memories with `priority: 0` are returned for a `gte: 3` query.",
+      "locator": "Description > Actual Behavior",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The bug is in filter-expression construction (not network/retrieval), confirmed by mocking the client and asserting the clause list emitted by _build_filter_clauses",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7214",
+      "quote": "Imported the real `OpenSearchDB` (mocked OpenSearch client, no server needed \u2014 the bug is in filter-expression construction, not the network call) and asserted the clause list emitted by `_build_filter_clauses` for each documented grammar form; all five collapse to the identity term only",
+      "locator": "How You Verified This",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The entity-index cleanup (_remove_memory_from_entity_store) is silently skipped in any process that has not previously written entities, leaving the entity index pointing at deleted memories.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7226",
+      "quote": "`Memory._remove_memory_from_entity_store` returns without doing anything in any process that has not previously written an entity, so a deletion performed by a worker that only deletes leaves the entity index pointing at a memory that no longer exists.",
+      "locator": "Issue body, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Whether entity cleanup runs is determined solely by whether the current process previously touched entities, not by the state of the underlying persisted store.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7226",
+      "quote": "Identical call, identical data. Whether cleanup happens is decided only by whether *this process* previously touched entities \u2014 nothing about the memory being deleted.",
+      "locator": "Issue body, 'The asymmetry' section, after reproduction output",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Stale entity links cause retrieval boost to degrade by up to 91% as deletions accumulate, corrupting search quality silently.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7226",
+      "quote": "Stale ids are never removed, so `num_linked` only grows \u2026 A surviving memory is boosted an order of magnitude less than it should be, and search quality degrades quadratically as deletions accumulate.",
+      "locator": "Issue body, 'Consequence' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The failure is silent: no exception, no warning, and no counter is emitted when entity cleanup is skipped.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7226",
+      "quote": "The method returns normally: no exception, no warning, no counter.",
+      "locator": "Issue body, 'The asymmetry' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The bug affects any deployment where writes and deletions are handled by different processes, including GDPR erasure scripts and worker pools.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7226",
+      "quote": "Any deployment where writes and deletions are handled by different processes \u2014 worker pools, scheduled cleanup, GDPR erasure scripts, a restarted server that deletes before it writes.",
+      "locator": "Issue body, 'When this bites' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 uses user_id, agent_id, and run_id as isolation keys stored in the vector payload to scope memory retrieval.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7256",
+      "quote": "Scoped filters are a tenancy boundary. An empty payload must not satisfy `user_id=...`.",
+      "locator": "Description > Why This Is a Bug",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The bug is distinct from issue #6424 (operator/$or support) and #6998 (under-fetch), indicating prior known retrieval correctness issues in Mem0's FAISS store.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7256",
+      "quote": "Distinct from #6424 (operator/$or support) and #6998 (under-fetch). This is specifically the falsy-payload short-circuit.",
+      "locator": "Description > What I Ruled Out",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "generate-instructions endpoint calls the LLM on every request with no persistence of the result",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7260",
+      "quote": "`POST /generate-instructions` (`generate_instructions`) \u2014 calls `llm.generate_response(...)` directly on every single request. There's no persistence and no other cost gate; each call is a pure, billed LLM completion.",
+      "locator": "Steps to Reproduce / uncapped endpoints list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 server isolates credentials per-user via JWT and per-user X-API-Key, but neither enforces request-volume limits",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7260",
+      "quote": "All three only require `Depends(verify_auth)` \u2014 a valid JWT, a valid per-user `X-API-Key`, the legacy `ADMIN_API_KEY`, or nothing at all when the deployer set `AUTH_DISABLED=true`",
+      "locator": "Summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 extracts memories from conversation via a single LLM call inside _add_to_vector_store, then hashes, deduplicates, and batch-inserts them into a vector store.",
+      "kind": "issue",
+      "url": "https://github.com/mem0ai/mem0/issues/7283",
+      "quote": "the extraction happens in '_add_to_vector_store', a single LLM call parses extracted_memories from the conversation (around the \"V3 PHASED BATCH PIPELINE\" section), which then go through hashing/dedup and batch insert",
+      "locator": "issue body, Description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Auto-Recall injects relevant memories into context before every agent response, with no explicit retrieval call needed.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/add-persistent-memory-openclaw",
+      "quote": "Auto-Recall: Before the agent responds, memories matching the current message are retrieved and injected directly into the context, long-term memories first, then session memories. The agent reasons with the memory already present. No `memory_search` call required.",
+      "locator": "How Mem0 adds persistent memory to OpenClaw agents",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session memory is scoped to the current conversation via run_id and does not persist indefinitely; long-term memory persists across all sessions for the user.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/add-persistent-memory-openclaw",
+      "quote": "Session memory (short-term): Auto-capture stores memories scoped to the current session using Mem0's `run_id` parameter. These are contextual to the ongoing conversation and do not carry forward indefinitely.",
+      "locator": "Short-term vs long-term memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is per user ID, not per channel or session, enabling cross-channel recall.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/add-persistent-memory-openclaw",
+      "quote": "Memory is stored against your user ID, not against a channel or a session. Tell your agent in Telegram that you usually build backend APIs in Python, and Auto-Capture stores that as a memory tied to you.",
+      "locator": "Cross-Channel Memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memory_update preserves edit history when updating stored memory text.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/add-persistent-memory-openclaw",
+      "quote": "`memory_update`: Update a memory's text in place. Preserves history.",
+      "locator": "What tools your agent now has access to",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval is always-on per turn (not adaptive); Auto-Recall fires on every turn automatically.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/add-persistent-memory-openclaw",
+      "quote": "`autoRecall`: boolean, `true`, Inject memories before each turn",
+      "locator": "Configuration reference / Core options",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Auto-Recall is decoupled from context compaction; it reintroduces memory regardless of what has been trimmed from the active window.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/add-persistent-memory-openclaw",
+      "quote": "Auto-Recall re-injects relevant memory on every turn from outside the session entirely, so it doesn't matter whether the fact you need was compacted out five messages ago or fifty.",
+      "locator": "Coexisting with OpenClaw's Built-In Systems",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Open-source mode supports configurable embedder, vector store, and LLM, with memory edit history stored in SQLite (disableable).",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/add-persistent-memory-openclaw",
+      "quote": "`oss.historyDbPath`: SQLite path for memory edit history. `oss.disableHistory`: `false` Disable memory edit history tracking.",
+      "locator": "Configuration reference / Open-source mode options",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "12 default memory category tags exist and can be overridden via customCategories.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/add-persistent-memory-openclaw",
+      "quote": "`customCategories`: Override the 12 default memory category tags.",
+      "locator": "Configuration reference / Platform mode options",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 scores 92.5% on LoCoMo (self-reported, full methodology published on Mem0's research page).",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/ai-memory-benchmarks-in-2026",
+      "quote": "Mem0 | 92.5% | Self-reported, published on Mem0's own research page with full methodology",
+      "locator": "LoCoMo leaderboard table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 scores 94.4% on LongMemEval (self-reported, published on Mem0's own research page).",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/ai-memory-benchmarks-in-2026",
+      "quote": "Mem0 | 94.4% | Self-reported, published on Mem0's own research page",
+      "locator": "LongMemEval leaderboard table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 scores 64.1% on BEAM-1M and 48.6% on BEAM-10M.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/ai-memory-benchmarks-in-2026",
+      "quote": "The BEAM-1M and BEAM-10M scores (64.1 and 48.6) are below the LoCoMo and LongMemEval headlines.",
+      "locator": "Where Mem0's published numbers sit \u2014 reading numbers against BEAM",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0's LongMemEval knowledge update score is 93.6%, with the ADD-only architecture identified as the cause of occasional stale-fact surfacing.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/ai-memory-benchmarks-in-2026",
+      "quote": "Knowledge update, at 93.6, is the category most affected by the additive, ADD-only architecture: older facts are preserved rather than overwritten, so a semantically similar prior fact can surface alongside a newer one.",
+      "locator": "Where Mem0's published numbers sit \u2014 LongMemEval per-category breakdown",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0's LoCoMo open-domain retrieval subscores 72.7%, which is described as the weak spot actively being tuned; temporal and multi-hop questions score around 92% and 91%.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/ai-memory-benchmarks-in-2026",
+      "quote": "temporal and multi-hop questions score well, around 92 and 91, while open-domain retrieval, at 72.7, is the weak spot and is actively being tuned.",
+      "locator": "Where Mem0's published numbers sit \u2014 LoCoMo breakdown",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 publishes its full evaluation framework, methodology, benchmark scores, token costs, and latency figures on its public research page, and the framework is described as open source.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/ai-memory-benchmarks-in-2026",
+      "quote": "Yes. Mem0 publishes its full evaluation framework and methodology on its research page, including the benchmark scores, token costs, and latency figures referenced throughout this post.",
+      "locator": "FAQ \u2014 Is the Mem0 benchmark evaluation framework open source?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A third-party (ByteRover) comparison put Mem0 at 66.9% on LoCoMo, which the blog attributes to ByteRover testing an older Mem0 algorithm version.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/ai-memory-benchmarks-in-2026",
+      "quote": "The 66.9% figure for Mem0 specifically lines up with an older Mem0 algorithm version, not the current one.",
+      "locator": "Why do LoCoMo scores disagree?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 uses priority scoring and contextual tagging to filter stored memories, avoiding memory bloat.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/memory-in-agents-what-why-and-how",
+      "quote": "Mem0 uses priority scoring and contextual tagging to decide what gets stored. This avoids memory bloat and keeps agents focused on the important stuff",
+      "locator": "The Memory Advantage: How Mem0 Is Different \u2014 Intelligent Filtering",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 implements dynamic forgetting by decaying low-relevance entries over time.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/memory-in-agents-what-why-and-how",
+      "quote": "Mem0 doesn't treat memory as a static dump. Instead, it decays low-relevance entries over time, freeing up space and attention.",
+      "locator": "The Memory Advantage: How Mem0 Is Different \u2014 Dynamic Forgetting",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 moves information between short-term and long-term memory based on usage patterns, recency, and significance.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/memory-in-agents-what-why-and-how",
+      "quote": "We move information between short-term and long-term memory storage based on usage patterns, recency, and significance, optimizing both recall speed and storage efficiency.",
+      "locator": "The Memory Advantage: How Mem0 Is Different \u2014 Memory Consolidation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 maintains cross-session continuity across sessions, devices, and time periods.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/memory-in-agents-what-why-and-how",
+      "quote": "Most agents reset at the end of a session. Mem0 doesn't. Our memory architecture maintains relevant context across sessions, devices, and time periods.",
+      "locator": "The Memory Advantage: How Mem0 Is Different \u2014 Cross-Session Continuity",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 write path performs extraction, deduplication, and conflict resolution on new interactions.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/memory-in-agents-what-why-and-how",
+      "quote": "This is also where deduplication and conflict resolution happen: if a new fact contradicts an old one, the write path has to decide whether to update, merge, or keep both.",
+      "locator": "How AI Agent Memory Works (Architecture) \u2014 The Write Path",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 read path balances relevance against recency to avoid surfacing stale preferences over recent corrections.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/memory-in-agents-what-why-and-how",
+      "quote": "Good read paths balance relevance against recency, so a stale preference doesn't outrank a fact the user corrected yesterday.",
+      "locator": "How AI Agent Memory Works (Architecture) \u2014 The Read Path",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 supports scoped deletion by user ID or individual memory entry for GDPR compliance without full reindex.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/memory-in-agents-what-why-and-how",
+      "quote": "being able to remove everything tied to a user ID on request, or delete a single memory entry when a specific piece of information needs to go, without needing to rebuild or reindex the rest of the store.",
+      "locator": "FAQ: How do I delete specific data from an AI agent's memory for GDPR compliance?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 can be self-hosted in a private VPC so memory data never leaves the operator's infrastructure.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/memory-in-agents-what-why-and-how",
+      "quote": "Running self-hosted inside a private VPC means the vector or graph backend and the memory data itself never leave your own infrastructure",
+      "locator": "FAQ: Can an AI memory layer be deployed on-premises or in a private VPC?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 is framework- and platform-agnostic, deployable as managed platform, self-hosted package, or local MCP server.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/memory-in-agents-what-why-and-how",
+      "quote": "Mem0 is framework- and platform-agnostic, deployable as a managed platform, self-hosted package, or local MCP server regardless of where your agent runs",
+      "locator": "FAQ: How is Mem0's memory architecture different from Cloudflare's Agent Memory?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 provides a managed AI memory layer handling extraction, retrieval, and preference updates for agent consistency.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/context-aware-chatbots-with-ai-memory",
+      "quote": "Mem0 provides a managed AI memory layer that handles extraction, retrieval, and preference updates so agents remain consistent over time.",
+      "locator": "TL;DR section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory add() is asynchronous; processing is queued for background execution.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/context-aware-chatbots-with-ai-memory",
+      "quote": "{'results': [{'message': 'Memory processing has been queued for background execution', 'status': 'PENDING', 'event_id': 'a26936bf-c15d-401f-a3b2-bcadd75d9611'}]}",
+      "locator": "Step 1: Storing memory, terminal output",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 extracts structured facts from raw input rather than storing chunks.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/context-aware-chatbots-with-ai-memory",
+      "quote": "This is distinct from RAG, which splits documents into fixed chunks. By extracting facts, we make the memory more usable for the LLM.",
+      "locator": "Step 1: Storing memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval uses semantic/vector search scoped to user_id, returning only contextually relevant memories.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/context-aware-chatbots-with-ai-memory",
+      "quote": "The Mem0 search() function took the query 'Find me flight options,' looked at the vector store associated with traveler_01, and realized that previous memories about Japan and flying preferences were semantically relevant.",
+      "locator": "Step 2: Retrieving context",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "On conflicting input, Mem0 updates the stored memory and preserves change context rather than appending a duplicate entry.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/context-aware-chatbots-with-ai-memory",
+      "quote": "Mem0 detected the conflict regarding flight class and intelligently updated the memory. Rather than simply replacing 'business class' with 'economy class,' it preserved the context that this was a change from a previous preference.",
+      "locator": "Step 3: Handling updates (memory consolidation)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation supports separate user_id (long-term) and session_id (short-term) scopes, with optional metadata filters.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/context-aware-chatbots-with-ai-memory",
+      "quote": "In Mem0, you can handle this by using metadata filters or by separating user_id (for long term) and session_id (for short term).",
+      "locator": "Level 4: Advanced patterns \u2014 Session vs. user memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graph memory for entity relationship tracking is available on Pro plan or higher.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/context-aware-chatbots-with-ai-memory",
+      "quote": "Graph memory features are only available with Mem0's Pro plan or higher.",
+      "locator": "Level 4: Advanced patterns \u2014 Graph memory (advanced)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Adding memory introduces retrieval latency but shorter prompts to the LLM can offset generation time.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/context-aware-chatbots-with-ai-memory",
+      "quote": "Yes, there's an extra retrieval call. But because Mem0 sends shorter, more relevant prompts to the LLM, generation is often faster, offsetting the added latency.",
+      "locator": "FAQs section, 'Does adding memory increase latency?'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 delivers 91% faster responses and 90% lower token costs by combining vector search with graph memory",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/graph-memory-solutions-ai-agents",
+      "quote": "Mem0 combines vector search with graph memory for 91% faster responses and 90% lower token costs.",
+      "locator": "TLDR section",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 maintains cross-session context through hierarchical memory at user, session, and agent levels",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/graph-memory-solutions-ai-agents",
+      "quote": "The system maintains cross-session context through hierarchical memory at user, session, and agent levels while automatically extracting and organizing facts from conversations.",
+      "locator": "Best Overall Graph-Based Memory Solution: Mem0",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 uses automatic extraction rather than tool-driven manual orchestration for memory writes",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/graph-memory-solutions-ai-agents",
+      "quote": "Teams seeking automatic context extraction with hierarchical organization across multiple users and sessions find Mem0's approach more straightforward than tool-driven memory systems that require manual orchestration.",
+      "locator": "Best Overall Graph-Based Memory Solution: Mem0 \u2014 Bottom Line",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 supports sub-second retrieval at scale through optimized graph traversal and hybrid vector-graph architecture",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/graph-memory-solutions-ai-agents",
+      "quote": "Mem0 and Zep both deliver sub-second retrieval at scale through optimized graph traversal and hybrid vector-graph architectures.",
+      "locator": "FAQ \u2014 Can graph memory handle millions of facts per user",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 is framework-agnostic and does not require adoption of a specific agent runtime",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/graph-memory-solutions-ai-agents",
+      "quote": "Not with framework-agnostic solutions like Mem0 or Zep.",
+      "locator": "FAQ \u2014 Do I need to adopt a specific agent framework",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Managed service handles graph database infrastructure, compliance, and scaling automatically",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/graph-memory-solutions-ai-agents",
+      "quote": "Mem0 offers the fastest path to production with its managed service that handles graph database infrastructure, compliance, and scaling automatically.",
+      "locator": "FAQ \u2014 Which graph memory solution works best for teams without dedicated infrastructure resources",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 handles serialization, token budgeting, and history injection automatically through its API, removing that boilerplate from the application layer",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/short-term-memory-for-ai-agents",
+      "quote": "Mem0 handles serialization, token budgeting, and history injection through its API. This removes the boilerplate of token counting and buffer management from your application layer.",
+      "locator": "How Does Mem0 Handle Short-Term Memory?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0's default memory write path is extraction of discrete updateable facts, not prose summarization",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/short-term-memory-for-ai-agents",
+      "quote": "Mem0's default approach is extraction, not summarization: it pulls out discrete, updateable facts rather than compressing history into prose.",
+      "locator": "Frequently Asked Questions \u2014 Does Mem0 support automatic conversation summarization?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 scored 64.1 on BEAM 1M and 48.6 on BEAM 10M, representing ~25% performance loss as context scales 10x.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/state-of-ai-agent-memory-2026",
+      "quote": "BEAM (1M) | 64.1 | 6,719 ... BEAM (10M) | 48.6 | 6,914",
+      "locator": "The research foundation / benchmark results table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The new algorithm improved temporal reasoning by +29.6 points and multi-hop by +23.1 points over the prior algorithm.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/state-of-ai-agent-memory-2026",
+      "quote": "The two largest gains in the new algorithm are on temporal queries (+29.6 points over the old algorithm) and multi-hop reasoning (+23.1 points).",
+      "locator": "The research foundation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The prior full-context approach consumed ~26,000 tokens per conversation vs ~6,956 for the new selective memory algorithm.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/state-of-ai-agent-memory-2026",
+      "quote": "The 2025 paper reports tokens per conversation (~26,000 for full context). The 2026 algorithm reports the average number of tokens per retrieval call (~6,956 for LoCoMo). These are different units measuring the same underlying efficiency.",
+      "locator": "The research foundation / note on token units",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0's multi-scope model ranks user memories above session context above raw history at retrieval time.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/state-of-ai-agent-memory-2026",
+      "quote": "The retrieval pipeline handles the merge automatically, ranking user memories above session context above raw history.",
+      "locator": "Multi-Scope Memory: The API Design That Stuck",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cross-session identity resolution is an open unsolved problem: the memory model assumes a stable user_id but anonymous sessions and multi-device users break that assumption.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/state-of-ai-agent-memory-2026",
+      "quote": "The memory model assumes a stable user_id. Anonymous sessions, multi-device users, and mixed auth flows break that assumption. Resolving whether two interactions came from the same person is an unsolved identity problem at the memory layer.",
+      "locator": "Open Problems / Cross-session identity resolution",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory staleness in high-relevance memories is an open problem: a highly-retrieved memory becomes confidently wrong when user circumstances change.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/state-of-ai-agent-memory-2026",
+      "quote": "A highly-retrieved memory about a user's employer is accurate until they change jobs, at which point it becomes confidently wrong. Decay handles low-relevance memories. Staleness in high-relevance memories is a harder, open problem.",
+      "locator": "Open Problems / Memory staleness",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cross-session structure: most systems treat change as replacement; the correct behavior is treating it as evolution.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/state-of-ai-agent-memory-2026",
+      "quote": "A user who moves from New York to San Francisco should have that transition understood, not just the new city stored. Most systems treat change as replacement. The right behavior treats it as evolution.",
+      "locator": "Open Problems / Cross-session structure",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Privacy and consent for stored memories (inspection, retention, deletion) are application-layer decisions today with no built-in architecture.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/state-of-ai-agent-memory-2026",
+      "quote": "Who can inspect stored memories? How long are they retained? How does a user delete them? These are application-layer decisions today.",
+      "locator": "Open Problems / Privacy and consent architecture",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 uses both vector storage and graph memory (hybrid) for retrieval, not raw top-K vector search alone.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/what-is-ai-agent-memory",
+      "quote": "It manages the complexities we discussed: vector storage, user personalization, and session handling through a simple API.",
+      "locator": "Is there a need for a dedicated AI memory layer?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0's Graph Memory uses dynamic relationship mapping that evolves as the agent learns, implemented via graph databases.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/what-is-ai-agent-memory",
+      "quote": "Mem0's Graph Memory, for example, allows for dynamic relationship mapping that evolves as the agent learns more about its environment.",
+      "locator": "GraphRAG: The association cortex",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 is aligned with OpenMemory MCP as a more decoupled approach compared to framework-coupled memory implementations.",
+      "kind": "blog",
+      "url": "https://mem0.ai/blog/what-is-ai-agent-memory",
+      "quote": "limits portability compared to more decoupled approaches aligned with OpenMemory MCP",
+      "locator": "Existing frameworks and integrations for building AI memory applications",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ADD-only write path: facts are never overwritten or deleted; both old and new versions of changed information coexist in the store",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
+      "quote": "The key architectural decision is ADD-only extraction. New facts are stored alongside old ones. Nothing is overwritten or deleted. When information changes, both the old and new facts survive.",
+      "locator": "Architecture Overview \u2014 info block after storage layer table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Extraction runs asynchronously after the agent responds, keeping write latency low",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
+      "quote": "Conversation enters the pipeline asynchronously (after the agent responds)",
+      "locator": "Memory Extraction (Distillation) \u2014 stage 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Deduplication is hash-based at write time, using a context lookup of existing memories before storing new ones",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
+      "quote": "Context Lookup: Find related existing memories to avoid duplicates ... Deduplicate + Embed: Hash-based deduplication, then vectorize new memories",
+      "locator": "Memory Extraction (Distillation) \u2014 stages 2 and 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Temporal metadata stored with each memory includes event timing, ongoing/completed status, timing precision, and memory type (event, state, plan, preference, relationship, absence)",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
+      "quote": "extracting temporal metadata: when the event occurred, whether it is ongoing or completed, how precise the timing is, and the memory type (event, state, plan, preference, relationship, absence)",
+      "locator": "Memory Extraction (Distillation) \u2014 stage 6",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SQL database serves as a history log of ADD events and a rolling message window used for extraction deduplication context \u2014 this is a log, not curated memory",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
+      "quote": "SQL Database \u2014 History log (ADD events) + rolling message window \u2014 Audit trail + extraction dedup context",
+      "locator": "Memory Extraction (Distillation) \u2014 storage layer table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval averages under 7,000 tokens per query vs 25,000+ tokens for full-context approaches on the same benchmarks",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
+      "quote": "Mem0's algorithm achieves competitive accuracy on LoCoMo, LongMemEval, and BEAM while averaging under 7,000 tokens per retrieval call. Full-context approaches on the same benchmarks routinely consume 25,000+ tokens per query.",
+      "locator": "Why Memory Evaluation Matters",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LoCoMo overall score 92.5, mean tokens 6,956 at top_200 budget",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
+      "quote": "Overall: 92.5 ... Mean tokens: 6,956.",
+      "locator": "Benchmarks \u2014 LoCoMo",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval overall score 94.4, temporal reasoning 97.0, knowledge update 93.6, mean tokens 6,787 at top_200 budget",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
+      "quote": "Overall: 94.4 ... Temporal reasoning: 97.0 ... Knowledge update: 93.6 ... Mean tokens: 6,787.",
+      "locator": "Benchmarks \u2014 LongMemEval",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "BEAM 1M overall 64.1 (mean tokens 6,719), BEAM 10M overall 48.6 (mean tokens 6,914); contradiction_resolution is the weakest category at both scales",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
+      "quote": "Overall: 64.1 (1M) / 48.6 (10M) ... contradiction_resolution: 35.7 (1M) / 32.5 (10M) ... Mean tokens (1M): 6,719. Mean tokens (10M): 6,914.",
+      "locator": "Benchmarks \u2014 BEAM",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Managed platform scores differ from open-source SDK; proprietary optimizations exist in the platform that are not in the OSS build",
+      "kind": "docs",
+      "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
+      "quote": "Scores reflect Mem0's managed platform, which includes proprietary optimizations not available in the open-source SDK. Open-source users should expect directionally similar gains but not identical numbers.",
+      "locator": "Performance Summary \u2014 info block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0 scores 92.5 on LoCoMo across 1,540 questions in 5 categories",
+      "kind": "docs",
+      "url": "https://mem0.ai/research",
+      "quote": "92.5 Mem0 Score \u2026 1,540 questions 5 categories. Tests single-hop, multi-hop, open-domain, and temporal memory recall across multi-session conversations.",
+      "locator": "LoCoMo section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mean tokens per retrieval call is approximately 6,956 for Mem0 vs 25,000+ for full-context systems",
+      "kind": "docs",
+      "url": "https://mem0.ai/research",
+      "quote": "Mean tokens: 6,956 \u2026 Only the top matches enter the prompt, rather than the full conversation history, which is what keeps each call near 7,000 tokens instead of 25,000+.",
+      "locator": "LoCoMo section / Context Footprint section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ADD-only extraction produces no overwrite or delete step, preserving full history",
+      "kind": "docs",
+      "url": "https://mem0.ai/research",
+      "quote": "No overwrite or delete step, so history survives intact with about 2x faster extraction.",
+      "locator": "Single-pass ADD-only extraction section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Median retrieval latency overhead is +1ms due to write-time classification",
+      "kind": "docs",
+      "url": "https://mem0.ai/research",
+      "quote": "temporal reasoning does its classification at write time, so median latency stays flat at +1ms",
+      "locator": "Response Time section",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/base.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/main.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/storage.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/utils.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/configs/prompts.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/client/main.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/vector_stores/base.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/memory/index.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/storage/MemoryHistoryManager.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.mem0.ai/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.mem0.ai/introduction",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.mem0.ai/core-concepts/memory-types",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.mem0.ai/core-concepts/memory-operations/add",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.mem0.ai/core-concepts/memory-operations/search",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.mem0.ai/platform/features/graph-memory",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.mem0.ai/platform/advanced-memory-operations",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/2820",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/7064",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/4956",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/5867",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/6214",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/5428",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/3114",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/7226",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/4863",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/7283",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/7260",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/7173",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/7157",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/6923",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/7256",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/7277",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/5439",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/6606",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/7214",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mem0ai/mem0/issues/7202",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://mem0.ai/blog",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://mem0.ai/blog/context-aware-chatbots-with-ai-memory",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://mem0.ai/blog/short-term-memory-for-ai-agents",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://mem0.ai/blog/add-persistent-memory-openclaw",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://mem0.ai/blog/memory-in-agents-what-why-and-how",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://mem0.ai/research",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://mem0.ai/blog/state-of-ai-agent-memory-2026",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://mem0.ai/blog/ai-memory-benchmarks-in-2026",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://mem0.ai/blog/graph-memory-solutions-ai-agents",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://mem0.ai/blog/what-is-ai-agent-memory",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://news.ycombinator.com/item?id=41447317",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.producthunt.com/products/openmemory-chrome-extension",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.producthunt.com/products/gstack",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Blog index page lists post titles only; write path details (extract, update, delete, conflict/supersession logic) are not described here \u2014 canonical architecture docs (docs.mem0.ai) should cover these but are not included in the extracted text.",
+      "url": "https://mem0.ai/blog",
+      "kind": "blog"
+    },
+    {
+      "text": "Forget / delete path is not described: the new algorithm is ADD-only with no UPDATE/DELETE, but there is no description of whether explicit deletion from the store is possible via the API",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Conflict and supersession handling is not described: with ADD-only accumulation it is unclear how contradictory memories (e.g. user changed preference) are handled at retrieval or generation time",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "The LLM extraction prompt (ADDITIVE_EXTRACTION_PROMPT, AGENT_CONTEXT_SUFFIX, generateAdditiveExtractionPrompt) defines what facts are extracted and what update/delete/supersession instructions the model receives, but those prompt contents are in ../prompts and not visible on this page.",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/memory/index.ts",
+      "kind": "code"
+    },
+    {
+      "text": "The conflict/supersession write path (how the LLM decides to UPDATE vs ADD vs DELETE an existing memory) is handled inside the extraction prompt and the AdditiveExtractionSchema response shape, not visible on this page.",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/memory/index.ts",
+      "kind": "code"
+    },
+    {
+      "text": "The HistoryManager base interface (base.ts) is not shown; it is unclear whether other implementations (e.g. SQLite-backed) provide durable persistence and whether is_deleted is filtered at retrieve time in those implementations.",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/storage/MemoryHistoryManager.ts",
+      "kind": "code"
+    },
+    {
+      "text": "Isolation scope (per-user, per-session, per-agent) is not defined in this base class; no user_id or session_id parameter appears here.",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/base.py",
+      "kind": "code"
+    },
+    {
+      "text": "Retrieve/selection policy \u2014 how memories are chosen for injection into a turn (e.g., semantic search, always-all) \u2014 is absent from this abstract interface.",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/base.py",
+      "kind": "code"
+    },
+    {
+      "text": "Write path (how raw conversation turns are distilled into discrete memory units) is not defined here; no add or extract method appears in this base class.",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/base.py",
+      "kind": "code"
+    },
+    {
+      "text": "Write path for conflict/supersession (how duplicate or contradictory memories are resolved before or after insert) is not addressed in this base class.",
+      "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/vector_stores/base.py",
+      "kind": "code"
+    },
+    {
+      "text": "No description of how memory conflicts between graph and vector stores are reconciled when they diverge on the same fact",
+      "url": "https://news.ycombinator.com/item?id=41447317",
+      "kind": "community"
+    },
+    {
+      "text": "Exclusion prompt mechanism: no detail on whether LLM refusal to store sensitive data is enforced at extraction, at write, or only at retrieval",
+      "url": "https://news.ycombinator.com/item?id=41447317",
+      "kind": "community"
+    },
+    {
+      "text": "Privacy and data handling for captured memories is explicitly asked by multiple users but not answered on this page",
+      "url": "https://www.producthunt.com/products/openmemory-chrome-extension",
+      "kind": "community"
+    },
+    {
+      "text": "Forget / delete path: how memories are removed from the store beyond the dashboard UI mention is not described",
+      "url": "https://www.producthunt.com/products/openmemory-chrome-extension",
+      "kind": "community"
+    },
+    {
+      "text": "Conflict/supersession behavior on the add path is not described: the page states storage is additive and never overwrites, but does not explain how contradictory facts (e.g., user changes preference) are handled.",
+      "url": "https://docs.mem0.ai/core-concepts/memory-operations/add",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy (always retrieve vs adaptive, ranking algorithm) is mentioned only as 'future searches rank the most relevant memories' with no detail on the selection mechanism.",
+      "url": "https://docs.mem0.ai/core-concepts/memory-operations/add",
+      "kind": "docs"
+    },
+    {
+      "text": "This search/retrieve page does not describe the write path (how memories are extracted, updated, or deleted), conflict resolution, or forget/delete behavior \u2014 those are canonical memory behaviors absent from this architecture doc.",
+      "url": "https://docs.mem0.ai/core-concepts/memory-operations/search",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget/delete path: the LLM extraction step can emit DELETE decisions, but this page does not describe how delete is executed in the store (soft delete vs hard removal) or whether deleted memories are hidden at retrieve or permanently removed.",
+      "url": "https://docs.mem0.ai/core-concepts/memory-types",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy: this page describes the write-path vector search but does not explain how memories are selected into the conversational turn (adaptive vs always-retrieve, ranking cutoff, token budget).",
+      "url": "https://docs.mem0.ai/core-concepts/memory-types",
+      "kind": "docs"
+    },
+    {
+      "text": "This is the introduction/index page for Mem0 docs and does not describe the write path (extract, update, delete, conflict/supersession), forget mechanics, retrieve policy, or isolation scope (per-user, per-session, per-agent). These are core memory behaviors expected to be covered in architecture or API reference pages.",
+      "url": "https://docs.mem0.ai/introduction",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of a forget or hide mechanism beyond delete_all \u2014 whether individual memory deletion propagates to embeddings/vector store or merely hides at retrieve time is unspecified.",
+      "url": "https://docs.mem0.ai/platform/advanced-memory-operations",
+      "kind": "docs"
+    },
+    {
+      "text": "Token usage data (prompt_tokens, completion_tokens, total_tokens) is not currently returned by add(), search(), or get_all(); no API or config exposes it per this page.",
+      "url": "https://github.com/mem0ai/mem0/issues/2820",
+      "kind": "issue"
+    },
+    {
+      "text": "The page references 'delete/erasure semantics documented by Mem0' but does not link to or quote that documentation, leaving the full intended delete contract unspecified",
+      "url": "https://github.com/mem0ai/mem0/issues/4863",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe whether any conflict-resolution or supersession mechanism exists elsewhere in v3, or whether this is a known regression from a prior version that had UPDATE/DELETE.",
+      "url": "https://github.com/mem0ai/mem0/issues/4956",
+      "kind": "issue"
+    },
+    {
+      "text": "Forget / delete path: no description of how memories are removed or superseded from the store.",
+      "url": "https://github.com/mem0ai/mem0/issues/5428",
+      "kind": "issue"
+    },
+    {
+      "text": "This canonical issue for entity-level scope isolation does not describe how or whether entity records are ever deleted (tombstoned vs hard-deleted) from the entity store when a memory is removed.",
+      "url": "https://github.com/mem0ai/mem0/issues/5439",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how retrieval selects or ranks memories when multiple entries exist for the same user; the page notes ambiguity but does not describe the retrieve policy.",
+      "url": "https://github.com/mem0ai/mem0/issues/5867",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of a forget/delete API or how explicit deletion is triggered; only noted as a desired but absent behavior.",
+      "url": "https://github.com/mem0ai/mem0/issues/5867",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how the core SDK's retrieve policy works (always-on vs adaptive selection into context) \u2014 this is a canonical SDK architecture gap on this page",
+      "url": "https://github.com/mem0ai/mem0/issues/6214",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of the forget/delete path in the core SDK \u2014 how memories are removed or superseded is not covered here",
+      "url": "https://github.com/mem0ai/mem0/issues/6214",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of what entity records contain or how they are used during retrieval to influence memory recall \u2014 the page describes the isolation mechanism but not the retrieval policy for entities.",
+      "url": "https://github.com/mem0ai/mem0/issues/6606",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how or when Mem0 decides to extract and write a new memory vs update an existing one (write path for conflict/supersession) is present in this issue.",
+      "url": "https://github.com/mem0ai/mem0/issues/6923",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of a forget/delete mechanism for the entity store or linked_memory_ids entries is present in this issue.",
+      "url": "https://github.com/mem0ai/mem0/issues/6923",
+      "kind": "issue"
+    },
+    {
+      "text": "docs/open-source/features/metadata-filtering.mdx is cited as the canonical metadata filtering doc but its contents are not reproduced; it is unknown whether it documents per-backend filter limitations, isolation scope beyond the three identity keys, or forget/delete behavior",
+      "url": "https://github.com/mem0ai/mem0/issues/7157",
+      "kind": "docs"
+    },
+    {
+      "text": "Memory.search full keyword-only signature (mem0/memory/main.py:1379-1391) \u2014 the issue states the signature exists and lacks user_id/limit but does not reproduce it; the canonical parameter list for retrieval is unquoted",
+      "url": "https://github.com/mem0ai/mem0/issues/7202",
+      "kind": "issue"
+    },
+    {
+      "text": "The metadata-filtering docs page (docs/open-source/features/metadata-filtering.mdx) is referenced as the canonical grammar spec but not reproduced here; the full per-operator contract and any OpenSearch-specific caveats are not visible on this page",
+      "url": "https://docs.mem0.ai/open-source/features/metadata-filtering",
+      "kind": "docs"
+    },
+    {
+      "text": "Whether a persisted flag or store-side mechanism exists to correctly track whether any entities have ever been written, as suggested by the issue but not confirmed in the codebase excerpt.",
+      "url": "https://github.com/mem0ai/mem0/issues/7226",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe how or when empty payloads are written into the FAISS docstore \u2014 whether this is a write-path bug (payload never populated) or a retrieval-path bug (payload lost after insert) is unresolved.",
+      "url": "https://github.com/mem0ai/mem0/issues/7256",
+      "kind": "issue"
+    },
+    {
+      "text": "No response from maintainers is present in the extracted text; it is unknown whether a verify-before-persist hook is planned or whether the write path has any attribution or misattribution guard.",
+      "url": "https://github.com/mem0ai/mem0/issues/7283",
+      "kind": "issue"
+    },
+    {
+      "text": "Conflict and supersession behavior: the page describes update and delete tools but does not specify how Mem0 handles contradictory or superseding facts during Auto-Capture (e.g., user changes a stated preference).",
+      "url": "https://mem0.ai/blog/add-persistent-memory-openclaw",
+      "kind": "blog"
+    },
+    {
+      "text": "The blog describes an ADD-only write architecture but does not document how or whether Mem0 performs explicit DELETE or UPDATE operations, nor how memory consolidation or eviction works in production. A companion engineering or architecture doc should cover this.",
+      "url": "https://mem0.ai/blog/ai-memory-benchmarks-in-2026",
+      "kind": "blog"
+    },
+    {
+      "text": "Per-user isolation is identified as a gap in all public benchmarks but the page does not describe Mem0's own isolation mechanism (per-user partition, session scope, or multi-tenant handling).",
+      "url": "https://mem0.ai/blog/ai-memory-benchmarks-in-2026",
+      "kind": "blog"
+    },
+    {
+      "text": "The page describes conflict resolution on the write path (update, merge, or keep both) but does not specify which strategy Mem0 actually applies or under what conditions.",
+      "url": "https://mem0.ai/blog/memory-in-agents-what-why-and-how",
+      "kind": "blog"
+    },
+    {
+      "text": "The page states Mem0 uses priority scoring for intelligent filtering but does not define how priority scores are computed or what signals feed into them.",
+      "url": "https://mem0.ai/blog/memory-in-agents-what-why-and-how",
+      "kind": "blog"
+    },
+    {
+      "text": "Delete API: the page describes update/conflict resolution and 'Dynamic Forgetting' conceptually but does not show an explicit delete-from-store API call or behavior.",
+      "url": "https://mem0.ai/blog/context-aware-chatbots-with-ai-memory",
+      "kind": "blog"
+    },
+    {
+      "text": "Retrieve policy trigger: the page shows search() called on every turn but does not specify whether retrieval is always-on or adaptive (e.g., skipped for certain query types).",
+      "url": "https://mem0.ai/blog/context-aware-chatbots-with-ai-memory",
+      "kind": "blog"
+    },
+    {
+      "text": "Forget / delete path: the page does not describe how memories are deleted or superseded from the store",
+      "url": "https://mem0.ai/blog/graph-memory-solutions-ai-agents",
+      "kind": "blog"
+    },
+    {
+      "text": "Retrieve policy: no detail on when retrieval is triggered automatically vs on explicit call, or how silent-retrieval decisions are made",
+      "url": "https://mem0.ai/blog/graph-memory-solutions-ai-agents",
+      "kind": "blog"
+    },
+    {
+      "text": "The page states Mem0 supports a custom extraction prompt but defers to external documentation for configuration details, so the exact extraction API and conflict/supersession behavior are not described here.",
+      "url": "https://mem0.ai/blog/short-term-memory-for-ai-agents",
+      "kind": "blog"
+    },
+    {
+      "text": "Forget / delete from store: the page identifies deletion as an open privacy question ('How does a user delete them?') but does not describe a delete API or mechanism.",
+      "url": "https://mem0.ai/blog/state-of-ai-agent-memory-2026",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession policy: the page notes cross-session structure is unsolved and that 'most systems treat change as replacement' but does not describe Mem0's own conflict resolution or supersession logic for the write path.",
+      "url": "https://mem0.ai/blog/state-of-ai-agent-memory-2026",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete mechanism: this page describes an ADD-only architecture and states nothing is overwritten or deleted, but does not describe any API or path for explicitly deleting a memory from the store.",
+      "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
+      "kind": "docs"
+    },
+    {
+      "text": "Isolation model: the page does not state whether memory stores are scoped per user, per session, per agent, or per character.",
+      "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete path: page states ADD-only with no overwrite or delete step but does not describe whether explicit user-triggered deletion or forgetting is supported elsewhere",
+      "url": "https://mem0.ai/research",
+      "kind": "docs"
+    },
+    {
+      "text": "Isolation model: no description of whether memory is scoped per user, per session, per agent, or per character",
+      "url": "https://mem0.ai/research",
+      "kind": "docs"
+    }
+  ]
+}
