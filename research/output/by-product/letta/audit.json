@@ -1,0 +1,3018 @@
+{
+  "identity": {
+    "id": "letta",
+    "name": "Letta",
+    "repo": "https://github.com/letta-ai/letta-code",
+    "docs": "https://docs.letta.com/llms.txt",
+    "license": "Apache-2.0",
+    "version_or_commit": "438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc",
+    "observed_at": "2026-09-13"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Letta is designed for stateful, persistent agents that keep identity, memory, and experience across models, machines, and interfaces."
+    },
+    {
+      "text": "Letta positions memory as a core harness responsibility, not a plugin."
+    },
+    {
+      "text": "Letta contrasts itself with traditional RAG, arguing RAG is insufficient for agent memory."
+    },
+    {
+      "text": "Letta addresses the stateless paradigm of traditional LLMs by carrying knowledge forward across conversations."
+    },
+    {
+      "text": "The module provides a full lifecycle harness: clone on first run, pull on startup, commit memory writes, post-turn push, and status checks for system reminders."
+    },
+    {
+      "text": "Memory is a git-backed filesystem of Markdown files scoped per agent, written and committed by the agent via explicit tool commands."
+    },
+    {
+      "text": "Letta positions memory as active management of context, not retrieval"
+    },
+    {
+      "text": "Memory is shared across an agent's conversations, allowing preferences learned in one conversation to carry over to others."
+    },
+    {
+      "text": "Persistent memory shared across conversations that improves as the agent learns durable information"
+    },
+    {
+      "text": "Agents learn by actively managing their own context \u2014 creating durable token-space representations \u2014 rather than by updating model weights"
+    },
+    {
+      "text": "Letta Code is a coding agent product with roadmap features including conversation search subagents with recall capability."
+    },
+    {
+      "text": "Letta Code uses a reflection agent ('Dreaming') to produce memory updates that are persisted to per-agent memory repos."
+    },
+    {
+      "text": "A reflection agent ('Dreaming') produces memory updates that are synced to a per-agent memory repo"
+    },
+    {
+      "text": "Builds agents with persistent memory that learn and persist identity across sessions, models, and machines"
+    },
+    {
+      "text": "Positions memory as a core harness responsibility, not a plugin"
+    },
+    {
+      "text": "Solves the stateless LLM problem \u2014 carrying knowledge forward across conversations"
+    },
+    {
+      "text": "Distinguishes itself from RAG, which is insufficient for agent memory"
+    },
+    {
+      "text": "Letta agents use a git-backed memory filesystem they can inspect and edit, shared across conversations and improving as the agent learns durable information."
+    },
+    {
+      "text": "Supports companions and creative partners with persistent personalities and histories"
+    },
+    {
+      "text": "Letta positions itself as a platform for building stateful agents with persistent memory across sessions."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Letta uses memory blocks as a structured abstraction for context window management, giving agents consistent usable memory."
+    },
+    {
+      "text": "Letta Code uses git-backed memory alongside skills, subagents, and multi-provider deployment."
+    },
+    {
+      "text": "Agents can dynamically manage their own memory blocks using the Memory Omni-Tool with Claude Sonnet 4.5."
+    },
+    {
+      "text": "Conversations API enables shared memory across parallel, concurrent user experiences."
+    },
+    {
+      "text": "Letta Filesystem provides an interface for agents to organize and reference content from documents."
+    },
+    {
+      "text": "Agent File (.af) is an open file format for serializing stateful agents with persistent memory and behavior."
+    },
+    {
+      "text": "Letta supports context-isolated subagents orchestrated by a memory-first agent."
+    },
+    {
+      "text": "Letta introduces Mods as an agent-friendly way to extend and adapt the harness, enabling self-improvement."
+    },
+    {
+      "text": "Agents programmatically rewrite their context (system prompt and memory blocks) to improve and adapt over time \u2014 a write path distinct from passive logging"
+    },
+    {
+      "text": "All context including memory blocks is version-tracked via git through MemFS, and can be synced to a custom GitHub repository"
+    },
+    {
+      "text": "Message search across all conversations is available to both user and agent, indicating a persistent message log distinct from memory blocks"
+    },
+    {
+      "text": "Memory is persisted as files under a per-agent directory path: ~/.letta/agents/<agentId>/memory/"
+    },
+    {
+      "text": "Memory isolation is per-agent: the memory filesystem root is scoped to an agentId"
+    },
+    {
+      "text": "Enabling memfs detaches old API-based memory tools, replacing them with git-backed filesystem memory"
+    },
+    {
+      "text": "MemFS capability is tracked per-agent via a tag (GIT_MEMORY_ENABLED_TAG) on the agent object; enabling is permanent \u2014 MemFS cannot be disabled after creation"
+    },
+    {
+      "text": "Core memory (top-level curated facts) is distinguished from other memory by path: in memfs-v2, core memory files are .md files at the root level (no subdirectory); in memfs-v1, they live under system/."
+    },
+    {
+      "text": "Writing a new memory file requires that a root MEMORY.md index exists and that every ancestor directory also has a MEMORY.md marker; violation throws an error, enforcing a hierarchical index constraint on the write path."
+    },
+    {
+      "text": "Memory is persisted as files in a git repository rooted at ~/.letta/agents/{id}/memory/, isolated per agent by agent ID in the path."
+    },
+    {
+      "text": "Conflict detection: post-turn sync checks for merge/rebase-in-progress markers (MERGE_HEAD, rebase-merge, rebase-apply) and unmerged status codes before attempting push, returning a 'conflict' status rather than pushing."
+    },
+    {
+      "text": "MemFS enablement is determined at runtime by checking either a local backend capability flag or a persisted per-agent setting stored in settingsManager."
+    },
+    {
+      "text": "Memory is structured as discrete labeled blocks (not a raw transcript log); default block labels for every non-MemFS agent are 'persona' and 'human'."
+    },
+    {
+      "text": "Per-project skill blocks were removed (LET-7353); skills are now injected via system reminders rather than memory blocks, narrowing the persistent memory store to persona and human blocks only."
+    },
+    {
+      "text": "Memory directory is scoped per agent: it is resolved from AGENT_ID or MEMORY_DIR environment variables, giving each agent an isolated memory store."
+    },
+    {
+      "text": "Individual memory files carry a read_only frontmatter flag; attempting to modify a read-only file throws before any write occurs."
+    },
+    {
+      "text": "All agent state persisted in a database, surviving server restarts"
+    },
+    {
+      "text": "Memory defragmentation via triggered events to the sleep-time agent"
+    },
+    {
+      "text": "Blocks can be labeled and tagged for search and identification; metadata exists on blocks but may not currently be queryable."
+    },
+    {
+      "text": "Memory is stored using a simple label, without typed graph relations to other information"
+    },
+    {
+      "text": "Memory is defined in named blocks (memory_blocks) that can be loaded from files or inline content"
+    },
+    {
+      "text": "Letta's memory can receive and act on broadcast instructions sent to entire fleets of agents, updating what agents remember without redeployment"
+    },
+    {
+      "text": "Memory is initialized at agent creation via persona/human shorthand or explicit memory entries"
+    },
+    {
+      "text": "Files under system/ are injected into the system prompt every turn (always-retrieve); everything else is available via file tree on demand (adaptive retrieve)."
+    },
+    {
+      "text": "Dreaming uses background subagents to review recent conversations, consolidate lessons, and write updates to memory without interrupting active work \u2014 this is the write/update path for curated memory."
+    },
+    {
+      "text": "Conflict protection via content-hash precondition: update fails rather than silently overwriting a file that changed after it was read."
+    },
+    {
+      "text": "Explicit delete removes the repository permanently with no restore path."
+    },
+    {
+      "text": "A stateless session flag prevents loading or changing the agent's memory, skills, mods, transcript, and reflection behavior for that turn, without affecting agent or conversation persistence."
+    },
+    {
+      "text": "Every memory edit is committed to the git repository, providing version history and conflict resolution."
+    },
+    {
+      "text": "Isolation is per-agent: each agent has its own MemFS. Shared memory is a separate, explicit feature for multi-agent scenarios."
+    },
+    {
+      "text": "No semantic or vector index is included by default; agents find memory using normal file-search and read tools."
+    },
+    {
+      "text": "Write path: agent must explicitly commit and push changes; other agents pull those commits into their own checkouts."
+    },
+    {
+      "text": "Isolation is per-organization: repositories are owned by the organization and attached selectively to individual agents."
+    },
+    {
+      "text": "Long-term memory is stored in MemFS, a named subsystem distinct from message history."
+    },
+    {
+      "text": "Memory isolation is per agent; separate agents give independent identities and memory, while separate conversations share the same identity and memory."
+    },
+    {
+      "text": "Agents are persisted to cloud storage when signed in, enabling cross-device access; without an account they are stored only on local disk."
+    },
+    {
+      "text": "Dreaming: background subagents consolidate lessons from recent conversations and update memory asynchronously without interrupting active work"
+    },
+    {
+      "text": "Reorganization write path: agent can split large files, merge duplicates, or restructure the memory hierarchy; backs up repository before changes"
+    },
+    {
+      "text": "Persistent memory is stored separately from per-conversation history; all conversations with the same agent share a single persistent memory while each conversation has its own immediate history and context window."
+    },
+    {
+      "text": "The agent writes information from user input into memory via tool calls, visible to the user as 'Show tool calls'."
+    },
+    {
+      "text": "Durable user information is stored in a named file 'system/human.md' within the agent's memory store; other facts go in appropriately named files under 'system/'."
+    },
+    {
+      "text": "Changing the model does not remove saved memory, though it may affect response style."
+    },
+    {
+      "text": "MemFS: a git-versioned memory filesystem that agents read, write, and reorganize"
+    },
+    {
+      "text": "Sleep-time subagents perform reflection and memory organization out of band"
+    },
+    {
+      "text": "System prompt learning: agents rewrite their own system prompts as they accumulate experience"
+    },
+    {
+      "text": "Memory and identity persist across multiple computers and sessions for a signed-in agent"
+    },
+    {
+      "text": "One agent, many independent message threads, with shared memory across all of them"
+    },
+    {
+      "text": "Memory is stored as files on disk (e.g. persona.md, human/identity.md, philosophy.md) under a per-agent path"
+    },
+    {
+      "text": "Conversation search subagents provide a recall mechanism, suggesting retrieval over prior conversation history."
+    },
+    {
+      "text": "--new-agent flag creates a fresh context but the agent is persisted after the run completes"
+    },
+    {
+      "text": "--new-agent flag creates a clean context (no inherited memory) but still persists the new agent after the run."
+    },
+    {
+      "text": "The conflict-resolution policy is defined in a prompt file for the reflection subagent."
+    },
+    {
+      "text": "Agent memory documents are used to convey environment context to the model, but are insufficient to override tool-name bias"
+    },
+    {
+      "text": "Files in MemFS are read via a WebSocket-based request/response protocol using a read_memory_file command and read_memory_file_response message type, correlated by request_id."
+    },
+    {
+      "text": "The Desktop reads memory files from the App Server via a WebSocket `read_memory_file` command/response protocol, with request correlation by `request_id`."
+    },
+    {
+      "text": "The fix suggested would also protect reflection memory, implying reasoning transcripts feed into a reflection memory pathway"
+    },
+    {
+      "text": "When the background push fails, memory updates are silently dropped and the memory repo is left dirty/desynced indefinitely."
+    },
+    {
+      "text": "A Windows credential helper fix (PR #1702) was added but only applies to fresh clones, not existing memory repos, leaving existing repos without the fix."
+    },
+    {
+      "text": "Each agent has its own dedicated memory repository on disk"
+    },
+    {
+      "text": "Memory sync failures silently drop reflection memory updates and leave the memory repo dirty/desynced indefinitely"
+    },
+    {
+      "text": "A Windows credential helper fix was added but only applies to fresh clones, not existing memory repos"
+    },
+    {
+      "text": "Git-backed memory as a persistence mechanism within the Letta Code runtime"
+    },
+    {
+      "text": "Shared memory across parallel/concurrent agent experiences via a Conversations API"
+    },
+    {
+      "text": "Memory blocks as structured units for context window management"
+    },
+    {
+      "text": "Agents dynamically manage their own memory blocks via a memory omni-tool"
+    },
+    {
+      "text": "Filesystem interface for agents to organize and reference content from documents"
+    },
+    {
+      "text": "Agent File (.af) as a serialization format for persisting stateful agents with memory and behavior"
+    },
+    {
+      "text": "Memory-first coding agent with agent-driven orchestration of context-isolated subagents"
+    },
+    {
+      "text": "Agents that learn over time in a local, personalized app context"
+    },
+    {
+      "text": "Harness-level adaptation (Mods) allowing agents to self-improve"
+    },
+    {
+      "text": "Letta uses a memory hierarchy with core memory (in-context) and external layers including conversational memory, archival memory, and external files that can be retrieved as needed."
+    },
+    {
+      "text": "Skills are stored as .md files and can be versioned in git repositories"
+    },
+    {
+      "text": "Memory is shared across all of the agent's conversations, not scoped to a single session."
+    },
+    {
+      "text": "The agent decides where in MemFS a new lesson is stored and commits it."
+    },
+    {
+      "text": "Dreaming is a background write path: subagents review recent conversations, consolidate lessons, and update memory asynchronously."
+    },
+    {
+      "text": "Memory reorganization (splitting large files, merging duplicates, restructuring hierarchy) is a supported write-path operation, with a backup taken first."
+    },
+    {
+      "text": "Memory health can be audited for placement drift, duplication, and system-prompt token bloat via /doctor."
+    },
+    {
+      "text": "Reflection workflows consolidate recent conversations and write lessons into memory"
+    },
+    {
+      "text": "Memory and conversations carry across environments via sign-in"
+    },
+    {
+      "text": "Research agents use structured reference files and search to keep detail available without loading it every turn \u2014 indicating selective retrieval rather than full-context loading"
+    },
+    {
+      "text": "Memory can be initialized or re-initialized on demand via a command, suggesting a structured bootstrap process for the memory store."
+    },
+    {
+      "text": "The agent updates its memory in response to plain-language feedback from the user, indicating an update path driven by conversation."
+    },
+    {
+      "text": "Memory is described as hierarchical, not a flat log."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Letta is designed for stateful persistent agents retaining identity, memory, and experience across models and interfaces",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "The Letta Agents SDK is designed for stateful, persistent agents that keep their identity, memory, and experience across models, machines, and interfaces.",
+      "locator": "Letta Agents SDK: An SDK for stateful agents \u2014 AUG 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is a core harness responsibility in Letta, not an add-on plugin",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "Memory cannot be bolted onto an agent as a plugin. Context and state management are core responsibilities of the agent harness itself.",
+      "locator": "Why Memory Isn't a Plugin \u2014 APR 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta uses memory blocks to structure the context window into discrete functional units",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "Memory blocks offer an elegant abstraction for context window management. By structuring the context into discrete, functional units, we can give LLM agents more consistent, usable memory.",
+      "locator": "Memory Blocks: The Key to Agentic Context Management \u2014 MAY 2025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta Code uses git-backed memory as a persistence mechanism",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "Letta Code is the runtime that brings these together: git-backed memory, skills, subagents, and deployment that works across every model provider.",
+      "locator": "Letta's Next Phase \u2014 MAR 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agents can dynamically manage their own memory blocks via a dedicated tool",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "Letta agents can now take full advantage of Sonnet 4.5's advanced memory tool capabilities to dynamically manage their own memory blocks.",
+      "locator": "Introducing Claude Sonnet 4.5 and the Memory Omni-Tool in Letta \u2014 SEP 2025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conversations API supports shared agent memory across concurrent parallel user experiences",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "The Conversations API allows you to build agents that can maintain shared memory across parallel experiences with users",
+      "locator": "Conversations: Shared Agent Memory Across Concurrent Experiences \u2014 JAN 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agent File (.af) serializes stateful agents including persistent memory and behavior",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "Introducing Agent File (.af): An open file format for serializing stateful agents with persistent memory and behavior.",
+      "locator": "Agent File \u2014 APR 2025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Traditional RAG is insufficient for agent memory per Letta",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "Although RAG provides a way to connect LLMs and agents to more data than what can fit into context, traditional RAG is insufficient for building agent memory.",
+      "locator": "RAG Is Not Agent Memory \u2014 FEB 2025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta Code app supports deeply personalized agents that learn over time and work locally",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "Today we're launching the Letta Code app, a new way to interact with deeply personalized agents that learn over time and work locally on your machine.",
+      "locator": "Introducing the Letta Code App \u2014 APR 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta agents support self-improvement through harness-level adaptation via Mods",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "We're introducing Mods to Letta Code \u2014 an agent-friendly way to extend and adapt the Letta Code harness.",
+      "locator": "Introducing Mods: Enabling Agents to Self-Improve through Harness-Level Adaptation \u2014 JUN 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta Filesystem allows agents to organize and reference document content",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "Today we're announcing Letta Filesystem, which provides an interface for agents to organize and reference content from documents like PDFs, transcripts, documentation, and more.",
+      "locator": "Introducing Letta Filesystem \u2014 JUL 2025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context-isolated subagents can be orchestrated by a memory-first coding agent",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "How a memory-first coding agent can orchestrate context-isolated subagents for focused debugging, review, and implementation work.",
+      "locator": "Orchestrating Claude Code & Codex Agents \u2014 MAR 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta's stateful agent concept addresses stateless LLM isolation across sessions",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "Traditional LLMs operate in a stateless paradigm\u2014each interaction exists in isolation, with no knowledge carried forward from previous conversations. Agent memory solves this problem.",
+      "locator": "Agent Memory: How to Build Agents That Learn and Remember \u2014 JUL 2025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory blocks are the mechanism for system prompt learning \u2014 the agent rewrites named memory blocks rather than accumulating a raw transcript",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/README.md",
+      "quote": "Agents programmatically rewrite their context to improve and adapt over time, including system prompt learning (through memory blocks) and skill learning.",
+      "locator": "README.md, Feature Overview table, Self-improvement & Learning row",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MemFS tracks all context including memory blocks via git, meaning memory state is versioned and can be inspected or rolled back",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/README.md",
+      "quote": "All context (including memory blocks) is tracked via git. Sync context to a custom GitHub repository by setting `/memory-repository set git@github.com:...`",
+      "locator": "README.md, Feature Overview table, MemFS row",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Sleep-time compute (dreaming) is a scheduled off-turn process that presumably consolidates or rewrites memory, distinct from in-turn retrieval",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/README.md",
+      "quote": "Configure periodic dreaming with `/sleeptime` ... Letta Code is developed by the creators of MemGPT and sleep-time compute (now called \"dreaming\")",
+      "locator": "README.md, Feature Overview table and Research section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A persistent message log (separate from memory blocks) exists and is searchable by both the user and the agent itself",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/README.md",
+      "quote": "Search across all messages and agents with `/search`. Agent can also search their own conversations or the conversations of other agents",
+      "locator": "README.md, Feature Overview table, Message search row",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Agent state isolation is per-agent: skills, memory blocks, and MemFS are scoped to individual agents, not shared by default",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/README.md",
+      "quote": "Loads global skills (`~/.letta`), project-scoped skills (`.agents/skills`), and agent-scoped skills (stored in MemFS). ... delete skills with `letta skills delete <skill-name> --agent <agent-id>`",
+      "locator": "README.md, Feature Overview table, Skills row and Installing external skills section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is stored as files in a per-agent git repository under ~/.letta/agents/<agentId>/memory/",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-filesystem.ts",
+      "quote": "return join(\n    homeDir,\n    MEMORY_FS_ROOT,\n    MEMORY_FS_AGENTS_DIR,\n    agentId,\n    MEMORY_FS_MEMORY_DIR,\n  );",
+      "locator": "function getMemoryFilesystemRoot",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per-agent; there is no cross-agent sharing at the filesystem level",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-filesystem.ts",
+      "quote": "export function getScopedMemoryFilesystemRoot(\n  agentId: string,\n  options: {\n    env?: NodeJS.ProcessEnv;\n    homeDir?: string;\n    localBackendStorageDir?: string;\n  } = {},\n): string {",
+      "locator": "function getScopedMemoryFilesystemRoot",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Enabling MemFS detaches previous API-based memory tools, indicating a migration from tool-call memory to filesystem memory",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-filesystem.ts",
+      "quote": "// 3. Detach old API-based memory tools when enabling.\n  if (enabling) {\n    const { detachMemoryTools } = await import(\"@/tools/toolset\");\n    await detachMemoryTools(agentId);\n  }",
+      "locator": "function applyMemfsFlags, step 3",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The system prompt is updated and recompiled when MemFS is enabled, scaffolding the model's instructions around the new memory mode",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-filesystem.ts",
+      "quote": "const { updateAgentSystemPromptMemfs } = await import(\"@/agent/modify\");\n      const promptUpdate = await updateAgentSystemPromptMemfs(agentId);\n      if (!promptUpdate.success) {\n        throw new Error(promptUpdate.message);\n      }\n      // Force recompile of the system message so the updated template\n      // (with the memfs addon) is reflected in the compiled prompt.",
+      "locator": "function applyMemfsFlags, step 2",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemFS is permanent once enabled; there is no disable path",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-filesystem.ts",
+      "quote": "MemFS cannot be disabled: agents are memfs-enabled from creation on\n * memfs-capable backends, and this function only enables or syncs.",
+      "locator": "JSDoc comment above function applyMemfsFlags",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The memory tree rendered into context is bounded by line count, character count, and children-per-directory limits; overflow is signalled with a truncation notice rather than silently dropped",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-filesystem.ts",
+      "quote": "export const MEMORY_TREE_MAX_LINES = DIRECTORY_LIMIT_DEFAULTS.memfsTreeMaxLines;\nexport const MEMORY_TREE_MAX_CHARS = DIRECTORY_LIMIT_DEFAULTS.memfsTreeMaxChars;\nexport const MEMORY_TREE_MAX_CHILDREN_PER_DIR =\n  DIRECTORY_LIMIT_DEFAULTS.memfsTreeMaxChildrenPerDir;",
+      "locator": "module-level constants",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Default personality/backstory files are seeded at agent initialization, separate from conversational memory writes",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-filesystem.ts",
+      "quote": "const { seedPersonalityDefaultMemoryFilesBestEffort } = await import(\n    \"@/agent/personality-default-files\"\n  );\n  await seedPersonalityDefaultMemoryFilesBestEffort({\n    agentId,\n    memoryDir,\n    agentTags,\n    syncMode,\n  });",
+      "locator": "function seedDefaultPersonalityFiles",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Git hooks are installed on the local checkout to integrate with the git-backed sync mechanism",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-filesystem.ts",
+      "quote": "installMemoryGitHooks(getScopedMemoryFilesystemRoot(agentId));",
+      "locator": "function applyMemfsFlags, step 4 else branch; also ensureLocalMemfsCheckout",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Two versioned on-disk memory formats exist (memfs-v1, memfs-v2), selected at runtime by detecting the presence of a root MEMORY.md file.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-format.ts",
+      "quote": "export type LocalMemoryFormat = \"memfs-v1\" | \"memfs-v2\";\n\nexport function detectMemoryFormat(\n  memoryDir: string,\n  localMemfs: boolean,\n): LocalMemoryFormat {\n  return !localMemfs && existsSync(join(memoryDir, \"MEMORY.md\"))\n    ? \"memfs-v2\"\n    : \"memfs-v1\";",
+      "locator": "file:memory-format.ts:1-11",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Core memory (curated, persistent facts) is path-scoped: root-level .md files in memfs-v2, or system/-prefixed .md files in memfs-v1.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-format.ts",
+      "quote": "if (format === \"memfs-v2\") return !normalized.includes(\"/\");\n  return normalized.startsWith(\"system/\");",
+      "locator": "file:memory-format.ts:isCoreMemoryPath",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Projected memory \u2014 the subset of stored memory selected into the active context \u2014 is controlled by path rules and requires hierarchical MEMORY.md index files; skills/ paths are excluded.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-format.ts",
+      "quote": "if (normalized === \"skills\" || normalized.startsWith(\"skills/\")) return false;\n  if (!normalized.includes(\"/\")) return true;\n\n  const parts = normalized.split(\"/\");\n  const directories = parts.slice(0, -1);\n  let current = \"\";\n  for (const directory of directories) {\n    current = current ? `${current}/${directory}` : directory;\n    if (!allPaths.has(`${current}/MEMORY.md`)) return false;\n  }\n  return true;",
+      "locator": "file:memory-format.ts:isProjectedMemoryPath",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path enforces integrity: every ancestor directory must have a MEMORY.md index before a new memory file can be written; missing indexes throw hard errors.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-format.ts",
+      "quote": "if (!markerExists(\"MEMORY.md\")) {\n    throw new Error(\"Memory requires a root MEMORY.md index\");\n  }\n  ...if (marker !== normalized && !markerExists(marker)) {\n      throw new Error(`Memory requires ${marker} before writing ${normalized}`);\n    }",
+      "locator": "file:memory-format.ts:assertMemfsV2MemoryPathIndexed",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Agent memory is stored in a git repo on the server, scoped per agent by agent ID in the URL path (/v1/git/$AGENT_ID/state.git).",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-git.ts",
+      "quote": "the agent's memory is stored in a git repo\non the server at $LETTA_MEMFS_BASE_URL/v1/git/$AGENT_ID/state.git",
+      "locator": "file header comment, lines 3-5",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Local memory store is isolated per agent: path is ~/.letta/agents/{agentId}/memory/.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-git.ts",
+      "quote": "/** Get the git repo directory for memory (now ~/.letta/agents/{id}/memory/) */\nexport function getMemoryRepoDir(agentId: string): string {\n  return join(getAgentRootDir(agentId), \"memory\");\n}",
+      "locator": "getMemoryRepoDir, ~line 88",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path: files are staged (`git add -A`), checked for actual changes, committed with a reason string and agent author identity, and the resulting SHA is returned.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-git.ts",
+      "quote": "await stageMemoryPaths(memoryDir, normalizedPathspecs);\n\n  if (!(await hasStagedMemoryChanges(memoryDir, normalizedPathspecs))) {\n    return { committed: false };\n  }",
+      "locator": "commitMemoryPaths, ~line 433",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Pull on startup syncs remote state to local before the agent begins processing; post-turn push syncs local commits back to the remote after each turn.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-git.ts",
+      "quote": "This module provides the CLI harness helpers: clone on first run,\npull on startup, commit memory writes, post-turn push for clean pending\ncommits, and status checks for system reminders.",
+      "locator": "file header comment, lines 7-10",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict detection before push: post-turn sync checks MERGE_HEAD and rebase state markers and returns status='conflict' instead of pushing when conflicts are present.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-git.ts",
+      "quote": "if (existsSync(join(gitDir, \"MERGE_HEAD\"))) {\n      operation = \"merge in progress\";\n    } else if (\n      existsSync(join(gitDir, \"rebase-merge\")) ||\n      existsSync(join(gitDir, \"rebase-apply\"))\n    ) {\n      operation = \"rebase in progress\";\n    }",
+      "locator": "getMemoryConflictSummary, ~line 700",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dirty-state guard blocks memory tool writes when uncommitted local changes exist.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-git.ts",
+      "quote": "throw new Error(\n      \"Memory repo has uncommitted changes. Commit, discard, or sync them before using memory tools.\"",
+      "locator": "assertMemoryRepoCleanForWrite, ~line 495",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Diverged-history recovery: if the local repo has no common commits with remote (e.g. unrelated history), the local repo is reset hard to origin/main with the previous HEAD saved as a backup ref.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-git.ts",
+      "quote": "await runGit(memoryDir, [\"reset\", \"--hard\", \"refs/remotes/origin/main\"]);\n  ...\n  return backupRef\n    ? `Recovered memory repo by resetting to origin/main (${remoteSha.slice(0, 7)}). Previous local HEAD was preserved at ${backupRef}.`",
+      "locator": "recoverMemoryPullByResettingToRemote, ~line 551",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "An optional memory-repository mirror URL (letta.memoryRepository.url in .git/config) is pushed to by the post-commit hook in the background after every commit.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-git.ts",
+      "quote": "The remote URL lives in each repo's local `.git/config` under\n * `letta.memoryRepository.url`. The post-commit hook reads that key and\n * pushes to it in the background after every commit.",
+      "locator": "Memory repository section comment, ~line 350",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "getMemoryGitStatus reports dirty (uncommitted changes) and aheadOfRemote (local commits not pushed) states, used to inject sync reminders into the system prompt.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-git.ts",
+      "quote": "/**\n * Check git status of the memory directory.\n * Used to decide whether to inject a sync reminder.\n */",
+      "locator": "getMemoryGitStatus, ~line 664",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Desktop may route git transport through a localhost proxy transiently; that proxy URL must not be persisted in the repo's git config.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-git.ts",
+      "quote": "Desktop may route git transport\nthrough a localhost proxy transiently, but that URL must not be persisted in\nthe repo's git config.",
+      "locator": "file header comment, lines 5-7",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "When MemFS is not enabled for an agent, getActiveMemoryDirectory returns undefined, meaning no memory directory is surfaced for that agent.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-runtime.ts",
+      "quote": "return isActiveMemfsEnabled(agentId) ? getScopedMemoryFilesystemRoot(agentId) : undefined",
+      "locator": "memory-runtime.ts:getActiveMemoryDirectory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemFS enablement has two tracks: backend-level capability (local) vs. persisted per-agent setting (cloud/API).",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-runtime.ts",
+      "quote": "getBackend().capabilities.localMemfs || settingsManager.isMemfsEnabled(agentId)",
+      "locator": "memory-runtime.ts:isActiveMemfsEnabled",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory blocks have at minimum a label and a value field; optionally a description.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory.ts",
+      "quote": "const block: CreateBlock = {\n        label,\n        value: body,\n      };\n\n      if (frontmatter.description) {\n        block.description = frontmatter.description;\n      }",
+      "locator": "file:src/agent/memory.ts, loadMemoryBlocksFromMdx()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The agent's memory store is block-structured (curated named slots), not a full message log.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory.ts",
+      "quote": "export const MEMORY_BLOCK_LABELS = [\"persona\", \"human\"] as const;",
+      "locator": "file:src/agent/memory.ts, MEMORY_BLOCK_LABELS declaration",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Skills were previously persisted as per-project memory blocks but were deliberately removed from the memory store in favor of system-reminder injection.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory.ts",
+      "quote": "Per-project blocks (skills/loaded_skills) were removed in LET-7353 \u2014 skills are now injected via system reminders, leaving only these defaults.",
+      "locator": "file:src/agent/memory.ts, MEMORY_BLOCK_LABELS JSDoc",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is persisted as git-committed Markdown files in a per-agent directory; git is required \u2014 a plain directory is rejected.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/tools/impl/memory.ts",
+      "quote": "memory: ${memoryDir} is not a git repository. This tool requires a git-backed memory filesystem.",
+      "locator": "ensureMemoryRepo()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The agent is the git author of its own memory commits, identified by agentId as the email local-part (@letta.com domain).",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/tools/impl/memory.ts",
+      "quote": "authorEmail: `${agentId}@letta.com`",
+      "locator": "memory() \u2013 commitMemoryWrite call",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Each memory write requires a non-empty 'reason' string, recorded in the git commit message, providing an audit trail of why the memory was changed.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/tools/impl/memory.ts",
+      "quote": "const reason = args.reason.trim();\n  if (!reason) {\n    throw new Error(\"memory: 'reason' must be a non-empty string\");\n  }",
+      "locator": "memory() function body",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Supported write operations are: create, str_replace, insert, delete, rename, update_description \u2014 there is no bulk-overwrite or append-log operation.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/tools/impl/memory.ts",
+      "quote": "type MemoryCommand =\n  | \"str_replace\"\n  | \"insert\"\n  | \"delete\"\n  | \"rename\"\n  | \"update_description\"\n  | \"create\";",
+      "locator": "MemoryCommand type definition",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per agent: the memory directory is resolved from AGENT_ID, making each agent's memory a separate namespace.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/tools/impl/memory.ts",
+      "quote": "memory: unable to resolve memory directory. Ensure MEMORY_DIR (or AGENT_ID) is available.",
+      "locator": "resolveMemoryDir()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Sync to remote is deferred: local mode commits immediately; remote mode commits locally and relies on a harness to sync after the turn, meaning remote memory is not immediately durable.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/tools/impl/memory.ts",
+      "quote": "harness will sync after the turn.",
+      "locator": "memory() return statement \u2013 remote syncMode branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory files can be marked read_only in frontmatter; such files block all modifications at load time.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/tools/impl/memory.ts",
+      "quote": "if (parsed.frontmatter.read_only === \"true\") {\n    throw new Error(\n      `memory: ${sourcePath} is read_only and cannot be modified`,\n    );\n  }",
+      "locator": "loadEditableMemoryFile()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "In memfs-v2, new memory files must be indexed before creation (assertMemfsV2MemoryPathIndexed), implying a registry/index of known memory blocks separate from the files themselves.",
+      "kind": "code",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/tools/impl/memory.ts",
+      "quote": "if (memoryFormat === \"memfs-v2\") {\n      assertMemfsV2MemoryPathIndexed(memoryDir, relPath);\n    }",
+      "locator": "applyMemoryCommand \u2013 create branch",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Letta agents maintain persistent memory via tool use backed by a database, enabling operation beyond context window limits",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=43294974",
+      "quote": "an LLM agent that has persistent memory (eg keep running the agent far beyond its context window limit, but maintain some persistent state to avoid derailment / enable indefinite use / learning over long horizons). If you implement this persistent memory via tool use, then it's related to inserting/querying databases, because some agent has to read/write to a data store (potentially backed by a database) to maintain memories.",
+      "locator": "pacjam comment, March 8 2025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta originated from the Berkeley team that previously released MemGPT",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=43294974",
+      "quote": "This was the berkeley team that previously released MemGPT",
+      "locator": "redwood comment, March 8 2025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta agents are stateful across sessions, contrasting with stateless models.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AIAgentsDirectory/comments/1grqymv/letta_memory_for_your_ai_agents_ai_agents/",
+      "quote": "Unlike traditional \"stateless\" models, Letta's MemGPT technology powers AI agents to provide context-aware and adaptive responses, improving the natural flow and depth of long-term user interactions.",
+      "locator": "body, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta is open-source.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AIAgentsDirectory/comments/1grqymv/letta_memory_for_your_ai_agents_ai_agents/",
+      "quote": "As an open-source initiative, Letta encourages collaboration and transparency, making its technology accessible to the broader AI community.",
+      "locator": "body, Why Letta is Different section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "All agent state including messages, tools, and memory is persisted in a database and survives server restarts",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AI_Agents/comments/1glzob6/tutorial_on_building_agent_with_memory_using_letta/",
+      "quote": "all state (including messages, tools, memory, etc.) is all persisted in a DB. So all agent state is essentially automatically save across sessions (and even if you re-start the server).",
+      "locator": "top-level post by u/swoodily",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Archival memory is backed by pgvector; accessible via 'data sources' and 'passages' in the Letta API",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AI_Agents/comments/1glzob6/tutorial_on_building_agent_with_memory_using_letta/",
+      "quote": "Letta already includes a vector database as part of the system (we use pgvector), which you can access via the 'archival memory' abstraction. For example, instead of directly creating 'collections' and adding 'documents' in chroma, you can create 'data sources' and 'passages' (aka archival memories) in the Letta API",
+      "locator": "comment by u/zzzzzetta, reply to u/FabricaBenedicta",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory capture behavior is controlled through prompt engineering on the system prompt or persona memory block, not a separate API",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AI_Agents/comments/1glzob6/tutorial_on_building_agent_with_memory_using_letta/",
+      "quote": "adjusting the system prompt or persona memory block to include instructions on what to save, how to tag memories etc, and if you tune the prompts enough it should work.",
+      "locator": "comment by u/zzzzzetta, reply to u/FabricaBenedicta, under 'Natural Memory Capture'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory defragmentation can be triggered explicitly via events sent to the sleep-time agent, described as a cron-job-like 'dreaming' event",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AI_Agents/comments/1glzob6/tutorial_on_building_agent_with_memory_using_letta/",
+      "quote": "you can even run 'events' specifically only to the sleep-time agent to encourage it to 'defragment' or 'reorganize' the memory if you see the memory getting bloated. Basically like a cron job that triggers a 'dreaming' event.",
+      "locator": "comment by u/zzzzzetta, reply to u/FabricaBenedicta, under 'Memory Management for Single-Agent Systems'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A LangGraph community re-implementation of Letta-style memory was noted by the Letta creator as incomplete: missing conversational history saving and some memory tools",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/AI_Agents/comments/1glzob6/tutorial_on_building_agent_with_memory_using_letta/",
+      "quote": "the implementation isn't fully correct (they don't save the conversational history and are missing some memory tools https://github.com/langchain-ai/lang-memgpt)",
+      "locator": "comment by u/swoodily, reply to u/The_Aoki_Taki",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta's memory layer stores generic or conversational memories but not structured, domain-specific information such as clause IDs, effective dates, active vs superseded clauses, or version relationships.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LangChain/comments/1q0dpty/mem0_zep_letta_supermemory_etc_why_do_memory/",
+      "quote": "Memory layers: they store generic or conversational \"memories\", but not the information that actually matters, such as: clause IDs or fingerprints, effective dates, active vs superseded clauses, relationships between different versions of the same contract",
+      "locator": "original post / u/nicolo_memorymodel",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "General-purpose memory layers like Letta are not well-suited for vertical use cases requiring structured, deterministic, temporal memory.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LangChain/comments/1q0dpty/mem0_zep_letta_supermemory_etc_why_do_memory/",
+      "quote": "I struggle to find one that fits very vertical use cases, they are mainly made for personal assistants",
+      "locator": "comment thread / u/nicolo_memorymodel reply",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta memory architecture is a fixed set of named blocks persisting information across agent lifespan",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Letta_AI/comments/1nupfbr/introducing_claude_sonnet_45_and_the_memory/",
+      "quote": "Currently, Letta agents have a fixed memory architecture. A memory architecture is a set of memory blocks to track various types of information, such as communication guidelines, information about a user, company policies, how to use various tools, etc.",
+      "locator": "post body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Any Letta agent can use the memory tool but effectiveness varies by underlying model",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Letta_AI/comments/1nupfbr/introducing_claude_sonnet_45_and_the_memory/",
+      "quote": "any letta agent can use it to varying degrees of effectiveness.",
+      "locator": "comments, u/cameron_pfiffer",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agents can dynamically create new memory blocks at runtime via a memory tool, not just modify pre-attached ones.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Letta_AI/comments/1nys4q1/multi_level_memory_blocks/",
+      "quote": "The memory tool is new. Previously, the only tools we had were designed to modify already attached blocks. Users were able to write their own kind of complicated custom tools to allow the agent to dynamically attach or detach tools, but this was not simple.",
+      "locator": "comment by u/cameron_pfiffer, first reply",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Shared blocks propagate writes immediately to all attached agents \u2014 no eventual consistency lag described.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Letta_AI/comments/1nys4q1/multi_level_memory_blocks/",
+      "quote": "Shared blocks are immediate. Any updates are broadcast to any agent sharing, so agent updates to the blocks are reflected by all agents.",
+      "locator": "comment by u/cameron_pfiffer, reply to sharing question",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Concurrent writes to a shared block by different agents or users are a recognized collision risk with no stated resolution strategy on this page.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Letta_AI/comments/1nys4q1/multi_level_memory_blocks/",
+      "quote": "who wins? what if they write at the same time?",
+      "locator": "comment by u/ohthetrees, collision scenario; no response from cameron_pfiffer on this specific point",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Block metadata exists in the API but tags are not yet queryable; adding queryable tags is described as a potential future improvement.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Letta_AI/comments/1nys4q1/multi_level_memory_blocks/",
+      "quote": "We do have metadata for blocks but I didn't think they are queryable",
+      "locator": "comment by u/cameron_pfiffer, reply to u/JA_red27",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta recommends offloading complex knowledge management to external/specialized services via MCP",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mlnvob/comparing_agent_memory_kits_letta_memos_cognee_etc/",
+      "quote": "In general, we recommend external tooling for cases like this. That's why we've focused so much on MCP -- the more you can offload management to a specialized service, the better that service is going to be.",
+      "locator": "comment/cameron_pfiffer",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is keyed by label; no native typed graph or ontology support",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mlnvob/comparing_agent_memory_kits_letta_memos_cognee_etc/",
+      "quote": "It just seems to store memory using a simple label, whereas having relations to other information in the context of that memory base would be a valuable feature for precision compared to vectors.",
+      "locator": "comment/nostriluu (OP)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Temporal relevance of accumulated memory is a gap: neither Letta's vector nor graph memory handles staleness governance",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mlnvob/comparing_agent_memory_kits_letta_memos_cognee_etc/",
+      "quote": "After months of accumulated memory, the KG fills with entities and relationships that were accurate when created but no longer reflect current state. The precision you're hoping KGs provide degrades when the graph itself goes stale.",
+      "locator": "comment/sandstone-oli",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Tools can write structured data into memory blocks, but the grounding and ontology logic must be handled by the tool author",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mlnvob/comparing_agent_memory_kits_letta_memos_cognee_etc/",
+      "quote": "In this case you'd instead update this tool to pull in your schema/ontology and dump it into the block.",
+      "locator": "comment/cameron_pfiffer (code example)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is active management of context, not retrieval \u2014 LoCoMo benchmark is not designed to measure agentic memory",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mon8it/woah_letta_vs_mem0_for_ai_memory_nerds/",
+      "quote": "memory is not retrieval -- memory is active management of direct context or things that could be brought into context, and LoCoMo is simply not designed for that.",
+      "locator": "comment by u/cameron_pfiffer",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mem0's 'state of the art memory' performs significantly worse than simply putting memory contents in a file (Letta Filesystem approach) when data is evaluated out-of-context on LoCoMo",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mon8it/woah_letta_vs_mem0_for_ai_memory_nerds/",
+      "quote": "Mem0's supposed 'state of the art memory' is significantly worse than just putting the memory contents inside a file, Claude Code style (using Letta Filesystem in this case, but I'm sure the result would be similar using Claude Code too).",
+      "locator": "comment by u/zzzzzetta",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta is described as 'pro AI entity' \u2014 enabling an AI identity that can interact with multiple users while maintaining a coherent memory trajectory",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mon8it/woah_letta_vs_mem0_for_ai_memory_nerds/",
+      "quote": "I don't know of a single company designing for an AI 'entity' that can interact with multiple users and have a coherent memory trajectory.",
+      "locator": "comment by u/LoveMind_AI",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta memory is organized into named blocks (memory_blocks) that constitute the persisted store",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/VibeCodersNest/comments/1qmqda4/i_built_a_opensource_tool_that_helps_deploy_letta/",
+      "quote": "Memory is defined in YAML configs with `memory_blocks:`. You can load content from files or inline.",
+      "locator": "comment u/ChemicalNet1135, reply to u/Southern_Gur3420",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta memory can be updated by sending a natural-language message to agents, which Letta then internalizes without redeployment",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/VibeCodersNest/comments/1qmqda4/i_built_a_opensource_tool_that_helps_deploy_letta/",
+      "quote": "you can send a unified message like \"The word 'bats' is bad for the ads we make, never use it again\" and then Letta's memory handles the rest",
+      "locator": "comment u/ChemicalNet1135, reply to u/ChemicalNet1135 (scaling/drift thread)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta agent is described as the persistent entity with memory, distinct from a conversation or session",
+      "kind": "docs",
+      "url": "https://docs.letta.com/agent-sdk/agents/index.md",
+      "quote": "An agent is the persistent entity with memory. A conversation is a thread on that agent (createAgent() also creates a default one). A session is the active connection you use to send messages and stream events.",
+      "locator": "Agents, conversations, and sessions",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory can be initialized at creation with persona and human named slots",
+      "kind": "docs",
+      "url": "https://docs.letta.com/agent-sdk/agents/index.md",
+      "quote": "Set an agent's starting memory at creation with persona/human shorthand or explicit memory entries",
+      "locator": "Memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Agent memory is stored in a MemFS that is versioned (via git) and synced for cloud agents, giving persistence across machines",
+      "kind": "docs",
+      "url": "https://docs.letta.com/agent-sdk/agents/index.md",
+      "quote": "Agent-owned skills live in the agent's MemFS under skills/<name>/SKILL.md, so they are versioned with the agent's memory and follow it across machines. Install one from GitHub, a registry, or a URL with the Letta CLI \u2026 The install is committed to the agent's MemFS git repository and, for cloud agents, synced back to Letta.",
+      "locator": "Give an agent its own skills",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The default system prompt instructs the agent on how to use memory; customizing persona/human/MemFS is preferred over overriding the system prompt",
+      "kind": "docs",
+      "url": "https://docs.letta.com/agent-sdk/agents/index.md",
+      "quote": "Keep the default system prompt for most agents. It teaches the agent how to use the harness, including tools and memory. Customize persona, human, and MemFS instead.",
+      "locator": "System prompts",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory persists across conversations and across model/machine changes.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/agent-sdk/memory/index.md",
+      "quote": "it persists across conversations, follows the agent between models and computers, and the agent edits it as it learns",
+      "locator": "intro paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "system/ memory is always present in the system prompt (always-retrieve); non-system files are visible as a file tree and read on demand (adaptive retrieve).",
+      "kind": "docs",
+      "url": "https://docs.letta.com/agent-sdk/memory/index.md",
+      "quote": "Files under `system/` are in the system prompt every turn. Everything else stays out of context \u2014 the agent sees the file tree and reads what it needs.",
+      "locator": "MemFS section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Dreaming is the consolidation/update mechanism: background subagents review conversations and update memory files.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/agent-sdk/memory/index.md",
+      "quote": "Dreaming uses background subagents to review recent conversations, consolidate lessons, and update memory without interrupting active work.",
+      "locator": "Dreaming section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Shared repositories are a cloud-only feature; self-hosted deployments can share memory via a git remote.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/agent-sdk/memory/index.md",
+      "quote": "Repositories are hosted by Letta, so they are a cloud feature; self-hosted deployments can share memory by pointing agents at their own git remote.",
+      "locator": "Setting memory at creation",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Session-scoped repository links are automatically cleaned up when the session closes; persistent links require explicit detachment.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/agent-sdk/repositories/index.md",
+      "quote": "The SDK removes links it created when the session closes",
+      "locator": "table under 'Choose an attachment based on how long the agent needs the repository'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Repository store supports versioned write history; each mutation returns a commit SHA and prior versions are retrievable by SHA.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/agent-sdk/repositories/index.md",
+      "quote": "Each file mutation creates a commit. Use `client.repositories.versions` to list commits and read a file at a particular commit",
+      "locator": "## Read version history",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict/supersession is handled via an opt-in content-hash precondition on updates; without it, updates silently overwrite.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/agent-sdk/repositories/index.md",
+      "quote": "Use a content hash precondition when an update should fail rather than overwrite a file that changed after you read it",
+      "locator": "## Manage files",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete is permanent and irreversible; no restore mechanism exists.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/agent-sdk/repositories/index.md",
+      "quote": "The repository no longer appears in SDK list or retrieval results. The SDK has no restore method.",
+      "locator": "## Delete a repository",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per agent: repositories are attached to and detached from individual agent IDs.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/agent-sdk/repositories/index.md",
+      "quote": "await client.agents.repositories.attach(agentId, repository.id)",
+      "locator": "## Attach a repository persistently",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MemFS is a git-backed memory filesystem shared across all agent conversations.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/configuration/memory.md",
+      "quote": "Letta agents use MemFS, a git-backed memory filesystem that they can inspect and edit. Memory is shared across the agent's conversations and improves as the agent learns durable information about you and its work.",
+      "locator": "introduction paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Agent memory and conversation history persist across SDK connections.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/agent-sdk/sessions/index.md",
+      "quote": "The agent's memory and conversation history",
+      "locator": "What persists, and what doesn't \u2014 table (Persists beyond one SDK connection column)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "stateless:true prevents a session from loading or modifying long-term memory, while leaving the agent and conversation entities intact.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/agent-sdk/sessions/index.md",
+      "quote": "Pass `stateless: true` to run a session that does not load or change the agent's memory. The agent and the conversation are still persistent \u2014 only this session's memory, agent skills, agent mods, transcript, and reflection behavior change",
+      "locator": "Run a turn without touching memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Pending approvals can survive a client disconnect and remain on an active runtime, requiring explicit recovery after resume.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/agent-sdk/sessions/index.md",
+      "quote": "A pending approval can remain on an active runtime after a client disconnects. After you resume the session, check `getDeviceStatus()` and follow Recover pending approvals.",
+      "locator": "Guarantees and non-guarantees",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Compaction is the mechanism that handles context overflow: older messages are summarized and removed from active context while recent messages stay; the full log is retained separately.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/concepts/conversations/index.md",
+      "quote": "compaction happens automatically: Letta summarizes older messages while keeping recent messages in the active context, so the thread can continue without a manual reset.",
+      "locator": "## Conversation context and agent memory",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MemFS is a git-backed memory filesystem; the agent's memory state is held in a git repository.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/concepts/memfs/index.md",
+      "quote": "The memory itself is part of the agent's state, held in a git repository that belongs to the agent \u2014 hosted by Letta for cloud agents, alongside its conversations and configuration.",
+      "locator": "introduction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy is two-tier: system/ files always loaded into system prompt; non-system files retrieved on demand by agent navigating the always-visible file tree.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/concepts/memfs/index.md",
+      "quote": "Files under system/ are loaded into the agent's system prompt on every turn\u2026 Files outside system/ stay out of context until they are needed. The file tree itself is always in the system prompt, so directory and file names act as signposts the agent follows to read the right file.",
+      "locator": "## Memory structure",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict resolution is provided by the git layer on every memory edit.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/concepts/memfs/index.md",
+      "quote": "Every memory edit is committed to the MemFS git repository. This provides version history, conflict resolution, and a clear boundary between saved memory and uncommitted changes.",
+      "locator": "## Versioning and synchronization",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per-agent by default; sharing requires explicit shared memory feature.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/concepts/memfs/index.md",
+      "quote": "Each agent has its own MemFS. Use shared memory when multiple cloud-hosted agents need access to the same Git-backed files and working context.",
+      "locator": "## Shared memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Default retrieval for non-system memory is agent-driven file read (no vector search); vector/hybrid search is an optional add-on.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/concepts/memfs/index.md",
+      "quote": "MemFS does not include a semantic or vector index by default. Agents find memory in its Markdown files with normal file-search and read tools.",
+      "locator": "## Semantic and vector search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Shared memory is a Git-backed store; the write path requires explicit agent commit and push, and reads by other agents require an explicit pull.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/concepts/shared-memory/index.md",
+      "quote": "The agent reads and edits the repository with normal file and Git tools. The agent must commit and push its changes. Other agents can then pull those commits into their own checkouts.",
+      "locator": "How agents access shared memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is at the organization level (ownership) with per-agent attachment granularity.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/concepts/shared-memory/index.md",
+      "quote": "Each shared memory repository is a Git repository hosted in Letta Cloud and owned by your organization.",
+      "locator": "page intro",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemFS is the per-agent store for identity, skills, and long-term memory; shared memory repositories are the multi-agent store for organizational knowledge.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/concepts/shared-memory/index.md",
+      "quote": "Store the agent's identity, skills, and long-term memory | Share knowledge and working files between agents",
+      "locator": "comparison table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Long-term memory is a distinct, named store (MemFS) separate from the conversation message history.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/concepts/stateful-agents/index.md",
+      "quote": "Long-term memory stored in MemFS",
+      "locator": "What belongs to an agent \u2014 bullet list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is shared across all conversations belonging to the same agent, enabling cross-conversation continuity.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/concepts/stateful-agents/index.md",
+      "quote": "Memory is shared across an agent's conversations. A preference learned in one conversation can therefore improve how the agent works in another.",
+      "locator": "What belongs to an agent",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is at the agent level: separate agents produce separate memory stores; separate conversations do not.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/concepts/stateful-agents/index.md",
+      "quote": "Use separate agents when you want independent identities or memory. Use separate conversations when you want parallel threads with the same identity and memory.",
+      "locator": "Switching agents",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agent state (including memory) persists to cloud when authenticated, and to local disk only when unauthenticated.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/concepts/stateful-agents/index.md",
+      "quote": "When you sign in with Letta, your agents are backed up to the cloud and available through the desktop app, CLI, and web app. You can run the same agent on any connected computer. Agents created without a Letta account are stored only on local disk.",
+      "locator": "Where agents are stored",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory persists across sessions in a git-backed filesystem (MemFS) shared across all conversations",
+      "kind": "docs",
+      "url": "https://docs.letta.com/configuration/memory/index.md",
+      "quote": "Memory is shared across the agent's conversations and improves as the agent learns durable information about you and its work.",
+      "locator": "Introduction paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path is explicit: agent commits lessons to MemFS and decides placement; user can also trigger writes via /remember",
+      "kind": "docs",
+      "url": "https://docs.letta.com/configuration/memory/index.md",
+      "quote": "The agent decides where the lesson belongs and commits the update to MemFS.",
+      "locator": "Teach your agent",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Dreaming is an asynchronous consolidation mechanism \u2014 recent conversations are reviewed and curated facts are written to memory, distinct from raw log retention",
+      "kind": "docs",
+      "url": "https://docs.letta.com/configuration/memory/index.md",
+      "quote": "Dreaming uses background subagents to review recent conversations, consolidate useful lessons, and update memory without interrupting your active work.",
+      "locator": "Dreaming",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Reorganization supports deduplication and structural cleanup of the memory store, with a backup before destructive changes",
+      "kind": "docs",
+      "url": "https://docs.letta.com/configuration/memory/index.md",
+      "quote": "the memory workflow backs up the current repository before splitting large files, merging duplicates, or restructuring the hierarchy.",
+      "locator": "Reorganize memory",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "System-prompt token usage is a tracked resource; /doctor audits whether memory placement is causing excess token consumption",
+      "kind": "docs",
+      "url": "https://docs.letta.com/configuration/memory/index.md",
+      "quote": "run /doctor to audit placement, duplication, and system-prompt token usage.",
+      "locator": "Initialize memory",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistent memory is isolated per agent, not per conversation; all conversations with a given agent share one memory store.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/handbook/meet-your-agent/index.md",
+      "quote": "Each conversation has its own immediate history and context window, while all conversations with the same agent share its persistent memory.",
+      "locator": "### Conversations",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path is agent-initiated via tool calls: the agent extracts and writes information from conversation turns into memory.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/handbook/meet-your-agent/index.md",
+      "quote": "Click Show tool calls to inspect what the agent did. The agent should write useful information from your introduction into its memory.",
+      "locator": "## Introduce yourself",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is stored in named markdown files under a 'system/' namespace; user-specific durable facts go in 'system/human.md'.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/handbook/meet-your-agent/index.md",
+      "quote": "Open the agent's memory and inspect system/human.md yourself. Durable information about the user belongs there or in another appropriately named file under system/.",
+      "locator": "## Confirm that memory persists",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Agent state is durable across storage backends (cloud and local); model changes do not clear memory.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/handbook/meet-your-agent/index.md",
+      "quote": "Changing the model later does not remove the agent's saved memory, although a different model may respond in a different style.",
+      "locator": "### Models",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Letta agents use a git-versioned memory filesystem (MemFS) that they read, write, and reorganize themselves",
+      "kind": "docs",
+      "url": "https://docs.letta.com/llms.txt",
+      "quote": "MemFS: The git-versioned memory filesystem \u2014 agents read, write, and reorganize their own memory files",
+      "locator": "Core Concepts / MemFS entry",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory persists across sessions through memory blocks and MemFS, not model weight updates",
+      "kind": "docs",
+      "url": "https://docs.letta.com/llms.txt",
+      "quote": "Letta agents learn by actively managing their own context \u2014 creating durable token-space representations of their identity, memory, and continuity \u2014 rather than by updating model weights.",
+      "locator": "Core Concepts / opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Background dreaming (sleep-time subagents) perform reflection and memory reorganization",
+      "kind": "docs",
+      "url": "https://docs.letta.com/llms.txt",
+      "quote": "sleep-time subagents for reflection and memory organization",
+      "locator": "Using Your Agent / The Letta Harness description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agent memory is isolated per agent identity and persists across multiple machines and surfaces",
+      "kind": "docs",
+      "url": "https://docs.letta.com/llms.txt",
+      "quote": "A signed-in agent keeps the same memory and identity across the terminal, desktop app, web app, and messaging platforms, and can move between computers.",
+      "locator": "Using Your Agent / second paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Multi-conversation memory: one agent shares memory across independent conversation threads",
+      "kind": "docs",
+      "url": "https://docs.letta.com/llms.txt",
+      "quote": "Conversations: One agent, many independent message threads, with shared memory across all of them",
+      "locator": "Core Concepts / Conversations entry",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agents can self-modify their system prompts as they accumulate experience",
+      "kind": "docs",
+      "url": "https://docs.letta.com/llms.txt",
+      "quote": "system prompt learning (rewriting their own prompts as they accumulate experience)",
+      "locator": "Core Concepts / second paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "In local/self-hosted mode all agent state including memory stays on-device",
+      "kind": "docs",
+      "url": "https://docs.letta.com/llms.txt",
+      "quote": "All agent state (messages, memory, provider connections) stays on-device, and no Letta account is required.",
+      "locator": "Self-Hosting section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cloud deployment provides richer retrieval (vector + hybrid) over conversation history than local deployment (full-text only)",
+      "kind": "docs",
+      "url": "https://docs.letta.com/reference/faq/index.md",
+      "quote": "On Letta Cloud, `letta messages search` supports full-text, vector, and hybrid search over messages. Local backends currently search conversation transcripts with full-text matching only.",
+      "locator": "## Miscellaneous / Does MemFS or a Letta agent's memory support semantic or vector search?",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Agent state persists across sessions and is scoped to its hosting backend (cloud or local machine)",
+      "kind": "docs",
+      "url": "https://docs.letta.com/reference/faq/index.md",
+      "quote": "The agent's state remains in Letta Cloud while its tools run on the computer where you started the CLI or app.",
+      "locator": "## Web app / How can I use the web app with local agents?",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "AgentFile (.af) is a portable serialization of agent state supporting import/export, though not currently via the Agent SDK",
+      "kind": "docs",
+      "url": "https://docs.letta.com/reference/faq/index.md",
+      "quote": "The Agent SDK does not currently expose AgentFile import or export methods. For agents hosted in Letta Cloud, import an AgentFile with `letta --import path/to/agent.af`, then pass the imported agent ID to the Agent SDK.",
+      "locator": "## Agent SDK / Does the Letta Agent SDK support AgentFile (.af)?",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Secrets cache hydration at session startup can silently fail, leaving $SECRET_NAME references expanding to empty for the entire session with no error surfaced to the user",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4327",
+      "quote": "Agent secrets stored on the server can silently fail to hydrate into a TUI/headless session's in-memory cache at startup. When that happens, every `$SECRET_NAME` reference in a shell command resolves to empty **for the entire session** \u2014 no warning, no error, no log line.",
+      "locator": "Summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory files include curated named files (persona.md, human/identity.md, philosophy.md, lab-setup.md, projects.md) indicating structured fact storage rather than a raw transcript log",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/2666",
+      "quote": "agent `agent-local-7e195c73-5c2a-4a53-b7f8-7eac83c079bb` built and committed 23 memory changes (persona.md, human/identity.md, philosophy.md, lab-setup.md, projects.md)",
+      "locator": "Background",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A memory system that appears complete and tested within one agent is completely lost when starting a new session \u2014 a false sense of working features",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/2666",
+      "quote": "**False sense of working features:** A memory system appears complete and tested within one agent, but is completely lost when starting a new session",
+      "locator": "Impact",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Default memory for a new agent starts with minimal placeholder files indicating no prior user knowledge",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/2666",
+      "quote": "2 files: `persona.md` (\"ready to be shaped\"), `human.md` (\"haven't gotten to know this person\")",
+      "locator": "Evidence / Before: default agent (blank slate)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta Code has a recall mechanism via conversation search subagents.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/298",
+      "quote": "Conversation search subagents (https://docs.letta.com/letta-code/subagents#recall)",
+      "locator": "Stability checklist",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Parallel Agent tool calls with N=6 non-deterministically drop roughly a third of responses with a JSON-EOF parse error, and failed slots correlate with longer replies containing memory block cross-references.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/3257",
+      "quote": "4 returned parseable output\n- 2 returned the harness JSON-EOF error at the parent layer",
+      "locator": "## Reproduction",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "There is no retry path in the harness; lost subagent messages are silently dropped with no error surfaced to the user beyond the JSON-EOF line.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/3257",
+      "quote": "Without a retry path in the harness, roughly a third of responses can be silently dropped at N=6, with no way for the parent to recover the lost message and no error surfaced to the user beyond the JSON-EOF line.",
+      "locator": "## Why this matters",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The workaround is to limit parallel Agent calls to \u22643 per message or fall back to sequential calls; this was also the workaround in the original issue #2213.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/3257",
+      "quote": "Hold parallel `Agent` tool calls to \u22643 per message, or fall back to sequential `Agent` calls. Same workaround documented in #2213.",
+      "locator": "## Workaround",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "New conversation creation does not disturb the agent identity; the same agentId is reused, only the conversationId changes, implying agent-level memory (lore/persona) persists while conversation-level memory resets.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/3520",
+      "quote": "Require an existing enabled Telegram route so the command cannot select an arbitrary agent. Create the conversation with `createConversationForAgent(existingRoute.agentId)`.",
+      "locator": "Minimum Viable Demo / patch design",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Starting a fresh conversation (resetting memory continuity) is a recognized user need \u2014 the issue frames the absence of a /new command as a gap requiring users to leave Telegram or restart the listener.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/3520",
+      "quote": "Telegram users would appreciate a native way to start a new chat without leaving Telegram to manage routes through the CLI or restart the entire Telegram listener.",
+      "locator": "Rationale",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Subagent stubs accumulate indefinitely because the cleanup path never calls deleteAgent(), resulting in 17 orphaned stub agents in a few days on a local backend.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/3523",
+      "quote": "'ephemeral' refers to the agent being stateless, not to it being deleted after use. There is no cleanup step anywhere in the subagent or reflection lifecycle \u2026 The stub persists on disk indefinitely after the subagent process exits. This causes agent proliferation. On my local backend, I accumulated 17 stub agents in a few days",
+      "locator": "Problem section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Reflection subagents are the dominant source of stub accumulation (65% of stubs), created every 25 steps by a step-count trigger.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/3523",
+      "quote": "Reflection system: 11 stubs, 65% \u2026 Reflection trigger: step-count (every 25 steps)",
+      "locator": "Problem section table and Environment section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is per-agent: subagents have no memfs and no memory blocks; only the parent agent's MemFS is updated with reflection output.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/3523",
+      "quote": "subagents get a clean slate with no memfs, no memory blocks, and their own context window for isolation \u2026 it writes memory updates to the parent agent's MemFS via the `Parent-Agent-ID` mechanism",
+      "locator": "Problem section and How stubs are created, Reflection subsection",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Proposed fixes include: mount only the active responsive viewer, retain responses by request_id, use a promise mechanism instead of a single latest-message snapshot, and add a timeout/error state.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4090",
+      "quote": "Possible fixes include mounting only the active responsive viewer, retaining responses by request_id, or using the existing request/response promise mechanism instead of a single latest-message snapshot. A timeout/error state would also prevent permanent loading.",
+      "locator": "Additional context",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agent-generated responses to external channels are silently dropped when the agent fails to call MessageChannel after the first turn.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/3646",
+      "quote": "The agent generates text, completes the turn, and the response is lost. This happens consistently on all turns after the first one. The very first response after a fresh restart sometimes works, but subsequent messages always fail.",
+      "locator": "Describe the bug section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Instructions to call MessageChannel may be evicted during context compaction, representing a continuity failure where the agent forgets its delivery obligation.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/3646",
+      "quote": "either gets evicted during compaction, is overridden by learned behavior from previous turns, or is not recognized as actionable by the model",
+      "locator": "Root cause section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Shared memory is stored as git repositories hosted at `https://api.letta.com/v1/git/<agent-id>/repositories/<name>.git`, isolating repos per agent.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/3799",
+      "quote": "Shared memory repos are plain git behind `https://api.letta.com/v1/git/<agent-id>/repositories/<name>.git`",
+      "locator": "Workaround",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agents have a personal MemFS repo in addition to shared memory repos; the two are distinct storage mechanisms.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/3799",
+      "quote": "agent's own MemFS repo works fine via plain git (pull/push OK)",
+      "locator": "Environment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "--new-agent provides session isolation (clean context) but does not delete the agent afterward, causing accumulation",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/3806",
+      "quote": "`--new-agent` gives us a clean context but leaves an agent behind on every task, so a long orchestration run accumulates thousands of them.",
+      "locator": "issue body, section 'The gap.'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No documented way to delete an agent after a headless run; deletion capability is the subject of the feature request",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/3806",
+      "quote": "A headless mode that creates the agent, runs the prompt, and deletes it",
+      "locator": "issue body, section 'The ask.'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Headless exit codes are undocumented, making it impossible to distinguish a blocked tool from a model failure without parsing output",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/3806",
+      "quote": "headless exit codes don't appear to be documented \u2014 today we can't distinguish a blocked tool from a model failure without parsing output.",
+      "locator": "issue body, closing paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "--new-agent creates a clean-context agent but does not prevent persistence; no built-in deletion or ephemeral mode exists.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/3807",
+      "quote": "--new-agent gives a clean context but leaves an agent behind on every task, so a long orchestration run accumulates thousands of them.",
+      "locator": "Problem statement",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agent memory (a stored document) explaining the Windows terminal environment did not reliably change model behavior when the tool name contradicted it \u2014 a continuity/instruction failure",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4079",
+      "quote": "The existing Windows-specific tool description and an agent memory document already explain that PowerShell is used. In practice, those instructions have not reliably overcome the stronger signal from the tool name.",
+      "locator": "Alternatives considered",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta Code agents maintain a working directory (CWD) as part of conversation/session state, used to resolve file paths in agent messages.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4028",
+      "quote": "the chip requires (a) the path wrapped in inline backticks as the entire code span, (b) the path inside the conversation's working directory (absolute path or bare filename resolving there)",
+      "locator": "Describe the bug",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The working directory context is session-scoped and tied to a local backend agent; it is distinct from the agent memory filesystem.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4028",
+      "quote": "Open a desktop-app conversation that has a working directory set (local backend agent; conversation CWD = a git worktree).",
+      "locator": "Steps to reproduce, step 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The agent memory filesystem is a distinct location from the conversation working directory; paths in it are treated as outside the working directory for chip-matching purposes.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4028",
+      "quote": "T3 | absolute | outside (agent memory fs) | yes | plain text ... T6 | absolute | outside (memory fs subdir) | yes | plain text",
+      "locator": "Relevant logs \u2014 test data table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The conflict-resolution policy is defined in src/agent/subagents/builtin/reflection.md.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4029",
+      "quote": "src/agent/subagents/builtin/reflection.md \u2014 I pinned commit c0956ed3 for testing and verified the policy line is unchanged at current HEAD",
+      "locator": "Problem statement, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Action-type conflict resolution (stale facts, compatible facts) passes 100% across models; restraint-type conflicts fail 50% of runs under the current prompt.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4029",
+      "quote": "Action-type conflicts: 60/60 pass. Restraint-type: 30/60 fail \u2014 exactly half.",
+      "locator": "Problem statement, results table and summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Continuity failure: safety-critical memory (confirmed severe allergy) is weakened or deleted by the reflection agent on a single contradicting anecdote.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4029",
+      "quote": "a memory line \"severe shellfish allergy \u2014 confirmed, carries an EpiPen\" was weakened or deleted after one transcript anecdote about eating prawn curry without a reaction. Failing wordings ranged from severity downgrades (\"mild\") to explicit epistemic revocation (\"do not treat severity as confirmed\")",
+      "locator": "Problem statement, Two failures worth seeing concretely, item 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Continuity failure: confabulated merge produces a stored address that exists nowhere in the input, splicing street from one city onto a different city.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4029",
+      "quote": "one model family replaced \"Home: 12 MG Road, Bangalore 560001\" with Home: 12 MG Road, Pune 411001 in 3/3 runs \u2014 splicing the old street onto the new city, producing an address that exists nowhere in the input",
+      "locator": "Problem statement, Two failures worth seeing concretely, item 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory-safety behavior of the reflection prompt is model-dependent; restraint success varied 0\u2013100% across model families under identical prompt wording.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4029",
+      "quote": "Failures cluster by model family, not size (a large model failed all 6 restraint runs while smaller models in other families passed). Practically, this means the reflection prompt's memory-safety behavior currently depends on which model the user happens to run Letta Code with.",
+      "locator": "Problem statement, paragraph after results table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Proposed write path improvement: newer evidence replaces only when staleness is explicit; otherwise annotates as a distinct fact without weakening the original; safety-critical facts are never weakened on anecdotal evidence.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4029",
+      "quote": "Newer evidence replaces an existing fact only when it explicitly establishes the fact is stale (e.g., a stated move, a confirmed change). Otherwise, newer evidence annotates: record it as a distinct fact (current stay, unverified observation) without weakening the original. Never weaken a confirmed safety-critical fact (allergies, medical conditions, dependents) on anecdotal evidence \u2014 preserve it and optionally record the anecdote as unverified.",
+      "locator": "Proposed solution",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Unresolved conflicts could be surfaced as clarifying questions at the start of the user's next session rather than resolved silently.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4029",
+      "quote": "the conflict could be recorded as unresolved and surfaced as a clarifying question in the user's next session (\"You mentioned eating prawn curry \u2014 should I update your shellfish allergy status?\")",
+      "locator": "Alternatives considered, second bullet",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Issue #3938 recently tuned the reflection prompt's retention wording, indicating prompt-level iteration is a live workflow.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4029",
+      "quote": "I noticed #3938 recently tuned the prompt's retention wording, so wording-level iteration on this file is clearly a live workflow",
+      "locator": "Proposed solution, final paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A race condition in Desktop 0.30.25 can leave a MemFS file viewer permanently stuck on Loading, meaning the agent's memory file content is never displayed to the user \u2014 a continuity failure where memory appears lost even though the server holds it correctly.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4089",
+      "quote": "the right-hand viewer shows the parsed description, but the file body remains: Loading... 0 chars \u2014 It remains in this state after waiting more than 12 seconds.",
+      "locator": "Actual behavior",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The response-correlation mechanism retains only the latest message snapshot rather than buffering responses by request_id, meaning a response consumed by the wrong viewer instance is permanently lost.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4089",
+      "quote": "useFilteredDeviceMessage stores only the latest matching device message through useSyncExternalStore. When the two successful responses arrive close together, the latest response can replace the earlier one before both mounted viewers observe their matching response.",
+      "locator": "Likely root cause",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The App Server issues duplicate reads for a single user selection due to the dual-viewer mount, confirmed by server logs showing paired request_ids at the same timestamp.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4089",
+      "quote": "The App Server logs also show duplicate reads issued at the same timestamp for one visible selection: Received read_memory_file command (request_id=read_mem_1_<timestamp> ... Received read_memory_file command (request_id=read_mem_2_<same_timestamp>",
+      "locator": "Server-side verification",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory files are agent-scoped in MemFS, with files persisted at structured paths (e.g., `skills/<name>/SKILL.md`) containing YAML frontmatter and Markdown body.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4091",
+      "quote": "Add an agent-scoped skill at `skills/phoenix-brain-decision/SKILL.md`. The test file is approximately 5.5 KB and contains valid YAML frontmatter plus Markdown.",
+      "locator": "Steps to reproduce, step 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory file retrieval uses a WebSocket request/response protocol with request_id correlation between Desktop client and App Server.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4090",
+      "quote": "Received read_memory_file command (request_id=read_mem_1_<timestamp>, path=skills/phoenix-brain-decision/SKILL.md, encoding=utf8)",
+      "locator": "Relevant logs, screenshots, or recordings",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A continuity failure exists where the Memory Graph viewer can get permanently stuck showing Loading state, failing to display previously written memory file content \u2014 a retrieve failure not a store failure.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4090",
+      "quote": "the right-hand viewer shows the parsed description, but the file body remains Loading... / 0 chars. It remains in this state after waiting more than 12 seconds.",
+      "locator": "Steps to reproduce, step 5",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta issues duplicate `read_memory_file` requests per visible file selection due to dual-mounting of responsive layout viewers, indicating a retrieve path bug.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4091",
+      "quote": "The App Server logs show duplicate reads issued at the same timestamp for one visible selection.",
+      "locator": "Relevant logs",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The App Server returns memory file content over WebSocket with fields including type, success, path, encoding, content_length, and error.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4091",
+      "quote": "{\"type\": \"read_memory_file_response\", \"success\": true, \"path\": \"skills/phoenix-brain-decision/SKILL.md\", \"encoding\": \"utf8\", \"content_length\": 5564, \"error\": null}",
+      "locator": "Relevant logs, WebSocket response example",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "111 of 249 cloud-agent reasoning records (~45%) contain a word-split artifact (letter + newline + letter) over one week of real data",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4240",
+      "quote": "Cloud agent: **111 of 249 reasoning records (~45%)** contain a word split (letter + newline + letter).",
+      "locator": "Scale (one week of real data)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Reasoning chunks are joined with '\\n\\n' in client code, causing word-split artifacts in persisted transcript records",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4240",
+      "quote": "pendingReasoningContent.join(`\\n\\n`)  // <- every reasoning chunk glued with DOUBLE newline",
+      "locator": "Root cause (client code)",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Corrupted reasoning text in transcript records can propagate into reflection memory, as the suggested fix explicitly aims to protect both",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4240",
+      "quote": "This protects both the transcript and reflection memory.",
+      "locator": "Suggested fix",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta Code has a 'Dreaming' reflection agent that produces memory updates after multi-step turns.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4245",
+      "quote": "when the reflection agent (\"Dreaming\") produces memory updates, the parent memory repo cannot be refreshed",
+      "locator": "Describe the bug, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is stored in per-agent Git repositories under ~/.letta/agents/<agent-id>/memory and synced to a localhost Git remote.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4245",
+      "quote": "Memory repo remotes point to a local backend (http://localhost:50251/v1/git/<agent-id>/state.git)",
+      "locator": "Describe the bug, Investigation findings, item 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "On push failure, memory updates are silently dropped and the memory repo becomes persistently desynced \u2014 a continuity failure where reflection-generated facts are lost.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4245",
+      "quote": "Repeated failures leave the memory repo dirty/desynced indefinitely and reflection memory updates are silently dropped.",
+      "locator": "Additional context, final sentence",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The credential helper fix in PR #1702 does not migrate existing memory repos, creating a regression path where previously working memory sync breaks after upgrade.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4245",
+      "quote": "PR #1702 added a Windows .cmd credential helper, but it is absent from all existing repos \u2014 the fix appears to apply only to fresh clones, not existing memory repos.",
+      "locator": "Describe the bug, Investigation findings, item 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory sync was stable for ~6 months before this regression, suggesting the write/push path was previously reliable.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4245",
+      "quote": "this setup worked for ~6 months previously (same DeepSeek/OpenCode-style provider) without GCM popups or memory sync failures; the behavior is new.",
+      "locator": "Describe the bug, Regression note",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta Code uses a per-agent git repository at ~/.letta/agents/<agent-id>/memory to persist agent memory",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4249",
+      "quote": "No local credential helper is configured in any of the 13 agent memory repos on this machine: git -C ~/.letta/agents/<agent-id>/memory config --local --get-regexp '^credential\\.'",
+      "locator": "Describe the bug, Investigation findings, point 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory updates are produced by a background 'reflection' agent (called 'Dreaming') that runs during or after a multi-step turn",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4249",
+      "quote": "Trigger a multi-step turn so the reflection agent runs (\"Dreaming\").",
+      "locator": "Steps to reproduce, step 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "When the reflection agent's memory update push fails, the worktree is cleaned up and the transcript is queued for retry rather than the update being committed",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4249",
+      "quote": "the worktree was cleaned up so the transcript can be retried. Will retry later.",
+      "locator": "Describe the bug, task-notification text",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory sync uses a push to a localhost git remote (http://localhost:50251/v1/git/<agent-id>/state.git) for cloud sync",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4249",
+      "quote": "Memory repo remotes point to a local backend (http://localhost:50251/v1/git/<agent-id>/state.git)",
+      "locator": "Describe the bug, Investigation findings, point 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The fetch-once startup hydration pattern was present at least since 0.31.13, making the silent-empty failure a pre-existing regression risk",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4327",
+      "quote": "The fetch-once pattern predates 0.31.14 (verified present in the 0.31.13 bundle); the silent-empty failure is intermittent, which is what makes it so costly to debug.",
+      "locator": "Evidence (observed on 0.31.14, Windows, 2026-09-09)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Two competing hydration models exist in the codebase; correctness of substitution depends on each surface independently remembering to hydrate, creating a recurring regression trap",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4327",
+      "quote": "The split has a lifecycle reason (one agent per process vs. many agents per process), but the correctness guarantee \u2014 \"substitution never reads an unhydrated cache\" \u2014 lives in each surface's *convention* rather than in the store itself. Every execution surface must independently remember to hydrate, and each can independently regress.",
+      "locator": "Root cause analysis",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A previous issue (#1999) fixed the same silent-failure family in the websocket listener path by introducing lazy per-agent refresh keyed by agent id",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4327",
+      "quote": "#1999 \u2014 same failure family in listener mode; its accepted fix (\"lazily refresh server-backed secrets... keyed by agent id\") is the pattern to extend to all surfaces.",
+      "locator": "References",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory instructions directing the agent to switch models cannot recover a turn if the active model fails before the agent can act \u2014 a continuity failure where in-flight state is lost.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4361",
+      "quote": "A memory instruction telling the agent to switch models is insufficient because the active model may fail before the agent can execute any action. A watchdog that changes the model afterward also cannot recover the original inbound message.",
+      "locator": "## Problem",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta core is responsible for preserving conversation state across provider failover during an agent turn.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4361",
+      "quote": "Preserve conversation state and tool-call safety/idempotency.",
+      "locator": "## Requested behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta distinguishes between local agents and cloud agents, and failover scope should cover both where supported.",
+      "kind": "issue",
+      "url": "https://github.com/letta-ai/letta-code/issues/4361",
+      "quote": "Local agents and, where supported, cloud agents",
+      "locator": "## Scope",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Persistent identity and memory survive model, machine, and interface changes",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "The Letta Agents SDK is designed for stateful, persistent agents that keep their identity, memory, and experience across models, machines, and interfaces.",
+      "locator": "blog listing: 'Letta Agents SDK: An SDK for stateful agents', AUG 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is a core harness responsibility, not an add-on plugin",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "Memory cannot be bolted onto an agent as a plugin. Context and state management are core responsibilities of the agent harness itself.",
+      "locator": "blog listing: 'Why Memory Isn't a Plugin', APR 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Git-backed memory is used as the persistence substrate in Letta Code",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "Letta Code is the runtime that brings these together: git-backed memory, skills, subagents, and deployment that works across every model provider.",
+      "locator": "blog listing: 'Letta's Next Phase', MAR 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Shared memory state is maintained across concurrent parallel user experiences via Conversations API",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "The Conversations API allows you to build agents that can maintain shared memory across parallel experiences with users",
+      "locator": "blog listing: 'Conversations: Shared Agent Memory Across Concurrent Experiences', JAN 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory blocks structure the context window into discrete functional units for consistent agent memory",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "Memory blocks offer an elegant abstraction for context window management. By structuring the context into discrete, functional units, we can give LLM agents more consistent, usable memory.",
+      "locator": "blog listing: 'Memory Blocks: The Key to Agentic Context Management', MAY 2025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agents can dynamically manage their own memory blocks at runtime via tool calls",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "Letta agents can now take full advantage of Sonnet 4.5's advanced memory tool capabilities to dynamically manage their own memory blocks.",
+      "locator": "blog listing: 'Introducing Claude Sonnet 4.5 and the Memory Omni-Tool in Letta', SEP 2025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agent File (.af) is an open serialization format for persisting stateful agents including memory",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "Introducing Agent File (.af): An open file format for serializing stateful agents with persistent memory and behavior.",
+      "locator": "blog listing: 'Agent File', APR 2025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Traditional RAG is explicitly insufficient for agent memory \u2014 Letta distinguishes itself from RAG",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "Although RAG provides a way to connect LLMs and agents to more data than what can fit into context, traditional RAG is insufficient for building agent memory.",
+      "locator": "blog listing: 'RAG Is Not Agent Memory', FEB 2025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta agents learn during deployment rather than only during training",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "AI systems that maintain persistent memory and actually learn during deployment, not just during training.",
+      "locator": "blog listing: 'Stateful Agents: The Missing Link in LLM Intelligence', FEB 2025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta Code is #1 model-agnostic open source agent on Terminal-Bench",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "Letta Code is the #1 model-agnostic open source agent on the leading AI coding benchmark Terminal-Bench.",
+      "locator": "blog listing: 'Letta Code: A Memory-First Coding Agent', DEC 2025",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta Filesystem lets agents organize and retrieve content from documents (PDFs, transcripts, docs)",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "Today we're announcing Letta Filesystem, which provides an interface for agents to organize and reference content from documents like PDFs, transcripts, documentation, and more.",
+      "locator": "blog listing: 'Introducing Letta Filesystem', JUL 2025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context-isolated subagents are orchestrated by a memory-first agent for focused tasks",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "How a memory-first coding agent can orchestrate context-isolated subagents for focused debugging, review, and implementation work.",
+      "locator": "blog listing: 'Orchestrating Claude Code & Codex Agents', MAR 2026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemGPT open source project is now part of Letta \u2014 architectural lineage",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/",
+      "quote": "The MemGPT open source project is now part of Letta.",
+      "locator": "blog listing: 'MemGPT Is Now Part of Letta', SEP 2024",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta implements MemGPT's OS-inspired memory hierarchy: core memory (in-context), conversational memory, archival memory, and external files.",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/benchmarking-ai-agent-memory/",
+      "quote": "Agents actively manage what remains in their immediate context (core memory) versus what gets stored in external layers (conversational memory, archival memory, and external files) that can be retrieved as needed.",
+      "locator": "Memory for AI Agents section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta Filesystem attaches files to agents; files are parsed and embedded for semantic vector search, with grep and open/close tools also available.",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/benchmarking-ai-agent-memory/",
+      "quote": "Files in Letta are automatically parsed and embedded to enable semantic (vector) search over their contents. The agent is given tools for semantic search (search_files), text matching (grep), and answering questions (answer_question).",
+      "locator": "Benchmarking Letta Filesystem with LoCoMo section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The Letta Memory Benchmark (Letta Leaderboard) evaluates models on memory management keeping the framework (Letta) and tools constant, using dynamic on-the-fly memory interactions.",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/benchmarking-ai-agent-memory/",
+      "quote": "The Letta Memory Benchmark (Letta Leaderboard) provides an apples-to-apples comparison evaluating different models' capabilities in terms of memory management, keeping the framework (currently just Letta) and tools constant. The benchmark creates memory interactions on-the-fly to evaluate memory in a dynamic context",
+      "locator": "How to Properly Evaluate Agent Memory section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta Code persists agent state across sessions, with each session tied to a specific persisted agent",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/letta-code/",
+      "quote": "each session is tied to a persisted agent that learns",
+      "locator": "intro paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory initialization (/init) triggers deep codebase research, writing memories into memory blocks and rewriting the system prompt",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/letta-code/",
+      "quote": "forming memories and rewriting its system prompt (through memory blocks) as it learns",
+      "locator": "Memory Initialization section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Skills are a discrete learned artifact type (stored as .md files), distinct from conversational memory or system prompt blocks",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/letta-code/",
+      "quote": "Since skills are simply .md files, they can be managed in git repositories for versioning - or even used by other coding agents that support skills.",
+      "locator": "Skill Learning section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cross-agent memory access: an agent can look up conversations belonging to other agents",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/letta-code/",
+      "quote": "Agents can also lookup past conversations (or even conversations of other agents) through the Letta API",
+      "locator": "Persisted State section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Experience accumulated today (preferences, feedback, code observations, action outcomes) is described as largely wasted without Letta's approach",
+      "kind": "blog",
+      "url": "https://www.letta.com/blog/letta-code/",
+      "quote": "Yet today this experience is largely wasted.",
+      "locator": "Continual Learning & Memory for Coding Agents section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The agent decides autonomously where to place a new memory entry and commits it to MemFS.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/configuration/memory.md",
+      "quote": "The agent decides where the lesson belongs and commits the update to MemFS.",
+      "locator": "## Teach your agent",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dreaming is an asynchronous consolidation path: background subagents distill recent conversations into durable memory updates.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/configuration/memory.md",
+      "quote": "Dreaming uses background subagents to review recent conversations, consolidate useful lessons, and update memory without interrupting your active work.",
+      "locator": "## Dreaming",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory reorganization supports deduplication and structural cleanup, with a backup before destructive operations.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/configuration/memory.md",
+      "quote": "the memory workflow backs up the current repository before splitting large files, merging duplicates, or restructuring the hierarchy.",
+      "locator": "## Reorganize memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Token budget pressure on the system prompt is a known concern; /doctor audits for it explicitly.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/configuration/memory.md",
+      "quote": "run `/doctor` to audit placement, duplication, and system-prompt token usage.",
+      "locator": "## Initialize memory",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Chat history and durable memory are explicitly distinguished; Letta provides durable memory, not just history",
+      "kind": "docs",
+      "url": "https://docs.letta.com/handbook.md",
+      "quote": "Most AI tools preserve chat history, but chat history is not the same as durable memory.",
+      "locator": "intro section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Reflection is a named write-path mechanism: review conversations, consolidate, write to memory",
+      "kind": "docs",
+      "url": "https://docs.letta.com/handbook.md",
+      "quote": "Reflection workflows can review recent conversations, consolidate what the agent learned, and write useful lessons into memory.",
+      "locator": "Why Letta? \u2014 Living memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval is selective: detailed material is kept in reference files and retrieved via search rather than always loaded",
+      "kind": "docs",
+      "url": "https://docs.letta.com/handbook.md",
+      "quote": "Structured reference files and search keep detailed material available without loading it on every turn.",
+      "locator": "What people build \u2014 Research and knowledge agents",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is per-agent and portable across environments via account sign-in",
+      "kind": "docs",
+      "url": "https://docs.letta.com/handbook.md",
+      "quote": "Sign in with Letta to carry the same agent memory and conversations across the desktop app, CLI, web chat, remote machines, and supported messaging integrations.",
+      "locator": "Why Letta? \u2014 Available across environments",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Companion use-case: persistent personality and history across long-running sessions",
+      "kind": "docs",
+      "url": "https://docs.letta.com/handbook.md",
+      "quote": "Companions and creative partners maintain persistent personalities and histories. People build long-running companion agents, roleplay characters, and collaborative fiction writers.",
+      "locator": "What people build \u2014 Companions and creative partners",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Letta agents have a hierarchical memory system distinct from the conversation context window.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/quickstart",
+      "quote": "Memory - Understand the hierarchical memory system",
+      "locator": "Next steps section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The agent updates memory from natural language feedback, not only from explicit commands.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/quickstart",
+      "quote": "Give it feedback in plain language (\"be more concise\", \"always run the tests before committing\") and it will update its memory to match.",
+      "locator": "Learning section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory can be bootstrapped or re-initialized via /init, implying memory structure is not purely emergent from conversation.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/quickstart",
+      "quote": "/init Run deep memory initialization (or re-init)",
+      "locator": "Essential commands table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy for skills is adaptive (loaded when relevant), not always-on injection.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/quickstart",
+      "quote": "Skills are reusable instructions your agent loads when relevant",
+      "locator": "Skills section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The scaffold layer (what instructions tell the model to do with memory) is configurable via Mods.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/quickstart",
+      "quote": "changing how context is fed into the model",
+      "locator": "Mods section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Agent persistence is isolated per agent and optionally per device or cloud account.",
+      "kind": "docs",
+      "url": "https://docs.letta.com/quickstart",
+      "quote": "your agents are stored only on local disk and may require manual backups",
+      "locator": "Setup \u2014 CLI tab",
+      "confidence": "medium",
+      "label": "measured"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-runtime.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-filesystem.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-format.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-git.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/tools/impl/memory.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.letta.com/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.letta.com/concepts/stateful-agents/index.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.letta.com/concepts/memfs/index.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.letta.com/concepts/conversations/index.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.letta.com/concepts/shared-memory/index.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.letta.com/configuration/memory/index.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.letta.com/agent-sdk/memory/index.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.letta.com/agent-sdk/sessions/index.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.letta.com/agent-sdk/agents/index.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.letta.com/agent-sdk/repositories/index.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.letta.com/handbook/meet-your-agent/index.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.letta.com/reference/faq/index.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/298",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/2666",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/4091",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/4249",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/4079",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/4029",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/3646",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/3257",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/4361",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/4327",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/4245",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/4240",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/4090",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/4089",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/4028",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/3520",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/3523",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/3807",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/3806",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/letta-ai/letta-code/issues/3799",
+      "kind": "issue",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.letta.com/blog/",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://www.letta.com/blog/benchmarking-ai-agent-memory/",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.letta.com/configuration/memory.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://www.letta.com/blog/letta-code/",
+      "kind": "blog",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.letta.com/quickstart",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.letta.com/handbook.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://news.ycombinator.com/item?id=43294974",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/AI_Agents/comments/1glzob6/tutorial_on_building_agent_with_memory_using_letta/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/Letta_AI/comments/1nys4q1/multi_level_memory_blocks/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mon8it/woah_letta_vs_mem0_for_ai_memory_nerds/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/AIAgentsDirectory/comments/1grqymv/letta_memory_for_your_ai_agents_ai_agents/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/VibeCodersNest/comments/1qmqda4/i_built_a_opensource_tool_that_helps_deploy_letta/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/Letta_AI/comments/1nupfbr/introducing_claude_sonnet_45_and_the_memory/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LangChain/comments/1q0dpty/mem0_zep_letta_supermemory_etc_why_do_memory/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mlnvob/comparing_agent_memory_kits_letta_memos_cognee_etc/",
+      "kind": "community",
+      "accessed_at": "2026-09-13",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Write path details (how memory is extracted, updated, deleted, or conflict-resolved) are not described on this blog index page despite being a canonical product blog",
+      "url": "https://www.letta.com/blog/",
+      "kind": "blog"
+    },
+    {
+      "text": "Forget / delete behavior for memory blocks \u2014 whether entries are hard-deleted from store, hidden at retrieve, or omitted in generation \u2014 is not addressed",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Retrieve policy for memory blocks (always loaded into context vs. adaptive / similarity-gated retrieval) is not described",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Forget / deletion policy: no mention of how memory files are removed or superseded from the store.",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-format.ts",
+      "kind": "code"
+    },
+    {
+      "text": "What file types or schema are written into the memory git repo (e.g. markdown files, JSON, structured frontmatter)? The code references .md files in encoding-issue diagnostics but does not define the memory file schema.",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/agent/memory-git.ts",
+      "kind": "code"
+    },
+    {
+      "text": "The memfs-v2 index format (MEMORY.md) and the rules governing which paths must be indexed before creation are defined in memory-format.ts, not here.",
+      "url": "https://github.com/letta-ai/letta-code/blob/438f821afb248c8ec0f2d26fa2bfd2b4dc3353cc/src/tools/impl/memory.ts",
+      "kind": "code"
+    },
+    {
+      "text": "No description of how memories are selected or filtered into the active context window (retrieve policy) despite this being a core architectural concern for a memory framework",
+      "url": "https://news.ycombinator.com/item?id=43294974",
+      "kind": "community"
+    },
+    {
+      "text": "No description of how conflicting or superseded memories are handled (write path: update, delete, conflict resolution)",
+      "url": "https://news.ycombinator.com/item?id=43294974",
+      "kind": "community"
+    },
+    {
+      "text": "Isolation model is not described \u2014 whether memory is per-user, per-session, or per-agent is not addressed despite persistence being the central topic",
+      "url": "https://www.reddit.com/r/AI_Agents/comments/1glzob6/tutorial_on_building_agent_with_memory_using_letta/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of how block contents are updated, merged, or superseded when conflicting information arrives",
+      "url": "https://www.reddit.com/r/Letta_AI/comments/1nupfbr/introducing_claude_sonnet_45_and_the_memory/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of forget or delete behavior \u2014 whether blocks or their contents can be removed and what triggers that",
+      "url": "https://www.reddit.com/r/Letta_AI/comments/1nupfbr/introducing_claude_sonnet_45_and_the_memory/",
+      "kind": "community"
+    },
+    {
+      "text": "Concurrent write conflict resolution for shared blocks is not addressed: the user explicitly asks 'who wins? what if they write at the same time?' and no answer is given on this page.",
+      "url": "https://www.reddit.com/r/Letta_AI/comments/1nys4q1/multi_level_memory_blocks/",
+      "kind": "community"
+    },
+    {
+      "text": "No description on this page of how Letta selects which memory blocks are retrieved into a turn (retrieve policy: always vs adaptive)",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mlnvob/comparing_agent_memory_kits_letta_memos_cognee_etc/",
+      "kind": "community"
+    },
+    {
+      "text": "No description on this page of how Letta handles memory conflict or supersession when a block value is updated with contradictory information",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mlnvob/comparing_agent_memory_kits_letta_memos_cognee_etc/",
+      "kind": "community"
+    },
+    {
+      "text": "The forget / delete path is not described \u2014 it is unclear whether Letta supports deleting specific memories from the store, hiding at retrieval, or omitting in generation.",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1mon8it/woah_letta_vs_mem0_for_ai_memory_nerds/",
+      "kind": "community"
+    },
+    {
+      "text": "This page defers retrieve policy, what stays in context, forget/delete mechanics, and dreaming to /agent-sdk/memory/index.md but does not cover them here",
+      "url": "https://docs.letta.com/agent-sdk/agents/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete: this architecture doc describes persist and retrieve paths but says nothing about deleting or hiding a memory entry from the store.",
+      "url": "https://docs.letta.com/agent-sdk/memory/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict / supersession: no policy stated for what happens when dreaming writes conflict with existing memory entries.",
+      "url": "https://docs.letta.com/agent-sdk/memory/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This page describes file storage and attachment but does not specify how the agent retrieves or selects repository content into its context turn (retrieve policy, always-load vs. adaptive, embedding/search).",
+      "url": "https://docs.letta.com/agent-sdk/repositories/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of how the bundled 'managing-shared-memory' skill decides when to write, update, or forget entries \u2014 the skill's logic is not documented here.",
+      "url": "https://docs.letta.com/agent-sdk/repositories/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / deletion behavior \u2014 neither conversation-level nor MemFS-level deletion is described on this page.",
+      "url": "https://docs.letta.com/concepts/conversations/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete path: this architecture doc describes versioning and conflict resolution but does not describe how memory files are deleted or tombstoned from the store.",
+      "url": "https://docs.letta.com/concepts/memfs/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Write path detail for extraction/summarization: the page references 'dreaming' and 'memory doctor' subagents that update memory, but does not describe what they extract, how they decide what to write, or how supersession of outdated facts is handled.",
+      "url": "https://docs.letta.com/concepts/memfs/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / deletion: this is a canonical architecture doc for shared memory but does not describe how content is deleted from the repository store or whether agents can delete files and have that propagate.",
+      "url": "https://docs.letta.com/concepts/shared-memory/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict resolution: the page describes a push/pull Git workflow but does not address merge conflicts or supersession policy when two agents write concurrently.",
+      "url": "https://docs.letta.com/concepts/shared-memory/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy: the page does not describe how or when an agent selects which files from the repository to load into context for a given turn \u2014 only that top-level files are listed in the system prompt.",
+      "url": "https://docs.letta.com/concepts/shared-memory/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This page is the canonical stateful-agents architecture doc but does not describe the write path into MemFS: how facts are extracted, updated, or deleted from long-term memory.",
+      "url": "https://docs.letta.com/concepts/stateful-agents/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No retrieve policy is described: when or how long-term memory is selected into a turn, whether retrieval is always-on or adaptive, or how conflicts between stored facts are resolved.",
+      "url": "https://docs.letta.com/concepts/stateful-agents/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy is not described: the page does not state how or when MemFS content is selected into the active context window (always-inject vs adaptive retrieval).",
+      "url": "https://docs.letta.com/configuration/memory/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget/delete behavior is not described: no mechanism for removing a specific memory entry or suppressing retrieval of stale facts is documented on this page.",
+      "url": "https://docs.letta.com/configuration/memory/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Isolation scope is not described: the page does not state whether memory is per-user, per-agent, per-project, or per-character.",
+      "url": "https://docs.letta.com/configuration/memory/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete path: this page describes writing to memory but does not describe how stored facts are deleted, superseded, or expired. As a canonical agent-memory doc, the absence of a delete or conflict-resolution mechanism is notable.",
+      "url": "https://docs.letta.com/handbook/meet-your-agent/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy: the page confirms memory is available in a new conversation but does not describe when or how stored memory is selected into the context window (always-inject vs. adaptive retrieval).",
+      "url": "https://docs.letta.com/handbook/meet-your-agent/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The Memory & dreaming docs page and MemFS concept page are referenced but not included; forget/delete behavior, retrieve policy (always vs adaptive), and conflict/supersession on write are not described on this index page",
+      "url": "https://docs.letta.com/llms.txt",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / deletion behavior: no description of how facts are removed or superseded from MemFS or conversation history",
+      "url": "https://docs.letta.com/reference/faq/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy: whether MemFS content is always injected into context or adaptively retrieved is not stated",
+      "url": "https://docs.letta.com/reference/faq/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The page describes the isolation failure but does not document how memory is normally selected/retrieved into the system prompt (the retrieve policy or scaffold mechanism)",
+      "url": "https://github.com/letta-ai/letta-code/issues/2666",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how memory conflicts or supersession are handled when memory files are updated within a single agent session",
+      "url": "https://github.com/letta-ai/letta-code/issues/2666",
+      "kind": "issue"
+    },
+    {
+      "text": "The page references routing.yaml and addRoute for persistence but does not describe what memory (facts, summaries, events) is stored inside a conversation or how it is retrieved into context.",
+      "url": "https://github.com/letta-ai/letta-code/issues/3520",
+      "kind": "issue"
+    },
+    {
+      "text": "The page references MemFS as the persistent memory store for the parent agent but does not describe what is written to it, how conflicts are resolved, or how old memory entries are superseded or forgotten.",
+      "url": "https://github.com/letta-ai/letta-code/issues/3523",
+      "kind": "issue"
+    },
+    {
+      "text": "No description on this page of how `letta memory pull` selects or scopes what is written into the agent's context (retrieve policy, filtering, or conflict resolution).",
+      "url": "https://github.com/letta-ai/letta-code/issues/3799",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of the forget / delete path for shared memory repos or MemFS entries.",
+      "url": "https://github.com/letta-ai/letta-code/issues/3799",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of the write path for memory during a run: what is extracted, whether facts are summarized or the full conversation log is stored, and how conflicts or supersessions are handled.",
+      "url": "https://github.com/letta-ai/letta-code/issues/3806",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of the delete/forget mechanism: whether deleting an agent purges its memory store, or only the agent record.",
+      "url": "https://github.com/letta-ai/letta-code/issues/3806",
+      "kind": "issue"
+    },
+    {
+      "text": "No documentation of headless exit codes is present; the issue author notes inability to distinguish a blocked tool from a model failure without parsing output.",
+      "url": "https://github.com/letta-ai/letta-code/issues/3807",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how MemFS file content is persisted, written, or updated \u2014 the page covers only the read/display path.",
+      "url": "https://github.com/letta-ai/letta-code/issues/4089",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of forget or delete behavior for MemFS files or agent memory.",
+      "url": "https://github.com/letta-ai/letta-code/issues/4089",
+      "kind": "issue"
+    },
+    {
+      "text": "The page describes a retrieve-path failure but does not describe the write path for MemFS files (how files are created, updated, or deleted from the store).",
+      "url": "https://github.com/letta-ai/letta-code/issues/4090",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe forget/delete behavior for agent-scoped MemFS files.",
+      "url": "https://github.com/letta-ai/letta-code/issues/4090",
+      "kind": "issue"
+    },
+    {
+      "text": "The issue does not describe how or when Letta writes, updates, or deletes memory files (the write path for MemFS), nor how conflicts or supersession between memory file versions are handled.",
+      "url": "https://github.com/letta-ai/letta-code/issues/4091",
+      "kind": "issue"
+    },
+    {
+      "text": "No documentation on how agent secrets interact with memory/context isolation across multiple agents in the same process (websocket path); the canonical architecture doc for the secrets store is not linked",
+      "url": "https://github.com/letta-ai/letta-code/issues/4327",
+      "kind": "issue"
+    },
+    {
+      "text": "Write path details (how memories are extracted, updated, superseded, or deleted) are not described on this blog index page despite memory being a central product claim",
+      "url": "https://www.letta.com/blog/",
+      "kind": "blog"
+    },
+    {
+      "text": "Forget/delete mechanism \u2014 whether memory can be explicitly deleted from the store or only omitted at retrieval \u2014 is not described",
+      "url": "https://www.letta.com/blog/",
+      "kind": "blog"
+    },
+    {
+      "text": "Forget/delete behavior: no description of how Letta removes or supersedes stored memory entries.",
+      "url": "https://www.letta.com/blog/benchmarking-ai-agent-memory/",
+      "kind": "blog"
+    },
+    {
+      "text": "Isolation model: no description of whether memory is scoped per user, session, agent, or character.",
+      "url": "https://www.letta.com/blog/benchmarking-ai-agent-memory/",
+      "kind": "blog"
+    },
+    {
+      "text": "Write path for memory blocks is not described: no detail on how conflicts or supersession are handled when /init or /remember rewrites existing memory",
+      "url": "https://www.letta.com/blog/letta-code/",
+      "kind": "blog"
+    },
+    {
+      "text": "Forget / delete mechanism: no mention of how stored memories or skills are deleted or expire",
+      "url": "https://www.letta.com/blog/letta-code/",
+      "kind": "blog"
+    },
+    {
+      "text": "Isolation scope: no explicit statement of whether memory is per-user, per-project, or per-agent instance",
+      "url": "https://www.letta.com/blog/letta-code/",
+      "kind": "blog"
+    },
+    {
+      "text": "Forget / delete path is not described: no mechanism for removing a specific memory entry or expiring stale facts is mentioned.",
+      "url": "https://docs.letta.com/configuration/memory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict / supersession policy is absent: the page does not describe what happens when a new lesson contradicts an existing memory entry.",
+      "url": "https://docs.letta.com/configuration/memory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete path: this handbook page is a canonical entry point that describes the memory write path (edit, reflect, consolidate) but says nothing about how memory is deleted or superseded.",
+      "url": "https://docs.letta.com/handbook.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict / supersession: no description of what happens when new information contradicts existing memory entries.",
+      "url": "https://docs.letta.com/handbook.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete path: this quickstart doc does not describe how facts are removed or superseded from memory blocks, despite /memory claiming to offer 'manage' capability.",
+      "url": "https://docs.letta.com/quickstart",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict / supersession policy: no description of what happens when a new /remember contradicts an existing memory entry.",
+      "url": "https://docs.letta.com/quickstart",
+      "kind": "docs"
+    }
+  ]
+}
