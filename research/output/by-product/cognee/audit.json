@@ -111,6 +111,12 @@
       "text": "A per-dataset lock is acquired before entering the database context to prevent concurrent pipeline runs or deletes from interleaving."
     },
     {
+      "text": "Session cache stores QA entries (question, context, answer) and agent trace entries keyed by (session_id, user_id). Retrieval is keyword-based token overlap, not vector search."
+    },
+    {
+      "text": "Isolation is per (session_id, user_id) pair \u2014 the PK is the composite, not session_id alone."
+    },
+    {
       "text": "Session entries are isolated by both user_id and session_id."
     },
     {
@@ -181,6 +187,18 @@
     },
     {
       "text": "Dynamic enrichment on query: when you ask something, it also enriches the graph"
+    },
+    {
+      "text": "Memory store fuses a knowledge graph with vector and text search over the same store rather than using only one modality."
+    },
+    {
+      "text": "Data model and ontology are central; everything is extracted and queried against one schema, with a POLE+O shape (Person, Object, Location, Event, Organization plus preference and fact nodes)."
+    },
+    {
+      "text": "A scheduled overnight re-deduplication pass (called a 'dream pipeline') consolidates duplicates created by parallel ingestion, analogous to memory consolidation during sleep."
+    },
+    {
+      "text": "Retrieval supports three query modes: standard hybrid graph search with multi-hop walk, agentic search where the LLM writes its own query, and on-demand cached LLM wikis for large subgraphs that would overflow context."
     },
     {
       "text": "Cognee is described as a layer rather than a full stack, requiring the user to choose and manage the underlying database"
@@ -599,6 +617,60 @@
       "label": "measured"
     },
     {
+      "claim": "Session cache retrieval is keyword token-overlap ranking, not vector similarity \u2014 a different mechanism from the permanent graph retrieval.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/recall/recall.py",
+      "quote": "Tokenizes the query and each QA entry (question + context + answer),\n    ranks by token overlap, returns the top_k tagged with\n    ``_source: \"session\"``",
+      "locator": "_search_session docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session context lessons are retrieved read-only and never update served metadata at recall time, separating the read path from any write-back.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/recall/recall.py",
+      "quote": "Read-only: uses the deterministic builder with ``stamp_served=False`` so it never updates\n    served metadata.",
+      "locator": "_fetch_session_context docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session cache is isolated per (session_id, user_id) composite key, not session_id alone, enabling multi-owner sessions with cross-user read grants.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/recall/recall.py",
+      "quote": "The same ``session_id`` can exist under multiple owners (the PK\n      is ``(session_id, user_id)``, not ``session_id`` alone).",
+      "locator": "_resolve_session_cache_user_id docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Auto-scope short-circuit: a session hit suppresses the permanent graph search when session_id is provided without datasets or query_type.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/recall/recall.py",
+      "quote": "if session_id and not has_dataset_scope and query_type is None:\n            sources = [\"session\", \"graph\"]\n            auto_fallthrough = True  # session hit short-circuits graph",
+      "locator": "recall function body, scope resolution block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph search history is logged per query, giving agents a recall history that was previously absent because recall bypassed the logging wrapper used by /v1/search.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/recall/recall.py",
+      "quote": "/v1/search records every question it answers; recall never did,\n                # because it calls authorized_search() directly and skips the\n                # logging that search() wraps around it. Agents recall through this\n                # endpoint, so their questions were absent from history entirely.",
+      "locator": "_run_graph function body, log comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A warm-up guard can short-circuit recall and return a structured marker entry (status: memory_warming_up or build_failed) rather than empty results when the graph is not ready.",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/recall/recall.py",
+      "quote": "Memory is still warming up: no knowledge graph data \"\n                            \"exists yet for the requested datasets.",
+      "locator": "_run_graph function body, warm-up marker text",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
       "claim": "remember() has two write modes: permanent (add+cognify knowledge graph) and session (session cache), selected by presence of session_id.",
       "kind": "code",
       "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/remember/remember.py",
@@ -668,15 +740,6 @@
       "quote": "Migration dispatch: a MemorySource streams COGX records from an external\n    memory system (Mem0, Zep/Graphiti, Letta, a COGX archive, ...). The\n    migration loader routes them through add/cognify or direct graph storage\n    depending on the source's fidelity mode.",
       "locator": "remember() body, MemorySource dispatch block",
       "confidence": "high",
-      "label": "measured"
-    },
-    {
-      "claim": "Cognee models memory as typed entries (QA, Trace, Feedback, SkillRun) imported from a dedicated entries module, distinguishing curated memory writes from a flat transcript log.",
-      "kind": "code",
-      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/memory/__init__.py",
-      "quote": "MemoryEntry,\n    QAEntry,\n    TraceEntry,\n    FeedbackEntry,\n    SkillRunEntry,",
-      "locator": "cognee/memory/__init__.py, import block and __all__",
-      "confidence": "medium",
       "label": "measured"
     },
     {
@@ -830,6 +893,42 @@
       "quote": "user, authorized_dataset_list = await resolve_authorized_user_datasets(dataset, user)\n    authorized_dataset = authorized_dataset_list[0]",
       "locator": "memify, lines ~107-108",
       "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Cognee has a 'recall' module with an 'on_empty tools fallback' and a 'session short-circuit' that both read the item count from normalized search results",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/recall/methods/normalize_search_payload.py",
+      "quote": "The item count must keep meaning \"did retrieval find anything\": recall's on_empty tools fallback and the session short-circuit both read it",
+      "locator": "normalize_search_payload function, only_context+PROMPT branch comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cognee's ingestion step ('cognify') sets Document.id equal to the source Data item's id, which is later surfaced as data_id in retrieval results",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/recall/methods/normalize_search_payload.py",
+      "quote": "document_id is the ingested Data item's id (cognify sets Document.id = data.id), exposed here as data_id",
+      "locator": "_provenance_metadata function docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cognee supports a dataset_id and dataset_name scoping field on search results, implying retrieval can be scoped per dataset",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/recall/methods/normalize_search_payload.py",
+      "quote": "dataset_id=str(payload.dataset_id) if payload.dataset_id else None,\n        dataset_name=payload.dataset_name,",
+      "locator": "_build_item function, SearchResultItem constructor call",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cognee's search result items carry a 'structured' field populated when the retriever returns a Pydantic model, distinguishing structured from unstructured retrieval output",
+      "kind": "code",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/recall/methods/normalize_search_payload.py",
+      "quote": "elif isinstance(entry, BaseModel):\n        raw = entry.model_dump(mode=\"json\")\n        structured = raw\n        kind = SearchResultKind.STRUCTURED",
+      "locator": "_build_item function",
+      "confidence": "medium",
       "label": "measured"
     },
     {
@@ -1004,24 +1103,6 @@
       "label": "inferred"
     },
     {
-      "claim": "Cognee offers cutting-edge configurations not available in simpler memory tools, but docs versioning is an obstacle",
-      "kind": "community",
-      "url": "https://www.reddit.com/r/AIMemory/comments/1qgbptg/which_one_is_better_for_graphrag_cognee_vs/",
-      "quote": "Mem0 was easy-ish to get setup, but didn't offer the cutting edge configurations I was looking for... I was using one version and built something to the docs spec, but I needed to upgrade to use that.",
-      "locator": "comment by u/Crashbox3000",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "Cognee offers more control over graph schema (entity types, relationship layers) than simpler alternatives, but graph drift and update/correction difficulty are practical risks",
-      "kind": "community",
-      "url": "https://www.reddit.com/r/AIMemory/comments/1qgbptg/which_one_is_better_for_graphrag_cognee_vs/",
-      "quote": "Cognee gives you more control over entity types and relationship layers, which helps when your terminology is domain-specific... The real trap with customer support is graph drift. Your datasheets get revised, part numbers change, specs update. If you can't evolve the graph incrementally, you end up rebuilding it every release cycle.",
-      "locator": "comment by u/pbalIII",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
       "claim": "cognee builds evolving semantic memory using knowledge graphs and data pipelines for AI agents",
       "kind": "community",
       "url": "https://www.reddit.com/r/LLMDevs/comments/1iptj8g/cognee_opensource_memory_framework_for_ai_agents/",
@@ -1054,6 +1135,78 @@
       "url": "https://www.reddit.com/r/LLMDevs/comments/1iptj8g/cognee_opensource_memory_framework_for_ai_agents/",
       "quote": "the pipeline lock stays stuck at DATASET_PROCESSING_STARTED forever. No timeout, no stale detection. Only fix is manually updating the pipeline_runs table in postgres.",
       "locator": "comment by u/No-Dig-6543",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee (along with the other studied tools) fuses knowledge graph with vector and text search over the same store.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1ux306l/i_studied_how_cognee_graphiti_and_neo4j_build/",
+      "quote": "Every tool fuses a knowledge graph with vector and text search over the same store. It's never one or the other.",
+      "locator": "post body, item 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee uses a POLE+O ontology schema (Person, Object, Location, Event, Organization, preference, fact) as its core data model.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1ux306l/i_studied_how_cognee_graphiti_and_neo4j_build/",
+      "quote": "The data model and ontology sit at the core. Everything is extracted and queried against one schema. Neo4j's POLE+O (Person, Object, Location, Event, Organization) plus `preference` and `fact` nodes is the common shape.",
+      "locator": "post body, item 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee's write path uses LLM-based extraction to produce graph nodes and edges from input chunks.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1ux306l/i_studied_how_cognee_graphiti_and_neo4j_build/",
+      "quote": "Extraction is done by LLMs, with tricks to cut costs. You pass a chunk, get back nodes and edges.",
+      "locator": "post body, item 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee separates entity resolution and deduplication into two steps on the write path, treating a wrong merge as the only unrecoverable mistake.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1ux306l/i_studied_how_cognee_graphiti_and_neo4j_build/",
+      "quote": "During extraction, you need resolution and deduplication as 2 separate steps. Resolve names, then decide identity separately, because a wrong merge is the only unrecoverable mistake.",
+      "locator": "post body, item 5",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee runs a scheduled overnight 'dream pipeline' for re-deduplication to repair conflicts created by parallel ingestion.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1ux306l/i_studied_how_cognee_graphiti_and_neo4j_build/",
+      "quote": "A 'dream pipeline' cleans the graph overnight. A scheduled re-dedup pass catches duplicates that parallel ingestion created, like memory consolidation during sleep.",
+      "locator": "post body, item 6",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee supports an append-only log model for temporality and versioning, though the single-collection model is preferred when those are not needed due to RAM cost.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1ux306l/i_studied_how_cognee_graphiti_and_neo4j_build/",
+      "quote": "The big debate is append-only log vs a single collection. The log buys temporality and versioning but explodes your RAM, which is damn expensive.",
+      "locator": "post body, item 7",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cognee supports three retrieval modes: hybrid graph search with multi-hop walk, agentic LLM-generated queries, and cached LLM wikis for large subgraphs.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1ux306l/i_studied_how_cognee_graphiti_and_neo4j_build/",
+      "quote": "There are 3 ways to query your graph: standard graph search (hybrid + a multi-hop walk), agentic search (the LLM writes its own query), and on-demand cached LLM wikis for bigger subgraphs that would otherwise explode your context window.",
+      "locator": "post body, item 8",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A community commenter flags that the missing benchmark for these systems is correction cost \u2014 how easily the system can retract a bad fact once propagated through the graph.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1ux306l/i_studied_how_cognee_graphiti_and_neo4j_build/",
+      "quote": "The missing benchmark I want is correction cost\u2014how easily the system can retract a bad fact once it has propagated through the graph.",
+      "locator": "comment by u/iam31337",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2119,12 +2272,6 @@
       "quality": "high"
     },
     {
-      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/memory/__init__.py",
-      "kind": "code",
-      "accessed_at": "2026-09-13",
-      "quality": "high"
-    },
-    {
       "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/memory/entries.py",
       "kind": "code",
       "accessed_at": "2026-09-13",
@@ -2149,7 +2296,13 @@
       "quality": "high"
     },
     {
-      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/recall/__init__.py",
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/api/v1/recall/recall.py",
+      "kind": "code",
+      "accessed_at": "2026-09-13",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/topoteretes/cognee/blob/c0d18c80e24b7b78918e7642c03f6f128fdd2aee/cognee/modules/recall/methods/normalize_search_payload.py",
       "kind": "code",
       "accessed_at": "2026-09-13",
       "quality": "high"
@@ -2413,7 +2566,7 @@
       "quality": "medium"
     },
     {
-      "url": "https://www.reddit.com/r/AIMemory/comments/1qgbptg/which_one_is_better_for_graphrag_cognee_vs/",
+      "url": "https://www.reddit.com/r/LLMDevs/comments/1ux306l/i_studied_how_cognee_graphiti_and_neo4j_build/",
       "kind": "community",
       "accessed_at": "2026-09-13",
       "quality": "medium"
@@ -2493,16 +2646,6 @@
       "kind": "community"
     },
     {
-      "text": "No description of Cognee's write path (how facts are extracted, updated, or deleted from the graph) appears on this page",
-      "url": "https://www.reddit.com/r/AIMemory/comments/1qgbptg/which_one_is_better_for_graphrag_cognee_vs/",
-      "kind": "community"
-    },
-    {
-      "text": "No description of Cognee's retrieve policy (always retrieve vs adaptive, silence conditions) appears on this page",
-      "url": "https://www.reddit.com/r/AIMemory/comments/1qgbptg/which_one_is_better_for_graphrag_cognee_vs/",
-      "kind": "community"
-    },
-    {
       "text": "No description of how cognee selects or ranks stored graph/vector content for retrieval into a turn (retrieve policy)",
       "url": "https://www.reddit.com/r/LLMDevs/comments/1iptj8g/cognee_opensource_memory_framework_for_ai_agents/",
       "kind": "community"
@@ -2510,6 +2653,11 @@
     {
       "text": "No description of forget or delete mechanisms \u2014 how data is removed or superseded in the graph or vector store",
       "url": "https://www.reddit.com/r/LLMDevs/comments/1iptj8g/cognee_opensource_memory_framework_for_ai_agents/",
+      "kind": "community"
+    },
+    {
+      "text": "This post groups Cognee with Graphiti and Neo4j agent-memory throughout, so it is not always clear which specific mechanisms are Cognee-specific versus shared or borrowed from the other tools. The full breakdown is behind an external link (decodingai.com) that is not included here.",
+      "url": "https://www.decodingai.com/p/how-to-implement-a-unified-memory-from-scratch",
       "kind": "community"
     },
     {
