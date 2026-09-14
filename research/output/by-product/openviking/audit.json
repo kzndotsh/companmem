@@ -1,0 +1,3134 @@
+{
+  "identity": {
+    "id": "openviking",
+    "name": "OpenViking",
+    "repo": "https://github.com/volcengine/OpenViking",
+    "docs": "https://docs.openviking.ai/llms.txt",
+    "license": "AGPL-3.0",
+    "version_or_commit": "e757dd3749275718406c66fd87766c44556626e0",
+    "observed_at": "2026-09-14"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Context database layer for AI agents"
+    },
+    {
+      "text": "Shared long-term memory for frontend design preferences, project decisions, and agent handoffs"
+    },
+    {
+      "text": "Persistent space shared by humans and heterogeneous agents, hosting memory and identity so a resident stays itself through restarts and brain transplant"
+    },
+    {
+      "text": "Open-source context database for AI agents that gives agents a place to store knowledge, remember users, and reuse experience across sessions."
+    },
+    {
+      "text": "The module provides a shared model-facing policy for safe memory reorganization."
+    },
+    {
+      "text": "Filesystem-based memory and retrieval for AI agent systems"
+    },
+    {
+      "text": "Addresses the limitation that current memory is only a record of user interactions, lacking agent-related task memory"
+    },
+    {
+      "text": "Memory is produced by session commit or explicit extraction, stored in the user memory namespace, and consumed through content, file-system, and retrieval APIs."
+    },
+    {
+      "text": "Memory is described as the agent's cognition: long-term, dynamically updated, and agent-recorded."
+    },
+    {
+      "text": "OpenViking is an open-source context database for AI agents unifying memory, resources, and skills management through a file system paradigm."
+    },
+    {
+      "text": "OpenViking provides a long-term memory service with extraction of valuable content categories from sessions."
+    },
+    {
+      "text": "Tracks agent experience and trajectory data with forward and backlinks between memory objects, supporting agent evolution queries."
+    },
+    {
+      "text": "OpenViking stores memory records and resource records in a shared vector index, with a default semantic search that mixes both types in a single ranked result set."
+    },
+    {
+      "text": "OpenViking maintains a memory directory structure with per-directory abstracts used to support semantic search and recall across sessions."
+    },
+    {
+      "text": "OpenViking maintains a session-scoped Working Memory layer and a long-term extracted-memory layer, distinct from the host transcript."
+    },
+    {
+      "text": "Designed to give agents persistent memory across sessions, accumulating context over time"
+    },
+    {
+      "text": "Cross-project and cross-session long-term memory for coding agents, with automatic recall and capture without requiring explicit tool calls."
+    },
+    {
+      "text": "Memory is one of three context types alongside resources and skills, scoped per user and described as the agent's cognition of user preferences and learned experiences."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Session archive used as backing store for context window management across tasks larger than one window"
+    },
+    {
+      "text": "Memory follows user across multiple agent clients (cross-session, cross-platform)"
+    },
+    {
+      "text": "Peer Mode decouples identity from context to support multi-user agents without per-participant user accounts"
+    },
+    {
+      "text": "User/Peer model separates data owners from interaction objects, allowing one agent to serve many people without every participant being an OpenViking user"
+    },
+    {
+      "text": "Multi-agent chat history turned into durable, inspectable, strategy-changing memory"
+    },
+    {
+      "text": "Automatic knowledge accumulation and semantic recall across sessions and platforms"
+    },
+    {
+      "text": "Architecture covers distributed storage, identity, performance, and privacy as a context database"
+    },
+    {
+      "text": "Shared durable context for agent daemons"
+    },
+    {
+      "text": "Session commit is the write path: committing a session archives the conversation and starts background extraction; memory policies control what is retained; candidates are compared with existing memories for creation, merging, or skipping."
+    },
+    {
+      "text": "The underlying memory research (VikingMem) describes an event-driven approach to extracting, updating, and consolidating long-term memory; OpenViking open-sources a subset of these capabilities."
+    },
+    {
+      "text": "Write path: the loop produces upsert_operations and delete_file_contents \u2014 curated field-level writes to named memory files, not append-only transcript entries."
+    },
+    {
+      "text": "Conflict/supersession: immutable fields on an existing memory file are preserved from the stored version and not overwritten by the LLM-proposed update."
+    },
+    {
+      "text": "Memory is typed by schema (memory_type field), and operations targeting a page_id belonging to a different memory_type are rejected with a PAGE_ID_TYPE_MISMATCH skip code rather than silently cross-writing."
+    },
+    {
+      "text": "Links between memory records are stored as StoredLink (URI pairs) after page_id\u2192URI resolution; backlinks are tracked separately, supporting a graph structure over memory files."
+    },
+    {
+      "text": "LLM output token cap is set to 32768 as a functional floor to prevent providers from truncating a full memory-file rewrite mid-string."
+    },
+    {
+      "text": "Memory URIs (write addresses) are generated per target by combining memory_type schema, identity fields, and the resolved user_space; peer writes get a distinct URI under the peer sub-namespace"
+    },
+    {
+      "text": "Upsert (write path) always reads the existing file from disk first so that consecutive patches to the same URI see each other's changes; it then merges fields using per-field MergeOp and increments a version counter."
+    },
+    {
+      "text": "After write/edit, written memory files are vectorized (embedded) via VikingDB; .overview.md and .abstract.md files are excluded from per-file vectorization."
+    },
+    {
+      "text": "Long session messages are split into numbered chunks for extraction so that event ranges can reference a narrower source span; the original session messages are not modified."
+    },
+    {
+      "text": "Merge is permitted only when two memories share the same identity under the active memory schema \u2014 same object/occurrence or explicit alias for entities/events, and matching owner plus behavioral-choice dimension for preferences."
+    },
+    {
+      "text": "Before a source memory is deleted or replaced, every substantive atomic fact it contains must be accounted for and preserved exactly once in a surviving destination; if identity is uncertain or any fact lacks a clear destination, the source is kept separate rather than deleted."
+    },
+    {
+      "text": "VikingFS filesystem abstraction with init and get accessors, suggesting a persistent file-like store"
+    },
+    {
+      "text": "After writing a memory file, a schema overview is refreshed and an embedding is requested, coupling the write path to both a summary layer and a vector index."
+    },
+    {
+      "text": "Derived semantic files (.relations.json) cannot be written directly, protecting system-generated metadata from caller overwrite."
+    },
+    {
+      "text": "Semantic refresh uses a freshness policy that can defer directory-level aggregation (MARK_PENDING) rather than always refreshing immediately, implementing an adaptive refresh strategy."
+    },
+    {
+      "text": "A community user reports deploying OpenViking as a long-term memory layer but missed metadata tagging for user access, indicating metadata-based isolation is a real mechanism but requires deliberate configuration."
+    },
+    {
+      "text": "Filesystem-based hierarchy organizes memory, resources, and skills rather than flat vector chunks"
+    },
+    {
+      "text": "Automatic session memory update: user and agent memory are updated after task execution"
+    },
+    {
+      "text": "Write path: on session.commit, ExtractLoop runs LLM to output memory operations and links in a single call; resolve_operations converts page_ids to URIs and distributes links to from-file MEMORY_FIELDS.links and to-file MEMORY_FIELDS.backlinks; MemoryUpdater.apply_operations writes files."
+    },
+    {
+      "text": "Prefetch reads existing memory files and their links into LLM context to avoid duplicate link creation; CONTRADICTS links are force-included to ensure contradictory information is never omitted."
+    },
+    {
+      "text": "Isolation: links URIs follow the existing memory isolation rules; the isolation handler is unchanged."
+    },
+    {
+      "text": "Archive summary generation can be disabled independently of extraction; commit still archives messages and runs extraction when working_memory is disabled."
+    },
+    {
+      "text": "Sessions use tiered storage (L0/L1/L2): L0 is a session overview summary, L1 holds key decisions, L2 holds complete messages."
+    },
+    {
+      "text": "The memory_diff.json write path includes adds (new memories), updates (modified memories with before/after), and deletes (removed memories with deleted content)."
+    },
+    {
+      "text": "get_session_context returns the latest archive overview and current live messages; it is the assembled context used for LLM context building."
+    },
+    {
+      "text": "Deleting a session deletes all its data including messages, archive history, and memories; deletion is irreversible."
+    },
+    {
+      "text": "Memory is stored under viking://~/memories; resources under viking://~/resources; skills under viking://~/skills \u2014 each isolated per user (home-alias expansion from authenticated identity)"
+    },
+    {
+      "text": "Deployments can extend or override built-in memory types with custom memory templates."
+    },
+    {
+      "text": "A score threshold gates retrieval; v1-compatible default is 0.1, coding agent plugins raise it to 0.35."
+    },
+    {
+      "text": "Isolation is per user: memory URIs are namespaced under viking://user/{user}/{path}."
+    },
+    {
+      "text": "Multi-version management via snapshots is supported, implying the store can preserve and roll back to prior memory states."
+    },
+    {
+      "text": "Privacy configs govern what is extracted and restored for skills, implying selective inclusion/exclusion of content from the persistent store."
+    },
+    {
+      "text": "Context compilation is a named subsystem with examples including knowledge distillation and daily reports, suggesting a scaffold layer that assembles persisted context into prompt-ready form."
+    },
+    {
+      "text": "Git-based multi-version management is planned/implemented in-process, enabling version-controlled memory state."
+    },
+    {
+      "text": "SessionCommit configuration (default 8, local override 50) indicates a tunable commit threshold governing how frequently session state is flushed to persistent store."
+    },
+    {
+      "text": "v0.4.7 uses a 'memory v2' ReAct pipeline for extraction; the pipeline has output-format compatibility issues with certain models, causing extracted content to be silently dropped."
+    },
+    {
+      "text": "OpenViking organizes identity across four scopes: account (tenant boundary), user (ownership and security boundary), session (session identity), and peer (actor/workspace/content scope inside a user)."
+    },
+    {
+      "text": "Static single-user configuration does not support one-agent-many-users topology."
+    },
+    {
+      "text": "Shared agent learning (skills, experiences) across users would require an explicit promotion or dedup layer, with no confirmed built-in OpenViking pattern for this today."
+    },
+    {
+      "text": "Default retrieval scope includes memory alongside resources; no context_type filter is applied when context_type is None."
+    },
+    {
+      "text": "Memory is organized into directories; each directory gets an abstract (.abstract.md) generated by a semantic processor, which is then used for retrieval."
+    },
+    {
+      "text": "Staleness is checked via coalesce_version to prevent outdated data from overwriting newer data during the write path."
+    },
+    {
+      "text": "Before extraction runs, a prefetch step lists existing skills and injects that listing as context into the agent's turn, providing the scaffold for the model."
+    },
+    {
+      "text": "OpenViking exposes a context retrieval endpoint (GET /api/v1/sessions/{id}/context) used for auto-recall/assemble, separate from the write endpoints."
+    },
+    {
+      "text": "Long-term memories are extracted during commit and recalled separately via auto-recall, distinct from the session-scoped Working Memory/archive injection."
+    },
+    {
+      "text": "Session isolation is per session id; the store key is derived from the host session id, making session boundaries in OV contingent on host session id rotation."
+    },
+    {
+      "text": "OpenViking has a memory plugin (@openviking/dsh-memory-plugin) that is installed into a web profile and loaded at startup as a plugin mechanism."
+    },
+    {
+      "text": "Memory is extracted and stored as curated facts/summaries (not raw transcript); a versioned extraction pipeline (v1 \u2192 v2 \u2192 v3) governs what is persisted"
+    },
+    {
+      "text": "Memory v3 extraction is the active pipeline with streaming patch-merge updates"
+    },
+    {
+      "text": "Conflict-aware deduplication on write path"
+    },
+    {
+      "text": "Memory cold-storage archival with hotness scoring; memories are tiered by recency/access rather than all kept hot"
+    },
+    {
+      "text": "Retrieval is adaptive with a configurable query planner; intent-analysis model used during retrieval can be selected and tuned"
+    },
+    {
+      "text": "Auto-recall is a plugin lifecycle hook in coding-agent integrations; recall fires automatically, not on every turn unconditionally"
+    },
+    {
+      "text": "Recall queries can be filtered via regex rules applied to the prompt before it becomes a search query; captured turns can similarly be filtered before being stored."
+    },
+    {
+      "text": "OpenViking acts as a memory provider connected over HTTP; Hermes points to the OpenViking server for memory operations."
+    },
+    {
+      "text": "Tool call outputs exceeding threshold are written to a session-scoped tool-result store; the in-context part is replaced with a synopsis stub and a reference, keeping the original retrievable via API"
+    },
+    {
+      "text": "Native tools allow the model to query and update memory on demand, including explicit forget and remember operations."
+    },
+    {
+      "text": "Tool output above a threshold is written to the session's tool-result store and replaced with a synopsis stub plus reference, so the original remains retrievable via API."
+    },
+    {
+      "text": "Takeover is fail-open: if pending writes cannot flush, commit fails, or the archive overview is not ready, pi keeps full local history or falls back to its default compaction."
+    },
+    {
+      "text": "Forget is an explicit tool exposed to the model."
+    },
+    {
+      "text": "Memory has long-term lifecycle and is dynamically updated, distinguishing it from resources (static) and skills (static)."
+    },
+    {
+      "text": "After a session is committed, the system asynchronously analyzes task outcomes and user feedback and updates memory \u2014 this is the write/update path for memory post-session."
+    },
+    {
+      "text": "The system includes an identity and soul memory type explicitly for assistant continuity across sessions."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "OpenViking provides persistent cross-session memory backed by a session archive, enabling context management across tasks larger than a single context window",
+      "kind": "blog",
+      "url": "https://blog.openviking.ai/",
+      "quote": "We rebuilt the mechanism on Pi with OpenViking's existing session archive, and a model with no training for it finished a task larger than one window.",
+      "locator": "blog post title/summary: 'Let the Agent Turn the Page: Codex-Style Context Management on Pi, Backed by OpenViking'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking memory persists across multiple agent clients and platforms (cross-session, cross-platform recall)",
+      "kind": "blog",
+      "url": "https://blog.openviking.ai/",
+      "quote": "A demo of memory across Claude Code, Codex, and two Python projects, with a written guide, session recording, and timestamps.",
+      "locator": "blog post title/summary: 'Memory That Follows You: OpenViking \u00d7 Agent Harness'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking uses a Peer Mode that decouples identity from context to support multi-user group scenarios without requiring all participants to be OpenViking users",
+      "kind": "blog",
+      "url": "https://blog.openviking.ai/",
+      "quote": "OpenViking's Peer Mode decouples identity from context, turning passive bots into true team colleagues.",
+      "locator": "blog post title/summary: 'From Assistant to Colleague: Building Multi-User Agents with OpenViking's Peer Mode'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking models a User/Peer distinction to separate data ownership from interaction identity, enabling one agent to serve many people",
+      "kind": "blog",
+      "url": "https://blog.openviking.ai/",
+      "quote": "how one agent can serve many people without turning every participant into an OpenViking user.",
+      "locator": "blog post title/summary: 'OpenViking User / Peer: Separating Data Owners From Interaction Objects'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking stores multi-agent chat history as durable, inspectable memory that influences future agent strategy",
+      "kind": "blog",
+      "url": "https://blog.openviking.ai/",
+      "quote": "showing how OpenViking turns multi-agent chat history into durable, inspectable, strategy-changing memory.",
+      "locator": "blog post title/summary: 'VikingBot: When Agent Memory Starts Changing Strategy'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking supports automatic knowledge accumulation and semantic recall across multiple platforms",
+      "kind": "blog",
+      "url": "https://blog.openviking.ai/",
+      "quote": "Experience automatic knowledge accumulation, semantic recall, and multi-platform sharing.",
+      "locator": "blog post title/summary: 'OpenViking for Claude Code & Codex: Give Your Coding Agent Persistent Memory'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking's architecture addresses distributed storage, identity, performance, and privacy as a context database layer",
+      "kind": "blog",
+      "url": "https://blog.openviking.ai/",
+      "quote": "How OpenViking turns directory semantics, distributed storage, identity, performance, and privacy into a context database layer for AI agents.",
+      "locator": "blog post title/summary: 'OpenViking: Inside the Context Database Architecture'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking maintains agent identity through restarts and model replacements ('brain transplant')",
+      "kind": "blog",
+      "url": "https://blog.openviking.ai/",
+      "quote": "hosting memory and identity so a resident stays itself through restarts\u2014and even a brain transplant.",
+      "locator": "blog post title/summary: 'Agent Swarms Don't Lack Scale \u2014 They Lack Memory'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking persists shared context for long-running agent daemons with message delivery",
+      "kind": "blog",
+      "url": "https://blog.openviking.ai/",
+      "quote": "Four runnable demos plus one OpenViking integration step that turn a CLI agent into a managed daemon with message delivery and shared durable context.",
+      "locator": "blog post title/summary: 'Building an Agent Daemon'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking benchmarked on LoCoMo (user memory), ClawWork and tau2-bench (agent memory), and HotpotQA/RAG (knowledge base QA) as of May 2026",
+      "kind": "blog",
+      "url": "https://blog.openviking.ai/",
+      "quote": "May 2026 OpenViking benchmark update across LoCoMo user memory, ClawWork and tau2-bench agent memory, and HotpotQA / single-turn RAG knowledge-base QA.",
+      "locator": "blog post title/summary: 'OpenViking Benchmark Update: User Memory, Agent Memory, and Knowledge Base QA'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking stores shared long-term memory covering frontend design preferences, project decisions, and agent handoffs",
+      "kind": "blog",
+      "url": "https://blog.openviking.ai/",
+      "quote": "How OpenViking turns frontend design preferences, project decisions, and agent handoffs into shared long-term memory.",
+      "locator": "blog post title/summary: 'Stop Teaching Every Agent From Scratch'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking is a context database for AI agents providing cross-session memory via a virtual filesystem.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/README.md",
+      "quote": "OpenViking is an open-source context database for AI agents. It gives agents a place to store knowledge, remember users, and reuse experience across sessions.",
+      "locator": "## What is OpenViking",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session commit triggers background memory extraction; a memory policy governs create, merge, or skip decisions \u2014 distinguishing the raw session log from curated memory writes.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/README.md",
+      "quote": "Committing a session archives the conversation and starts background extraction. Memory policies control what is retained; candidates are compared with existing memories for creation, merging, or skipping.",
+      "locator": "## Why OpenViking",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "User memory is stored under per-user paths (viking://user/{user_id}/memories/), providing user-level isolation.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/README.md",
+      "quote": "\u2514\u2500\u2500 user/\n\u2514\u2500\u2500 {user_id}/\n\u251c\u2500\u2500 memories/",
+      "locator": "## What is OpenViking (filesystem diagram)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LoCoMo benchmark: with OpenViking, agents reached 80\u201383% accuracy vs 24\u201357% baseline; input tokens dropped 34.3\u201391.0%; query latency dropped 58.45\u201366.10%.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/README.md",
+      "quote": "with OpenViking, all three agent integrations land at 80\u201383% accuracy \u2014 up from 24\u201357% on their native memory \u2014 while input tokens drop by 34.3\u201391.0% and query latency by 58.45\u201366.10%.",
+      "locator": "## Proof it works",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The underlying memory system (VikingMem) uses an event-driven approach to extract, update, and consolidate long-term memory; OpenViking ships a subset of these capabilities.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/README.md",
+      "quote": "VikingMem develops an event-driven approach to extracting, updating, and consolidating long-term memory, giving stateful agents a way to retain useful experience as interactions accumulate. OpenViking open-sources a subset of these core capabilities.",
+      "locator": "## Research",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Fan-out to child directories is parallelized but capped at MAX_PARALLEL_CHILD_SEARCHES=4 per request to limit load on the remote vector store",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/retrieve/hierarchical_retriever.py",
+      "quote": "MAX_PARALLEL_CHILD_SEARCHES = 4  # Limit per-request fan-out against remote vector stores",
+      "locator": "HierarchicalRetriever class constants",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Each stored item carries updated_at and active_count metadata that is used at retrieval time to compute a hotness boost, making recency and activity part of the ranking signal",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/retrieve/hierarchical_retriever.py",
+      "quote": "h_score = hotness_score(\n                    active_count=c.get('active_count', 0),\n                    updated_at=updated_at_val,\n                )",
+      "locator": "_convert_to_matched_contexts, hotness blend block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is tenant-isolated; every search call is bound to a RequestContext that carries tenant and permission information",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/retrieve/hierarchical_retriever.py",
+      "quote": "# \u521b\u5efa proxy \u5305\u88c5\u5668\uff0c\u7ed1\u5b9a\u5f53\u524d ctx\n        vector_proxy = VikingDBManagerProxy(self.vector_store, ctx)",
+      "locator": "HierarchicalRetriever.retrieve, proxy creation",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Image queries are forced into QUICK mode and restricted to L2 results only, bypassing hierarchical recursion",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/retrieve/hierarchical_retriever.py",
+      "quote": "if image_query:\n            mode = RetrieverMode.QUICK\n            if level is None:\n                level = [2]",
+      "locator": "HierarchicalRetriever.retrieve, image_query branch",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "OpenViking implements a cold/hot memory lifecycle where stored contexts are ranked by a hotness score combining access frequency and recency decay, used to modulate retrieval ranking alongside semantic similarity",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/retrieve/memory_lifecycle.py",
+      "quote": "Provides a pure function to compute a 0.0\u20131.0 hotness score based on access frequency (active_count) and recency (updated_at). The score can be blended with semantic similarity to boost frequently-accessed, recently-updated contexts in search results.",
+      "locator": "openviking/retrieve/memory_lifecycle.py:module docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory contexts that have never been updated (updated_at is None) are effectively suppressed from retrieval by receiving a hotness score of 0.0",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/retrieve/memory_lifecycle.py",
+      "quote": "returns 0.0 when updated_at is None.",
+      "locator": "openviking/retrieve/memory_lifecycle.py:hotness_score docstring, Formula",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Default half-life for recency decay is 7 days, meaning a context not accessed for 7 days retains half its recency score",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/retrieve/memory_lifecycle.py",
+      "quote": "DEFAULT_HALF_LIFE_DAYS: float = 7.0",
+      "locator": "openviking/retrieve/memory_lifecycle.py:module-level constant",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory updates are curated upsert/delete operations on named files in VikingFS, not raw transcript appends \u2014 distinguishing a curated memory write from a message log.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/extract_loop.py",
+      "quote": "resolved = ResolvedOperations(\n            upsert_operations=upsert_operations,\n            delete_file_contents=delete_file_contents,\n            errors=errors,\n            delete_replacements=delete_replacements,\n        )",
+      "locator": "ExtractLoop.resolve_operations, near end of method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Explicit delete path: memory files are deleted by page_id; a replacement pointer can redirect references to a surviving record.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/extract_loop.py",
+      "quote": "delete_replacements: dict[str, str] = {}\n        for delete_id in delete_ids:\n            if delete_id.delete_page_id is None or page_id_map is None:\n                continue\n            delete_uri = page_id_map.resolve(delete_id.delete_page_id)",
+      "locator": "ExtractLoop.resolve_operations, delete_ids block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Immutable fields guard against overwrite: if a field is marked MergeOp.IMMUTABLE, the stored value replaces the LLM-proposed value before the operation is committed.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/extract_loop.py",
+      "quote": "immutable_fields = {\n                                field.name\n                                for field in schema.fields\n                                if field.merge_op == MergeOp.IMMUTABLE\n                            }\n                            for field_name in immutable_fields:\n                                if field_name in old_content.extra_fields:\n                                    resolved_op.memory_fields[field_name] = (\n                                        old_content.extra_fields[field_name]\n                                    )",
+      "locator": "ExtractLoop.resolve_operations, immutable_fields block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Pre-fetch (ls + read overview + search) seeds the LLM context with relevant memory before the first generation call, implementing adaptive rather than always-retrieve-all retrieval.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/extract_loop.py",
+      "quote": "0. Pre-fetch: System performs ls + read .overview.md + search (via strategy)",
+      "locator": "ExtractLoop class docstring, Workflow section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-user/role: MemoryIsolationHandler fills identity fields (including user_id) on every operation and scopes the read set via get_read_scope().",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/extract_loop.py",
+      "quote": "role_scope = self._isolation_handler.get_read_scope()\n        ...\n        self._isolation_handler.fill_identity_fields(\n                        item_dict,\n                        role_scope=role_scope,\n                        memory_type_schema=schema,\n                    )",
+      "locator": "ExtractLoop.resolve_operations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Events are a distinct schema type (memory_type='events', operation_mode='add_only'); they are always new records and their page_ids are temporary anchors, never mapped to existing files.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/extract_loop.py",
+      "quote": "return (\n            getattr(schema, 'memory_type', None) == 'events'\n            and getattr(schema, 'operation_mode', None) == 'add_only'\n        )",
+      "locator": "ExtractLoop._is_event_schema",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Cross-schema writes are blocked: an operation referencing a page_id that belongs to a different memory_type receives a PAGE_ID_TYPE_MISMATCH resolution_skip and is not applied.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/extract_loop.py",
+      "quote": "resolved_op.resolution_skip = MemoryOperationSkip(\n                                reason_code=MemoryOperationSkipCode.PAGE_ID_TYPE_MISMATCH,\n                                reason=(\n                                    f\"page_id {page_id} belongs to memory type \"\n                                    f\"{existing_memory_type or 'another schema'}, not {memory_type}\"\n                                ),\n                            )",
+      "locator": "ExtractLoop.resolve_operations, PAGE_ID_TYPE_MISMATCH block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "String-patch operations are validated before commit; non-unique or not-found search strings trigger a repair iteration (up to one retry) rather than a silent bad write.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/extract_loop.py",
+      "quote": "patch_errors = await self._validate_patch_operations(final_operations)\n                if patch_errors and patch_repair_count == 0:\n                    patch_repair_count += 1\n                    max_iterations += 1",
+      "locator": "ExtractLoop.run, patch_repair block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory records carry links (WikiLink, page_id-based) that are resolved to URI-pair StoredLinks after the loop completes; backlinks are also tracked, forming a graph over memory files.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/extract_loop.py",
+      "quote": "Links go into from_uri's \"links\" field; backlinks go into to_uri's \"backlinks\" field.\n        The routing is handled by memory_updater based on which file each link belongs to.",
+      "locator": "ExtractLoop._resolve_links docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Output token floor of 32768 is set explicitly to prevent provider-side truncation during full memory-file rewrites.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/extract_loop.py",
+      "quote": "_DEFAULT_EXTRACTION_MAX_OUTPUT_TOKENS = 32768",
+      "locator": "module level constant",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is namespaced per user_id; peer memories live under a sub-path user_space/peers/{peer_id} within that user's space",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_isolation_handler.py",
+      "quote": "return f\"{user_space}/peers/{peer_id}\"",
+      "locator": "function peer_user_space",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write operations can be blocked by an allowlist of memory types; internal type session_skills bypasses the allowlist",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_isolation_handler.py",
+      "quote": "_INTERNAL_MEMORY_TYPES = {\"session_skills\"}\n...\nif memory_type in _INTERNAL_MEMORY_TYPES:\n    return True\nif self.allowed_memory_types is not None and memory_type not in self.allowed_memory_types:\n    return False",
+      "locator": "module-level _INTERNAL_MEMORY_TYPES; method allows_schema",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Peer memory writes can be globally disabled via peer_memory_enabled flag or restricted to an explicit set of allowed_peer_ids",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_isolation_handler.py",
+      "quote": "self.peer_memory_enabled = (\n            bool(peer_memory_enabled) if peer_memory_enabled is not None else True\n        )\n        self.allow_peer = bool(peer_ids)",
+      "locator": "method __init__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write target resolution inspects user-role messages (role == 'user') to determine which peer owns the memory being written",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_isolation_handler.py",
+      "quote": "@staticmethod\n    def _is_peer_owner_message(msg: Any) -> bool:\n        return getattr(msg, \"role\", None) == \"user\"",
+      "locator": "method _is_peer_owner_message",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Ambiguous write targets (multiple distinct peer_ids found in the message range) cause the operation to be skipped rather than written to all candidates",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_isolation_handler.py",
+      "quote": "if len(fallback_targets) > 1:\n                return _TargetResolution(skip_code=MemoryOperationSkipCode.AMBIGUOUS_TARGET)",
+      "locator": "method _range_targets",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The read scope (get_read_scope) returns both user_ids and peer_ids, meaning retrieval can span the user's own memory and memories about specific peers",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_isolation_handler.py",
+      "quote": "return RoleScope(\n            user_ids=sorted(user_ids),\n            peer_ids=sorted(peer_ids),\n        )",
+      "locator": "method get_read_scope",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory write URIs are generated per resolved target, combining memory type schema, identity fields, and target user_space, so each peer gets a distinct storage address",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_isolation_handler.py",
+      "quote": "uris.add(\n                generate_uri(\n                    memory_type=memory_type_schema,\n                    fields=fields,\n                    user_space=target_user_space,\n                    extract_context=extract_context,\n                )\n            )",
+      "locator": "method calculate_memory_uris, loop over target_ids",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is persisted as typed files in VikingFS, addressed by URI; the executor applies LLM-produced MemoryOperations (upsert/delete) directly without function calls.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_updater.py",
+      "quote": "This is the system executor that applies LLM's final output (MemoryOperations)\nto the storage system.",
+      "locator": "file:memory_updater.py module docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Upsert read-modify-write: existing file is always read from disk before patching so in-batch chained patches are visible to each other.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_updater.py",
+      "quote": "# Always read from disk first to get the latest content,\n            # so consecutive patches to the same URI see each other's changes.",
+      "locator": "file:memory_updater.py method _apply_upsert",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete removes the file from VikingFS; vector-index cleanup is handled automatically by VikingFS.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_updater.py",
+      "quote": "# VikingFS automatically handles vector index cleanup.\n        try:\n            await viking_fs.rm(uri, recursive=False, ctx=ctx, lease_ref=lease_ref)",
+      "locator": "file:memory_updater.py method _apply_delete",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Same-batch Replace-with-same-name (delete + create same URI) is detected and the delete is suppressed, treating the operation as an Update.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_updater.py",
+      "quote": "# Skip deletes whose URI was just written in the same batch \u2014 this happens when the\n        # LLM issues a Replace with the same experience_name (delete old + create same-name new),\n        # which is semantically an Update.",
+      "locator": "file:memory_updater.py method apply_operations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Written memory files are vectorized via VikingDB after every upsert; .overview.md and .abstract.md are excluded from per-file vectorization and handled separately.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_updater.py",
+      "quote": "# Collect all URIs to vectorize (skip .overview.md and .abstract.md - they are handled separately)\n        # Also skip URIs that were deleted in the same batch",
+      "locator": "file:memory_updater.py method _vectorize_memories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory type is isolated in the URI path (\u2026/memories/<memory_type>/\u2026); overview files are generated per memory-type directory.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_updater.py",
+      "quote": "parts = [part for part in VikingURI(uri).full_path.split(\"/\") if part]\n        try:\n            memories_idx = parts.index(\"memories\")\n        ...\n        return parts[memories_idx + 1]",
+      "locator": "file:memory_updater.py method memory_type_from_uri",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Link relations (forward links and backlinks) between memory files are merged on upsert and re-inherited when a file is deleted and replaced, preserving the graph.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_updater.py",
+      "quote": "async def _inherit_deleted_link_relations(\n        self,\n        operations: ResolvedOperations,\n        ...\n    ) -> None:",
+      "locator": "file:memory_updater.py method _inherit_deleted_link_relations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session messages are split into extraction chunks for event range attribution; the source session messages are not mutated.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_updater.py",
+      "quote": "Long text-only messages are split into derived chunks so event `ranges`\n        can point to a narrower source span without relying on brittle text\n        matching. The original session messages are not modified.",
+      "locator": "file:memory_updater.py method ExtractContext._build_extraction_messages",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "OpenViking curates memories as discrete, typed records (entities, events, preferences) rather than a raw message log, and governs writes via an explicit merge/split/delete policy.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/merge_policy.py",
+      "quote": "Merge memories only when they have the same identity under the active memory schema. For real-world entities or events, require the same object or occurrence, or an explicit alias. For preferences, both the owner and the behavioral choice dimension must match.",
+      "locator": "openviking/session/memory/merge_policy.py:MEMORY_MERGE_POLICY, bullet 2",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Deletion of a source memory record is gated on fact-level accounting; orphaned facts block deletion, making the delete path conditional rather than unconditional.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/merge_policy.py",
+      "quote": "Before deleting or replacing a source memory, account for every substantive atomic fact in it. Preserve each non-duplicate fact exactly once in a surviving destination. If identity is uncertain or any fact lacks one clear destination, keep the source separate.",
+      "locator": "openviking/session/memory/merge_policy.py:MEMORY_MERGE_POLICY, bullet 4",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The policy is described as 'model-facing', indicating it is delivered as a prompt scaffold (instructions to the model) rather than enforced purely in application code.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/merge_policy.py",
+      "quote": "Shared model-facing policy for safe memory reorganization.",
+      "locator": "openviking/session/memory/merge_policy.py:module docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "OpenViking storage layer includes a filesystem abstraction (VikingFS) with init and get lifecycle functions",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/storage/__init__.py",
+      "quote": "\"VikingFS\": \"openviking.storage.viking_fs\",\n    \"get_viking_fs\": \"openviking.storage.viking_fs\",\n    \"init_viking_fs\": \"openviking.storage.viking_fs\"",
+      "locator": "_LAZY_IMPORTS dict",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Storage errors include DuplicateKeyError and RecordNotFoundError, indicating keyed record semantics for the store",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/storage/__init__.py",
+      "quote": "DuplicateKeyError,\n    RecordNotFoundError",
+      "locator": "imports from openviking.storage.errors",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Lazy loading of storage submodules is used to avoid import-lock deadlock with a native C++ engine extension",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/storage/__init__.py",
+      "quote": "Heavy submodules (vectordb engine, adapters) are loaded lazily via\n``__getattr__`` to avoid an import-lock deadlock that occurs when the\nnative C++ engine extension is loaded while ``storage/__init__`` is\nstill executing.",
+      "locator": "module docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory files go through MemoryFileUtils for structured read/write rather than plain file I/O, distinguishing curated memory records from raw resource files.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/storage/content_write.py",
+      "quote": "if context_type_for_uri(uri) == \"memory\":\n            if mode == \"replace\":\n                existing_raw = await self._viking_fs.read_file(uri, ctx=ctx)\n                mf = MemoryFileUtils.read(existing_raw, uri=uri)\n                mf.content = content",
+      "locator": "ContentWriteCoordinator._write_in_place, memory branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Each memory write triggers MemoryUpdater.refresh_schema_overview (a summary layer) and MemoryUpdater.refresh_file_embedding (a vector index update).",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/storage/content_write.py",
+      "quote": "overview_refreshed = await MemoryUpdater.refresh_schema_overview(\n                viking_fs=self._viking_fs,\n                directory_uri=root_uri,\n                ctx=ctx,\n            )\n            embedding_requested = await MemoryUpdater.refresh_file_embedding(\n                viking_fs=self._viking_fs,\n                vikingdb=self._vikingdb,\n                uri=uri,\n                memory_type=MemoryUpdater.memory_type_from_uri(root_uri),\n                ctx=ctx,\n                ingest_options=ingest_options,\n            )",
+      "locator": "ContentWriteCoordinator._write_memory_with_refresh",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory files are isolated per user under a memories/ subtree of the user root (viking://user/<user>/memories/...).",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/storage/content_write.py",
+      "quote": "elif \"memories\" in parts:\n                memories_idx = parts.index(\"memories\")\n                if len(parts) <= memories_idx + 1:\n                    raise InvalidArgumentError(\n                        f\"memory write target must be inside a memory type directory: {uri}\"\n                    )",
+      "locator": "ContentWriteCoordinator._resolve_root_uri, memories branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Batch write supports up to 256 operations with per-file (8 MB) and total (16 MB) byte limits; memory batch targets must be text (no binary).",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/storage/content_write.py",
+      "quote": "_BATCH_MAX_OPERATIONS = 256\n_BATCH_MAX_FILE_BYTES = 8 * 1024 * 1024\n_BATCH_MAX_TOTAL_BYTES = 16 * 1024 * 1024",
+      "locator": "module-level constants",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic refresh for resource/skill directories uses an adaptive freshness policy (refresh_ratio=0.10, overview_sample_limit=32) and can defer aggregation with MARK_PENDING.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/storage/content_write.py",
+      "quote": "decision = await plan_abstract_overview_refresh(\n            viking_fs=self._viking_fs,\n            dir_uri=root_uri,\n            changed_entries=changed_entries,\n            ctx=ctx,\n            overview_sample_limit=getattr(semantic_config, \"overview_sample_limit\", 32),\n            refresh_ratio=getattr(semantic_config, \"freshness_refresh_ratio\", 0.10),\n            force_refresh=force_refresh,\n        )",
+      "locator": "ContentWriteCoordinator._enqueue_semantic_refresh_changes",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Derived semantic files (.relations.json) and watch task control files cannot be written directly by callers, protecting system-generated metadata.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/storage/content_write.py",
+      "quote": "_DERIVED_FILENAMES = frozenset({\".relations.json\"})\n...\nif name in _DERIVED_FILENAMES:\n            raise InvalidArgumentError(f\"cannot write derived semantic file directly: {uri}\")",
+      "locator": "module-level constant _DERIVED_FILENAMES; ContentWriteCoordinator._ensure_content_write_policy",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Failed direct writes (before post-processing starts) are rolled back: created files are deleted, replaced files are restored to previous content.",
+      "kind": "code",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/storage/content_write.py",
+      "quote": "if mode == \"create\":\n                await self._viking_fs.rm(uri, ctx=ctx, lease_ref=lease_ref)\n                return\n            if previous_content is not None:\n                await self._viking_fs.write_file(\n                    uri,\n                    previous_content,\n                    ctx=ctx,\n                    lease_ref=lease_ref,\n                )",
+      "locator": "ContentWriteCoordinator._rollback_direct_write",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "OpenViking is an open-source context database providing filesystem-based memory and retrieval for AI agent systems",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLM/comments/1rw137a/meet_openviking_opensource_context_database/",
+      "quote": "An Open-Source Context Database that Brings Filesystem-Based Memory and Retrieval to AI Agent Systems like OpenClaw",
+      "locator": "post title",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community skepticism: no real human conversation observed, possible fake engagement, no independent usage reports",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1rumjkt/meet_openviking_an_opensource_context_database/",
+      "quote": "I think it's highly concerning to see basically 0 real human conversation on this. Making me think it's useless and had fake stars so dont know if im going to try. Only mention seems to be by ai on trashy sites?",
+      "locator": "comment by u/Repulsive-Memory-298",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking is licensed under AGPLv3",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLM/comments/1w39gkc/openviking_review_a_filesystem_for_ai_agent_memory/",
+      "quote": "34.5k stars, vendor benchmarks, an AGPLv3 catch, and where it still loses to LightRAG.",
+      "locator": "post body, u/andrew-ooo",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking runs entirely on local hardware with no cloud dependencies and supports Docker deployment",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLM/comments/1w39gkc/openviking_review_a_filesystem_for_ai_agent_memory/",
+      "quote": "Runs entirely on your own hardware (no cloud dependencies)\nDocker-friendly deployment",
+      "locator": "post body, bullet list, u/andrew-ooo",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking is an open-source vector database and retrieval stack built by Volcengine for large-scale RAG and agent systems.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/OpenClawInstall/comments/1rwu94t/openviking_is_a_highperformance_opensource_vector/",
+      "quote": "It is an open\u2011source vector database and retrieval stack built by Volcengine, designed from day one for large\u2011scale RAG and agent systems",
+      "locator": "section: What OpenViking actually is",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Metadata filters enforce per-tenant or per-user data boundaries at the retrieval layer.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/OpenClawInstall/comments/1rwu94t/openviking_is_a_highperformance_opensource_vector/",
+      "quote": "Being able to filter by arbitrary metadata means you can enforce per\u2011tenant or per\u2011user data boundaries at the retrieval layer, not just in your application logic.",
+      "locator": "section: Features that are especially useful in 2026\u2011style agent setups, subsection: Metadata filters and TTLs",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A real user missed configuring metadata tagging for user access when deploying OpenViking as a long-term memory layer, surfacing isolation as a non-automatic, opt-in behavior.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/OpenClawInstall/comments/1rwu94t/openviking_is_a_highperformance_opensource_vector/",
+      "quote": "i have implemented openviking as main openclaw long term memory layer but have missed the metadata tagging for user access.",
+      "locator": "Comments, u/puttitlehere",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Bad retrieval causes agents to hallucinate by reasoning over wrong context, framing retrieval quality as directly tied to memory correctness.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/OpenClawInstall/comments/1rwu94t/openviking_is_a_highperformance_opensource_vector/",
+      "quote": "Bad retrieval means your agents hallucinate because they are reasoning over the wrong context.",
+      "locator": "section: Why this matters for OpenClaw specifically",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory in OpenViking covers agent task memory, not just user interaction logs \u2014 distinguishing curated task memory from a raw interaction transcript",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1sor4rb/bytedances_team_openviking_038/",
+      "quote": "Limited Memory Iteration: Current memory is just a record of user interactions, lacking Agent-related task memory.",
+      "locator": "quoted GitHub README block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community poster notes that the cost of maintaining the hierarchical file-system paradigm grows with dataset size, flagging a scalability concern",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1sor4rb/bytedances_team_openviking_038/",
+      "quote": "As the dataset gets larger the cost of maintaining this file system paradigm becomes clear.",
+      "locator": "poster commentary below quoted README block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is organized via filesystem hierarchy rather than flat vector store",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1rumjkt/meet_openviking_an_opensource_context_database/",
+      "quote": "Instead of treating context like flat chunks in a vector database, OpenViking organizes memory, resources, and skills using a filesystem-based structure.",
+      "locator": "post body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session memory is updated automatically after task execution, implying a write path triggered by task completion",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1rumjkt/meet_openviking_an_opensource_context_database/",
+      "quote": "Automatic session memory iteration to update user and agent memory after task execution",
+      "locator": "post body, bullet list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is stored as VikingFS .md files with links/backlinks in MEMORY_FIELDS metadata; content block is kept clean of inline link syntax.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/design/memory-link-design",
+      "quote": "content \u4fdd\u6301\u7eaf\u51c0\uff0c\u4e0d\u63d2\u5165 Markdown \u94fe\u63a5\u3002\u94fe\u63a5\u5b58\u50a8\u5728\u6bcf\u4e2a\u8bb0\u5fc6\u6587\u4ef6\u5c3e\u90e8\u7684 MEMORY_FIELDS \u5143\u6570\u636e\u4e2d",
+      "locator": "3.2.3 \u5b58\u50a8\u65b9\u5f0f",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path on session.commit: prefetch existing files \u2192 ExtractLoop LLM outputs memory ops + links in one call \u2192 resolve_operations converts page_ids to URIs \u2192 MemoryUpdater writes files and enqueues vectorization.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/design/memory-link-design",
+      "quote": "ExtractLoop.run() \u2014 LLM \u6309 schema \u8f93\u51fa\u8bb0\u5fc6\u64cd\u4f5c + links\uff08\u7edf\u4e00\u8f93\u51fa\uff09\nresolve_operations() \u2014 page_id \u8f6c URI\uff0c\u94fe\u63a5\u5206\u53d1\u5230 from \u7aef links + to \u7aef backlinks\nMemoryUpdater.apply_operations() \u2014 merge_op \u5408\u5e76 + \u5199\u5165\u8bb0\u5fc6\u6587\u4ef6 + \u884c\u53f7\u4fee\u6b63 + \u5411\u91cf\u5316\u5165\u961f",
+      "locator": "3.4.1 Session.commit \u5b9e\u65f6\u6574\u7406",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Links are bidirectional and stored on both endpoints: from-file gets MEMORY_FIELDS.links (rendered), to-file gets MEMORY_FIELDS.backlinks (traversal only, not rendered); link_type is not reversed.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/design/memory-link-design",
+      "quote": "from \u6587\u4ef6\u7684 links \uff08\u6b63\u94fe\uff0c\u9700\u6e32\u67d3\uff09+ to \u6587\u4ef6\u7684 backlinks \uff08\u53cd\u94fe\uff0c\u4e0d\u6e32\u67d3\uff0c\u53ea\u7528\u4e8e\u904d\u5386\uff09\u3002\u4e24\u4fa7\u8bb0\u5f55\u5185\u5bb9\u5b8c\u5168\u76f8\u540c\uff0c\u4e0d\u7ffb\u8f6c link_type\u3002",
+      "locator": "3.2.1 \u4e24\u5c42\u6a21\u578b\u8bbe\u8ba1 / LLM \u8f93\u51fa\u5c42\uff1aWikiLink",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget / link deletion occurs when t_line_ranges cannot be relocated after a file PATCH \u2014 exact string match fails and LLM semantic match also fails; link is then deleted from both MEMORY_FIELDS simultaneously.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/design/memory-link-design",
+      "quote": "\u8fd8\u662f\u627e\u4e0d\u5230 \u2192 \u5220\u9664\u8be5\u94fe\u63a5\uff08\u4ece\u4e24\u7aef `MEMORY_FIELDS` \u540c\u65f6\u6e05\u9664\uff09\n\u53cc\u5411\u4e00\u81f4\u6027\uff1a\u4fee\u6b63/\u5220\u9664\u64cd\u4f5c\u540c\u65f6\u4f5c\u7528\u4e8e\u4e24\u7aef `MEMORY_FIELDS`\uff08\u4ece links \u5220\u9664 = \u4ece\u5bf9\u7aef backlinks \u5220\u9664\uff09",
+      "locator": "3.2.6 t_line_ranges \u884c\u53f7\u4fee\u6b63\u673a\u5236",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval uses vector + keyword search to produce a seed set, then PPR propagates scores along typed links with a configuration table per (link_type, direction); files above min_ppr_score are added to results.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/design/memory-link-design",
+      "quote": "\u4ee5 seed set \u4e3a preference nodes\uff0c\u6cbf links \u548c backlinks \u505a\u5e26\u6743\u968f\u673a\u6e38\u8d70\n- \u6bcf\u6b65\u4f20\u64ad\u5206\u6570 \u00d7 damping_factor (\u9ed8\u8ba4 0.85)\n- \u4f20\u64ad\u7b56\u7565\u6309 (link_type, links/backlinks) \u67e5 3.2.7.4 \u914d\u7f6e\u8868\u51b3\u5b9a\u6743\u91cd\u3001\u662f\u5426\u7ee7\u7eed\u3001\u6700\u5927\u6df1\u5ea6",
+      "locator": "3.5.1 PPR \u641c\u7d22\u589e\u5f3a",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "CONTRADICTS links are force-included in prefetch regardless of PPR score, ensuring contradictory facts always reach LLM context.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/design/memory-link-design",
+      "quote": "Prefetch \uff1a\u6d88\u8d39 PPR \u7ed3\u679c\u6392\u5e8f + CONTRADICTS \u5f3a\u5236\u5305\u542b\uff08\u786e\u4fdd\u77db\u76fe\u4fe1\u606f\u4e0d\u9057\u6f0f\uff09\u3002",
+      "locator": "3.2.7.3 \u5404\u6a21\u5757\u4f7f\u7528",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "T+1 consolidation is triggered by external Bot via CLI/Cron; theme discovery uses CONTRADICTS links, unlinked-report memories, and report_candidates; output is a report memory_type (question-driven research report).",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/design/memory-link-design",
+      "quote": "\u65b0\u8bb0\u5fc6\u4e4b\u95f4\u5b58\u5728 CONTRADICTS \u94fe\u63a5 \u2192 \u51b2\u7a81\u4e3b\u9898\n\u7528\u6237\u63d0\u4ea4\u7684 report_candidate \u2192 \u76f4\u63a5\u4f5c\u4e3a\u4e3b\u9898\u5019\u9009\n\u6574\u7406\u4ea7\u7269\uff1a \u95ee\u9898\u9a71\u52a8\u7684\u7814\u7a76\u62a5\u544a\uff08report memory_type\uff09\u3002",
+      "locator": "3.4.2 \u5916\u90e8 Bot T+1 \u89e6\u53d1\u6574\u7406",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Content rendering is lazy: match_text substitution with link target URI happens only in search result snippets and display views; LLM prefetch context and vectorization receive plain content.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/design/memory-link-design",
+      "quote": "LLM prefetch \u8bfb\u5165\u4e0a\u4e0b\u6587 \u4e0d\u66ff\u6362 LLM \u66f4\u65b0\u65f6\u5904\u7406\u94fe\u63a5\u589e\u52a0\u590d\u6742\u5ea6\uff0cPPR \u5df2\u505a\u5b9e\u4f53\u5173\u8054\u53ec\u56de\n\u5411\u91cf\u5316\u5d4c\u5165 \u4e0d\u66ff\u6362 \u7eaf\u6587\u672c\u8bed\u4e49\u66f4\u5e72\u51c0\nsearch \u8fd4\u56de\u6458\u8981 \u66ff\u6362\uff08\u4ec5 links\uff09",
+      "locator": "3.2.4 \u68c0\u7d22\u65f6\u6309\u9700\u6e32\u67d3",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation: link URIs follow the existing memory isolation rules; the memory_isolation_handler is unchanged.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/design/memory-link-design",
+      "quote": "memory_isolation_handler.py \u2014 \u9694\u79bb\u903b\u8f91\u4e0d\u53d8\uff0clinks \u7684 URI \u9075\u5faa\u9694\u79bb\u89c4\u5219",
+      "locator": "3.6.2 \u4e0d\u6539\u52a8\u7684\u90e8\u5206",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Links merge: dedup by (from_uri, to_uri, t_field, t_line_ranges); weight conflict \u2192 max; link_type and description \u2192 latest write; sorted by weight descending.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/design/memory-link-design",
+      "quote": "\u6309 from_uri + to_uri + t_field + t_line_ranges \u7ec4\u5408\u53bb\u91cd\n\u6743\u91cd\u51b2\u7a81\u65f6\u53d6 max\nlink_type \u548c description \u4ee5\u6700\u65b0\u5199\u5165\u4e3a\u51c6\n\u7ed3\u679c\u6309 weight \u964d\u5e8f\u6392\u5217",
+      "locator": "3.2.5 Links Merge \u7b56\u7565",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Six link types are enumerated; signal types (CONTRADICTS, DERIVED_FROM, EVOLVED_FROM) have dedicated consolidation branches; structural types (BELONGS_TO, CAUSED_BY) influence PPR traversal depth and weight; RELATED_TO is 1-hop only.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/design/memory-link-design",
+      "quote": "\u4fe1\u53f7\u578b \uff08\u89e6\u53d1\u6574\u7406\u4e3b\u9898\u53d1\u73b0\u7684\u72ec\u7acb\u4ee3\u7801\u5206\u652f\uff09\uff1a\nlink_type links \u8bed\u4e49 backlinks \u8bed\u4e49 \u6574\u7406\u884c\u4e3a\nCONTRADICTS \u6211\u4e0e to \u77db\u76fe from \u4e0e\u6211\u77db\u76fe \u51b2\u7a81\u4fe1\u53f7 \u2192 \u751f\u6210\u51b2\u7a81\u62a5\u544a\nDERIVED_FROM \u6211\u4ece to \u6d3e\u751f from \u4ece\u6211\u6d3e\u751f \u6e90\u66f4\u65b0 \u2192 \u68c0\u67e5\u6e90\u8bb0\u5fc6\u662f\u5426\u66f4\u65b0\uff0c\u89e6\u53d1\u91cd\u7814\nEVOLVED_FROM \u6211\u4ece to \u6f14\u8fdb from \u4ece\u6211\u6f14\u8fdb \u7248\u672c\u8fc7\u65f6 \u2192 \u65e7\u7248\u672c\u88ab\u66ff\u4ee3\uff0c\u89e6\u53d1\u66f4\u65b0",
+      "locator": "3.2.7.2 \u884c\u4e3a\u5206\u5c42",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Working Memory archive summaries are a distinct optional output that can be disabled without stopping extraction",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/design/session-memory-extraction-flow",
+      "quote": "When working_memory.enabled is false , commit still archives messages and runs configured memory extraction, but skips the archive summary.",
+      "locator": "Policy section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Extraction is case-gated: trajectories, experiences, and executable session skills are produced only when at least one case is extracted in the same commit",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/design/session-memory-extraction-flow",
+      "quote": "It trains trajectories, experiences, and optional executable session skills only when ordinary extraction produces at least one case. An explicit execution-only memory_types policy does not invoke ordinary extraction, so it cannot create a case and does not trigger training.",
+      "locator": "Memory Type Groups section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-user with a sub-namespace per peer; unsafe or unallowed peer IDs are silently skipped rather than raising an error",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/design/session-memory-extraction-flow",
+      "quote": "Unsafe peer_id Skip. Safe but unallowed peer_id Skip.",
+      "locator": "Long-Term Routing section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Self and peer write operations can be emitted by the extractor in the same response and are resolved independently by the isolation handler",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/design/session-memory-extraction-flow",
+      "quote": "The extractor may emit self and peer operations in the same response. Final write targets are decided per operation by the isolation handler.",
+      "locator": "Practical Invariants section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Sessions use tiered storage (L0 abstract summary, L1 key decisions, L2 complete messages) to optimize token usage.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/05-sessions",
+      "quote": "Sessions use tiered storage (L0/L1/L2) to optimize token usage:\nL0 (abstract): Session overview summary\nL1 (overview): Key decisions\nL2 (messages): Complete messages",
+      "locator": "Sessions (page intro)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Commit triggers asynchronous background extraction of typed long-term memories (profile, preferences, entities, events, identity, soul, cases, trajectories, experiences, tools, skills).",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/05-sessions",
+      "quote": "Phase 2 (Asynchronous): Generate summaries (L0/L1), extract long-term memories, and update active_count",
+      "locator": "commit() > API Implementation Introduction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path records adds, updates, and deletes per commit in memory_diff.json, including before/after content for updates and deleted content for deletes.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/05-sessions",
+      "quote": "operations.adds: New memories created (uri, memory_type, after)\noperations.updates: Modified memories (uri, memory_type, before, after)\noperations.deletes: Deleted memories (uri, memory_type, deleted_content)",
+      "locator": "memory_diff.json Structure",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session context assembly is retrieve-then-prompt: get_session_context returns the latest archive overview plus live messages within a token budget for the caller to inject into the LLM prompt.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/05-sessions",
+      "quote": "Get the assembled session context used for LLM context building. This endpoint returns the latest archive overview and current live messages.",
+      "locator": "get_session_context() > API Implementation Introduction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Deleting a session permanently removes all messages, archive history, and extracted memories; there is no soft-delete or hide-at-retrieve.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/05-sessions",
+      "quote": "Delete a session and all its data, including messages, archive history, memories, etc. Deletion is irreversible.",
+      "locator": "delete_session() > API Implementation Introduction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "reset_context provides a session-level context boundary: clears injected context and stops future summaries from inheriting pre-reset overviews, while preserving long-term memories.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/05-sessions",
+      "quote": "Keeps the session ID and raw history, clears injected context and stops future summaries from inheriting pre-reset overviews. ... long-term memories are preserved.",
+      "locator": "commit() > Interface and Parameter Description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Auto-commit can be configured per session with token threshold, message count threshold, idle timeout, and minimum commit interval; it can also be disabled.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/05-sessions",
+      "quote": "Any provided fields are validated, clamped to their bounds, and merged over the defaults; the effective policy is returned in the response result.auto_commit_policy and persisted into session metadata. If no policy is provided, auto commit is disabled unless memory.session_auto_commit.default_enabled=true.",
+      "locator": "create_session() > Interface and Parameter Description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Usage feedback (used()) feeds into active_count at commit time to influence future retrieval ranking.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/05-sessions",
+      "quote": "When commit() is called, active_count is updated based on this usage data to optimize future retrieval ranking.",
+      "locator": "used() > API Implementation Introduction",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Images added to a session message can be processed by a configured VLM during memory extraction to produce text descriptions.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/05-sessions",
+      "quote": "ImagePart: OpenAI-style image URL content. During memory extraction, OpenViking can use the configured VLM to turn images into text descriptions.",
+      "locator": "add_message() > API Implementation Introduction",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "find() performs pure vector similarity search without session context, using a hierarchical L0\u2192L1/L2 retrieval strategy",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/06-retrieval",
+      "quote": "The find() method performs pure vector similarity search for simple query scenarios. It uses hierarchical retrieval to search at the L0 summary level first, then matches in detail at L1/L2 levels.",
+      "locator": "find() > 1. API Implementation Introduction",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "search() uses session conversation history to understand intent and expand queries before retrieval",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/06-retrieval",
+      "quote": "Analyze query intent, understand actual needs combined with conversation history \u2192 Expand queries to improve recall rate",
+      "locator": "search() > 1. API Implementation Introduction, Processing Pipeline",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per user via home-alias URIs expanded from the authenticated request identity",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/06-retrieval",
+      "quote": "Home-alias target URIs such as viking://~/memories, viking://~/resources, and viking://~/skills are expanded to the canonical path from the authenticated request identity.",
+      "locator": "find() > 2. Interface and Parameter Description, Target resolution notes",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cross-turn deduplication is tracked in a per-session recall log persisted at {session_uri}/.recall_log.json",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/06-retrieval",
+      "quote": "Ledger lives at {session_uri}/.recall_log.json",
+      "locator": "search(mode=\"context\") > 2. Parameters, dedup_turns row",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "When assembly finds no relevant memory, the response is empty and those URIs are not recorded in the dedup ledger so they can surface in a future turn",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/06-retrieval",
+      "quote": "When stats.rewrite is no_relevant, the response keeps entries for inspection but returns both digest and rendered as empty strings. This makes the successful empty result safe for clients that predate the explicit status. Nothing was served that turn, so those URIs also stay out of the dedup_turns ledger and remain available to the later turn they are relevant to.",
+      "locator": "search(mode=\"context\") > 3. Examples, response field description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Entries that exceed the per-entry token cap step down a tier rather than being truncated; resources/skills degrade to bare URI rather than deepening into body content",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/06-retrieval",
+      "quote": "A resources or skills abstract is the short generated summary instead, so the same substitution would read a body the caller never asked for \u2014 those two degrade to a bare uri rather than deepen",
+      "locator": "search(mode=\"context\") > 2. Parameters, Tier rules, Floor",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory categories recognised for bucketed retrieval are: events, entities, preferences, experiences, plus resources and skills; additional built-in types (cases, patterns, tools, trajectories, skill-usage) are reachable only via quota-free retrieval",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/06-retrieval",
+      "quote": "memories for a built-in memory type outside those four ... Only quota-free retrieval reaches them; they own no bucket, so quotas cannot name them",
+      "locator": "search(mode=\"context\") > 2. Parameters, Tier rules, Default tier per category table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Query expansion in context mode is bounded: at most 3 queries, has a timeout fuse, and falls back to the original query on failure or absence of session",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/06-retrieval",
+      "quote": "optional bounded intent expansion from the session's recent messages (at most 3 queries, timeout fuse, falls back to the original query)",
+      "locator": "search(mode=\"context\") > 1. Implementation Overview, Pipeline",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The page describes only retrieval (find, search, grep, glob) and context assembly; write path (how memories are created, updated, deleted, or superseded) is not covered here",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/06-retrieval",
+      "quote": "Previous page Agent Evolution / Next page Resource Watches",
+      "locator": "Page navigation footer",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is produced by session commit or explicit extraction into the user memory namespace",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/16-memory",
+      "quote": "Memory is produced by session commit or explicit extraction, stored in the user memory namespace, and consumed through the content, file-system, and retrieval APIs.",
+      "locator": "Memory (introductory paragraph)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Built-in memory types cover profile, preferences, entities, events, identity, soul, cases, trajectories, experiences, tools, and skills \u2014 each at a deterministic file path",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/16-memory",
+      "quote": "profile user/memories/profile.md \u2026 soul user/memories/soul.md Assistant principles, boundaries, style, and continuity",
+      "locator": "Built-in Memory Types (table)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Custom memory templates can extend or override built-in types per deployment",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/16-memory",
+      "quote": "Deployments can extend or override them with custom memory templates.",
+      "locator": "Built-in Memory Types (table, note)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Score threshold for retrieval defaults to 0.1; coding agent plugins use 0.35",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/16-memory",
+      "quote": "the v1-compatible score_threshold=0.1 \u2026 Coding Agent plugins explicitly send score_threshold=0.35; the public /recall default remains 0.1 so an unchanged request does not silently lose results after upgrading",
+      "locator": "API Reference > recall()",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per user, addressed via viking://user/{user}/memories/... URIs",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/api/16-memory",
+      "quote": "\"uri\": \"viking://user/default/memories/preferences/api-docs.md\"",
+      "locator": "API Reference > recall() > Response",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is long-term and dynamically updated by the agent, contrasting with Resource (static, user-added) and Skill (static definition).",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/concepts/02-context-types",
+      "quote": "Memory Agent's cognition Long-term, dynamically updated Agent records",
+      "locator": "Overview table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory extraction from sessions happens asynchronously in the background after session.commit().",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/concepts/02-context-types",
+      "quote": "commit = await session.commit() # Starts background memory extraction\ntask = await client.get_task( task_id = commit[ \"task_id\" ]) # Poll until task[\"status\"] == \"completed\"",
+      "locator": "Memory > Usage (code)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Identity and persona continuity are stored as distinct memory files (identity.md, soul.md) covering assistant name, persona, temperament, principles, boundaries, and style.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/concepts/02-context-types",
+      "quote": "identity ~/memories/identity.md Assistant name, persona, temperament, and self-introduction\nsoul ~/memories/soul.md Assistant principles, boundaries, style, and continuity",
+      "locator": "Memory > Built-in Memory Types",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "OpenViking is an open-source context database that unifies memory, resources, and skills for AI agents via a file system paradigm.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/llms.txt",
+      "quote": "Open-source context database for AI Agents. OpenViking unifies memory, resources, and skills management for AI Agents through a file system paradigm.",
+      "locator": "page header / description block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Multi-version snapshot management allows the store to be versioned and rolled back.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/llms.txt",
+      "quote": "Snapshots (Multi-Version Management)\n/en/api/11-snapshot",
+      "locator": "en/api section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Multi-tenant isolation scopes memory and resources per tenant via a dedicated admin API.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/llms.txt",
+      "quote": "Admin (Multi-tenant)\n/en/api/08-admin\n\u2026\nMulti-Tenant\n/en/concepts/11-multi-tenant",
+      "locator": "en/api section; en/concepts section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Privacy configs control what skill-related content is extracted into or restored from the store.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/llms.txt",
+      "quote": "Privacy Configs and Skill Privacy Extraction/Restore\n/en/concepts/13-privacy",
+      "locator": "en/concepts section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Git-based in-process version control (via Gitoxide) is the implementation backing multi-version management.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/llms.txt",
+      "quote": "OpenViking \u591a\u7248\u672c\u7ba1\u7406\u6280\u672f\u65b9\u6848 \u2014 \u57fa\u4e8e Gitoxide \u7684 in-process Git \u96c6\u6210\n/design/git-version-control-design",
+      "locator": "design section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context is organized into three layers (L0/L1/L2) with semantic sidecars in OKF Markdown format.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/llms.txt",
+      "quote": "Context Layers (L0/L1/L2)\n/en/concepts/03-context-layers\n\u2026\nRFC: Upgrade L0/L1 Semantic Sidecars to OKF Markdown\n/design/l0-l1-okf-sidecars-rfc",
+      "locator": "en/concepts section; design section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context compilation assembles persisted context into prompt-ready output, acting as a scaffold layer.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/llms.txt",
+      "quote": "Context Compilation Overview\n/en/context-compilation/01-overview",
+      "locator": "en/context-compilation section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SessionCommit has a configurable flush threshold (default 8, local override 50) controlling how often session state is committed to the store.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/llms.txt",
+      "quote": "SessionCommit Default 8 with Local Override 50 Implementation Plan\n/superpowers/plans/2026-08-11-session-commit-default-8-local-50",
+      "locator": "superpowers/plans section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Default semantic search mixes memory and resource records in one ranked pool; anomalous memory scores (~1e37) crowd resources out of the result window, producing zero resource hits for any query.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4377",
+      "quote": "The default semantic search (`POST /api/v1/search/find` without `context_type`) returns **zero resource hits for any keyword**, because memory records produce anomalous **finite** similarity scores of ~1e37 (query-independent) that dominate the ranking window and crowd out resources.",
+      "locator": "Bug Description",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The agent evolution API returns empty results for experiences with missing trajectory backlinks, making experience effectiveness evaluation impossible.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4329",
+      "quote": "GET /api/v1/agent-evolution/experiences/trajectories returns total: 0 for experiences that have been revised up to 18 times, and outcomes returns all-zero distributions, so experience effectiveness cannot be evaluated.",
+      "locator": "Impact",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Out of 1,365 memory files, 121 exceed 5KB and 8 exceed 9KB \u2014 far beyond expected entry size, indicating systemic distillation failure.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/3006",
+      "quote": "Out of 1,365 memory files, 121 files are >5KB and 8 files are >9KB \u2014 far larger than what a memory entry should be.",
+      "locator": "Observed Files (examples)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No built-in chunking or size-limiting mechanism exists for memory writes; users must implement external workarounds to keep the retrieval pipeline functional.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/3006",
+      "quote": "We had to write a custom chunking script (ov-memory-chunker.py) to split oversized memory files, running daily via cron, just to keep the embedding pipeline functional.",
+      "locator": "Workaround Applied",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memories_extracted counter was 0 despite the VLM running and consuming tokens, confirming a silent extraction failure introduced between v0.4.2 and v0.4.6/v0.4.7.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/3012",
+      "quote": "commit_count:   1 \u2705\n  llm:  prompt=3839  completion=2807  total=6646 \u2705\uff08VLM \u8dd1\u4e86\uff09\n  memories_extracted: total=0 \u274c",
+      "locator": "Bug Description section, code block",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The extraction stage in memory v2 uses a ReAct pipeline; the pipeline's output parser discards model responses that do not match its expected format, causing zero memories to be stored even when extraction appears to run.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/3012",
+      "quote": "v0.4.7 memory v2 \u7684 ReAct \u7ba1\u9053\u5bf9 DeepSeek \u7684\u8f93\u51fa\u683c\u5f0f\u517c\u5bb9\u6027\u4e0d\u591f\u597d",
+      "locator": "Bug Description section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking is configured as a memory plugin for the hermes agent; the memory plugin runs per-session extraction after the conversation turn.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/3012",
+      "quote": "hermes agent \uff08v0.18.0/v0.17.0\uff09\u914d\u7f6e\u8bb0\u5fc6\u63d2\u4ef6\u5c31\u662fopenviking\uff0c\u6b63\u5e38\u7528\u5c31\u53d1\u751f",
+      "locator": "Steps to Reproduce section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The product targets extraction of 6 categories of valuable content from sessions as its core memory write path.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/3012",
+      "quote": "\u671f\u5f85\uff0c\u80fd\u6b63\u5e38\u62bd\u53d6\u6709\u7528\u76846\u7c7b\u4ef7\u503c\u5185\u5bb9\u3002",
+      "locator": "Expected Behavior section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "_extract_event_summary() always returns the full document instead of the summary section because its regex expects 'Summary:' but the template writes '# Summary'.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/3598",
+      "quote": "The pattern requires the body to start with Summary:. The event template writes a markdown heading \u2014 \u2026 # Summary has a leading # and no colon, so re.search never matches.",
+      "locator": "Defect #1, openviking/retrieve/type_quota_recall.py :222 and openviking/prompts/templates/memory/events.yaml :99",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Fallback recall fragments bypass the per-type char budget, allowing a single oversized event to crowd out entities, preferences, and experiences.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/3598",
+      "quote": "The fallback branch below it (:452-461) charges only total_chars. \u2026 since events is first in TYPE_ORDER, one oversized event takes chars away from entities / preferences / experiences.",
+      "locator": "Defect #2, openviking/retrieve/type_quota_recall.py :424-461",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "get_event_content() ratio_threshold is always overridden to 0 at the call site in events.yaml, making the transcript-vs-summary selection branch permanently unreachable.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/3598",
+      "quote": "The template (events.yaml, content_template, :102) passes 0, so >= 0 is always true and the function always returns original. The parameter's own default is 0.2; the single call site overrides it with a value that makes the branch unreachable.",
+      "locator": "Defect #3, openviking/session/memory/memory_updater.py :362-376 and events.yaml :102",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Tool-call-only turns emit blank speaker lines into stored event ChatLogs and into the embedding text, wasting retrieval budget on empty content.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/3598",
+      "quote": "203 turns, 112 of them empty (55%). One document had 30 of 34 turns empty (88%), about 40% of its bytes. \u2026 the embedded text is the full verbatim transcript including the blank speaker lines.",
+      "locator": "Defect #4, memory_updater.py _format_contiguous_group() :576-582 and events.yaml embedding_template :105",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The abstract field in the vector store is the full stripped content rather than the VLM summary, making the fallback for failed summary extraction maximally expensive.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/3598",
+      "quote": "per #3142 abstract is the full stripped document. So the mode = \"summary\" degradation at :442 saves nothing: a \"summary\" fragment is the same size as the full one.",
+      "locator": "Defect #1, reference to issue #3142",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Default retrieval scope includes memory; with context_type=None no type filter is applied, so memory is always retrieved and ranked in the default search.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4377",
+      "quote": "`core/retrieval_targets.py:83` returns `[user_root, \"viking://resources\"]` for users without `actor_peer_id`, and `context_type=None` applies no type filter (`viking_vector_index_backend.py:1522`), so memory and resource are pulled in the same vector query and mixed-ranked.",
+      "locator": "Actual Behavior",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking models identity with four scopes: account_id (tenant), user_id (security boundary), session_id (session), peer_id (actor/workspace scope within a user).",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4060",
+      "quote": "account_id = tenant boundary\nuser_id    = user/session ownership and security boundary\nsession_id = session identity\npeer_id    = actor/workspace/content scope inside a user",
+      "locator": "Current understanding section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Alice and Bob must be hard-isolated for sessions and private memory at the user_id level.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4060",
+      "quote": "Alice and Bob must be hard-isolated for sessions and private memory.",
+      "locator": "Background / requirements section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No confirmed built-in OpenViking mechanism exists for promoting per-user experiences into shared agent capabilities; the question is whether this belongs in the application layer.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4060",
+      "quote": "Is there a recommended OpenViking pattern for this today \u2014 shared resources, a dedicated bot user, another scope, or should this promotion layer live in the application?",
+      "locator": "Question 4 section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The current Hermes plugin uses static credentials and cannot dynamically resolve per-end-user identity for multi-user deployments.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4060",
+      "quote": "This works for fixed single-user/profile deployments, but does not seem to directly implement the 'one Agent/gateway serving many end users' model.",
+      "locator": "Current Hermes integration concern section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Backlink coverage is severely asymmetric: experiences have 93% link coverage but trajectories have only 52% backlink coverage due to the silent drop.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4329",
+      "quote": "experiences (links): 63/68 (93%) \u2026 trajectories (backlinks): 106/204 (52%)",
+      "locator": "Impact / link coverage table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "This is a regression or structural repeat of issue #4031; the V2 path was fixed but the V3 training path has a structurally identical defect.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4329",
+      "quote": "the same silent-loss behaviour described in #4031, reached through the V3 policy-trainer path instead of compressor_v2",
+      "locator": "Root cause, step 5",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory files are stored on a local filesystem with approximately 940 memory files for a single account in this deployment.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4329",
+      "quote": "single local server, NSSM service, 1 account / ~940 memory files",
+      "locator": "Operating System",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory scores are query-independent \u2014 even a semantically unrelated query like 'randomword123' returns memory scores of ~1e37, meaning retrieval rank does not reflect relevance for memory records under int8 quantization.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4377",
+      "quote": "query=randomword123 memory scores: [1.13e+37, 6.10e+36, 5.31e+36] \u2190 unrelated query still overflows",
+      "locator": "Steps to Reproduce \u2014 Decisive evidence",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A prior incomplete fix for anomalous scores (#inf-score) only guarded against inf/nan, leaving large finite pathological values (~1e37 from int8 quantization) unhandled across all three sanitization layers.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4377",
+      "quote": "The historical fix used `math.isfinite`, which only catches inf/nan. \u2026 This is a coverage gap in the `#inf-score` fix.",
+      "locator": "Additional Context \u2014 points 3\u20134",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "int8 quantization is hardcoded in the vector write path for memory records as a performance optimization; the C++ scoring engine produces anomalous finite scores for int8 IP vectors on certain distributions.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4377",
+      "quote": "`engine/_x86_avx2.abi3.so` computes anomalous ~1e37 **finite** scores for `Quant: int8` vectors on memory-class records. \u2026 `base.py:257` hardcoded `Quant: int8` for memory savings + SIMD",
+      "locator": "Bug Description \u2014 Layer 1; Additional Context \u2014 point 2",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "All environments upgraded from a schema version predating search_tags are affected; only fresh deployments using the current schema template are not.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4378",
+      "quote": "**Affected:** all environments whose `context` collection was created under an earlier schema version (includes any upgrade path from a version predating `search_tags`). The entire `set_tags` feature is non-functional (write-then-discard). **Not affected:** fresh deployments (collection created with the current schema template, which natively includes `search_tags`).",
+      "locator": "Additional Context \u2014 Impact",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "No schema migration, alter-field, ensure-schema, or schema-version logic exists anywhere in the storage backend code as of v0.4.16.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4378",
+      "quote": "grep -rn \"migrate\\|alter.*field\\|ensure.*schema\\|schema.*version\" \\\n  /usr/local/lib/python3.10/dist-packages/openviking/storage/viking_vector_index_backend.py \\\n  /usr/local/lib/python3.10/dist-packages/openviking/storage/vectordb_adapters/*.py\n# no output",
+      "locator": "Bug Description \u2014 Root cause \u2014 schema version drift, no auto-migration",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Continuity failure: the extraction agent failed to persist any skill from a session that clearly demonstrated a reusable workflow, due to a dead-end error loop with no recovery path.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4831",
+      "quote": "the extraction attempt ended without producing a skill or any further activity \u2014 even though prefetch() had already told it, in plain language, everything it needed to know",
+      "locator": "Summary section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking 0.4.16 raised the VLM request timeout from 60s to 600s but did not address connection reuse in the VLM backend.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4464",
+      "quote": "0.4.16 raised request timeout 60s\u2192600s but did not address connection reuse",
+      "locator": "Environment section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The VLM backend client construction in openviking/models/vlm/backends/openai_vlm.py sets only api_key, base_url, and timeout; no keepalive or http_client customization exists anywhere in 0.4.16.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4464",
+      "quote": "Grep of 0.4.16 shows no `keepalive` handling anywhere in the package",
+      "locator": "Suggestion section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "WM archive section headers (Session Title, Task & Goals, Current State, etc.) are produced in English even when the conversation is in another language, causing mixed-language archives.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4481",
+      "quote": "Example from a Chinese session archive (`Session Title` / `Task & Goals` in English, `Current State` partially following the content)",
+      "locator": "## Problem",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The WM archive pipeline does not thread output language into the prompt, so the model defaults to the prompt's own language (English), breaking continuity for non-English sessions.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4481",
+      "quote": "Both WM templates are written entirely in English with **no output-language instruction** in the prompt body, so the model follows the prompt language.",
+      "locator": "## Root cause",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "output_language_override config key exists in ov.conf and is honored by the language resolution utility, but is not applied to WM archive generation as of 0.4.17.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4481",
+      "quote": "`output_language_override: \"zh-CN\"` set in ov.conf",
+      "locator": "## Environment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The suggested fix routes language resolution into render_prompt so WM archive content language follows the conversation automatically (Chinese session \u2192 Chinese WM), consistent with memory-extraction pipelines.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4481",
+      "quote": "This makes the archive language follow the conversation automatically (Chinese session \u2192 Chinese WM, English session \u2192 English WM), with `output_language_override` still winning when set \u2014 consistent with the memory-extraction pipelines.",
+      "locator": "## Suggested fix",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The task queue has no priority isolation between bulk ingestion tasks and interactive session_commit memory extraction tasks.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4578",
+      "quote": "The task queue (queue.db: Embedding / Semantic / Semantic-Nodes / ExternalParse) has no priority classes. Any bulk job \u2014 resource ingestion, reindex, or the topology-triggered full rebuild described in #4577 \u2014 shares FIFO ordering with interactive `session_commit` memory extraction.",
+      "locator": "Problem Statement",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The only supported remediation is destructive: backing up queue.db, manually deleting stuck/bulk rows, and restarting OpenViking.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4578",
+      "quote": "Our only remediation was destructive: back up queue.db, `DELETE` the stuck/bulk rows, restart OV. That loses bulk work and requires a maintenance window.",
+      "locator": "Observed Behavior (production incidents)",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A bulk ingestion coinciding with active work sessions makes agents amnesiac exactly when they are busiest.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4578",
+      "quote": "A memory system where interactive commits can be starved for days by bulk jobs makes agents amnesiac exactly when they are busiest (bulk ingestion usually coincides with active work sessions).",
+      "locator": "Why it matters",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory extraction can silently yield 0 memories due to DSML tool-call markup leaking into content, which _call_llm does not handle, causing all retries to be wasted.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4580",
+      "quote": "`_call_llm` finds no tool calls, JSON parsing of the content fails, the iteration is wasted; after retries the run ends with 0 memories.",
+      "locator": "## Symptom, item 1",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A thinking model answering in prose triggers a branch that disables tools for the next iteration, which is the opposite of what the model requested, degrading extraction to 0 memories.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4580",
+      "quote": "The failure branch then sets `_disable_tools_for_iteration = True`, so the *next* iteration runs with tools disabled \u2014 exactly the opposite of what the model asked for \u2014 and extraction degrades to 0 memories.",
+      "locator": "## Symptom, item 2",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Silent failure is a known continuity issue: the metrics surface reports success even when 0 memories were extracted, cross-referenced with issue #4486.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4580",
+      "quote": "the queue/metrics surface reports success (see also #4486)",
+      "locator": "## Symptom, item 3",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The extract loop architecture uses iterative LLM tool calls; a patch adds DSML markup parsing and prose-continuation logic to recover failed extraction iterations.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4580",
+      "quote": "Two small, additive patches against v0.4.17.1 \u2014 full diff: https://gist.github.com/tizerluo/f26126f1cd666dcc7598fc6bb3631455 (we run it as a bind-mounted `extract_loop.py`)",
+      "locator": "## Patch",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "All memory directories show '[Directory abstract is not ready]' and search recall accuracy is 0/10 due to missing L0 abstracts.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4612",
+      "quote": "\u6240\u6709 memory \u76ee\u9304\u986f\u793a `[Directory abstract is not ready]`\uff0c\u641c\u5c0b\u53ec\u56de\u6e96\u78ba\u7387 0/10\u3002",
+      "locator": "Section \u4e00\u3001\u554f\u984c\u63cf\u8ff0",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LockAcquisitionError is wrapped as RuntimeError in _write_memory_directory_semantics, causing the outer handler to skip re-enqueue and retry, so abstracts are never written on lock failure.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4612",
+      "quote": "_write_memory_directory_semantics \u628a `LockAcquisitionError` \u5305\u88dd\u6210 `RuntimeError`\uff0c\u5c0e\u81f4\u5916\u5c64 handler \u7121\u6cd5\u8b58\u5225\u3002",
+      "locator": "Section \u4e8c\u3001Bug 1, semantic_processor.py line 773-774",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Parent directory abstract rollup is unimplemented despite being documented in a docstring; parent directories with only subdirectories never get an abstract.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4612",
+      "quote": "Line 85 \u7684 docstring \u8aaa \"Collect .abstract.md from subdirectories\" \u4f46\u5be6\u969b\u4e0a\u6c92\u6709\u5be6\u4f5c\u3002",
+      "locator": "Section \u4e8c\u3001Bug 2, semantic_processor.py line 85",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval failures manifest as continuity failures: named entities (e.g. 'Sarah Wang \u540c\u4e8b', 'openviking server'), past events (e.g. 'cron job \u6545\u969c', 'obsidian vault sync'), and prior conversation topics all fail to surface \u2014 search returns 0 results or wrong results for 10/10 queries.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4612",
+      "quote": "| 8 | Sarah Wang \u540c\u4e8b | sarah_wang entity | timeout | \u274c |\n| 9 | CSS flex \u91cd\u758a | CSS \u91cd\u758a\u6848\u4f8b | 0 \u7d50\u679c | \u274c |\n| 10 | cron job \u6545\u969c | cron \u8a3a\u65b7\u6848\u4f8b | 0 \u7d50\u679c | \u274c |",
+      "locator": "Section \u516d\u3001\u57fa\u6e96\u6e2c\u8a66\uff08\u4fee\u6539\u524d\uff09",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Success criterion for the fix is search accuracy \u22657/10 and non-placeholder abstracts visible in viking_browse.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4612",
+      "quote": "`viking_browse` \u986f\u793a\u975e placeholder \u7684 abstracts\n\u2705 Search accuracy \u5f9e 0/10 \u63d0\u5347\u5230 \u22657/10",
+      "locator": "Section \u4e03\u3001\u6210\u529f\u6a19\u6e96",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "is_stale() guards the write path by checking coalesce_version to prevent stale data from overwriting newer data.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4612",
+      "quote": "`is_stale()` \u6aa2\u67e5 `coalesce_version` \u662f\u5426\u5c0f\u65bc\u7576\u524d\u7248\u672c\u3002\u9019\u662f\u6b63\u78ba\u7684\u884c\u70ba \u2014 \u907f\u514d\u904e\u6642\u7684\u8cc7\u6599\u8986\u84cb\u65b0\u8cc7\u6599\u3002",
+      "locator": "Section \u4e09\u30012. is_stale() \u908f\u8f2f",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session commit triggers memory extraction via the VLM backend; misconfigured reasoning_effort causes extraction to run at max cost with no warning.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4686",
+      "quote": "Commit a session so memory extraction runs. Inspect the outgoing request payload. `reasoning_effort` is absent, so the call runs at Z.AI's default, `max`. In my setup this extraction took several minutes per commit.",
+      "locator": "Steps to Reproduce, steps 3\u20134",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Extraction calls and trajectory analysis are intended to use different thinking modes, but forced-thinking models cannot honor both.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4686",
+      "quote": "#4066 (open) asks for per-call thinking semantics on generic routes. Its premise is that extraction calls run with thinking=False while trajectory analysis uses thinking=True; forced-thinking models can't honor both.",
+      "locator": "Additional Context, related issue #4066",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Version 0.4.17.1 is the latest release; the relevant file is unchanged on main since 2026-07-30.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4686",
+      "quote": "0.4.17.1 (latest release). `openviking/models/vlm/backends/openai_vlm.py` is unchanged on main since 2026-07-30, so main behaves the same.",
+      "locator": "OpenViking Version",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory tab shows all categories empty and access denied because Helper uses accountId instead of userId when composing the viking:// URI for the files:get-tree IPC call \u2014 a continuity failure where the wrong principal's namespace is addressed.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4722",
+      "quote": "Helper substitutes accountId where userId belongs when composing viking://user/<id>/memories for the files:get-tree IPC call. Both values are stored correctly in openviking-helper.json; only the consumer picks the wrong one.",
+      "locator": "Root Cause",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The bug only manifests when accountId differs from userId (e.g. self-hosted deployments); when they are equal the wrong-field substitution is invisible.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4722",
+      "quote": "this is the trigger \u2014 with accountId == userId the bug is invisible",
+      "locator": "Steps to Reproduce",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is split into at least two URI-addressable scopes: a root memories store and a nested experiences sub-store, suggesting a typed or tiered memory architecture.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4829",
+      "quote": "viking://~/memories \u53ca viking://~/memories/experiences \u8fd4\u56de INVALID_URI",
+      "locator": "issue body, Your Question section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The prefetch step scaffolds the agent turn by injecting a plain-language skill listing (or empty-directory notice) before the agent acts \u2014 the model is not expected to discover skills live via tool calls.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4831",
+      "quote": "prefetch()'s internal ls() correctly finds nothing and injects a synthetic tool result telling the model: \"Directory is empty. You can create a new skill if the conversation shows a reusable workflow.\"",
+      "locator": "Repro section, step 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The instruction() method on the context provider is the mechanism for telling the model how to use the read tool, and can be augmented to prevent directory-read mistakes.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4831",
+      "quote": "instruction() could also say explicitly: \"Only call read on an exact .../SKILL.md path from the listing above -- never on a directory path.\"",
+      "locator": "Suggested fix section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Source files involved in skill extraction are openviking/session/skill/session_skill_context_provider.py and openviking/storage/viking_fs/_ops.py.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4831",
+      "quote": "SessionSkillContextProvider.get_tools() in openviking/session/skill/session_skill_context_provider.py returns [\"read\"] only, but execute_tool() falls through to the generic filesystem read (openviking/storage/viking_fs/_ops.py)",
+      "locator": "Root cause section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking persists turns via POST /messages (addSessionMessage) and POST /commit (commitSession) endpoints; retrieval is a separate GET /context endpoint.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4850",
+      "quote": "request audit shows only GET /api/v1/sessions/{id}/context calls for that turn \u2014 no POST .../messages and no POST .../commit",
+      "locator": "Steps to Reproduce, step 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking writes were happening hourly before the regression; after the openclaw 2026.9.3 upgrade all gateway-dispatched session writes stopped while workshop sessions continued writing normally.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4850",
+      "quote": "OpenViking writes happened hourly up to the openclaw 2026.9.3 upgrade; the first post-upgrade turns (a long multi-tool task and subsequent sessions on the gateway-dispatched channel) produced zero writes, while a same-night workshop session still wrote normally.",
+      "locator": "Additional Context",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "addSessionMessage has no idempotency key, creating a narrow duplicate-write window on retry.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4850",
+      "quote": "addSessionMessage has no idempotency key \u2014 a narrow duplicate-write window that also existed on the legacy afterTurn path",
+      "locator": "Additional Context, residual limitations",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The DSL parser rejects output containing triple-quoted strings or invalid Python syntax, causing extraction to produce zero operations even when the model attempts to write",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4879",
+      "quote": "local models repeatedly produce triple-quoted rewrites that break the parser (`Line 1: only assignments and SDK/object calls are allowed`; `Line 5: invalid Python syntax: unterminated`)",
+      "locator": "Finding 1 \u2014 Session-memory extraction effectively requires a Doubao-class model",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vectors and retrieval survive migration across versions (0.4.13 \u2192 0.4.19), indicating the store is durable across upgrades",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4879",
+      "quote": "Data migrated from 0.4.13 (vectors intact, retrieval OK)",
+      "locator": "Context section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A community workaround routes session distillation through an external model and calls ov add-resource to write memories, bypassing the broken extract_loop entirely",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4879",
+      "quote": "A small watcher (systemd, 30s) that detects new agent sessions, distills them with a free OpenAI-compatible chat model (GLM-4-Flash) via the standard tools/chat API, appends the bullets to a markdown file, and calls `ov add-resource` on it. Result: sessions \u2192 distilled memories \u2192 vector index \u2192 `find` hits, fully working today.",
+      "locator": "Community workaround we shipped in the meantime",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking distinguishes session-scoped Working Memory (archive summaries injected per turn) from long-term extracted memories (recalled via auto-recall).",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4884",
+      "quote": "Extracted long-term memories may still be recalled via auto-recall \u2014 that's the intended memory layer \u2014 but the session-scoped Working Memory/archive injection should not replay pre-reset history.",
+      "locator": "Expected Behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OV session store key is computed deterministically from the host session id; no new OV session is created unless the host rotates its session id.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4884",
+      "quote": "routing/identity-routing.ts -> openClawSessionToOvStorageId(sessionId, sessionKey) returns the same id because /reset keeps the sessionId",
+      "locator": "Steps to Reproduce / Source-level path",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "commitSession with keepRecentCount: 0 archives all active messages and generates a fresh Working Memory summary; this is the write/commit path on session boundary events.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4884",
+      "quote": "client.commit_session(session_id, keep_recent_count=0) # before_reset hook",
+      "locator": "Minimal Reproducible Example",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Proposed fix involves introducing a session revision/epoch concept so that getSessionContext/assemble suppresses archive-overview injection until genuinely new post-boundary content exists.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4884",
+      "quote": "record a reset boundary in the OV session (e.g., a new OV session revision/epoch) and have getSessionContext/assemble treat post-boundary turns as a new window: no archive-overview injection until post-boundary content exists.",
+      "locator": "Additional Context / Suggested fixes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "@openviking/dsh-memory-plugin is a separately installable plugin (version 0.3.0) that provides memory functionality for OpenViking's web profile.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4944",
+      "quote": "\u5728 web profile \u4e2d\u5b89\u88c5 `@openviking/dsh-memory-plugin@0.3.0` \u540e\uff0c`dsh web` \u65e0\u6cd5\u542f\u52a8",
+      "locator": "Bug Description / \u95ee\u9898\u63cf\u8ff0",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The memory plugin is loaded via a plugin installation command targeting a named profile, indicating per-profile (and likely per-user) isolation of memory plugin state.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4944",
+      "quote": "dsh plugin --profile <profile> add @openviking/dsh-memory-plugin",
+      "locator": "Steps to Reproduce / \u590d\u73b0\u6b65\u9aa4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "@openviking/dsh-memory-plugin@0.3.0 fails to start due to a broken transitive dependency (@deepseek-ai/dsh-skill-filesystem importing assertNever from the wrong package), preventing the memory plugin from functioning at all.",
+      "kind": "issue",
+      "url": "https://github.com/volcengine/OpenViking/issues/4944",
+      "quote": "\u7ecf\u9010\u4e2a\u63d2\u4ef6\u6392\u67e5\uff0c\u95ee\u9898\u7531 `@openviking/dsh-memory-plugin` \u7684\u4f20\u9012\u4f9d\u8d56 `@deepseek-ai/dsh-skill-filesystem`\uff08\u7248\u672c 0.0.1-rc.3\uff09\u5f15\u5165\u3002\u8be5\u5305\u5728\u6e90\u7801\u4e2d\u4ece\u9519\u8bef\u8def\u5f84\u5bfc\u5165 `assertNever`",
+      "locator": "Bug Description / \u6839\u56e0\u5206\u6790",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Three-tier context loading (L0 ~100 tokens, L1 ~2K tokens, L2 full content) controls how much of a stored resource is loaded into context at a given time",
+      "kind": "blog",
+      "url": "https://developers.redhat.com/articles/2026/04/23/deploy-openviking-openshift-ai-improve-ai-agent-memory",
+      "quote": "L0 (abstract): A one-sentence summary (roughly 100 tokens) used for quick identification and cheap retrieval. L1 (overview): Core information and usage context (around 2K tokens) is enough for planning and decision-making. L2 (full content): The complete original document is only loaded when the agent needs deep detail.",
+      "locator": "Section: What OpenViking actually does",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session commit extracts durable memories that persist across future interactions, giving agents long-term memory",
+      "kind": "blog",
+      "url": "https://developers.redhat.com/articles/2026/04/23/deploy-openviking-openshift-ai-improve-ai-agent-memory",
+      "quote": "Sessions let agents accumulate long-term memories from conversations. You create a session, add messages, and when you commit, OpenViking extracts durable memories that persist across future interactions. Over time, agents can actually get better as they build up context.",
+      "locator": "Section: From deployment to usage",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking's REST API is compatible with OpenAI-style file_search and vectorstore APIs",
+      "kind": "blog",
+      "url": "https://developers.redhat.com/articles/2026/04/23/deploy-openviking-openshift-ai-improve-ai-agent-memory",
+      "quote": "OpenViking's REST API is compatible with the OpenAI-style file_search and vectorstore APIs, so teams already using OpenShift AI's RAG capabilities could integrate OpenViking as a drop-in backend for those workflows",
+      "locator": "Section: The bigger picture",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking is licensed under Apache 2.0",
+      "kind": "blog",
+      "url": "https://developers.redhat.com/articles/2026/04/23/deploy-openviking-openshift-ai-improve-ai-agent-memory",
+      "quote": "OpenViking is licensed under Apache 2.0.",
+      "locator": "Final paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory V3 extraction is the active pipeline with streaming patch-merge updates",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/about/02-changelog",
+      "quote": "Memory v3 extraction is the active pipeline, with streaming patch-merge updates and session train/eval support.",
+      "locator": "v0.4.8 Highlights",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget is an explicit first-class API/MCP operation, not just omission at generation time",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/about/02-changelog",
+      "quote": "openviking-server now exposes /mcp on the same port as the REST API, reusing API-Key auth and providing 9 tools ( search , read , list , store , add_resource , grep , glob , forget , health ).",
+      "locator": "v0.3.13 Highlights",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation boundary is user (data ownership) + peer (interaction counterpart), not session or role; legacy role_id isolation removed",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/about/02-changelog",
+      "quote": "Legacy role_id memory isolation is no longer supported; use the User / Peer model for isolation boundaries.",
+      "locator": "v0.4.1 Upgrade Notes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Workspace peer is derived from git repo origin URL for per-project memory isolation across clones and worktrees",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/about/02-changelog",
+      "quote": "every clone, worktree, and subdirectory of one repository shares a single peer while a fork keeps its own",
+      "locator": "Unreleased \u2014 Workspace peer derivation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is extracted and stored as curated facts (entities, events, preferences) with deduplication, not as a raw transcript log",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/about/02-changelog",
+      "quote": "Memory V2 is now the default memory pipeline, featuring a redesigned format, refactored extraction and dedup flow, and improved long-term memory quality.",
+      "locator": "v0.3.8 Memory V2 Spotlight",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path includes conflict-aware deduplication",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/about/02-changelog",
+      "quote": "Memory handling is redesigned with conflict-aware deduplication and a new extraction flow.",
+      "locator": "v0.1.18 Highlights",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cold-storage archival with hotness scoring tiers memories by access recency rather than keeping all in hot retrieval",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/about/02-changelog",
+      "quote": "Memory cold-storage archival with hotness scoring, chunked vectorization for long memories, used() tracking interface.",
+      "locator": "v0.2.8 Highlights",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Recall in coding-agent plugins fires via lifecycle hooks (auto-recall), not on every turn unconditionally",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/about/02-changelog",
+      "quote": "revamped Codex / OpenCode plugins use lifecycle hooks for auto-recall, incremental capture, and PreCompact commit",
+      "locator": "v0.3.17 Highlights",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval is hierarchical with L0/L1/L2 levels and reranking; a configurable query planner selects the intent-analysis model",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/about/02-changelog",
+      "quote": "Added a lightweight query-planner config so the intent-analysis model used during retrieval can be selected and tuned.",
+      "locator": "v0.3.22 Highlights",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session memory-policy is per-session configurable and controls whether extraction runs",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/about/02-changelog",
+      "quote": "String \"false\" memory-policy switches now disable extraction correctly.",
+      "locator": "Unreleased \u2014 Session policy compatibility",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LoCoMo benchmark scripts exist for evaluation; vendor-run scores are present but harness details are not described on this page",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/about/02-changelog",
+      "quote": "Added session skill extraction behind memory.session_skill_extraction_enabled , Hermes OpenViking LoCoMo benchmark scripts",
+      "locator": "v0.3.19 Highlights",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The product provides cross-session long-term memory by automatically recalling and capturing conversation content on every turn lifecycle hook.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/02-claude-code",
+      "quote": "Give Claude Code cross-project and cross-session long-term memory. Once installed, every conversation automatically recalls relevant memories and captures new content without requiring the model to make any tool calls.",
+      "locator": "Claude Code Memory Plugin \u2014 opening paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall fires before every user prompt (retrieve-then-inject); capture fires after every response (write path). This is retrieve-then-prompt with an automatic write path, not model-weight learning.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/02-claude-code",
+      "quote": "Before every prompt \u2014 searches OpenViking and injects relevant memories\nAfter each response \u2014 captures new conversation turns",
+      "locator": "How it works \u2014 bullet list",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Large tool outputs are offloaded to a tool-result store and replaced in-context with a stub and reference, acting as a selective log rather than a full verbatim transcript in the prompt.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/02-claude-code",
+      "quote": "output larger than tool_output_externalization.threshold_chars (default 20000) is written to the session's tool-result store, and the part keeps a synopsis stub plus tool_output_ref",
+      "locator": "How it works \u2014 tool output paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated by workspace peer (repository origin URL by default), giving per-project memory scope rather than a single global store.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/02-claude-code",
+      "quote": "Memories are filed under a peer derived from the repository you are working in, so one project keeps one memory across clones, worktrees, and subdirectories.",
+      "locator": "Workspace peer \u2014 first paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The page does not describe any explicit forget or delete API; the bypass controls suppress hooks for a session but do not delete stored memories.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/02-claude-code",
+      "quote": "OPENVIKING_BYPASS_SESSION \u2026 Skip all hooks for this session",
+      "locator": "Configuration \u2014 env var table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Profile and memory index are loaded at session start (SessionStart hook); relevant memories are recalled before every prompt (UserPromptSubmit hook); new turns are captured after each response (Stop hook).",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/04-codex",
+      "quote": "On SessionStart ( startup , clear , or resume ), it injects profile.md plus URI and abstract indexes for preferences/ and entities/ \u2026 It then searches OpenViking and injects relevant memories before every prompt ( UserPromptSubmit ), appends new turns to the session after each response ( Stop )",
+      "locator": "How it works",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Full transcript is committed before compaction and at graceful session end; sessions not ending gracefully (crash, SIGTERM, kill -9) are recovered by a 30-minute idle-TTL sweep at next SessionStart.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/04-codex",
+      "quote": "commits the full transcript before compaction ( PreCompact ), and commits the session when the thread shuts down ( SessionEnd ) so memory extraction processes the entire conversation \u2026 Those sessions \u2026 are recovered by the idle-TTL sweep (30 minutes) at the next SessionStart .",
+      "locator": "How it works / Known limitation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per workspace peer, defaulting to a normalized git origin URL, falling back to user-level space outside a repository.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/04-codex",
+      "quote": "Memories are filed under a peer derived from the repository you are working in, so one project keeps one memory across clones, worktrees, and subdirectories. The default peer.source: \"git\" uses the repository's normalized origin URL \u2026 outside a repository no peer is sent at all, and what is remembered there goes to your user-level space at viking://user/<you>/memories .",
+      "locator": "Workspace peer",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-prompt injection can be disabled independently of session-start profile injection, indicating retrieve-then-inject and profile-load are separate pipeline stages.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/04-codex",
+      "quote": "Disable fixed session-start profile/background injection without disabling per-prompt recall",
+      "locator": "Configuration (env var table, OPENVIKING_NO_AUTO_INJECT)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall queries are filtered by configurable regex rules before being issued, and captured turns are filtered before storage, giving write-path and retrieve-path filtering.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/04-codex",
+      "quote": "OPENVIKING_RECALL_QUERY_FILTERS \u2026 CSV of sed-style regex rules applied to the prompt before it becomes a query \u2026 OPENVIKING_CAPTURE_FILTERS \u2026 CSV of sed-style regex rules applied to every captured turn",
+      "locator": "Configuration (env var table)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "OpenViking serves as a first-class memory provider for Hermes Agent, handling storage, recall, and extraction natively.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/05-hermes",
+      "quote": "Hermes Agent by Nous Research has a first-class OpenViking memory provider built in. No plugin to install \u2014 just point Hermes at your OpenViking server and it handles memory storage, recall, and extraction natively.",
+      "locator": "Hermes Agent section, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking server runs independently over HTTP, isolated from the Hermes Python environment.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/05-hermes",
+      "quote": "Hermes connects to OpenViking over HTTP, so OpenViking does not need to be installed in the Hermes Python environment. Run the OpenViking server in its own virtual environment or container.",
+      "locator": "Keep the Python environments separate section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory status can be verified via CLI, suggesting the provider exposes an operational status endpoint.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/05-hermes",
+      "quote": "hermes memory status",
+      "locator": "Verify section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cross-session memory recall is automatic on every conversation turn when autoRecall is enabled",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/10-opencode",
+      "quote": "every conversation automatically recalls relevant memories and captures new content through OpenCode plugin hooks",
+      "locator": "OpenCode Plugin \u2014 opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "autoRecall is retrieve-then-prompt: memories are scored and injected into context up to a token budget; no evidence on this page of the model being instructed how to use them",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/10-opencode",
+      "quote": "\"scoreThreshold\": 0.35, \"maxContentChars\": 500, \"preferAbstract\": true, \"tokenBudget\": 2000",
+      "locator": "Configure \u2014 openviking-config.json block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path exposed to the model includes remember, write, edit, and add_resource as distinct operations",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/10-opencode",
+      "quote": "openviking_remember , openviking_write , openviking_edit , openviking_add_resource",
+      "locator": "Verify \u2014 MCP tool set list",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Peer-level isolation is supported via OPENVIKING_PEER_ID; account and user headers support trusted-mode multi-user deployments",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/10-opencode",
+      "quote": "OPENVIKING_PEER_ID = \"opencode\" # optional, peer-scoped memory routing \u2026 account and user are trusted-mode headers",
+      "locator": "Configure \u2014 environment variables section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Empty recall is a known operational failure mode; the troubleshooting table calls it out explicitly",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/10-opencode",
+      "quote": "Recall is empty \u2014 Confirm the OpenViking server has indexed memories/resources and that autoRecall.enabled is true",
+      "locator": "Troubleshooting \u2014 table row",
+      "confidence": "unknown",
+      "label": "unknown"
+    },
+    {
+      "claim": "OpenViking provides cross-session long-term memory by persisting conversation turns to a server-side store and recalling them automatically before each prompt.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/11-pi",
+      "quote": "Give pi cross-session long-term memory and context takeover. recall happens automatically before every prompt, conversation turns are captured after every turn",
+      "locator": "pi Coding Agent Extension \u2014 opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Recall is semantic (embedding/score-based), not verbatim log replay; a scoreThreshold of 0.35 gates what is injected.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/11-pi",
+      "quote": "Every prompt runs semantic recall against the OpenViking server and injects matching memories as hidden context. \u2026 \"scoreThreshold\" : 0.35",
+      "locator": "How it works \u2014 bullet 2; Configure \u2014 config.json",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context takeover replaces the full conversation log with an archive overview once token pressure crosses a threshold, keeping only a recent live tail \u2014 distinguishing curated archive from live log.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/11-pi",
+      "quote": "takeover mode commits once synced-token pressure crosses the threshold and then keeps only the recent live tail in model context \u2026 Context takeover is enabled by default. The context hook injects [OpenViking Session Context] from the latest archive overview",
+      "locator": "How it works \u2014 bullets 3\u20134",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Explicit forget is available as a model-callable native tool (viking_forget), enabling on-demand deletion from the memory store.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/11-pi",
+      "quote": "Native tools viking_search , viking_read , viking_browse , viking_remember , viking_forget , viking_add_resource , viking_archive_expand let the model query and update memory on demand.",
+      "locator": "How it works \u2014 bullet 5",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is peer-scoped: by default, scope is derived from the git repository origin URL, so one repo equals one peer; memories outside a repo go to a user-level namespace.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/11-pi",
+      "quote": "every clone, worktree, and subdirectory of one repository shares a single peer; outside a repository no peer is sent at all, and what is remembered there goes to your user-level space at viking://user/<you>/memories",
+      "locator": "Configure \u2014 peerSource description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Large tool outputs are externalized to a tool-result store rather than kept inline, with only a synopsis stub in context; the full result remains retrievable via API.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/11-pi",
+      "quote": "output larger than tool_output_externalization.threshold_chars (default 20000 ) is written to the session's tool-result store, and the part keeps a synopsis stub plus tool_output_ref , so the original stays readable through /api/v1/sessions/{id}/tool-results",
+      "locator": "How it works \u2014 bullet 8",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Takeover failure is fail-open: the system falls back to full local history rather than losing context when commits or overview generation fail.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/11-pi",
+      "quote": "Takeover is fail-open: if pending writes cannot flush, commit fails, the archive overview is not ready, or the branch fingerprint no longer matches, pi keeps full local history or falls back to its default compaction.",
+      "locator": "Configure \u2014 fail-open note",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenViking exposes a forget tool to the model via MCP, enabling explicit deletion or removal of stored memory.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/15-agent-plugins",
+      "quote": "The model gains find / search / read / list / grep / glob / remember / add_resource / forget / health",
+      "locator": "Install",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory recall in this package is model-driven (skill-loop), not automatic; the model decides when to retrieve and persist.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/15-agent-plugins",
+      "quote": "this package is the portable recall + write surface, driven by the model rather than by lifecycle events: automatic conversation capture and automatic pre-prompt recall are out of scope here",
+      "locator": "Scope: hooks are intentionally absent",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The package identifies per-user and per-peer isolation parameters (OPENVIKING_ACCOUNT, OPENVIKING_USER, OPENVIKING_PEER_ID) suggesting memory scoping at those levels.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/agent-integrations/15-agent-plugins",
+      "quote": "OPENVIKING_ACCOUNT, OPENVIKING_USER, OPENVIKING_PEER_ID",
+      "locator": "Credential resolution",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is scoped per user (viking://user/{user_id}/memories/) and per peer (viking://user/{user_id}/peers/{peer_id}/memories/), providing isolation at user and relationship levels.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/getting-started/01-introduction",
+      "quote": "viking://\n\u251c\u2500\u2500 user/\n\u2502 \u2514\u2500\u2500 {user_id}/\n\u2502 \u251c\u2500\u2500 memories/\n\u2502 \u251c\u2500\u2500 peers/\n\u2502 \u2502 \u2514\u2500\u2500 {peer_id}/\n\u2502 \u2502 \u251c\u2500\u2500 memories/",
+      "locator": "Core Features > 1. File System Management Paradigm > Unified URI Identification",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is long-term and dynamically updated, distinguishing its lifecycle from static resources and skills.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/getting-started/01-introduction",
+      "quote": "Memory \u2014 Agent's cognition (user preferences, learned experiences) \u2014 Long-term, dynamically updated",
+      "locator": "Core Features > 1. File System Management Paradigm > Three Context Types table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory content is curated into typed facts/experiences rather than a raw transcript log; session logs feed an extraction/update pipeline rather than being stored verbatim as memory.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/getting-started/01-introduction",
+      "quote": "OpenViking includes a memory self-iteration loop. After a session is committed, the system asynchronously analyzes task outcomes and user feedback, then updates memory for the current user or Peer according to the active memory policy.",
+      "locator": "Core Features > 5. Automatic Session Management",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieve policy is adaptive: L0 abstracts are used for initial filtering, L1 overviews for reranking, and L2 full content is loaded on-demand, not always injected wholesale.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/getting-started/01-introduction",
+      "quote": "Stuffing massive context into prompts all at once is not only expensive but also risks exceeding model windows and introducing noise. OpenViking automatically processes context into three levels upon ingestion.",
+      "locator": "Core Features > 2. Hierarchical Context On-Demand Loading",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Identity and soul memory types are explicitly designed for assistant continuity \u2014 lore/backstory equivalent persisted across sessions.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/getting-started/01-introduction",
+      "quote": "Assistant identity and continuity \u2014 identity, soul \u2014 Assistant identity, boundaries, style, and continuity",
+      "locator": "Core Features > 5. Automatic Session Management > Built-in memory types table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Prior problem stated for existing memory systems: only user memories are recorded, lacking agent-related task memories \u2014 OpenViking's built-in types address this with cases, trajectories, and experiences.",
+      "kind": "docs",
+      "url": "https://docs.openviking.ai/en/getting-started/01-introduction",
+      "quote": "Limited Memory Iteration: Current memory systems only record user memories, lacking Agent-related task memories",
+      "locator": "Why OpenViking section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "80\u201383% accuracy on LoCoMo benchmark across three agent integrations, up from 24\u201357% with native memory systems.",
+      "kind": "blog",
+      "url": "https://www.coddykit.com/pages/blog-detail?id=513015&slug=openviking-the-open-source-context-database-with-30-000-github-stars-that-gives-",
+      "quote": "80\u201383% accuracy across three different agent integrations (up from 24\u201357% with native memory systems)",
+      "locator": "Benchmark Results: LoCoMo",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "+6.87 pp task success improvement for retail scenarios on tau2-bench; +11.87 pp for airline scenarios.",
+      "kind": "blog",
+      "url": "https://www.coddykit.com/pages/blog-detail?id=513015&slug=openviking-the-open-source-context-database-with-30-000-github-stars-that-gives-",
+      "quote": "+6.87 percentage points improvement in task success for retail scenarios +11.87 percentage points improvement for airline scenarios All improvements come from experience memory \u2014 the agent remembering what worked before",
+      "locator": "Benchmark Results: tau2-bench",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Three-tier loading reduces input tokens by 34.3% to 91.0% depending on agent integration and use case.",
+      "kind": "blog",
+      "url": "https://www.coddykit.com/pages/blog-detail?id=513015&slug=openviking-the-open-source-context-database-with-30-000-github-stars-that-gives-",
+      "quote": "Based on the LoCoMo benchmark results, OpenViking reduces input token consumption by 34.3% to 91.0% depending on the agent integration and use case.",
+      "locator": "FAQ 4",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Research paper VikingMem accepted at VLDB 2026; OpenViking is its open-source implementation.",
+      "kind": "blog",
+      "url": "https://www.coddykit.com/pages/blog-detail?id=513015&slug=openviking-the-open-source-context-database-with-30-000-github-stars-that-gives-",
+      "quote": "It was accepted at VLDB 2026, one of the top database conferences. OpenViking is the open-source implementation of the core capabilities described in the paper (arXiv:2605.29640).",
+      "locator": "FAQ 6",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "30,000+ GitHub stars and 2,300+ forks since launch in early 2026.",
+      "kind": "blog",
+      "url": "https://www.coddykit.com/pages/blog-detail?id=513015&slug=openviking-the-open-source-context-database-with-30-000-github-stars-that-gives-",
+      "quote": "OpenViking has exploded to over 30,000 GitHub stars and 2,300+ forks since its launch in early 2026.",
+      "locator": "Introduction",
+      "confidence": "unknown",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/retrieve/memory_lifecycle.py",
+      "kind": "code",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/retrieve/hierarchical_retriever.py",
+      "kind": "code",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/storage/__init__.py",
+      "kind": "code",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/storage/content_write.py",
+      "kind": "code",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/extract_loop.py",
+      "kind": "code",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_updater.py",
+      "kind": "code",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_isolation_handler.py",
+      "kind": "code",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/merge_policy.py",
+      "kind": "code",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.openviking.ai/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.openviking.ai/design/memory-link-design",
+      "kind": "docs",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.openviking.ai/design/session-memory-extraction-flow",
+      "kind": "docs",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.openviking.ai/en/concepts/02-context-types",
+      "kind": "docs",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.openviking.ai/en/api/05-sessions",
+      "kind": "docs",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.openviking.ai/en/api/06-retrieval",
+      "kind": "docs",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.openviking.ai/en/api/16-memory",
+      "kind": "docs",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/4060",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/4612",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/4580",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/4884",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/4829",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/4850",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/4578",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/3012",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/4329",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/4879",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/4722",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/4481",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/4831",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/3598",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/3006",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/4944",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/4377",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/4378",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/4464",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/volcengine/OpenViking/issues/4686",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://openviking.ai/blog",
+      "kind": "blog",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://blog.openviking.ai/",
+      "kind": "blog",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://docs.openviking.ai/en/agent-integrations/11-pi",
+      "kind": "docs",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.openviking.ai/en/agent-integrations/10-opencode",
+      "kind": "docs",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.openviking.ai/en/agent-integrations/15-agent-plugins",
+      "kind": "docs",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.openviking.ai/en/agent-integrations/05-hermes",
+      "kind": "docs",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.openviking.ai/en/getting-started/01-introduction",
+      "kind": "docs",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.openviking.ai/en/agent-integrations/02-claude-code",
+      "kind": "docs",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.openviking.ai/en/agent-integrations/04-codex",
+      "kind": "docs",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.openviking.ai/en/about/02-changelog",
+      "kind": "docs",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://developers.redhat.com/articles/2026/04/23/deploy-openviking-openshift-ai-improve-ai-agent-memory",
+      "kind": "blog",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.coddykit.com/pages/blog-detail?id=513015&slug=openviking-the-open-source-context-database-with-30-000-github-stars-that-gives-",
+      "kind": "blog",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LocalLLM/comments/1s3d4yl/openviking_explained_reinventing_memory_and/",
+      "kind": "community",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1rumjkt/meet_openviking_an_opensource_context_database/",
+      "kind": "community",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LocalLLM/comments/1w39gkc/openviking_review_a_filesystem_for_ai_agent_memory/",
+      "kind": "community",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/Rag/comments/1sor4rb/bytedances_team_openviking_038/",
+      "kind": "community",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/OpenSourceeAI/comments/1rw13s9/meet_openviking_opensource_context_database/",
+      "kind": "community",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LocalLLM/comments/1rw137a/meet_openviking_opensource_context_database/",
+      "kind": "community",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/OpenClawInstall/comments/1rwu94t/openviking_is_a_highperformance_opensource_vector/",
+      "kind": "community",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Write path mechanics (how facts are extracted, updated, deduplicated, or superseded) are not described on this index page despite it listing an architecture post as canonical",
+      "url": "https://blog.openviking.ai/",
+      "kind": "blog"
+    },
+    {
+      "text": "Retrieve policy (always-on vs adaptive; what triggers retrieval into context) is not described on this index page",
+      "url": "https://blog.openviking.ai/",
+      "kind": "blog"
+    },
+    {
+      "text": "Forget / delete path: this README does not describe how individual memories are deleted or expired from the store. The session commit section describes creation, merging, and skipping but is silent on deletion.",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Conflict and supersession: memory policy mentions creation, merging, or skipping candidates but does not describe how conflicting or outdated facts are superseded or resolved.",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Retrieve policy: the page describes search and find commands but does not specify whether memory retrieval is always-on per turn or triggered adaptively.",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "The distinction between a message log and curated memory (extract/summarize path) is not shown here; ExtractContext is imported and passed through but its extraction logic is defined elsewhere",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_isolation_handler.py",
+      "kind": "code"
+    },
+    {
+      "text": "Isolation scope \u2014 the file shows per-memory-type URI structure but does not specify whether the storage root is per-user, per-session, per-agent, or per-character.",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/session/memory/memory_updater.py",
+      "kind": "code"
+    },
+    {
+      "text": "Retrieve policy for memory (when and how memory files are selected into a turn context) is not covered in this write-path file.",
+      "url": "https://github.com/volcengine/OpenViking/blob/e757dd3749275718406c66fd87766c44556626e0/openviking/storage/content_write.py",
+      "kind": "code"
+    },
+    {
+      "text": "No detail on write path (extract, update, delete, conflict handling), retrieve policy, forget mechanism, or isolation scope \u2014 page is a canonical-adjacent intro post that names these as features but describes none of them",
+      "url": "https://www.reddit.com/r/LocalLLM/comments/1rw137a/meet_openviking_opensource_context_database/",
+      "kind": "community"
+    },
+    {
+      "text": "The page contains no substantive description of OpenViking's memory mechanisms, persistence model, retrieval policy, or architecture. Comments are either tangential or hostile with no technical content about the product.",
+      "url": "https://www.reddit.com/r/LocalLLM/comments/1s3d4yl/openviking_explained_reinventing_memory_and/",
+      "kind": "community"
+    },
+    {
+      "text": "The full review at andrew.ooo would be the canonical source for persist, retrieve, update, forget, and conflict behavior but was not included in this page's text \u2014 core memory behaviors are unaddressed here",
+      "url": "https://andrew.ooo/posts/openviking-context-database-ai-agent-memory-review/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of how conflicts or supersessions are handled when the same fact is stored multiple times (e.g., updated customer notes overwriting stale ones).",
+      "url": "https://www.reddit.com/r/OpenClawInstall/comments/1rwu94t/openviking_is_a_highperformance_opensource_vector/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of how explicit deletion of stored vectors works, only TTL/archival is mentioned as a forget path.",
+      "url": "https://www.reddit.com/r/OpenClawInstall/comments/1rwu94t/openviking_is_a_highperformance_opensource_vector/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of forget / delete behavior: the page does not state how stored context or memories are removed or superseded",
+      "url": "https://www.reddit.com/r/Rag/comments/1sor4rb/bytedances_team_openviking_038/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of isolation model: the page does not state whether memory is scoped per user, session, agent, or character",
+      "url": "https://www.reddit.com/r/Rag/comments/1sor4rb/bytedances_team_openviking_038/",
+      "kind": "community"
+    },
+    {
+      "text": "Forget / delete behavior: this post names memory update but says nothing about how stale or contradicted facts are removed or superseded",
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1rumjkt/meet_openviking_an_opensource_context_database/",
+      "kind": "community"
+    },
+    {
+      "text": "Isolation scope: no mention of whether memory is isolated per user, per session, per agent, or per character",
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1rumjkt/meet_openviking_an_opensource_context_database/",
+      "kind": "community"
+    },
+    {
+      "text": "The page describes isolation as 'links URIs follow existing isolation rules' but does not specify whether isolation is per-user, per-session, per-agent, or per-character \u2014 this is a core memory behavior this architecture doc should cover.",
+      "url": "https://docs.openviking.ai/design/memory-link-design",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy is not described: when and how stored memories are selected back into a turn context is absent from this architecture doc.",
+      "url": "https://docs.openviking.ai/design/session-memory-extraction-flow",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete path is not described: no mechanism for removing or superseding existing stored memories is mentioned.",
+      "url": "https://docs.openviking.ai/design/session-memory-extraction-flow",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict / supersession policy is not described: what happens when a new extraction contradicts an existing stored fact is absent.",
+      "url": "https://docs.openviking.ai/design/session-memory-extraction-flow",
+      "kind": "docs"
+    },
+    {
+      "text": "The page documents the session commit and extraction pipeline but does not describe the retrieve policy for long-term memories: when and how extracted memories are selected back into a session context (always vs. adaptive, scoring, or filtering criteria).",
+      "url": "https://docs.openviking.ai/en/api/05-sessions",
+      "kind": "docs"
+    },
+    {
+      "text": "The page does not describe conflict or supersession logic: what happens when memory extraction produces a fact that contradicts an existing memory entry.",
+      "url": "https://docs.openviking.ai/en/api/05-sessions",
+      "kind": "docs"
+    },
+    {
+      "text": "Write path for memories (how memory entries are created, updated, deleted, or conflict-resolved) is not described on this retrieval page despite this being a core API reference section",
+      "url": "https://docs.openviking.ai/en/api/06-retrieval",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete mechanism: no description of how a memory entry is removed from the store or suppressed at retrieve time",
+      "url": "https://docs.openviking.ai/en/api/06-retrieval",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete behavior \u2014 how entries are removed from the store or suppressed at retrieve \u2014 is not covered on this canonical memory API page.",
+      "url": "https://docs.openviking.ai/en/api/16-memory",
+      "kind": "docs"
+    },
+    {
+      "text": "This is a canonical context-types architecture doc but does not describe the write path for memory in detail: how extraction works (what is extracted, conflict/supersession when a fact changes, delete from store).",
+      "url": "https://docs.openviking.ai/en/concepts/02-context-types",
+      "kind": "docs"
+    },
+    {
+      "text": "The retrieval concept page (/en/concepts/07-retrieval) and retrieval API (/en/api/06-retrieval) are listed but not detailed here; it is unknown whether retrieval is always-on, adaptive, or threshold-gated.",
+      "url": "https://docs.openviking.ai/llms.txt",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete path: no mechanism for deleting, superseding, or hiding memory entries is described on this page.",
+      "url": "https://github.com/volcengine/OpenViking/issues/3006",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe the 6 categories of content targeted for extraction, their schema, or how conflicts or supersession between old and new extracted memories are handled \u2014 gaps in a canonical memory write-path description.",
+      "url": "https://github.com/volcengine/OpenViking/issues/3012",
+      "kind": "issue"
+    },
+    {
+      "text": "No answer or maintainer response is present on this page; it is unclear whether the proposed identity model (end user = OV user_id, agent/runtime = peer_id, shared learning via explicit promotion) is the intended or supported architecture.",
+      "url": "https://github.com/volcengine/OpenViking/issues/4060",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of forget/delete behavior for per-user memory objects (skills, experiences, trajectories, cases) is present on this page.",
+      "url": "https://github.com/volcengine/OpenViking/issues/4060",
+      "kind": "issue"
+    },
+    {
+      "text": "No information on how OpenViking retrieves or selects stored fields (tags, metadata) back into a session or agent turn \u2014 the retrieve policy and read path are absent from this page.",
+      "url": "https://github.com/volcengine/OpenViking/issues/4378",
+      "kind": "issue"
+    },
+    {
+      "text": "No information on delete or forget semantics for stored tags or other persisted fields \u2014 whether removal is a hard delete from RocksDB or a soft hide is not addressed.",
+      "url": "https://github.com/volcengine/OpenViking/issues/4378",
+      "kind": "issue"
+    },
+    {
+      "text": "What the memory-extraction pipeline persists, how it stores or retrieves extracted image-memory facts across sessions, and whether extracted data is curated or logged verbatim \u2014 the issue is silent on the store/reader/scaffold architecture.",
+      "url": "https://github.com/volcengine/OpenViking/issues/4464",
+      "kind": "issue"
+    },
+    {
+      "text": "Forget / deletion path for WM archives: this page describes compression and update but does not specify how archives are deleted or superseded beyond the v2 format check triggering full recreation.",
+      "url": "https://github.com/volcengine/OpenViking/issues/4481",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of the forget/delete path for memories already written to the store; this is a canonical memory architecture doc candidate that does not address it.",
+      "url": "https://github.com/volcengine/OpenViking/issues/4578",
+      "kind": "issue"
+    },
+    {
+      "text": "Retrieve policy (how/when memories are selected into a turn) is not described; the page covers only the write/extraction path.",
+      "url": "https://github.com/volcengine/OpenViking/issues/4578",
+      "kind": "issue"
+    },
+    {
+      "text": "The page references a root issue #2797 ('L0 abstracts \u4e0d\u751f\u6210\uff08\u6839\u672c\u539f\u56e0\uff09') as still open but does not reproduce its content here; the full original description of the L0 abstract generation architecture may be in that issue.",
+      "url": "https://github.com/volcengine/OpenViking/issues/2797",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how conflicts or supersession are handled when a new session would produce a skill that overlaps an existing one \u2014 the write/update path for skills is not covered.",
+      "url": "https://github.com/volcengine/OpenViking/issues/4831",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how or whether skills are retrieved and injected into non-extraction sessions (i.e., the read path at inference time beyond the prefetch scaffold).",
+      "url": "https://github.com/volcengine/OpenViking/issues/4831",
+      "kind": "issue"
+    },
+    {
+      "text": "The GET /context (auto-recall/assemble) retrieval policy is referenced but not described: what is selected, how much history, and under what conditions.",
+      "url": "https://github.com/volcengine/OpenViking/issues/4850",
+      "kind": "issue"
+    },
+    {
+      "text": "No forget/delete mechanism is described anywhere in this issue for removing stored messages or sessions from OpenViking.",
+      "url": "https://github.com/volcengine/OpenViking/issues/4850",
+      "kind": "issue"
+    },
+    {
+      "text": "No documentation exists for the LLM contract required for extraction (tool-calling capability, output format constraints, supported providers); this is a canonical architecture gap the reporter explicitly flags",
+      "url": "https://github.com/volcengine/OpenViking/issues/4879",
+      "kind": "issue"
+    },
+    {
+      "text": "The auto-recall policy for long-term extracted memories is not described: what triggers recall, how memories are selected, and whether there is any suppression logic after a reset boundary.",
+      "url": "https://github.com/volcengine/OpenViking/issues/4884",
+      "kind": "issue"
+    },
+    {
+      "text": "The conflict/supersession policy for extracted memories is not described: how OpenViking handles contradictory or outdated extracted facts across sessions.",
+      "url": "https://github.com/volcengine/OpenViking/issues/4884",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe what @openviking/dsh-memory-plugin actually persists, how it retrieves or selects memories into a turn, or how forget/conflict/isolation are implemented \u2014 despite this being a canonical issue report for the memory plugin package.",
+      "url": "https://github.com/volcengine/OpenViking/issues/4944",
+      "kind": "issue"
+    },
+    {
+      "text": "Forget / delete mechanism: the page does not describe how memories or resources are deleted or superseded from the store",
+      "url": "https://developers.redhat.com/articles/2026/04/23/deploy-openviking-openshift-ai-improve-ai-agent-memory",
+      "kind": "blog"
+    },
+    {
+      "text": "Isolation model: the page does not describe whether memory is scoped per user, per agent, per session, or shared across agents",
+      "url": "https://developers.redhat.com/articles/2026/04/23/deploy-openviking-openshift-ai-improve-ai-agent-memory",
+      "kind": "blog"
+    },
+    {
+      "text": "Conflict / supersession policy: the page does not describe what happens when a newly ingested resource contradicts an existing stored memory",
+      "url": "https://developers.redhat.com/articles/2026/04/23/deploy-openviking-openshift-ai-improve-ai-agent-memory",
+      "kind": "blog"
+    },
+    {
+      "text": "The exact schema and fields of the Memory V3 extraction format are not described; this changelog notes V3 is active but does not document what fields or memory types are extracted or how conflicts are resolved in V3 specifically.",
+      "url": "https://docs.openviking.ai/en/about/02-changelog",
+      "kind": "docs"
+    },
+    {
+      "text": "No forget or delete mechanism is described for removing specific memories from the store. This page is the canonical integration doc and does not cover delete, supersession, or conflict resolution on the write path.",
+      "url": "https://docs.openviking.ai/en/agent-integrations/02-claude-code",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy \u2014 whether recall is always issued per prompt or is adaptive (e.g., suppressed for certain prompt types) \u2014 is not described beyond 'relevant memories are recalled with every prompt'.",
+      "url": "https://docs.openviking.ai/en/agent-integrations/04-codex",
+      "kind": "docs"
+    },
+    {
+      "text": "This page names 'memory storage, recall, and extraction' as the three operations but does not describe the write path (how facts are extracted, updated, or deleted), the retrieval policy (always-on vs adaptive), or how conflicts or supersession are handled. As an integration overview page it may defer these to the Capability Reference and full setup guide linked in See Also.",
+      "url": "https://docs.openviking.ai/en/agent-integrations/05-hermes",
+      "kind": "docs"
+    },
+    {
+      "text": "commitTokenThreshold and commitKeepRecentCount appear in the config but the page does not explain what is committed, how summaries or extracts are written to the store, or whether this is a log-compaction or a curated-fact write path",
+      "url": "https://docs.openviking.ai/en/agent-integrations/10-opencode",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession policy is absent: the page names write and edit tools but does not describe how conflicting or outdated memories are resolved or overwritten",
+      "url": "https://docs.openviking.ai/en/agent-integrations/10-opencode",
+      "kind": "docs"
+    },
+    {
+      "text": "The scaffold layer is not described: the page does not state what system-prompt instructions (if any) tell the model when and how to use recalled memories",
+      "url": "https://docs.openviking.ai/en/agent-integrations/10-opencode",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete path: this introduction page does not describe how memories are deleted, expired, or suppressed from retrieval. As a canonical introduction to the architecture, the absence of any delete or forget mechanism is notable.",
+      "url": "https://docs.openviking.ai/en/getting-started/01-introduction",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict / supersession: no description of how contradictory memory entries (e.g., updated user preference) are resolved or which version wins at retrieve time.",
+      "url": "https://docs.openviking.ai/en/getting-started/01-introduction",
+      "kind": "docs"
+    },
+    {
+      "text": "Memory policy details: the page references 'active memory policy' governing post-session updates but does not describe what policies exist or how they are configured.",
+      "url": "https://docs.openviking.ai/en/getting-started/01-introduction",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete path: this blog does not describe how stored memories or context entries are deleted or superseded from the store.",
+      "url": "https://www.coddykit.com/pages/blog-detail?id=513015&slug=openviking-the-open-source-context-database-with-30-000-github-stars-that-gives-",
+      "kind": "blog"
+    },
+    {
+      "text": "Conflict / supersession: no description of how OpenViking handles contradictory or outdated stored facts (e.g., user changed a preference).",
+      "url": "https://www.coddykit.com/pages/blog-detail?id=513015&slug=openviking-the-open-source-context-database-with-30-000-github-stars-that-gives-",
+      "kind": "blog"
+    }
+  ]
+}
