@@ -302,6 +302,15 @@ def product_mentioned(text: str, product: dict[str, object]) -> bool:
     return False
 
 
+def body_markers_match(text: str, product: dict[str, object]) -> bool:
+    """When body_markers is set, third-party pages must mention at least one."""
+    markers = product.get("body_markers")
+    if not isinstance(markers, list) or not markers:
+        return True
+    blob = text.lower()
+    return any(str(marker).strip().lower() in blob for marker in markers if str(marker).strip())
+
+
 def reddit_subreddit(url: str) -> str | None:
     if not host_of(url).endswith("reddit.com"):
         return None
@@ -2130,6 +2139,10 @@ def harvest_search(
                 skipped["product_not_in_body"] = skipped.get("product_not_in_body", 0) + 1
                 log.info("search_skipped", url=final_url, reason="product_not_in_body")
                 continue
+            if not first_party_page and not body_markers_match(body, product):
+                skipped["body_marker_miss"] = skipped.get("body_marker_miss", 0) + 1
+                log.info("search_skipped", url=final_url, reason="body_marker_miss")
+                continue
             kind, quality = search_page_meta(final_url, product, repo_meta)
             converter = page.converter
             save_page(
@@ -2297,6 +2310,10 @@ def harvest_community(
                 skipped["product_not_in_body"] = skipped.get("product_not_in_body", 0) + 1
                 log.info("community_skipped", url=page.url, reason="product_not_in_body")
                 continue
+            if not body_markers_match(body, product):
+                skipped["body_marker_miss"] = skipped.get("body_marker_miss", 0) + 1
+                log.info("community_skipped", url=page.url, reason="body_marker_miss")
+                continue
             converter = page.converter
             save_page(
                 page_dir,
@@ -2311,6 +2328,10 @@ def harvest_community(
             if not product_mentioned(body, product):
                 skipped["product_not_in_body"] = skipped.get("product_not_in_body", 0) + 1
                 log.info("community_skipped", url=final_url, reason="product_not_in_body")
+                continue
+            if not body_markers_match(body, product):
+                skipped["body_marker_miss"] = skipped.get("body_marker_miss", 0) + 1
+                log.info("community_skipped", url=final_url, reason="body_marker_miss")
                 continue
         already.add(normalize_url(final_url))
         log.info("community_kept", url=final_url, converter=converter)

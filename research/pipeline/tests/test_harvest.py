@@ -9,6 +9,7 @@ from companmem_pipeline.harvest import (
     SEARCH_CAP,
     allowed_source_url,
     blog_seed_urls,
+    body_markers_match,
     community_confirm_queries,
     detect_license,
     docs_host_path_prefix,
@@ -582,6 +583,20 @@ def test_docs_rank_drops_old_version_and_collapses_api() -> None:
     assert is_community_thread("https://news.ycombinator.com/item?id=47831013")
     assert not is_community_thread("https://x.com/honchodotdev")
     assert is_community_thread("https://x.com/honchodotdev/status/123")
+
+
+def test_body_markers_match_disambiguates_homonyms() -> None:
+    memoryos = {
+        "id": "memoryos",
+        "name": "MemoryOS",
+        "body_markers": ["BAI-LAB", "github.com/BAI-LAB/MemoryOS"],
+    }
+    assert body_markers_match("MemoryOS gamified mind palace app on Kickstarter", memoryos) is False
+    assert body_markers_match(
+        "MemoryOS from BAI-LAB adds long-term memory for LLM agents",
+        memoryos,
+    )
+    assert body_markers_match("anything", {"id": "mem0", "name": "Mem0"}) is True
 
 
 def test_reddit_subreddit_prefix_collision_drops_homonyms() -> None:

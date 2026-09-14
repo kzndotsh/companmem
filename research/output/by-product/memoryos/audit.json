@@ -1,0 +1,936 @@
+{
+  "identity": {
+    "id": "memoryos",
+    "name": "MemoryOS",
+    "repo": "https://github.com/BAI-LAB/MemoryOS",
+    "docs": "https://github.com/BAI-LAB/MemoryOS/blob/main/README.md",
+    "license": "Apache-2.0",
+    "version_or_commit": "587ed7755c7aed179965792830ff1b5ad9a6fa92",
+    "observed_at": "2026-09-14"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Manages memory across three tiers: short-term, mid-term, and long-term, with an Updater class coordinating promotion and analysis-driven writes."
+    },
+    {
+      "text": "Hierarchical storage with four core modules: Storage, Updating, Retrieval, and Generation for comprehensive memory management"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Four core modules: Storage, Updating, Retrieval, and Generation"
+    },
+    {
+      "text": "Memory is isolated per user and per assistant via user_id and assistant_id at initialization"
+    },
+    {
+      "text": "Three distinct stores are persisted: user_profiles (per-user profile strings with timestamps), knowledge_base (user private knowledge entries), and assistant_knowledge (assistant-specific knowledge entries). All are serialized to a JSON file on every write."
+    },
+    {
+      "text": "Knowledge entries are curated facts, not raw message logs. Each entry stores the knowledge text, a timestamp, and a precomputed normalized embedding vector."
+    },
+    {
+      "text": "User profile update supports merge (appends new data to existing string with a dated separator) or overwrite (replace=False), with last_updated timestamp recorded."
+    },
+    {
+      "text": "Three-tier memory architecture: short-term, mid-term, and long-term, each backed by separate JSON files per user."
+    },
+    {
+      "text": "When short-term memory is full, its contents are migrated to mid-term memory before the new entry is added."
+    },
+    {
+      "text": "Isolation is per user_id and per assistant_id: user data and assistant knowledge live in separate directory trees."
+    },
+    {
+      "text": "Persists session objects (summary, detail pages, embeddings, heat score, visit counts, timestamps) to a JSON file on disk via json.dump."
+    },
+    {
+      "text": "A continuity check gate determines whether a new conversation page is a true continuation of the previous one or a topic shift \u2014 controls whether new content is appended to an existing memory unit."
+    },
+    {
+      "text": "Personality analysis extracts user traits across 90 named dimensions (psychological, AI-alignment, interest/content) and updates the persistent user profile; dimensions absent from both old profile and new conversation are omitted \u2014 an implicit delete-by-omission on stale inferences."
+    },
+    {
+      "text": "Three-tier memory store: short-term, mid-term, and long-term layers implemented as separate modules"
+    },
+    {
+      "text": "Memory is added as user_input and assistant_response pairs, suggesting a log-style write path capturing conversation turns."
+    },
+    {
+      "text": "A separate user profile store captures personality traits, preferences, and related knowledge \u2014 distinct from raw memory entries."
+    },
+    {
+      "text": "When short-term memory reaches capacity, it triggers promotion to mid-term memory."
+    },
+    {
+      "text": "The questioner speculates the list type on evicted_qas may be defensive coding for edge cases rather than a functional requirement."
+    },
+    {
+      "text": "Mid-term memory (MTM) is organized into sessions containing pages; a summary_embedding field represents the semantic content of a session."
+    },
+    {
+      "text": "MemoryOS uses two separate LongTermMemory instances \u2014 one for the assistant and one for the user \u2014 despite LongTermMemory already having attributes for both user and assistant."
+    },
+    {
+      "text": "The proposed storage provider interface covers add, update, delete, search, and metadata handling"
+    },
+    {
+      "text": "Three-tier hierarchical memory store: short-term QA pairs, mid-term topic-based segments with heat tracking, long-term user profile and knowledge"
+    },
+    {
+      "text": "add_memory API: persists a user_input / agent_response QA pair with optional timestamp and metadata"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Hierarchical three-tier memory architecture (short-term, mid-term, long-term) inspired by OS memory management",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/README.md",
+      "quote": "Drawing inspiration from memory management principles in operating systems, it adopts a hierarchical storage architecture with four core modules: Storage, Updating, Retrieval, and Generation, to achieve comprehensive and efficient memory management.",
+      "locator": "README.md, opening paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Mid-term segments are promoted to long-term when heat exceeds threshold; user profile and knowledge are updated via LLM analysis",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/README.md",
+      "quote": "Mid-term memory segments accumulate \"heat\" based on factors like visit frequency and interaction length. When a segment's heat exceeds a threshold, its content is analyzed: User profile insights are extracted and used to update the long-term user profile. Specific user facts are added to the user's long-term knowledge.",
+      "locator": "README.md, How It Works (commented-out section)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Embedding model is configurable; supported models include BAAI/bge-m3, Qwen3-Embedding-0.6B, all-MiniLM-L6-v2",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/README.md",
+      "quote": "Support Qwen/Qwen3-Embedding-0.6B, BAAI/bge-m3, all-MiniLM-L6-v2",
+      "locator": "README.md, Basic Usage code example, comment in Memoryos constructor",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Long-term memory persists three stores (user profiles, user knowledge, assistant knowledge) to a JSON file and reloads them across sessions.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/long_term.py",
+      "quote": "data = {\n            \"user_profiles\": self.user_profiles,\n            \"knowledge_base\": list(self.knowledge_base),\n            \"assistant_knowledge\": list(self.assistant_knowledge)\n        }",
+      "locator": "LongTermMemory.save",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is implicit via capacity-bounded deque eviction (oldest entry dropped when maxlen is exceeded); no explicit delete API is present in this file.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/long_term.py",
+      "quote": "self.knowledge_base = deque(kb_data, maxlen=self.knowledge_capacity)\n                \n                ak_data = data.get(\"assistant_knowledge\", [])\n                self.assistant_knowledge = deque(ak_data, maxlen=self.knowledge_capacity)",
+      "locator": "LongTermMemory.load",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Knowledge writes store curated text + embedding, not raw conversation turns \u2014 distinguishing this store from a message log.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/long_term.py",
+      "quote": "entry = {\n            \"knowledge\": knowledge_text,\n            \"timestamp\": get_timestamp(),\n            \"knowledge_embedding\": vec\n        }",
+      "locator": "LongTermMemory.add_knowledge_entry",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "User profile conflict resolution is additive merge by default: new data is appended to the existing profile string with a dated separator rather than overwriting.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/long_term.py",
+      "quote": "updated_data = f\"{current_data}\\n\\n--- Updated on {get_timestamp()} ---\\n{new_data}\"",
+      "locator": "LongTermMemory.update_user_profile",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is similarity-threshold-gated (default threshold=0.1) rather than always-retrieve; entries below the threshold are excluded from results.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/long_term.py",
+      "quote": "if similarity_score >= threshold:\n                    results.append(valid_entries[idx])",
+      "locator": "LongTermMemory._search_knowledge_deque",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Three-tier memory store: short-term JSON log, mid-term session store, long-term user profile + knowledge store, each persisted to separate files.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/memoryos.py",
+      "quote": "user_short_term_path = os.path.join(self.user_data_dir, \"short_term.json\")\nuser_mid_term_path = os.path.join(self.user_data_dir, \"mid_term.json\")\nuser_long_term_path = os.path.join(self.user_data_dir, \"long_term_user.json\")",
+      "locator": "__init__, file path definitions",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Short-term is a bounded log (default capacity 10) of raw QA pairs; overflow triggers migration to mid-term before the new pair is inserted.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/memoryos.py",
+      "quote": "if self.short_term_memory.is_full():\n            print(\"Memoryos: Short-term memory full. Processing to mid-term.\")\n            self.updater.process_short_term_to_mid_term()",
+      "locator": "add_memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "After heat-triggered promotion, session heat is reset by zeroing N_visit and L_interaction and recomputing H_segment; the heap is rebuilt to reflect the new scores.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/memoryos.py",
+      "quote": "session[\"N_visit\"] = 0\n                session[\"L_interaction\"] = 0\n                session[\"H_segment\"] = compute_segment_heat(session)\n                ...\n                self.mid_term_memory.rebuild_heap()",
+      "locator": "_trigger_profile_and_knowledge_update_if_needed",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "User knowledge and assistant knowledge are stored in separate long-term stores, isolated by user_id and assistant_id directory trees.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/memoryos.py",
+      "quote": "self.user_data_dir = os.path.join(self.data_storage_path, \"users\", self.user_id)\n...\nself.assistant_data_dir = os.path.join(self.data_storage_path, \"assistants\", self.assistant_id)",
+      "locator": "__init__, directory definitions",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval combines mid-term semantic search, user long-term knowledge lookup, and assistant long-term knowledge lookup; all three are scaffolded into the generation prompt.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/memoryos.py",
+      "quote": "retrieved_pages = retrieval_results[\"retrieved_pages\"]\n        retrieved_user_knowledge = retrieval_results[\"retrieved_user_knowledge\"]\n        retrieved_assistant_knowledge = retrieval_results[\"retrieved_assistant_knowledge\"]",
+      "locator": "get_response, step 1",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Short-term history (full log) and retrieved mid-term pages (curated historical memory) are passed as separate prompt sections, distinguishing log from curated memory.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/memoryos.py",
+      "quote": "history_text = \"\\n\".join([...])\n...\nretrieval_text = \"\\n\".join([f\"\u3010Historical Memory\u3011...\"])",
+      "locator": "get_response, steps 2\u20133",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MidTermMemory persists session objects including summaries, page-level message logs, embeddings, heat scores, and LFU counters to a JSON file.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/mid_term.py",
+      "quote": "data_to_save = {\n            \"sessions\": self.sessions,\n            \"access_frequency\": dict(self.access_frequency),\n        }\n        ...\n        with open(self.file_path, \"w\", encoding=\"utf-8\") as f:\n            json.dump(data_to_save, f, ensure_ascii=False, indent=2)",
+      "locator": "MidTermMemory.save",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The store contains both a raw message log (user_input + agent_response per page) and a curated summary string per session \u2014 log and memory coexist in the same store.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/mid_term.py",
+      "quote": "\"summary\": summary,\n            \"summary_keywords\": summary_keywords,\n            \"summary_embedding\": summary_vec,\n            \"details\": processed_details,",
+      "locator": "MidTermMemory.add_session",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path merges new pages into the most similar existing session (semantic + Jaccard keyword score above threshold) or creates a new session.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/mid_term.py",
+      "quote": "if best_sid and best_overall_score >= similarity_threshold:\n            print(f\"MidTermMemory: Merging pages into session {best_sid}...\")\n        else:\n            ...return self.add_session(summary_for_new_pages, pages_to_insert, keywords_for_new_pages)",
+      "locator": "MidTermMemory.insert_pages_into_session",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/eviction removes the least-frequently-used session from the in-memory store and from disk when sessions exceed max_capacity.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/mid_term.py",
+      "quote": "lfu_sid = min(self.access_frequency, key=self.access_frequency.get)\n        ...\n        session_to_delete = self.sessions.pop(lfu_sid)\n        del self.access_frequency[lfu_sid]",
+      "locator": "MidTermMemory.evict_lfu",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is adaptive/threshold-gated: sessions below segment_similarity_threshold and pages below page_similarity_threshold are excluded from results.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/mid_term.py",
+      "quote": "if session_relevance_score >= segment_similarity_threshold:\n                ...\n                    if page_sim_score >= page_similarity_threshold:\n                        matched_pages_in_session.append({\"page_data\": page, \"score\": page_sim_score})",
+      "locator": "MidTermMemory.search_sessions",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Heat score drives heap ordering (hottest sessions bubble to top); LFU access_frequency drives eviction (coldest session evicted), creating two independent priority axes.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/mid_term.py",
+      "quote": "heapq.heappush(self.heap, (-session_obj[\"H_segment\"], session_id)) # Use negative heat for max-heap behavior\n        ...\n        lfu_sid = min(self.access_frequency, key=self.access_frequency.get)",
+      "locator": "MidTermMemory.add_session / MidTermMemory.evict_lfu",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The response scaffold separates message log (history_text) from curated memory (retrieval_text), confirming log vs. memory distinction at the prompt level.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/prompts.py",
+      "quote": "<CONTEXT>\nDrawing from your recent conversation with the user:\n{history_text}\n\n<MEMORY>\nThe memories linked to the ongoing conversation are:\n{retrieval_text}",
+      "locator": "GENERATE_SYSTEM_RESPONSE_USER_PROMPT",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Curated memory write path: raw conversation is summarized into \u22643-sentence topic summaries rather than storing full transcripts.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/prompts.py",
+      "quote": "Please generate an concise topic summary based on the following conversation. Keep it to 2-3 short sentences maximum:\n{dialog_text}\nConcise Summary\uff1a",
+      "locator": "SUMMARIZE_DIALOGS_USER_PROMPT",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Structured multi-topic write: a single conversation can be split into up to two JSON-structured subtopic memory entries with theme, keywords, and content fields.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/prompts.py",
+      "quote": "generate extremely concise subtopic summaries (if applicable), with a maximum of two themes.\nEach summary should be very brief - just a few words for the theme and content. Format as JSON array:\n[\n  {\"theme\": \"Brief theme\", \"keywords\": [\"key1\", \"key2\"], \"content\": \"summary\"}\n]",
+      "locator": "MULTI_SUMMARY_USER_PROMPT",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "User profile update is a merge/supersession operation: new analysis is integrated into the old profile, with redundancy explicitly removed \u2014 old facts can be overwritten.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/prompts.py",
+      "quote": "Integrate the new information into the old profile, maintaining consistency and improving the overall understanding of the user. Avoid redundancy.",
+      "locator": "UPDATE_PROFILE_SYSTEM_PROMPT",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Soft forget via omission: personality dimensions not supported by either existing profile or new conversation are dropped from the updated profile output.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/prompts.py",
+      "quote": "If a dimension cannot be inferred from either the old profile or new conversation, do not include it",
+      "locator": "PERSONALITY_ANALYSIS_USER_PROMPT",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Continuity-gated write: new dialogue is only appended to an existing memory segment if a binary continuity check returns true; a topic shift presumably starts a new segment.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/prompts.py",
+      "quote": "Determine if these two conversation pages are continuous (true continuation without topic shift).\nReturn ONLY \"true\" or \"false\".",
+      "locator": "CONTINUITY_CHECK_USER_PROMPT",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Meta-summary is a running incremental summary updated each dialogue page, seeded from the previous meta-summary, capped at 1\u20132 sentences \u2014 a session-level curated log distinct from the long-term memory store.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/prompts.py",
+      "quote": "Start from the previous meta-summary (if exists)\n    2. Add/update information based on the new dialogue\n    3. Keep it concise (1-2 sentences max)",
+      "locator": "META_INFO_USER_PROMPT",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "User private data and assistant knowledge are extracted as two separate curated stores with timestamps and entity context embedded at extraction time.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/prompts.py",
+      "quote": "- [Brief fact]: [Minimal context(Including entities and time)]\n\n\u3010Assistant Knowledge\u3011\nExtract what the assistant demonstrated. Use format \"Assistant [action] at [time]\".",
+      "locator": "KNOWLEDGE_EXTRACTION_USER_PROMPT",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Long-term memory maintains a separate knowledge store for the assistant (persona/lore) distinct from user knowledge, allowing assistant-side facts to be retrieved independently.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/retriever.py",
+      "quote": "assistant_long_term_memory: Optional[LongTermMemory] = None, # Add assistant LTM",
+      "locator": "retriever.py:__init__ method signature",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The three retrieval paths (mid-term pages, user knowledge, assistant knowledge) run in parallel and failures in one path produce an empty list without halting others.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/retriever.py",
+      "quote": "results[task_idx] = future.result()\nexcept Exception as e:\n    print(f\"Error in retrieval task {task_idx}: {e}\")\n    results[task_idx] = []",
+      "locator": "retriever.py:retrieve_context method, exception handler",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Page scoring within mid-term retrieval uses a combined score derived from page-level similarity; session-level relevance score is noted as a possible factor but not currently applied.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/retriever.py",
+      "quote": "combined_score = page_score # Potentially adjust with session_relevance_score",
+      "locator": "retriever.py:_retrieve_mid_term_context method",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "ShortTermMemory persists a capped, ordered log of raw QA pairs to a JSON file, restoring it on init \u2014 making recent conversation history durable across process restarts.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/short_term.py",
+      "quote": "self.memory = deque(maxlen=max_capacity) ... json.dump(list(self.memory), f, ensure_ascii=False, indent=2)",
+      "locator": "short_term.py: __init__, save",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "This layer is a raw message log, not a curated memory store; no summarisation, entity extraction, or importance scoring occurs here.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/short_term.py",
+      "quote": "def add_qa_pair(self, qa_pair): ... self.memory.append(qa_pair)",
+      "locator": "short_term.py: add_qa_pair",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Eviction is strictly FIFO at capacity; there is no priority-based or relevance-based forgetting in this layer.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/short_term.py",
+      "quote": "msg = self.memory.popleft() ... print(\"ShortTermMemory: Evicted oldest QA pair.\")",
+      "locator": "short_term.py: pop_oldest",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation boundary is determined externally via file_path; this class enforces no per-user or per-agent scoping itself.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/short_term.py",
+      "quote": "def __init__(self, file_path, max_capacity=10): self.file_path = file_path",
+      "locator": "short_term.py: __init__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemoryOS uses a three-tier memory architecture: ShortTermMemory (live buffer), MidTermMemory (paged sessions), LongTermMemory (curated facts).",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/updater.py",
+      "quote": "class Updater:\n    def __init__(self, \n                 short_term_memory: ShortTermMemory, \n                 mid_term_memory: MidTermMemory, \n                 long_term_memory: LongTermMemory,",
+      "locator": "class Updater.__init__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Promotion from short-term to mid-term involves LLM-generated multi-topic summaries with keywords; raw QA text is not stored as-is in mid-term sessions \u2014 it is summarized and thematically indexed.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/updater.py",
+      "quote": "multi_summary_result = gpt_generate_multi_summary(input_text_for_summary, self.client, model=self.llm_model)\n        \n        if multi_summary_result and multi_summary_result.get(\"summaries\"):\n            for summary_item in multi_summary_result[\"summaries\"]:\n                theme_summary = summary_item.get(\"content\", \"General summary of recent interactions.\")\n                theme_keywords = summary_item.get(\"keywords\", [])",
+      "locator": "Updater.process_short_term_to_mid_term",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Long-term knowledge (user private and assistant) is appended line-by-line; no deduplication or conflict resolution is visible in this file.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/updater.py",
+      "quote": "for line in user_private_knowledge.split('\\n'):\n                if line.strip() and line.strip().lower() not in [\"none\", \"- none\", \"- none.\"]:\n                    self.long_term_memory.add_user_knowledge(line.strip())",
+      "locator": "Updater.update_long_term_from_analysis",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Mid-term session matching uses an embedding similarity threshold (topic_similarity_threshold, default 0.5) to route pages into existing or new sessions.",
+      "kind": "code",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/updater.py",
+      "quote": "topic_similarity_threshold=0.5,\n        ...\n        similarity_threshold=self.topic_similarity_threshold",
+      "locator": "Updater.__init__ / process_short_term_to_mid_term",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Four core modules \u2014 Storage, Updating, Retrieval, Generation \u2014 form the architectural basis for memory management",
+      "kind": "docs",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/main/README.md",
+      "quote": "it adopts a hierarchical storage architecture with four core modules: Storage, Updating, Retrieval, and Generation, to achieve comprehensive and efficient memory management.",
+      "locator": "README.md, introduction paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Short-term memory holds recent interactions; mid-term consolidates short-term; long-term stores persona and knowledge",
+      "kind": "docs",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/main/README.md",
+      "quote": "short_term.py # Manages short-term memory for recent interactions\nmid_term.py # Manages mid-term memory, consolidating short-term interactions\nlong_term.py # Manages long-term persona memory (user profile, knowledge)",
+      "locator": "README.md, Project Structure section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per user and per assistant via user_id and assistant_id",
+      "kind": "docs",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/main/README.md",
+      "quote": "user_id = USER_ID,\n    ...\n    assistant_id = ASSISTANT_ID,",
+      "locator": "README.md, Basic Usage code example",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Long-term memory includes automated user profile and knowledge updating",
+      "kind": "docs",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/main/README.md",
+      "quote": "Featuring short-term, mid-term, and long-term persona Memory with automated user profile and knowledge updating.",
+      "locator": "README.md, Latest News, 2025-05-30",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Similarity threshold parameter added to control retrieval selectivity",
+      "kind": "docs",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/main/README.md",
+      "quote": "New parameter configuration: similarity_threshold.",
+      "locator": "README.md, Latest News, 2025-07-08",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Parallelization optimization reduced latency by 5x",
+      "kind": "docs",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/main/README.md",
+      "quote": "The MemoryOS (PYPI) implementation has been upgraded: 5 times faster (reduction in latency) through parallelization optimizations.",
+      "locator": "README.md, Latest News, 2025-07-07",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemoryOS exposes three MCP tools: add_memory, retrieve_memory, and get_user_profile, indicating at least two distinct stores \u2014 an episodic/log store and a profile store.",
+      "kind": "issue",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/11",
+      "quote": "Add new memory to the MemoryOS system. (user_input and assistant_response pair) \u2026 Retrieve related memories and context information from MemoryOS based on the query \u2026 Get user profile information, including personality traits, preferences, and related knowledge",
+      "locator": "mcp.json config, tools array",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory write path stores paired conversational turns (user_input + assistant_response) rather than arbitrary text blobs.",
+      "kind": "issue",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/11",
+      "quote": "Add new memory to the MemoryOS system. (user_input and assistant_response pair)",
+      "locator": "mcp.json config, tools[0].description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User profile is a separate retrievable object containing personality traits, preferences, and knowledge \u2014 not just raw conversation history.",
+      "kind": "issue",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/11",
+      "quote": "Get user profile information, including personality traits, preferences, and related knowledge",
+      "locator": "mcp.json config, tools[2].description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Short-term memory is a fixed-capacity store of QA pairs; when full, the oldest pair is evicted and promoted to mid-term one at a time.",
+      "kind": "issue",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/13",
+      "quote": "while self.short_term_memory.is_full():\n    qa = self.short_term_memory.pop_oldest()",
+      "locator": "issue #13 code block 2, process_short_term_to_mid_term function",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The promotion loop appears to evict only a single QA pair per add_memory call, because popping one item causes is_full() to return false and exits the while loop.",
+      "kind": "issue",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/13",
+      "quote": "It seems that the function only pops the oldest qa pair and the while loop ends since `is_full` condition is no longer met. Does it mean that only one single qa pair is processed to mid-term at a time?",
+      "locator": "issue #13 body, question paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A profile and knowledge update step is conditionally triggered after memory addition, suggesting mid-term or long-term stores are updated as a downstream effect of short-term promotion.",
+      "kind": "issue",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/13",
+      "quote": "After any memory addition that might impact mid-term, check for profile updates\nself._trigger_profile_and_knowledge_update_if_needed()",
+      "locator": "issue #13 code block 1, add_memory function",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongTermMemory is a named class/structure in MemoryOS that carries attributes for both user and assistant, but is instantiated separately per role rather than shared.",
+      "kind": "issue",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/47",
+      "quote": "there are 2 long term memory 1 for Assistant and one for user? If i'm not mistaken the LongTermMemory already has attributes for user and assistant. WHy are you using 2 separate instances?",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The updater.py module (line 117) returns evicted_qas as a list type, which may be a defensive design choice for handling unexpected cases.",
+      "kind": "issue",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/21",
+      "quote": "\u8fd9\u91cc\u662f\u4e3a\u4e86\u5904\u7406\u610f\u5916\u60c5\u51b5\u5417\uff1f",
+      "locator": "issue body, referencing memoryos-pypi/updater.py#L117",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MTM sessions hold pages, and each session has a summary_embedding that is intended to represent the session's semantic content.",
+      "kind": "issue",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/39",
+      "quote": "MTM session \u589e\u52a0page\u540e, \u4f3c\u4e4e\u5e76\u6ca1\u6709\u66f4\u65b0 summary_embedding",
+      "locator": "issue #39, body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The README describes pluggable storage engines, but the implementation has not yet enforced a provider/factory boundary",
+      "kind": "issue",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/75",
+      "quote": "The README describes pluggable storage engines, and the current code appears to centralize vector storage around a Chroma-based provider \u2026 adding another vector backend would likely need a small provider/factory boundary first.",
+      "locator": "issue body, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write path for the storage layer includes add, update, and delete operations alongside search and metadata handling",
+      "kind": "issue",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/75",
+      "quote": "Define a narrow storage provider interface for add/update/delete/search and metadata handling.",
+      "locator": "issue body, numbered list item 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Three-tier hierarchical memory: STM (QA pairs), MTM (topic segments with heat), LPM (user traits and preferences)",
+      "kind": "blog",
+      "url": "https://dev.to/gaodalie_ai/memoryos-mcp-rag-agent-that-can-remember-anything-4lfo.md",
+      "quote": "It introduces a hierarchical memory structure with Short-Term Memory (STM) for real-time interactions, Mid-Term Memory (MTM) for topic-based grouping, and Long-Term Personal Memory (LPM) for storing user traits and preferences.",
+      "locator": "What is Memory OS",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Heat is accumulated from visit frequency, interaction length, and recency; exceeding threshold triggers LLM-based profiling into long-term memory",
+      "kind": "blog",
+      "url": "https://dev.to/gaodalie_ai/memoryos-mcp-rag-agent-that-can-remember-anything-4lfo.md",
+      "quote": "Sessions marked as 'hot' (based on visit frequency, interaction length, and recency) trigger LLM analysis. If heat exceeds a threshold, unanalyzed content is extracted for LLM-based user profiling and knowledge updates, which are stored in the long-term memory. The session heat is then reset.",
+      "locator": "How it works",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Per-user and per-assistant isolation via user_id and assistant_id at initialization; file-based storage",
+      "kind": "blog",
+      "url": "https://dev.to/gaodalie_ai/memoryos-mcp-rag-agent-that-can-remember-anything-4lfo.md",
+      "quote": "creating dedicated storage for each user and assistant",
+      "locator": "intro demo description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "add_memory persists QA pair to short-term memory with optional timestamp and metadata",
+      "kind": "blog",
+      "url": "https://dev.to/gaodalie_ai/memoryos-mcp-rag-agent-that-can-remember-anything-4lfo.md",
+      "quote": "we use the add_memory() method from memoryos_instance to save the memory",
+      "locator": "Let's code / MCP Tools / add_memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "retrieve_memory returns short-term history, mid-term retrieved pages, user long-term knowledge, and assistant knowledge keyed by semantic query",
+      "kind": "blog",
+      "url": "https://dev.to/gaodalie_ai/memoryos-mcp-rag-agent-that-can-remember-anything-4lfo.md",
+      "quote": "Use retriever to get relevant context \u2026 Get short-term memory content \u2026 Get user profile",
+      "locator": "Let's code / MCP Tools / retrieve_memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Paper reference: arxiv.org/pdf/2506.06326",
+      "kind": "blog",
+      "url": "https://dev.to/gaodalie_ai/memoryos-mcp-rag-agent-that-can-remember-anything-4lfo.md",
+      "quote": "Paper : https://arxiv.org/pdf/2506.06326",
+      "locator": "Reference",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemoryOS achieves 49.11% average improvement on F1 and 46.18% on BLEU-1 over baselines on GPT-4o-mini on LoCoMo benchmark",
+      "kind": "blog",
+      "url": "https://ar5iv.labs.arxiv.org/html/2506.06326",
+      "quote": "Extensive experiments on the LoCoMo benchmark show an average improvement of 49.11% on F1 and 46.18% on BLEU-1 over the baselines on GPT-4o-mini",
+      "locator": "Abstract",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Three-tier hierarchical storage (STM, MTM, LPM) is the core architectural mechanism",
+      "kind": "blog",
+      "url": "https://ar5iv.labs.arxiv.org/html/2506.06326",
+      "quote": "MemoryOS introduces a pioneering three-tier hierarchical memory storage architecture and integrates four core functional modules (i.e, storage, updating, retrieval, and generation) for memory management, enabling dynamic capture and evolution of user preferences across extended dialogues.",
+      "locator": "Section 1 Introduction, contributions bullet 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Heat-based eviction replaces least-recently/least-frequently accessed segments, combining visit count, interaction length, and time decay",
+      "kind": "blog",
+      "url": "https://ar5iv.labs.arxiv.org/html/2506.06326",
+      "quote": "Heat = \u03b1\u00b7N_visit + \u03b2\u00b7L_interaction + \u03b3\u00b7R_recency... R_recency = exp(\u2212\u0394t/\u03bc)",
+      "locator": "Section 3.3 Memory Update Module, MTM-LPM Update",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MTM two-stage retrieval uses top-5 segments and top-10 dialogue pages on LoCoMo",
+      "kind": "blog",
+      "url": "https://ar5iv.labs.arxiv.org/html/2506.06326",
+      "quote": "the number of retrieval top-m segments was set to 5, and the hyperparameter top-k for retrieved dialogue page was set to 5 and 10 on the GVD and LoCoMo datasets.",
+      "locator": "Section 4.1 Experimental Settings, Implementation Details",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemoryOS recalls details from earlier sessions and proactively surfaces user goals at relevant moments",
+      "kind": "blog",
+      "url": "https://ar5iv.labs.arxiv.org/html/2506.06326",
+      "quote": "MemoryOS recalls details like 'seeing the scenery, running, and spotting squirrels in the wetland park.' from the initially mentioned a few weeks ago... the system integrates a personalization module, it can remember the user's goal of 'wanting to get fit' and later proactively reminds the user when they express a desire to eat a burger: 'Don't forget you want to get slimmer'.",
+      "locator": "Section 4.5 Case Study",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Ablation shows MTM has the largest contribution to performance, followed by LPM, then dialogue chain",
+      "kind": "blog",
+      "url": "https://ar5iv.labs.arxiv.org/html/2506.06326",
+      "quote": "the Mid-Term Memory (MTM) has the most significant impact, followed by the Long-Term Memory (LPM), while the Chain has the least impact.",
+      "locator": "Section 4.3 Ablation Study",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemoryOS requires 4.9 average LLM calls and 3,874 tokens per response on LoCoMo",
+      "kind": "blog",
+      "url": "https://ar5iv.labs.arxiv.org/html/2506.06326",
+      "quote": "our method outperforms the Top-2 baselines (i.e., MemGPT and A-Mem) in both aspects, requiring significantly fewer LLM calls than A-Mem* (4.9 vs.13) and much lower token consumption than MemGPT (3,874 vs. 16,977).",
+      "locator": "Section 4.2 Main Results, observation (4)",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/memoryos.py",
+      "kind": "code",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/short_term.py",
+      "kind": "code",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/mid_term.py",
+      "kind": "code",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/long_term.py",
+      "kind": "code",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/retriever.py",
+      "kind": "code",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/updater.py",
+      "kind": "code",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/prompts.py",
+      "kind": "code",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-14",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/4",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/21",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/13",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/47",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/11",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/39",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/75",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/24",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/3",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/36",
+      "kind": "issue",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://ar5iv.labs.arxiv.org/html/2506.06326",
+      "kind": "blog",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    },
+    {
+      "url": "https://dev.to/gaodalie_ai/memoryos-mcp-rag-agent-that-can-remember-anything-4lfo.md",
+      "kind": "blog",
+      "accessed_at": "2026-09-14",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Forget / delete: no mechanism described for deleting specific memories or removing entries from any tier's store",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Conflict / supersession: no description of how contradictory facts in long-term knowledge are reconciled or overwritten",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Isolation scope: no prompt here addresses whether memory is per-user, per-session, per-agent, or per-character. The {relationship} role slot hints at character-level isolation but the store scoping is not stated.",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/prompts.py",
+      "kind": "code"
+    },
+    {
+      "text": "Isolation scope is not explicit here: user_id is passed to long-term profile writes but it is unclear whether mid-term pages are also scoped per user or are shared across users/sessions.",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/587ed7755c7aed179965792830ff1b5ad9a6fa92/memoryos-pypi/updater.py",
+      "kind": "code"
+    },
+    {
+      "text": "Forget / delete path: the page describes add_memory, retrieve_memory, and get_user_profile but does not document any API or mechanism for deleting or expiring stored memories",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession: no description of how contradictory or outdated facts in long-term or mid-term store are resolved or overwritten",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy: no description of when retrieval is skipped or whether retrieval is always performed on every turn",
+      "url": "https://github.com/BAI-LAB/MemoryOS/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No forget or delete mechanism is described or listed as a tool on this page; unclear whether deletion from store is supported.",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/11",
+      "kind": "issue"
+    },
+    {
+      "text": "Retrieval policy (always retrieve vs. adaptive/conditional) is not described; only that retrieval is query-driven.",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/11",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe what process_short_term_to_mid_term does with the evicted QA pairs after collecting them in evicted_qas \u2014 how or whether they are written into mid-term storage is not shown.",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/13",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe the retrieve policy: how memories are selected from short-term, mid-term, or long-term stores into a turn's context.",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/13",
+      "kind": "issue"
+    },
+    {
+      "text": "No maintainer response is present in the extracted page text explaining the intended design of evicted_qas as a list in updater.py.",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/21",
+      "kind": "issue"
+    },
+    {
+      "text": "Overall end-to-end compute cost comparison across all memory pipeline steps is absent from the evaluation; issue explicitly asks whether this data exists",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/3",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether per-call user_id on add_memory (or other write/read operations) is planned or supported; the issue is a feature request with no maintainer response visible on this page",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/36",
+      "kind": "issue"
+    },
+    {
+      "text": "No response or maintainer explanation is present in the extracted text; the rationale for dual LongTermMemory instantiation (isolation design choice vs. bug) is unresolved on this page.",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/47",
+      "kind": "issue"
+    },
+    {
+      "text": "The README's stated pluggable storage engine design is referenced but not quoted or described in this issue; the gap between documented design and actual implementation is unresolved here.",
+      "url": "https://github.com/BAI-LAB/MemoryOS/issues/75",
+      "kind": "issue"
+    },
+    {
+      "text": "Explicit forget/delete API: this blog describes eviction via FIFO and heat decay but does not describe a user-facing delete or forget call",
+      "url": "https://dev.to/gaodalie_ai/memoryos-mcp-rag-agent-that-can-remember-anything-4lfo.md",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of how conflicting or contradictory facts in User KB are resolved during incremental updates \u2014 the LPM update section states extraction and update occur but does not specify supersession or conflict handling policy.",
+      "url": "https://ar5iv.labs.arxiv.org/html/2506.06326",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of explicit delete or forget operation on LPM entries \u2014 only MTM eviction and FIFO overflow for User KB/Agent Traits queues are described; whether users or agents can explicitly remove memories is not addressed.",
+      "url": "https://ar5iv.labs.arxiv.org/html/2506.06326",
+      "kind": "blog"
+    }
+  ]
+}
