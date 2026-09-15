@@ -1,0 +1,1587 @@
+{
+  "identity": {
+    "id": "microsoft-graphrag",
+    "name": "Microsoft GraphRAG",
+    "repo": "https://github.com/microsoft/graphrag",
+    "docs": "https://microsoft.github.io/graphrag/",
+    "license": "MIT",
+    "version_or_commit": "f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704",
+    "observed_at": "2026-09-15"
+  },
+  "claimed_purpose": [
+    {
+      "text": "The knowledge model is a specification for data outputs conforming to a defined data-model, covering Documents, TextUnits, Entities, Relationships, Covariates, Communities, and Community Reports."
+    },
+    {
+      "text": "GraphRAG targets questions that require connecting multiple related facts, where baseline RAG fails because the answer is hidden in relationships rather than any single paragraph."
+    },
+    {
+      "text": "Applies hierarchical clustering to a relationships DataFrame to produce community structure used in graph-based RAG indexing."
+    },
+    {
+      "text": "The indexing pipeline can perform a full LLM-based index or an NLP+LLM hybrid, selectable via IndexingMethod."
+    },
+    {
+      "text": "Factory methods for constructing search engines (local, global, DRIFT, basic) over pre-indexed graph data."
+    },
+    {
+      "text": "GraphRAG extracts relationships between concepts, transforming unstructured text into a knowledge graph."
+    },
+    {
+      "text": "GraphRAG's stated focus is on memory structures and algorithms to improve LLM information retrieval."
+    },
+    {
+      "text": "Ingesting and indexing data to generate knowledge graphs, summaries, and identify communities"
+    },
+    {
+      "text": "GraphRAG Query Engine is described as the retrieval module operating over completed indexes."
+    },
+    {
+      "text": "GraphRAG uses knowledge graph memory structures to enhance LLM outputs."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Entities are merged across text units by grouping on title and type, aggregating descriptions as a list and collecting source text_unit_ids \u2014 multiple mentions of the same entity are consolidated, not duplicated"
+    },
+    {
+      "text": "Intermediate workflow outputs may exist only in-memory at runtime and not be persisted to storage between steps; downstream workflows that depend on them check storage and warn when the table is absent."
+    },
+    {
+      "text": "Leiden community detection is applied to the knowledge graph to partition it into hierarchically nested communities (topics/subdomains), detected recursively until atomic groups are formed."
+    },
+    {
+      "text": "Relationship is a persisted data model node linking two named entities, carrying a description, semantic embedding, source text-unit provenance, and a rank used for retrieval sorting."
+    },
+    {
+      "text": "The store holds entities, relationships, community reports, text units, and covariates as in-memory dictionaries keyed by ID; there is no write, update, or delete path in this file"
+    },
+    {
+      "text": "An open-ended attributes dict is persisted on the relationship and is explicitly flagged for inclusion in the search prompt, making it part of the retrieval-to-context pipeline."
+    },
+    {
+      "text": "A rank field is persisted on each relationship and used for sorting during retrieval; higher rank signals higher importance, derived from centrality or similar graph metrics."
+    },
+    {
+      "text": "Retrieve path: user query and optional conversation history are used to identify semantically-related entities from the knowledge graph via entity description embedding."
+    },
+    {
+      "text": "Conversation history is an optional input to the local search flow and is passed through to the final context alongside prioritized structured and unstructured data."
+    },
+    {
+      "text": "At query time, stored structures (knowledge graph, community summaries, graph ML outputs) are retrieved into the LLM context window \u2014 retrieve-then-prompt pattern."
+    },
+    {
+      "text": "Global search uses LLM-generated community reports from a specified level of the graph's community hierarchy as context data, processed in a map-reduce manner."
+    },
+    {
+      "text": "Community reports (pre-built curated summaries) are stored and loaded as a list; they are not a live transcript but a pre-indexed knowledge structure"
+    },
+    {
+      "text": "Between major versions, a migration notebook can be run to avoid re-indexing prior datasets, implying the index is the durable persisted artifact."
+    },
+    {
+      "text": "Data is shuffled before context packing, not ranked by recency or relevance alone; recency_bias is explicitly disabled for conversation history"
+    },
+    {
+      "text": "A Community carries an attributes dict explicitly intended for inclusion in the search prompt, bridging stored structure to retrieval context."
+    },
+    {
+      "text": "Conversation history context is built with a cap on turns and optional user-turns-only filtering, controlling how much session log is injected"
+    },
+    {
+      "text": "Graph indexing requires prompt tuning to define entity types suited to the document domain; the Microsoft default example targets books/novels"
+    },
+    {
+      "text": "GraphRAG uses hierarchical community detection to organize and summarize graph data at different levels, inspired by Microsoft's GraphRAG."
+    },
+    {
+      "text": "Intermediate pipeline artifacts are persisted as parquet files in a timestamped output directory, read back by downstream workflow steps."
+    },
+    {
+      "text": "Re-indexing can be avoided across major version bumps using a migration notebook; the index (stored artifacts) is the persistent state."
+    },
+    {
+      "text": "Entities carry a rank used for sorting, reflecting importance via centrality or other metrics, which can influence retrieval ordering."
+    },
+    {
+      "text": "Local search supports a conversation_history_max_turns setting, indicating per-session conversation history is tracked and bounded."
+    },
+    {
+      "text": "Local search uses a conversation_history_max_turns parameter, indicating the pipeline tracks some turn history for search context."
+    },
+    {
+      "text": "Each relationship records which source text units it was extracted from, providing provenance back to the original corpus."
+    },
+    {
+      "text": "Community reports can be dynamically filtered per query via DynamicCommunitySelection before being placed into context"
+    },
+    {
+      "text": "Community stores covariate_ids as a typed dictionary (e.g. claims), enabling structured annotation beyond raw text."
+    },
+    {
+      "text": "Global search supports dynamic community selection rather than retrieving all community reports at a fixed level."
+    },
+    {
+      "text": "Pipeline outputs are stored as Parquet tables by default; embeddings are written to a configured vector store."
+    },
+    {
+      "text": "Local search context is token-budget-bounded; max_context_tokens controls how much is selected into the turn."
+    },
+    {
+      "text": "Community size is measured in text units, giving a quantitative weight to each community node in the graph."
+    },
+    {
+      "text": "Knowledge graph structures are the persisted artifact used to scaffold retrieval context for LLM queries."
+    },
+    {
+      "text": "Each entity is linked to one or more community IDs, supporting graph-community-based retrieval grouping."
+    },
+    {
+      "text": "Final pipeline artifacts are emitted as parquet files to a configured file or blob storage location."
+    },
+    {
+      "text": "Conversation history depth is bounded by a max-turns parameter; default is 5 turns"
+    },
+    {
+      "text": "Community summaries and reports are generated at multiple levels of granularity."
+    },
+    {
+      "text": "The pipeline extracts entities, relationships, and claims from raw text."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "GraphRAG persists a knowledge graph index built from unstructured text as its memory store; this is a curated structured artifact, not a raw message log.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/README.md",
+      "quote": "This repository presents a methodology for using knowledge graph memory structures to enhance LLM outputs.",
+      "locator": "Repository Guidance",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The index (persisted store) is expensive to build and must be explicitly re-run or migrated across versions, indicating it is not updated incrementally in conversation.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/README.md",
+      "quote": "Run the provided migration notebook between major version bumps if you want to avoid re-indexing prior datasets.",
+      "locator": "Versioning",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "GraphRAG is in maintenance mode with no new features planned; its memory architecture is static.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/README.md",
+      "quote": "This project is largely in maintenance mode, and won't be accepting new PRs or implementing new features.",
+      "locator": "Warning banner",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Prompt tuning is a recommended step to improve retrieval quality, suggesting the scaffold (prompts) is a configurable layer over the graph store.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/README.md",
+      "quote": "Using GraphRAG with your data out of the box may not yield the best possible results. We strongly recommend to fine-tune your prompts following the Prompt Tuning Guide.",
+      "locator": "Prompt Tuning",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "GraphRAG supports incremental index updates (write path) over an existing persisted index, distinct from a full rebuild.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/api/index.py",
+      "quote": "Whether this run is an incremental update over an existing index.",
+      "locator": "build_index docstring, is_update_run parameter",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The indexing method enum distinguishes at least two strategies: full LLM and NLP+LLM hybrid, affecting what is persisted.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/api/index.py",
+      "quote": "Styling of indexing to perform (full LLM, NLP + LLM, etc.).",
+      "locator": "build_index docstring, method parameter",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Pipeline lifecycle (start, per-workflow completion with error or success, end) is observable via WorkflowCallbacks, enabling external monitoring of the write path.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/api/index.py",
+      "quote": "workflow_callbacks.pipeline_start(pipeline.names())\n...workflow_callbacks.pipeline_error(output.error)\n...workflow_callbacks.pipeline_end(outputs)",
+      "locator": "build_index function body",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistent knowledge is stored as parquet files (entities, communities, community_reports, text_units, relationships, covariates) and read into DataFrames at query time; there is no in-session write or update path visible in this file.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/api/query.py",
+      "quote": "entities (pd.DataFrame): A DataFrame containing the final entities (from entities.parquet)",
+      "locator": "local_search docstring, Parameters",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Vector store configuration is read from GraphRagConfig and used to instantiate embedding stores for entity descriptions, community full content, and text units.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/api/query.py",
+      "quote": "msg = f\"Vector Store Args: {redact(config.vector_store.model_dump())}\"",
+      "locator": "local_search_streaming, function body",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No conversation log or session memory is written or read in this file; context_data is assembled per-query from the knowledge graph and returned to the caller but not persisted.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/api/query.py",
+      "quote": "context_data = {}\n\n    def on_context(context: Any) -> None:\n        nonlocal context_data\n        context_data = context",
+      "locator": "global_search, function body",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Global search community selection can be dynamic (adaptive) rather than fixed to a single community level.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/api/query.py",
+      "quote": "dynamic_community_selection (bool): Enable dynamic community selection instead of using all community reports at a fixed level.",
+      "locator": "global_search docstring, Parameters",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Community is a hierarchical knowledge-graph node persisted with level, parent, and children references, acting as a curated structural unit rather than a raw conversation log.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/data_model/community.py",
+      "quote": "level: str\n    \"\"\"Community level.\"\"\"\n\n    parent: str\n    \"\"\"Community ID of the parent node of this community.\"\"\"\n\n    children: list[str]\n    \"\"\"List of community IDs of the child nodes of this community.\"\"\"",
+      "locator": "community.py: class Community, fields level / parent / children",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The attributes field on a Community is explicitly designated for injection into the search prompt, indicating a direct bridge between stored graph state and retrieval context.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/data_model/community.py",
+      "quote": "attributes: dict[str, Any] | None = None\n    \"\"\"A dictionary of additional attributes associated with the community (optional). To be included in the search prompt.\"\"\"",
+      "locator": "community.py: class Community, field attributes",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Covariate_ids supports typed claim storage at the community level, enabling structured fact curation distinct from raw relationship or text-unit references.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/data_model/community.py",
+      "quote": "covariate_ids: dict[str, list[str]] | None = None\n    \"\"\"Dictionary of different types of covariates related to the community (optional), e.g. claims\"\"\"",
+      "locator": "community.py: class Community, field covariate_ids",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Community size is quantified as the count of text units, providing a scalar for ranking or weighting communities during retrieval.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/data_model/community.py",
+      "quote": "size: int | None = None\n    \"\"\"The size of the community (Amount of text units).\"\"\"",
+      "locator": "community.py: class Community, field size",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The Entity data model persists named entities with type, description, embeddings (description and name), community membership, source text unit provenance, rank, and open attributes as the core unit of the knowledge graph store.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/data_model/entity.py",
+      "quote": "description_embedding: list[float] | None = None\n    \"\"\"The semantic (i.e. text) embedding of the entity (optional).\"\"\"\n\n    name_embedding: list[float] | None = None\n    \"\"\"The semantic (i.e. text) embedding of the entity (optional).\"\"\"",
+      "locator": "Entity.description_embedding and Entity.name_embedding fields, entity.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity attributes are explicitly flagged to be surfaced in the search prompt, meaning persisted metadata flows directly into the retrieval scaffold presented to the model.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/data_model/entity.py",
+      "quote": "\"\"\"Additional attributes associated with the entity (optional), e.g. start time, end time, etc. To be included in the search prompt.\"\"\"",
+      "locator": "Entity.attributes field docstring, entity.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity rank (defaulting to 1, higher meaning more important, derivable from centrality) is persisted as a sort key, implying retrieval selection or ordering by graph importance.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/data_model/entity.py",
+      "quote": "rank: int | None = 1\n    \"\"\"Rank of the entity, used for sorting (optional). Higher rank indicates more important entity. This can be based on centrality or other metrics.\"\"\"",
+      "locator": "Entity.rank field, entity.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity carries community_ids linking it to graph community structures, supporting community-level retrieval aggregation.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/data_model/entity.py",
+      "quote": "community_ids: list[str] | None = None\n    \"\"\"The community IDs of the entity (optional).\"\"\"",
+      "locator": "Entity.community_ids field, entity.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The Relationship data model persists directed, weighted edges between named entities with descriptions, embeddings, provenance, rank, and arbitrary attributes \u2014 forming the stored graph structure that GraphRAG indexes and retrieves from.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/data_model/relationship.py",
+      "quote": "A relationship between two entities. This is a generic relationship, and can be used to represent any type of relationship between any two entities.",
+      "locator": "Relationship class docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Rank is a first-class persisted field used for sorting relationships during retrieval, indicating relative importance; this is the mechanism by which GraphRAG prioritises which graph edges surface into context.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/data_model/relationship.py",
+      "quote": "rank: int | None = 1\n    \"\"\"Rank of the relationship, used for sorting (optional). Higher rank indicates more important relationship. This can be based on centrality or other metrics.\"\"\"",
+      "locator": "Relationship.rank field definition",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The attributes dict on a Relationship is explicitly intended to be included in the search prompt, meaning persisted metadata is carried forward into the generation context.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/data_model/relationship.py",
+      "quote": "attributes: dict[str, Any] | None = None\n    \"\"\"Additional attributes associated with the relationship (optional). To be included in the search prompt\"\"\"",
+      "locator": "Relationship.attributes field definition",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "text_unit_ids links each persisted relationship back to the source document chunks it was extracted from, enabling provenance tracing from graph edge to original text.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/data_model/relationship.py",
+      "quote": "text_unit_ids: list[str] | None = None\n    \"\"\"List of text unit IDs in which the relationship appears (optional).\"\"\"",
+      "locator": "Relationship.text_unit_ids field definition",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "GraphRAG's indexing pipeline clusters the knowledge graph into hierarchical communities via the Leiden algorithm; the resulting (level, cluster, parent, nodes) tuples are the persisted unit of graph structure used downstream for retrieval.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/index/operations/cluster_graph.py",
+      "quote": "Apply a hierarchical clustering algorithm to a relationships DataFrame.",
+      "locator": "cluster_graph docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The cluster hierarchy (parent_mapping) is explicitly captured and stored alongside flat community membership, enabling multi-resolution graph traversal at query time.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/index/operations/cluster_graph.py",
+      "quote": "node_id_to_community_map, parent_mapping = _compute_leiden_communities(...)\n...results.append((level, cluster_id, parent_mapping[cluster_id], nodes))",
+      "locator": "cluster_graph, body",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Edge deduplication and optional LCC restriction are applied before indexing, meaning only a filtered, stable subgraph is persisted into the community store.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/index/operations/cluster_graph.py",
+      "quote": "edge_df.drop_duplicates(subset=[\"source\", \"target\"], keep=\"last\", inplace=True)",
+      "locator": "_compute_leiden_communities, deduplication step",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph extraction produces merged entity and relationship DataFrames as the write output of the indexing pipeline \u2014 this is the persist step for GraphRAG's knowledge store",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/index/operations/extract_graph/extract_graph.py",
+      "quote": "entities = _merge_entities(entity_dfs)\n    relationships = _merge_relationships(relationship_dfs)\n    relationships = filter_orphan_relationships(relationships, entities)\n\n    return (entities, relationships)",
+      "locator": "extract_graph, bottom of function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity consolidation merges multiple extractions of the same named entity across text units into one record with aggregated descriptions and a frequency count \u2014 this is a conflict/merge policy for the write path",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/index/operations/extract_graph/extract_graph.py",
+      "quote": ".groupby([\"title\", \"type\"], sort=False)\n        .agg(\n            description=(\"description\", list),\n            text_unit_ids=(\"source_id\", list),\n            frequency=(\"source_id\", \"count\"),\n        )",
+      "locator": "_merge_entities function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Relationship merge accumulates weights additively across occurrences \u2014 repeated co-occurrence strengthens an edge rather than creating duplicates",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/index/operations/extract_graph/extract_graph.py",
+      "quote": "weight=(\"weight\", \"sum\")",
+      "locator": "_merge_relationships function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Extraction errors are logged but do not halt the pipeline \u2014 a failed text unit produces no graph contribution rather than propagating an exception",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/index/operations/extract_graph/extract_graph.py",
+      "quote": "on_error=lambda e, s, d: logger.error(\n            \"Entity Extraction Error\", exc_info=e, extra={\"stack\": s, \"details\": d}\n        )",
+      "locator": "_run_extract_graph, GraphExtractor instantiation",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "GraphRAG local search assembles context from a heterogeneous mix of pre-indexed graph artefacts (community reports, text units, entities, relationships, covariates) and a vector store; there is no session-persistent write path in this file.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/query/factory.py",
+      "quote": "\"context_builder=LocalSearchMixedContext(\n            community_reports=reports,\n            text_units=text_units,\n            entities=entities,\n            relationships=relationships,\n            covariates=covariates,\n            entity_text_embeddings=description_embedding_store,\"",
+      "locator": "get_local_search_engine, LocalSearchMixedContext instantiation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Context selection is token-budget-gated across all four search engines, not a full-transcript replay.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/query/factory.py",
+      "quote": "\"max_context_tokens\": ls_config.max_context_tokens,  # change this based on the token limit you have on your model (if you are using a model with 8k limit, a good setting could be 5000)",
+      "locator": "get_local_search_engine, context_builder_params",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Global search excludes community summaries in favour of full report text and ranks communities by normalised occurrence weight before context assembly.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/query/factory.py",
+      "quote": "\"use_community_summary\": False,\n            \"shuffle_data\": True,\n            \"include_community_rank\": True,\n            \"normalize_community_weight\": True",
+      "locator": "get_global_search_engine, context_builder_params",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dynamic community selection for global search applies threshold filtering and level-bounded traversal, with optional parent-node retention and repeated passes.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/query/factory.py",
+      "quote": "\"keep_parent\": gs_config.dynamic_search_keep_parent,\n            \"num_repeats\": gs_config.dynamic_search_num_repeats,\n            \"threshold\": gs_config.dynamic_search_threshold,\n            \"max_level\": gs_config.dynamic_search_max_level",
+      "locator": "get_global_search_engine, dynamic_community_selection block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "This file contains no persist, update, delete, or forget operations; it is a read-only query factory over a pre-built index.",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/query/factory.py",
+      "quote": "\"Query Factory methods to support CLI.\"",
+      "locator": "file header comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Community reports are the persisted memory artifact; they are pre-built curated summaries loaded from a store, not a raw transcript",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/query/structured_search/global_search/community_context.py",
+      "quote": "self.community_reports = community_reports",
+      "locator": "GlobalCommunityContext.__init__, line ~47",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session history is capped at 5 turns by default and can be restricted to user turns only before being injected into context",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/query/structured_search/global_search/community_context.py",
+      "quote": "conversation_history_user_turns_only: bool = True,\n        conversation_history_max_turns: int | None = 5,",
+      "locator": "GlobalCommunityContext.build_context, parameter list",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Recency bias is disabled when building conversation history context, meaning older turns are not down-weighted",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/query/structured_search/global_search/community_context.py",
+      "quote": "recency_bias=False,",
+      "locator": "GlobalCommunityContext.build_context, conversation_history.build_context call",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dynamic community selection allows adaptive retrieval: only a query-relevant subset of community reports is selected into context",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/query/structured_search/global_search/community_context.py",
+      "quote": "if self.dynamic_community_selection is not None:\n            (\n                community_reports,\n                dynamic_info,\n            ) = await self.dynamic_community_selection.select(query)",
+      "locator": "GlobalCommunityContext.build_context, dynamic selection block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conversation history is a log of prior turns (not curated memory); it is serialized into a formatted table and inserted into the prompt context window, consuming tokens from the shared budget",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/query/structured_search/local_search/mixed_context.py",
+      "quote": "conversation_history.build_context(\n                include_user_turns_only=conversation_history_user_turns_only,\n                max_qa_turns=conversation_history_max_turns,\n                column_delimiter=column_delimiter,\n                max_context_tokens=max_context_tokens,\n                recency_bias=False,\n            )",
+      "locator": "LocalSearchMixedContext.build_context, lines ~127-137",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Prior user questions from conversation history are concatenated to the current query before vector-based entity retrieval, influencing which graph nodes are selected",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/query/structured_search/local_search/mixed_context.py",
+      "quote": "pre_user_questions = \"\\n\".join(\n                conversation_history.get_user_turns(conversation_history_max_turns)\n            )\n            query = f\"{query}\\n{pre_user_questions}\"",
+      "locator": "LocalSearchMixedContext.build_context, lines ~116-120",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "There is no write, update, delete, or forget path for the knowledge store in this file; entities, relationships, community reports, text units, and covariates are read-only at query time",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/query/structured_search/local_search/mixed_context.py",
+      "quote": "self.entities = {entity.id: entity for entity in entities}\n        self.community_reports = {\n            community.community_id: community for community in community_reports\n        }\n        self.text_units = {unit.id: unit for unit in text_units}\n        self.relationships = {\n            relationship.id: relationship for relationship in relationships\n        }\n        self.covariates = covariates",
+      "locator": "LocalSearchMixedContext.__init__, lines ~68-76",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Context assembly is token-budget-driven with fixed proportions for each data type; community reports get community_prop share, text units get text_unit_prop share, local graph context gets the remainder",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/query/structured_search/local_search/mixed_context.py",
+      "quote": "community_tokens = max(int(max_context_tokens * community_prop), 0)\n        ...\n        local_prop = 1 - community_prop - text_unit_prop\n        local_tokens = max(int(max_context_tokens * local_prop), 0)\n        ...\n        text_unit_tokens = max(int(max_context_tokens * text_unit_prop), 0)",
+      "locator": "LocalSearchMixedContext.build_context, context budget allocation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conversation history depth is capped at max_qa_turns (default 5); older turns beyond the cap are not retrieved into context",
+      "kind": "code",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/query/structured_search/local_search/mixed_context.py",
+      "quote": "conversation_history_max_turns: int | None = 5",
+      "locator": "LocalSearchMixedContext.build_context, parameter list",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "GraphRAG builds knowledge graphs from ingested external data, enabling community detection and summarization",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LangChain/comments/1gmpsun/seeking_thoughts_on_implementing_dynamic_rbac/",
+      "quote": "we're ingesting and indexing data from various external tools using Microsoft GraphRAG. This helps us generate knowledge graphs, summaries, and identify communities within the data.",
+      "locator": "post body, first paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG's base search methods can be replaced by agent-based retrieval, implying retrieval is a distinct, swappable layer",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LangChain/comments/1gmpsun/seeking_thoughts_on_implementing_dynamic_rbac/",
+      "quote": "working with a company on an graphrag RAG approach using agent for knowledge retrieval instead of the base graphrag search methods",
+      "locator": "comment by u/No-Average-3239",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Entity type definition in the indexing prompt is critical; the stock Microsoft prompt is tuned for narrative/novel text and degrades on other domains",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1km7xk9/microsoft_graphrag_vs_other_graphrag_result/",
+      "quote": "The most important thing you should define in the prompt is the \"entities types\" which should be best suits your documents. The example that Microsoft presents is for a book / novel.",
+      "locator": "comment by u/This-Force-8",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Without good graph edges the graph component of GraphRAG is not relevant or useful",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1km7xk9/microsoft_graphrag_vs_other_graphrag_result/",
+      "quote": "Without good edges, the graph bit isn't really relevant or useful I don't imagine",
+      "locator": "comment by u/Intendant",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Benchmark reproduction of GraphRAG results differs significantly from paper baselines when using default configuration",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1km7xk9/microsoft_graphrag_vs_other_graphrag_result/",
+      "quote": "the results are completely different from the papers, and graphrag is showing a very superior performance. I didn't modify any code and just followed the graphrag github guide",
+      "locator": "post body by u/IndividualWitty1235",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cost and complexity of GraphRAG may not justify accuracy gains over agentic hybrid search approaches",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1km7xk9/microsoft_graphrag_vs_other_graphrag_result/",
+      "quote": "Didn't find the cost/complexity to be worth the accuracy improvement. Agentic + Hybrid search took us quite far.",
+      "locator": "comment by u/tifa2up",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No Python SDK or programmatic tutorial exists; documentation beyond CLI is sparse and lives only in source code",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1m8g4ut/microsoft_graphrag_in_production/",
+      "quote": "there is no documentation besides the source code on GitHub. I find that a bit daunting and haven't been able to sift through the code to understand how to throw it into Python",
+      "locator": "post body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG is perceived as designed to incentivize Azure usage rather than deployment flexibility",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1m8g4ut/microsoft_graphrag_in_production/",
+      "quote": "Microsoft's GraphRAG is, not surprisingly, designed to incentive use of Azure.",
+      "locator": "comment u/TrustGraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "High token cost due to LLM calls during graph construction (entity/relation extraction per chunk)",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1m8g4ut/microsoft_graphrag_in_production/",
+      "quote": "it can be quite expensive in token cost",
+      "locator": "comment u/davidl002",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "High latency compared to alternatives, making real-time use difficult",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1m8g4ut/microsoft_graphrag_in_production/",
+      "quote": "GraphRAG is very latent compared to LightRAG and Graphiti.",
+      "locator": "comment u/hncvj",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Installable via PyPI and usable from Python despite documentation gaps",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1m8g4ut/microsoft_graphrag_in_production/",
+      "quote": "Use Microsoft's docs + PyPI: pip install graphrag.",
+      "locator": "comment u/prodigy_ai",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG's persist path produces a knowledge graph, community hierarchy, and community summaries stored from the indexing pipeline for later retrieval.",
+      "kind": "docs",
+      "url": "https://microsoft.github.io/graphrag/",
+      "quote": "The GraphRAG process involves extracting a knowledge graph out of raw text, building a community hierarchy, generating summaries for these communities, and then leveraging these structures when perform RAG-based tasks.",
+      "locator": "Welcome section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The product is retrieve-then-prompt: indexed structures are retrieved into the context window at query time; no claim is made of curated per-user persistent memory or session continuity.",
+      "kind": "docs",
+      "url": "https://microsoft.github.io/graphrag/",
+      "quote": "At query time, these structures are used to provide materials for the LLM context window when answering a question.",
+      "locator": "The GraphRAG Process \u2014 Query",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Re-indexing is required across major version bumps; a migration notebook is provided to avoid full re-indexing, but configuration and prompts may be overwritten.",
+      "kind": "docs",
+      "url": "https://microsoft.github.io/graphrag/",
+      "quote": "Run the provided migration notebook between major version bumps if you want to avoid re-indexing prior datasets. Note that this will overwrite your configuration and prompts, so back them up if necessary.",
+      "locator": "Versioning section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG persists a knowledge graph, community hierarchy, and community summaries as its durable store, built during an offline indexing phase.",
+      "kind": "docs",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index.md",
+      "quote": "The GraphRAG process involves extracting a knowledge graph out of raw text, building a community hierarchy, generating summaries for these communities, and then leveraging these structures when perform RAG-based tasks.",
+      "locator": "Welcome to GraphRAG",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The store is corpus-derived (documents, not conversation history); no per-user or per-session isolation is described.",
+      "kind": "docs",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index.md",
+      "quote": "Slice up an input corpus into a series of TextUnits, which act as analyzable units for the rest of the process.",
+      "locator": "The GraphRAG Process \u2014 Index",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG addresses a known weakness of baseline RAG: inability to connect disparate pieces of information or holistically summarize large collections.",
+      "kind": "docs",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index.md",
+      "quote": "Baseline RAG struggles to connect the dots. This happens when answering a question requires traversing disparate pieces of information through their shared attributes in order to provide new synthesized insights.",
+      "locator": "GraphRAG vs Baseline RAG",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "GraphRAG's store is an offline-built, structured knowledge model (tables for Documents, TextUnits, Entities, Relationships, Covariates, Communities, Community Reports) plus a configured vector store for embeddings \u2014 not a live conversational memory.",
+      "kind": "docs",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index/default_dataflow.md",
+      "quote": "The knowledge model is a specification for data outputs that conform to our data-model definition. You can find these definitions in the packages/graphrag/graphrag/data_model folder within the GraphRAG repository.",
+      "locator": "The GraphRAG Knowledge Model",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The page describes only the write/index path (extract, merge, summarize, embed, export to tables). No retrieve, forget, conflict resolution, or per-user/session isolation mechanism is described on this page.",
+      "kind": "docs",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index/default_dataflow.md",
+      "quote": "Let's take a look at how the default-configuration workflow transforms text documents into the GraphRAG Knowledge Model. This page gives a general overview of the major steps in this process.",
+      "locator": "The Default Configuration Workflow",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity merging by title+type is the conflict/supersession mechanism at index time: duplicate descriptions are collected into an array then collapsed to one summary by LLM, not deduplicated by recency or authority.",
+      "kind": "docs",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index/default_dataflow.md",
+      "quote": "any entities with the same title and type are merged by creating an array of their descriptions. Similarly, any relationships with the same source and target are merged by creating an array of their descriptions.",
+      "locator": "Phase 3: Graph Extraction \u2014 Entity & Relationship Extraction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "FastGraphRAG variant uses NLP instead of LLM for entity/relationship extraction and always skips claim extraction, changing the fidelity of the stored graph.",
+      "kind": "docs",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index/default_dataflow.md",
+      "quote": "if you are using the FastGraphRAG option, entity and relationship extraction will be performed using NLP to conserve LLM resources, and claim extraction will always be skipped.",
+      "locator": "Phase 3: Graph Extraction \u2014 Note",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "GraphRAG stores pipeline outputs as Parquet tables and writes embeddings to a configured vector store \u2014 this is the persist/store step of the indexing pipeline.",
+      "kind": "docs",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index/overview.md",
+      "quote": "The outputs of the pipeline are stored as Parquet tables by default, and embeddings are written to your configured vector store.",
+      "locator": "Indexing Pipelines are configurable, paragraph after bullets",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The pipeline extracts entities, relationships, and claims \u2014 these are the curated facts written to the store, not a full transcript log.",
+      "kind": "docs",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index/overview.md",
+      "quote": "extract entities, relationships and claims from raw text",
+      "locator": "Indexing Pipelines are configurable, bullet 1",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Community summaries at multiple granularity levels are generated and stored, representing a hierarchical knowledge scaffold rather than raw event logs.",
+      "kind": "docs",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index/overview.md",
+      "quote": "generate community summaries and reports at multiple levels of granularity",
+      "locator": "Indexing Pipelines are configurable, bullet 3",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "GraphRAG's global search is a retrieve-then-prompt mechanism: pre-built community reports are retrieved and injected into LLM prompts; there is no per-user persistent memory store or write/forget path described on this page.",
+      "kind": "docs",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/query/global_search.md",
+      "quote": "the global search method uses a collection of LLM-generated community reports from a specified level of the graph's community hierarchy as context data to generate response in a map-reduce manner.",
+      "locator": "Global Search \ud83d\udd0e / Methodology",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community reports are pre-summarized at index time from the knowledge graph and serve as the persistent store consulted at query time; the page describes no runtime write, update, or delete path for these reports.",
+      "kind": "docs",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/query/global_search.md",
+      "quote": "This allows the private dataset to be organized into meaningful semantic clusters that are pre-summarized. Using our global search method, the LLM uses these clusters to summarize these themes when responding to a user query.",
+      "locator": "Global Search \ud83d\udd0e / Whole Dataset Reasoning",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conversation history is accepted as an optional input and passed into context, but no summarization, curation, or persistence mechanism for it is described on this page.",
+      "kind": "docs",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/query/local_search.md",
+      "quote": "Given a user query and, optionally, the conversation history, the local search method identifies a set of entities from the knowledge graph that are semantically-related to the user input.",
+      "locator": "Local Search \ud83d\udd0e > Methodology",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG's query engine is retrieve-then-prompt only; the page describes no persistent write path, no memory store, no forget or conflict mechanisms.",
+      "kind": "docs",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/query/overview.md",
+      "quote": "The Query Engine is the retrieval module of the GraphRAG library, and operates over completed indexes.",
+      "locator": "Query Engine \ud83d\udd0e, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG's LLM-generated reports may incorporate information beyond the indexed source data, including content from the LLM's own parametric knowledge, even when prompt instructions attempt to constrain output to indexed content.",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/1347",
+      "quote": "The current report data generated by LLM includes information from both indexed and non-indexed files. Even when additional instructions are added to the prompt, the impact is still not significant.",
+      "locator": "Describe the issue",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The indexing pipeline persists artifacts as parquet files between workflow steps, enabling restartability and downstream reads.",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/1208",
+      "quote": "emitting parquet table create_final_entities.parquet ... read table from storage: create_base_entity_graph.parquet",
+      "locator": "Logs and screenshots > end part of indexing-engine_logs",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Pipeline successfully completed for 5000 documents but failed at create_final_communities for 29k documents due to in-memory join materialization, exposing a scalability limit in the community-building stage.",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/1208",
+      "quote": "when I executed graphrag with same config for 5000 .txt files it worked smoothly, also ran query and got expected answers. but when the number of .txt files are more around 29k with total size 69 MB the pipeline stops during final community creation with error as unable to allocate 3.1 GB memory.",
+      "locator": "Describe the bug",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG version 0.3.4 is confirmed in this report.",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/1208",
+      "quote": "GraphRAG Version: 0.3.4",
+      "locator": "Additional Information",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Local search supports a bounded conversation history window, configurable via conversation_history_max_turns (default suggested as 5).",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/1249",
+      "quote": "# conversation_history_max_turns: 5",
+      "locator": "GraphRAG Config Used \u2014 local_search block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Entity extraction workflow sends a follow-up (glean) prompt as a second chat message to recover missed entities; if this message content resolves to null the OpenAI API rejects the request with a 400 error, halting the indexing job permanently at step 2.",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/1421",
+      "quote": "Invalid value for 'content': expected a string, got null. ... 'param': 'messages.[1].content'",
+      "locator": "Logs and screenshots section, on_error event cause",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The indexing job does not restart or retry after this LLM error; it stalls at step 2 with no recovery.",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/1421",
+      "quote": "After a while the requests top and i geht this error and just stops, the job doesnt restart or anything it just stands still at step 2",
+      "locator": "Additional Information section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Intermediate workflow tables may be runtime-only in-memory and not persisted to storage, causing downstream dependency failures when they cannot be found on disk.",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/1476",
+      "quote": "Dependency table create_base_text_units not found in storage: it may be a runtime-only in-memory table. If you see further errors, this may be an actual problem.",
+      "locator": "Log output, graphrag.index.run.workflow WARNING",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "An empty entity graph (no nodes) after entity extraction causes the cluster_graph step to fail, breaking the entire downstream index-build pipeline.",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/1476",
+      "quote": "graphrag.index.operations.cluster_graph WARNING Graph has no nodes\n15:42:13,266 datashaper.workflow.workflow ERROR Error executing verb \"create_base_entity_graph\" in create_base_entity_graph: Columns must be same length as key",
+      "locator": "Log output, cluster_graph step",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The pipeline persists final indexed artifacts as parquet files to a file or blob storage backend.",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/1476",
+      "quote": "graphrag.index.emit.parquet_table_emitter INFO emitting parquet table create_final_documents.parquet",
+      "locator": "Log output, create_final_documents step",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Local search supports a conversation_history_max_turns setting (default 5 in this config), suggesting per-session conversation history is maintained for retrieval context.",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/1476",
+      "quote": "\"conversation_history_max_turns\": 5",
+      "locator": "Configuration dump, local_search section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG local search reads indexed graph data (entities, communities) from parquet files on disk and loads embeddings into an in-memory LanceDB vector store for retrieval.",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/1804",
+      "quote": "entity_df = pd.read_parquet(f\"{OUTPUT_DIR}/{ENTITY_TABLE}.parquet\")\ncommunity_df = pd.read_parquet(f\"{OUTPUT_DIR}/{COMMUNITY_TABLE}.parquet\")\n\nentities = read_indexer_entities(entity_df, community_df, COMMUNITY_LEVEL)\n\n# load description embeddings to an in-memory lancedb vectorstore",
+      "locator": "bug description code block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG filters the node/entity store by community_level at query time, meaning retrieval scope is controlled by a hierarchical community level parameter.",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/1804",
+      "quote": "if community_level is not None:\n    nodes_df = _filter_under_community_level(nodes_df, community_level)",
+      "locator": "traceback: graphrag/query/indexer_adapters.py lines 141-142",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User confirmed indexing and querying (global and local) via CLI worked correctly; the failure is specific to the local_search Jupyter notebook.",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/1804",
+      "quote": "I indexed (Christmas Carrol book) properly and was able to run queries (global and local) using cmd.",
+      "locator": "bug description, additional note",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG cache type is validated by pydantic against a fixed CacheType enum before any factory extension logic runs, blocking custom cache backends.",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/1996",
+      "quote": "pydantic_core._pydantic_core.ValidationError: 1 validation error for GraphRagConfig\ncache.type\n  Input should be 'file', 'memory', 'none', 'blob' or 'cosmosdb' [type=enum, input_value='s3_cache']",
+      "locator": "Logs and screenshots / error block",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG's core research focus is memory structures and algorithms for LLM information retrieval, not model provider breadth.",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/657",
+      "quote": "Our focus is on memory structures and algorithms to improve LLM information retrieval, and we've got a lot of experiments in the queue!",
+      "locator": "issue body, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG indexing pipeline loads the full merged graph into memory as a GraphML string during the create_summarized_entities workflow, causing OOM failures on large datasets",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/889",
+      "quote": "Error executing verb \"summarize_descriptions\" in create_summarized_entities: out of memory: line 1, column 0",
+      "locator": "Logs and screenshots > indexing-engine.log",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Entity description summarization loads the graph per-row by parsing GraphML strings via networkx, meaning the full graph representation must fit in memory for each row processed",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/889",
+      "quote": "graph: nx.Graph = load_graph(cast(str | nx.Graph, getattr(row, column)))\n                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/miniconda3/envs/py312_graphrag/lib/python3.12/site-packages/graphrag/index/utils/load_graph.py\", line 11, in load_graph\n    return nx.parse_graphml(graphml) if isinstance(graphml, str) else graphml",
+      "locator": "Logs and screenshots > indexing-engine.log > Traceback",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG performs entity search by similarity during the query phase, and a user requests a minimum similarity threshold configuration for that retrieval step",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/941",
+      "quote": "Add configuration support for entity search by minimum similarity during query phase.",
+      "locator": "Describe the solution you'd like",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Global search map phase assigns relevance scores to context chunks; a score of 0 on all chunks triggers a fallback 'I do not know' response rather than synthesizing from retrieved content.",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/942",
+      "quote": "Warning: All map responses have score 0 (i.e., no relevant information found from the dataset), returning a canned 'I do not know' answer.",
+      "locator": "Logs and screenshots",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Local search tracks conversation history across turns, bounded by conversation_history_max_turns (default commented at 5).",
+      "kind": "issue",
+      "url": "https://github.com/microsoft/graphrag/issues/942",
+      "quote": "# conversation_history_max_turns: 5",
+      "locator": "GraphRAG Config Used \u2014 local_search section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG uses Leiden community detection to build a hierarchical graph partition, then summarizes each community into compact templates for scalable retrieval.",
+      "kind": "blog",
+      "url": "https://medium.com/@tuhinsharma121/knowledge-graph-enhanced-rag-transforming-unstructured-text-into-explainable-queryable-89fb53e1ce14",
+      "quote": "GraphRAG applies Leiden community detection , a state-of-the-art algorithm for graph partitioning : Communities = Tightly interconnected nodes (topics or subdomains). Hierarchy = Recursively detect sub-communities until atomic groups are formed.",
+      "locator": "Section 4: Community Detection",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Global query answering uses a map-reduce pattern: intermediate LLM answers are scored 0\u2013100 for helpfulness and only the highest-scoring ones are passed to the reduce step.",
+      "kind": "blog",
+      "url": "https://medium.com/@tuhinsharma121/knowledge-graph-enhanced-rag-transforming-unstructured-text-into-explainable-queryable-89fb53e1ce14",
+      "quote": "Each answer is assigned a helpfulness score (0\u2013100). Reduce Step : - Highest scoring intermediate answers are combined into a new context window. - The LLM then generates the final global answer .",
+      "locator": "Section 6: Global Query Answering / Map Step and Reduce Step",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Index artifacts are persisted as parquet files and vector embeddings are stored in LanceDB, covering text units, entity descriptions, and community full content.",
+      "kind": "blog",
+      "url": "https://medium.com/@tuhinsharma121/knowledge-graph-enhanced-rag-transforming-unstructured-text-into-explainable-queryable-89fb53e1ce14",
+      "quote": "vector_store:\n  default_vector_store:\n    type: lancedb\n    db_uri: output/lancedb",
+      "locator": "settings.yaml / vector_store section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Duplicate entity/relationship entries are resolved by clustering and summarizing via exact string matching; semantic matching is noted as a possible extension.",
+      "kind": "blog",
+      "url": "https://medium.com/@tuhinsharma121/knowledge-graph-enhanced-rag-transforming-unstructured-text-into-explainable-queryable-89fb53e1ce14",
+      "quote": "Duplicates are clustered and summarized . Matching is done via exact string matching , though softer (semantic) matching can be integrated.",
+      "locator": "Section 3: Knowledge Graph Construction / Duplicate Handling",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG indexing is 31x more costly than vanilla RAG indexing due to LLM calls for entity-relationship extraction and community summarization during the index phase.",
+      "kind": "blog",
+      "url": "https://medium.com/@tuhinsharma121/knowledge-graph-enhanced-rag-transforming-unstructured-text-into-explainable-queryable-89fb53e1ce14",
+      "quote": "Indexing time is huge (2 min 20 sec compared to 4s). The cost is 31 times as you can see during the indexing also LLM is called, precisely to extract entity relationship and summarizing the communities.",
+      "locator": "Performance section / INDEXING",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "For 100 global-scope questions, 294 LLM requests were made due to map-reduce partial calls, with no embedding model calls.",
+      "kind": "blog",
+      "url": "https://medium.com/@tuhinsharma121/knowledge-graph-enhanced-rag-transforming-unstructured-text-into-explainable-queryable-89fb53e1ce14",
+      "quote": "For 100 questions there has been 294 requests made to the LLM because of the map-reduce calls to the LLM involving partial calls. As the scope was 'global' so there has not been any embedding model calls.",
+      "locator": "Performance section / GENERATION",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GPT-4-evaluated mean score on 98 complex questions over A Christmas Carol was 4.42 (scale 1\u20135) under this blog's harness.",
+      "kind": "blog",
+      "url": "https://medium.com/@tuhinsharma121/knowledge-graph-enhanced-rag-transforming-unstructured-text-into-explainable-queryable-89fb53e1ce14",
+      "quote": "df[\"gpt4_score\"].mean()\nOutput\n4.42",
+      "locator": "Section 11: Mean score for all the examples in the golden dataset",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Claims extraction is disabled by default in the pipeline configuration.",
+      "kind": "blog",
+      "url": "https://medium.com/@tuhinsharma121/knowledge-graph-enhanced-rag-transforming-unstructured-text-into-explainable-queryable-89fb53e1ce14",
+      "quote": "extract_claims:\n  enabled: false",
+      "locator": "settings.yaml / extract_claims section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Microsoft's own documentation cites inability to connect facts across documents as the primary pain point for baseline RAG.",
+      "kind": "blog",
+      "url": "https://pureinsights.com/blog/2025/graphrag-when-your-rag-needs-a-memory-palace/",
+      "quote": "Microsoft's own docs list 'can't connect the dots' as pain point number one for baseline RAG \u2013 the method can struggle when the answer is hidden in relationships rather than in any single paragraph",
+      "locator": "Section: Why Standard RAG Is Sometimes Not Enough",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Microsoft's internal evaluations report substantial improvement on multi-document reasoning tasks compared with baseline RAG.",
+      "kind": "blog",
+      "url": "https://pureinsights.com/blog/2025/graphrag-when-your-rag-needs-a-memory-palace/",
+      "quote": "Microsoft's internal evaluations report 'substantial improvement' on multi\u2011doc reasoning tasks compared with baseline RAG",
+      "locator": "Section: Does the Graph-y Bit Move the Needle?, Enterprise search bullet",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG's knowledge graph approach improves explainability because results are linked to specific entities.",
+      "kind": "blog",
+      "url": "https://pureinsights.com/blog/2025/graphrag-when-your-rag-needs-a-memory-palace/",
+      "quote": "It also has the benefit of being more explainable because it is linked to specific entities",
+      "locator": "Section: GraphRAG: Giving RAG the Keys to Its Own Memory Palace",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Bootstrapping the graph from scratch requires effort even with AI assistance; the graph must stay current to be useful.",
+      "kind": "blog",
+      "url": "https://pureinsights.com/blog/2025/graphrag-when-your-rag-needs-a-memory-palace/",
+      "quote": "Bootstrapping the Graph can be painful. If you already have one it's fine, and there are tools to automate it now, but generating it from scratch takes some effort even with a friendly AI to help you.",
+      "locator": "Section: Pitfalls & Gotchas",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG transforms a flat document repository into a structured memory palace, allowing the model to traverse connections, reduce hallucinations, and provide defensible citations.",
+      "kind": "blog",
+      "url": "https://pureinsights.com/blog/2025/graphrag-when-your-rag-needs-a-memory-palace/",
+      "quote": "Introducing a well-curated knowledge graph transforms that flat repository into a structured 'memory palace,' allowing the language model to traverse connections deliberately, reduce hallucinations, and provide defensible citations.",
+      "locator": "Section: Conclusion: From Filing Cabinet to Memory Palace",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG structures knowledge as a graph of entity-relationship triples rather than isolated document chunks.",
+      "kind": "blog",
+      "url": "https://memgraph.com/blog/how-microsoft-graphrag-works-with-graph-databases",
+      "quote": "Instead of retrieving isolated text chunks, GraphRAG extracts relationships between concepts, transforming unstructured text into a knowledge graph.",
+      "locator": "Talking Point 2: GraphRAG and Structuring Data for Better Retrieval",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Microsoft's GraphRAG uses hierarchical community detection (Leiden algorithm) to enable multi-level summarization and retrieval.",
+      "kind": "blog",
+      "url": "https://memgraph.com/blog/how-microsoft-graphrag-works-with-graph-databases",
+      "quote": "Inspired by Microsoft's GraphRAG, Redfield's approach introduces hierarchical community detection to organize and summarize graph data at different levels.",
+      "locator": "Talking Point 3: Hierarchical GraphRAG: Beyond Local Search",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Indexing costs for GraphRAG are high upfront due to entity extraction, embedding generation, and community building, but reduce per-query costs.",
+      "kind": "blog",
+      "url": "https://memgraph.com/blog/how-microsoft-graphrag-works-with-graph-databases",
+      "quote": "Extracting entities, generating embeddings, and building hierarchical communities require significant computation. While the upfront cost is high, the long-term payoff comes in the form of more efficient querying, reducing the need for excessive context window stuffing.",
+      "locator": "Challenges & Future Improvements",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GraphRAG pre-builds community summaries so they do not require recomputation at query time.",
+      "kind": "blog",
+      "url": "https://memgraph.com/blog/how-microsoft-graphrag-works-with-graph-databases",
+      "quote": "Once those communities and summaries are built, you don't need to reprocess them every time a query is made.",
+      "locator": "Q&A, question 6",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Entity resolution in the described GraphRAG implementation is name-based, which is a known limitation for disambiguation.",
+      "kind": "blog",
+      "url": "https://memgraph.com/blog/how-microsoft-graphrag-works-with-graph-databases",
+      "quote": "The entity resolution method we used was part of the LlamaIndex package... if two entities share the same name, they are automatically resolved as being the same. While this approach is fast and easy to implement, it has limitations in real-world applications where disambiguation is crucial.",
+      "locator": "Q&A, question 1",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/api/query.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/api/index.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/query/factory.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/query/structured_search/local_search/mixed_context.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/query/structured_search/global_search/community_context.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/index/operations/extract_graph/extract_graph.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/index/operations/cluster_graph.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/data_model/entity.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/data_model/relationship.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/data_model/community.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://microsoft.github.io/graphrag/",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index/overview.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index/default_dataflow.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/query/overview.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/query/local_search.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/query/global_search.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/657",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/1641",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/1828",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/942",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/1996",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/1208",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/889",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/1347",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/1249",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/1476",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/1804",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/2538",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/2415",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/1198",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/1154",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/2521",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/2356",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/2355",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/941",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/microsoft/graphrag/issues/1421",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://medium.com/@tuhinsharma121/knowledge-graph-enhanced-rag-transforming-unstructured-text-into-explainable-queryable-89fb53e1ce14",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://memgraph.com/blog/how-microsoft-graphrag-works-with-graph-databases",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://pureinsights.com/blog/2025/graphrag-when-your-rag-needs-a-memory-palace/",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/Rag/comments/1m8g4ut/microsoft_graphrag_in_production/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/Rag/comments/1km7xk9/microsoft_graphrag_vs_other_graphrag_result/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LangChain/comments/1gmpsun/seeking_thoughts_on_implementing_dynamic_rbac/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/PostAI/comments/1eap8yr/microsoft_graphrag_alternative_and_10x_cheaper/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Retrieve policy: this README does not describe how graph nodes or communities are selected into a turn context (always-retrieve vs adaptive, similarity threshold, community summarization strategy).",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Forget / delete: no description of how to remove entities or facts from the persisted index short of full re-indexing.",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Isolation: no description of per-user, per-session, or per-agent isolation of the knowledge graph store.",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Isolation scope (per user, per session, per agent) is not addressed in this data model file.",
+      "url": "https://github.com/microsoft/graphrag/blob/f40e9a26ce62ba0b3fef8837d24aafdcc6e6c704/packages/graphrag/graphrag/data_model/entity.py",
+      "kind": "code"
+    },
+    {
+      "text": "No discussion of how GraphRAG handles graph updates, conflict resolution, or supersession when source documents change \u2014 mentioned as a general graph problem but not addressed for this product specifically",
+      "url": "https://www.reddit.com/r/Rag/comments/1m8g4ut/microsoft_graphrag_in_production/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of forget/delete from the index store \u2014 this is a canonical architecture page and the topic is absent.",
+      "url": "https://microsoft.github.io/graphrag/",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of conflict or supersession when entities or claims are updated in the index \u2014 absent from this architecture overview.",
+      "url": "https://microsoft.github.io/graphrag/",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of isolation (per-user, per-session, per-agent) for stored graphs or summaries.",
+      "url": "https://microsoft.github.io/graphrag/",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of forget or delete from the index store. This is the canonical architecture doc and the omission leaves the forget path undefined.",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of conflict resolution or supersession when extracted entities or claims contradict each other during indexing.",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of isolation: whether the index is per-user, per-corpus, or shared across users/sessions.",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy: this is a canonical architecture doc for the index pipeline but is entirely silent on how stored artifacts (entities, community reports, embeddings) are selected into a query turn \u2014 no adaptive vs. always-retrieve logic, no context-window assembly described.",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index/default_dataflow.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete: no mechanism for removing entities, relationships, covariates, or community reports from the store is described anywhere on this page.",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index/default_dataflow.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Isolation: no mention of per-user, per-session, or per-agent scoping of the knowledge store.",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index/default_dataflow.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This is a canonical architecture/overview doc for the indexing pipeline but does not describe retrieve policy: how stored entities, summaries, or embeddings are selected into a query turn.",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index/overview.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of forget, delete, update, or conflict resolution for stored Parquet tables or vector store entries.",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index/overview.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of isolation: whether the store is per-user, per-session, per-agent, or shared.",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/index/overview.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This is a canonical query/retrieval architecture doc; it does not describe how community reports are written, updated, or deleted (the write path for the persistent store), nor any forget or conflict/supersession mechanism.",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/query/global_search.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No isolation model is described (per-user, per-session, per-agent); it is silent on whether the community report store is shared or scoped.",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/query/global_search.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This is a canonical architecture doc for local search but describes no write path: how entities, relationships, or covariates are extracted, updated, or deleted from the knowledge graph store is not covered here.",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/query/local_search.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No forget or conflict/supersession behavior is described \u2014 the page is silent on whether stale or contradictory entities are removed or overridden.",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/query/local_search.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This is the canonical query architecture overview and it documents no store write path, no update/delete/forget mechanism, no per-user or per-session isolation, and no conflict or supersession policy for retrieved facts.",
+      "url": "https://github.com/microsoft/graphrag/blob/main/docs/query/overview.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No documentation or code in this page explains where --memprofile output is written or how to view it; the canonical index CLI docs appear to omit this.",
+      "url": "https://github.com/microsoft/graphrag/issues/1198",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe how or whether GraphRAG resolves conflicts when the same entity is extracted with differing descriptions across chunks (supersession/merge policy).",
+      "url": "https://github.com/microsoft/graphrag/issues/1249",
+      "kind": "issue"
+    },
+    {
+      "text": "This issue surfaces a grounding/isolation failure \u2014 GraphRAG's report generation does not reliably restrict output to indexed documents \u2014 but the page provides no description of GraphRAG's retrieve policy, conflict/supersession logic, or any mechanism for preventing parametric knowledge from entering generated reports.",
+      "url": "https://github.com/microsoft/graphrag/issues/1347",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not explain how or whether partial indexing progress is persisted or resumed after a mid-pipeline failure at step 2 of 16.",
+      "url": "https://github.com/microsoft/graphrag/issues/1421",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe how or whether conversation history is stored persistently across sessions versus held only in-memory per request.",
+      "url": "https://github.com/microsoft/graphrag/issues/1476",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe whether or how GraphRAG persists or retrieves memory/context state across sessions, nor any write, update, forget, or isolation mechanisms \u2014 this is a canonical indexing pipeline issue report silent on those core memory behaviors.",
+      "url": "https://github.com/microsoft/graphrag/issues/889",
+      "kind": "issue"
+    },
+    {
+      "text": "The page references global search reduce logic at search.py#L233 but does not show the parsing or scoring code, leaving the exact conflict/supersession behavior of the map-reduce step unconfirmed.",
+      "url": "https://github.com/microsoft/graphrag/issues/942",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of forget or delete behavior: the page does not describe how to remove entities, relationships, or community summaries from an existing index without full re-indexing.",
+      "url": "https://medium.com/@tuhinsharma121/knowledge-graph-enhanced-rag-transforming-unstructured-text-into-explainable-queryable-89fb53e1ce14",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of isolation scope: the page does not state whether the index and vector store are per-user, per-session, per-agent, or shared.",
+      "url": "https://medium.com/@tuhinsharma121/knowledge-graph-enhanced-rag-transforming-unstructured-text-into-explainable-queryable-89fb53e1ce14",
+      "kind": "blog"
+    }
+  ]
+}

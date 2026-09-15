@@ -638,6 +638,21 @@ def test_body_markers_match_disambiguates_homonyms() -> None:
     }
     assert body_markers_match("Best tavern apps for D&D roleplay", sillytavern) is False
     assert body_markers_match("SillyTavern world info keeps forgetting", sillytavern)
+    graphrag = {
+        "id": "microsoft-graphrag",
+        "name": "Microsoft GraphRAG",
+        "body_markers": [
+            "Microsoft GraphRAG",
+            "microsoft/graphrag",
+            "github.com/microsoft/graphrag",
+            "GraphRAG",
+        ],
+    }
+    assert body_markers_match("What is graph RAG in general?", graphrag) is False
+    assert body_markers_match(
+        "Indexing with github.com/microsoft/graphrag community reports",
+        graphrag,
+    )
 
 
 def test_reddit_subreddit_prefix_collision_drops_homonyms() -> None:
