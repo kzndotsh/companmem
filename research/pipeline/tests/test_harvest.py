@@ -161,6 +161,18 @@ def test_public_https_repo_from_ssh() -> None:
     )
 
 
+def test_allowed_source_url_nomi_wiki() -> None:
+    product = {
+        "id": "nomi",
+        "name": "Nomi.ai",
+        "repo": None,
+        "docs": "https://nomi.ai/nomi-knowledge/nomi-101-a-beginners-guide-to-getting-started-with-your-ai-companion/",
+    }
+    repo_meta: dict[str, object] = {}
+    assert "wiki.nomi.ai" in first_party_hosts(product, repo_meta)
+    assert allowed_source_url("https://wiki.nomi.ai/Mind_Map_2.0", product, repo_meta)
+
+
 def test_allowed_source_url_github_wiki_raw() -> None:
     product = {
         "id": "risuai",

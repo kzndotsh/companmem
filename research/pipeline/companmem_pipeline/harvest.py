@@ -1859,6 +1859,9 @@ def first_party_hosts(product: dict[str, object], repo_meta: dict[str, object]) 
         stem = extra_host.replace("-", "").replace(".", "")
         if name and name in stem:
             hosts.add(extra_host)
+    docs_host = host_of(str(docs)) if isinstance(docs, str) else ""
+    if docs_host in {"nomi.ai", "www.nomi.ai"}:
+        hosts.add("wiki.nomi.ai")
     hosts.discard("")
     hosts.discard("github.com")
     return hosts
@@ -1911,8 +1914,11 @@ def allowed_source_url(
         wiki_prefix = f"/wiki/{pair[0]}/{pair[1]}".lower()
         if path.lower().startswith(wiki_prefix):
             return True
-    if host not in first_party_hosts(product, repo_meta):
+    first_party = first_party_hosts(product, repo_meta)
+    if host not in first_party:
         return False
+    if host == "wiki.nomi.ai":
+        return True
     prefix = docs_host_path_prefix(product)
     if not prefix:
         return True

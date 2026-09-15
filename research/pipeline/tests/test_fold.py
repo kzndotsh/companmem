@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from companmem_pipeline.fold import (
     dedupe_near_duplicate_summaries,
+    build_contested_rows,
     filter_ledger_rows,
+    is_weak_wiki_index_ledger,
     filter_summary_items,
     filter_unknown_items,
     fold_pages,
@@ -390,6 +392,29 @@ def test_filter_summary_items_drops_self_referential_rows() -> None:
     kept = filter_summary_items(items, "microsoft-graphrag", "Microsoft GraphRAG")
     assert len(kept) == 1
     assert "hierarchy levels" in kept[0]["text"]
+
+
+def test_is_weak_wiki_index_ledger() -> None:
+    row = {
+        "url": "https://wiki.nomi.ai/Category:FAQs",
+        "quote": "How far back? / What is Backstory?",
+    }
+    assert is_weak_wiki_index_ledger(row)
+    assert not is_weak_wiki_index_ledger(
+        {
+            "url": "https://wiki.nomi.ai/Mind_Map_2.0",
+            "quote": "Mind Map entries can be edited by the user.",
+        }
+    )
+
+
+def test_build_contested_rows_memory_edit() -> None:
+    ledger = [
+        {"quote": "The memories are out of your hands", "claim": "x"},
+        {"quote": "edit their memories via mind mapping", "claim": "y"},
+    ]
+    rows = build_contested_rows(ledger)
+    assert len(rows) == 1
 
 
 def test_should_drop_ledger_row_moderation_and_context_only() -> None:

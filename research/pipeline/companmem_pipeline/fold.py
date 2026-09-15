@@ -118,7 +118,13 @@ CONTEXT_ONLY_MEMORY_RE = re.compile(
 )
 DOCS_SUPERSEDES_UNKNOWN_RE = re.compile(
     r"journal entries are stored|how journal entries are stored|indexed, or retrieved|"
-    r"per-kin \(character-isolated\)|whether memory is per-kin",
+    r"per-kin \(character-isolated\)|whether memory is per-kin|"
+    r"isolation scope is not described|whether memory is per-user, per-nomi|"
+    r"shared across group chats is not stated",
+    re.I,
+)
+LEDGER_ABSENCE_CLAIM_RE = re.compile(
+    r"retrieve policy is not described|is not described.*(?:this page|on this page)",
     re.I,
 )
 
@@ -211,10 +217,75 @@ def is_peripheral_mechanism(text: str) -> bool:
     return False
 
 
+def is_weak_wiki_index_ledger(row: dict[str, object]) -> bool:
+    url = str(row.get("url") or "")
+    if "Category:" in url or "/Category:" in url:
+        return True
+    quote = str(row.get("quote") or "")
+    if quote.count(" / ") >= 2 and "?" in quote:
+        return True
+    return False
+
+
+def build_contested_rows(ledger: list[dict[str, object]]) -> list[dict[str, object]]:
+    blob = " ".join(
+        normalize_claim(str(row.get("quote") or "") + " " + str(row.get("claim") or ""))
+        for row in ledger
+    )
+    contested: list[dict[str, object]] = []
+    if "out of your hands" in blob and (
+        "mind map" in blob or "edit their memories" in blob or "editing mind map" in blob
+    ):
+        contested.append(
+            {
+                "text": (
+                    "Community sources say conversational memories are not user-editable; "
+                    "wiki and store sources describe Mind Map edit/remove. Both appear in the ledger."
+                ),
+            }
+        )
+    if "remember it forever" in blob and (
+        "forget" in blob or "confused" in blob or "forgetful" in blob
+    ):
+        contested.append(
+            {
+                "text": (
+                    "Official messaging claims memories are retained permanently while FAQ and "
+                    "user reports document confusion and forgetfulness; treat as contested operations."
+                ),
+            }
+        )
+    return contested
+
+
+def filter_sources_by_citation(
+    sources: list[dict[str, object]],
+    ledger: list[dict[str, object]],
+    manifest: dict[str, object],
+) -> list[dict[str, object]]:
+    cited = {source_url_key(str(row.get("url") or "")) for row in ledger}
+    doc_urls: set[str] = set()
+    for page in manifest.get("pages") or []:
+        if not isinstance(page, dict):
+            continue
+        if page.get("lane") == "docs" or page.get("kind") == "docs":
+            doc_urls.add(source_url_key(str(page.get("url") or "")))
+    kept: list[dict[str, object]] = []
+    for row in sources:
+        key = source_url_key(str(row.get("url") or ""))
+        if key in cited or key in doc_urls:
+            kept.append(row)
+    return kept
+
+
 def should_drop_ledger_row(row: dict[str, object], *, has_official_docs: bool) -> bool:
     claim = str(row.get("claim") or "")
     kind = str(row.get("kind") or "")
     url = str(row.get("url") or "")
+    if is_weak_wiki_index_ledger(row):
+        return True
+    if LEDGER_ABSENCE_CLAIM_RE.search(claim):
+        return True
     if MODERATION_LEDGER_RE.search(claim) and "memory" not in normalize_claim(claim):
         return True
     if not has_official_docs:
@@ -512,11 +583,15 @@ def fold_pages(
     deduped_non_absence = dedupe_unknowns_by_text(non_absence)
     audit["unknowns"] = folded_absence + deduped_non_absence
     absence_in = len(absence_candidates)
-    audit["sources"] = list(sources_by_url.values())
     audit["copy"] = []
     audit["refuse"] = []
     audit["consensus"] = []
-    audit["contested"] = []
+    audit["contested"] = build_contested_rows(ledger)
+    audit["sources"] = filter_sources_by_citation(
+        list(sources_by_url.values()),
+        ledger,
+        manifest,
+    )
     if log is not None:
         log.info(
             "fold_stats",
