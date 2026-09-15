@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from companmem_pipeline.fold import (
     dedupe_near_duplicate_summaries,
+    filter_summary_items,
     fold_pages,
     is_near_duplicate_summary,
+    is_self_referential_summary,
 )
 from companmem_pipeline.lint import lint_audit
 
@@ -315,6 +317,41 @@ def test_fold_dedupes_unknowns_with_same_text_on_different_urls() -> None:
     ]
     audit = fold_pages(extracts, _manifest())
     assert len(audit["unknowns"]) == 1
+
+
+def test_is_near_duplicate_summary_matches_shared_parameter_name() -> None:
+    left = (
+        "Local search supports a conversation_history_max_turns setting, "
+        "indicating per-session conversation history is tracked and bounded."
+    )
+    right = (
+        "Local search uses a conversation_history_max_turns parameter, "
+        "indicating the pipeline tracks some turn history for search context."
+    )
+    assert is_near_duplicate_summary(left, right)
+
+
+def test_is_self_referential_summary_drops_circular_product_reference() -> None:
+    text = (
+        "GraphRAG uses hierarchical community detection to organize graph data, "
+        "inspired by Microsoft's GraphRAG."
+    )
+    assert is_self_referential_summary(text, "microsoft-graphrag", "Microsoft GraphRAG")
+    assert not is_self_referential_summary(
+        text,
+        "lightrag",
+        "LightRAG",
+    )
+
+
+def test_filter_summary_items_drops_self_referential_rows() -> None:
+    items = [
+        {"text": "Inspired by Microsoft's GraphRAG community reports"},
+        {"text": "Community reports are generated at multiple hierarchy levels"},
+    ]
+    kept = filter_summary_items(items, "microsoft-graphrag", "Microsoft GraphRAG")
+    assert len(kept) == 1
+    assert "hierarchy levels" in kept[0]["text"]
 
 
 def test_fold_drops_uncited_mechanisms() -> None:

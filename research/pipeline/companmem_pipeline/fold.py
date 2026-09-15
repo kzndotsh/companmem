@@ -83,6 +83,13 @@ def summary_tokens(text: str) -> set[str]:
     return {token for token in re.split(r"[^a-z0-9]+", normalize_claim(text)) if len(token) >= 4}
 
 
+def distinctive_shared_tokens(left: str, right: str) -> set[str]:
+    token_re = re.compile(r"[a-z0-9_]{8,}")
+    left_tokens = set(token_re.findall(normalize_claim(left)))
+    right_tokens = set(token_re.findall(normalize_claim(right)))
+    return left_tokens & right_tokens
+
+
 def is_near_duplicate_summary(left: str, right: str) -> bool:
     """True when two purpose/mechanism summaries say the same thing in different words."""
     normalized_left = normalize_claim(left)
@@ -93,12 +100,70 @@ def is_near_duplicate_summary(left: str, right: str) -> bool:
         return True
     if normalized_left in normalized_right or normalized_right in normalized_left:
         return True
+    shared_distinctive = distinctive_shared_tokens(left, right)
+    if any(len(token) >= 18 for token in shared_distinctive):
+        return True
+    if len(shared_distinctive) >= 2:
+        return True
     left_tokens = summary_tokens(left)
     right_tokens = summary_tokens(right)
     if not left_tokens or not right_tokens:
         return False
-    overlap = len(left_tokens & right_tokens) / min(len(left_tokens), len(right_tokens))
-    return overlap >= 0.6
+    shared = left_tokens & right_tokens
+    min_size = min(len(left_tokens), len(right_tokens))
+    union_size = len(left_tokens | right_tokens)
+    if len(shared) / min_size >= 0.55:
+        return True
+    if union_size and len(shared) / union_size >= 0.5:
+        return True
+    if (
+        "memory structure" in normalized_left
+        and "memory structure" in normalized_right
+        and len(shared) / min_size >= 0.35
+    ):
+        return True
+    return False
+
+
+def product_markers(product_id: str, product_name: str) -> set[str]:
+    raw = {
+        normalize_claim(product_id),
+        normalize_claim(product_name),
+        normalize_claim(product_id.replace("-", " ")),
+    }
+    expanded: set[str] = set()
+    for marker in raw:
+        if not marker:
+            continue
+        expanded.add(marker)
+        expanded.add(marker.replace("'s", " ").replace("'", " "))
+        expanded.add(marker.replace("microsoft ", "").strip())
+    return {marker for marker in expanded if marker}
+
+
+def is_self_referential_summary(text: str, product_id: str, product_name: str) -> bool:
+    """Drop comparisons that cite the audited product as external inspiration."""
+    blob = normalize_claim(text).replace("'s", " ").replace("'", " ")
+    if "inspired by" not in blob:
+        return False
+    inspired_fragment = blob.split("inspired by", 1)[1]
+    return any(marker in inspired_fragment for marker in product_markers(product_id, product_name))
+
+
+def filter_summary_items(
+    items: list[dict[str, object]],
+    product_id: str,
+    product_name: str,
+) -> list[dict[str, object]]:
+    kept: list[dict[str, object]] = []
+    for item in items:
+        text = str(item.get("text") or "").strip()
+        if not text:
+            continue
+        if is_self_referential_summary(text, product_id, product_name):
+            continue
+        kept.append(item)
+    return kept
 
 
 def dedupe_near_duplicate_summaries(
@@ -258,8 +323,16 @@ def fold_pages(
     ledger = list(ledger_by_key.values())
     audit = empty_audit(identity)
     audit["ledger"] = ledger
-    purpose_kept = cited_summaries(purposes, ledger)
-    mechanism_kept = cited_summaries(mechanisms, ledger)
+    product_id = str(identity.get("id") or manifest.get("id") or "")
+    product_name = str(identity.get("name") or manifest.get("name") or "")
+    purpose_kept = cited_summaries(
+        filter_summary_items(purposes, product_id, product_name),
+        ledger,
+    )
+    mechanism_kept = cited_summaries(
+        filter_summary_items(mechanisms, product_id, product_name),
+        ledger,
+    )
     audit["claimed_purpose"] = purpose_kept
     audit["mechanisms"] = mechanism_kept
     seen_unknown: set[str] = set()
