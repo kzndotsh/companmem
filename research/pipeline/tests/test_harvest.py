@@ -624,6 +624,13 @@ def test_body_markers_match_disambiguates_homonyms() -> None:
     }
     assert body_markers_match("Everos world map for my fantasy campaign", everos) is False
     assert body_markers_match("Meet EverOS from EverMind-AI on GitHub", everos)
+    lightrag = {
+        "id": "lightrag",
+        "name": "LightRAG",
+        "body_markers": ["HKUDS", "github.com/HKUDS/LightRAG", "lightrag-hku"],
+    }
+    assert body_markers_match("What is a light RAG approach for small docs?", lightrag) is False
+    assert body_markers_match("LightRAG from HKUDS on GitHub is fast", lightrag)
 
 
 def test_reddit_subreddit_prefix_collision_drops_homonyms() -> None:

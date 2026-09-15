@@ -1,0 +1,2676 @@
+{
+  "identity": {
+    "id": "lightrag",
+    "name": "LightRAG",
+    "repo": "https://github.com/HKUDS/LightRAG",
+    "docs": "https://github.com/HKUDS/LightRAG/blob/main/README.md",
+    "license": "MIT",
+    "version_or_commit": "080f6ba3f4500c7d6a589e597ac17a393d5386b7",
+    "observed_at": "2026-09-15"
+  },
+  "claimed_purpose": [
+    {
+      "text": "LightRAG is described as a lightweight RAG framework for document retrieval and response generation, optimized for speed and lower resource consumption."
+    },
+    {
+      "text": "Manages a knowledge graph of entities and relations as the authoritative persistent store, with vector databases as a rebuildable secondary index."
+    },
+    {
+      "text": "Provides graph-based knowledge representation and retrieval for RAG applications requiring entity relationship understanding"
+    },
+    {
+      "text": "LightRAG uses graph-based indexing and dual-level retrieval to navigate complex semantic relationships"
+    },
+    {
+      "text": "Enables the agent to recall past root-cause analyses when the same dependency chain fails again"
+    },
+    {
+      "text": "Dual-level retrieval design with indexing-cost reductions making graph-based RAG practical"
+    },
+    {
+      "text": "LightRAG optimizes build-time cost and end-to-end answer quality with an LLM in the loop"
+    },
+    {
+      "text": "Positioned as a simplification of heavier graph-RAG systems, using fewer tokens"
+    },
+    {
+      "text": "A lighter and faster GraphRAG variant from Hong Kong University"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "LightRAG uses four storage types for different purposes: KV_STORAGE for LLM response cache, text chunks, and document information; VECTOR_STORAGE for entity/relation/chunk embedding vectors; GRAPH_STORAGE for entity-relation graph structure; DOC_STATUS_STORAGE for document indexing status."
+    },
+    {
+      "text": "Conflict/supersession on edit: chunk-tracking row is staged as grow-then-shrink around the graph mutation \u2014 superset row written first, graph mutated, narrowed row written only after the graph commit is confirmed \u2014 so the row is never a strict subset of the durable graph evidence."
+    },
+    {
+      "text": "Persistent store is split into KV storage (full docs, text chunks, LLM response cache), vector storage (embeddings), graph storage (entities and relations), and doc status storage; all writes are buffered in memory and flushed to disk via index_done_callback"
+    },
+    {
+      "text": "Entity deletion is staged with a strict commit ordering: graph object removal is committed first, then tracking rows are deleted and committed, then vector storages are flushed, to avoid leaving a live entity without its authoritative provenance."
+    },
+    {
+      "text": "Entity merge write path: descriptions concatenated, entity_type keep_first, source_id and file_path join_unique; relation fields use concatenate/join_unique_comma/join_unique/max strategies; weight floored to distinct evidence count after merge."
+    },
+    {
+      "text": "All inserted data is persisted to a working directory on disk, using four distinct storage types: KV storage (documents, text chunks, LLM cache), vector storage (embeddings), graph storage (entity-relation graph), and document status storage."
+    },
+    {
+      "text": "JsonKVStorage upsert distinguishes insert from update; on update it adds only update_time to the caller's replacement value, then replaces the complete stored value for that key, discarding any fields the caller omits including create_time."
+    },
+    {
+      "text": "Delete path: deleting without 'also delete file' removes only storage state (chunks, vectors, graph, doc_status, full_docs); deleting with the flag also removes the source file, parsed artifacts, and raw engine bundles."
+    },
+    {
+      "text": "The workspace parameter provides data isolation between different LightRAG instances, using subdirectories, prefixes, labels, or table fields depending on the storage backend. Once initialized, workspace is immutable."
+    },
+    {
+      "text": "Conversation history is passed into the response prompt to maintain conversational flow, but it is separate from the persisted knowledge graph \u2014 the model is instructed to consider it to avoid repeating information."
+    },
+    {
+      "text": "TokenTracker reports zero LLM calls even when LLM cache saves are logged, indicating the tracker does not capture LLM activity when cache hits or async paths are used \u2014 a continuity-relevant instrumentation gap."
+    },
+    {
+      "text": "Deduplication uses two rules: duplicate filename (canonicalized, hint stripped) and duplicate content hash (MD5 of extracted text). A duplicate is recorded as FAILED and never overwrites the existing document."
+    },
+    {
+      "text": "Vector store is explicitly downstream of the graph and is described as rebuildable; consistency is restored via offline tools (lightrag-rebuild-vdb, lightrag-repair-chunk-tracking) not by rollback."
+    },
+    {
+      "text": "Chunk-tracking row is written and flushed BEFORE the graph mutation so that the only possible residue is a row whose object never became durable, never a durable object with no provenance row."
+    },
+    {
+      "text": "LLM response cache is stored in KV storage and is preserved separately from query-mode caches; a tool exists to delete only query-mode cache entries while preserving the extraction cache."
+    },
+    {
+      "text": "Documents are persisted to two stores at enqueue time: full_docs holds the raw content and metadata; doc_status holds processing state. full_docs is written first to avoid ghost rows."
+    },
+    {
+      "text": "Process_options and chunk_options are frozen at enqueue time; changing LIGHTRAG_PARSER or a hint does not affect an existing record. To change engine or options, delete and re-upload."
+    },
+    {
+      "text": "Entity/relation descriptions stop updating once associated text chunk count exceeds a limit; the default behavior is to skip further updates since description is already rich enough."
+    },
+    {
+      "text": "A chunk-tracking repair tool exists to repair stale or orphaned provenance rows offline, replacing the tracking namespace from current graph keys and cached extraction results."
+    },
+    {
+      "text": "A graph-only ingestion mode (NoopVectorDBStorage) is available for offline corpus backfill where vector indexes are not needed during ingestion and can be rebuilt afterward."
+    },
+    {
+      "text": "Source conflict repair tool lists documents sharing the same canonical source key and demotes duplicates, but never picks a winner on its own and never deletes content."
+    },
+    {
+      "text": "Embedding model must be fixed before indexing and cannot be changed without re-embedding all stored vectors; changing it requires deleting vector-related tables."
+    },
+    {
+      "text": "A stale writer that misses a notification does not reload, mutates a stale in-memory graph, does not decline, and silently overwrites the durable on-disk update."
+    },
+    {
+      "text": "LLM cache migration tool moves extraction, summary, and multimodal analysis caches between KV storage backends while preserving workspace isolation."
+    },
+    {
+      "text": "Relation weight must be >= its distinct real evidence source count; a manually assigned fractional weight is only permitted when source_id is empty."
+    },
+    {
+      "text": "user_prompt does not participate in the RAG retrieval phase; it guides the LLM on how to process retrieved results after the query is completed."
+    },
+    {
+      "text": "Three-store architecture: vector DB for semantic search, graph DB for entity relationships, key-value store for original document chunks"
+    },
+    {
+      "text": "Per-document chunk_options snapshot is persisted at enqueue time so chunking parameters are frozen per document even across restarts."
+    },
+    {
+      "text": "MongoGraphStorage falls back to per-pair edge lookups because it does not override the batch methods defined in BaseGraphStorage"
+    },
+    {
+      "text": "LightRAG uses a graph_storage parameter to select the graph database backend, suggesting a pluggable storage abstraction layer."
+    },
+    {
+      "text": "When a document is deleted, the system uses the LLM cache from indexing to quickly rebuild affected entities and relationships"
+    },
+    {
+      "text": "LightRAG stores retrieved references at the node and document level, not at sub-document granularity such as page or section."
+    },
+    {
+      "text": "Doc status storage tracks chunks_list per document, enabling deletion of all associated chunks when a document is removed"
+    },
+    {
+      "text": "Token budgets gate how much retrieved context (entities, relations, chunks, system prompt) is assembled into the prompt"
+    },
+    {
+      "text": "conversation_history is passed to the LLM only; it does not affect retrieval from the knowledge graph or vector store"
+    },
+    {
+      "text": "Multi-tenant isolation is a stated concern; proposed cache is cleared per-request to prevent cross-tenant leakage"
+    },
+    {
+      "text": "Storage backends include key-value, vector, graph, and document-status stores, all configured per deployment."
+    },
+    {
+      "text": "LLM query result caching: identical queries with same mode and model parameters return cached results"
+    },
+    {
+      "text": "Dual-level retrieval combining low-level entity retrieval and high-level keyword retrieval"
+    },
+    {
+      "text": "Storage is ephemeral by default; persistent storage requires an explicitly mounted volume"
+    },
+    {
+      "text": "Default storage is in-memory with local file persistence; not suitable for production"
+    },
+    {
+      "text": "The default query mode is mix, which generally yields the most ideal query results."
+    },
+    {
+      "text": "Two main API functions: Insert to persist documents, Query to retrieve with context"
+    },
+    {
+      "text": "LightRAG defaults to file-based storage for its vector and graph data"
+    },
+    {
+      "text": "Query is scoped to a workspace/graph; one graph queried at a time"
+    },
+    {
+      "text": "Uses vector embeddings for persistent long-term knowledge storage"
+    },
+    {
+      "text": "Retrieves stored knowledge using advanced algorithms"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Default storage is entirely in-memory with local file persistence; not suitable for production.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/README.md",
+      "quote": "All four default storages are in-memory databases (JsonKVStorage, NanoVectorDBStorage, NetworkXStorage, JsonDocStatusStorage): the whole dataset resides in the server process's memory and local files under WORKING_DIR serve only as persistence, so capacity is bounded by available RAM. The defaults are therefore intended only for small-scale testing, evaluation, and debugging, and are not suitable for production.",
+      "locator": "Key Configuration Guide / Selecting Backend Storage",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Selective document deletion triggers automatic KG regeneration using the indexing-time LLM cache.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/README.md",
+      "quote": "When a document is deleted, the system can use the LLM cache created during indexing to quickly rebuild the affected entities and relationships, substantially improving update efficiency.",
+      "locator": "Features & Advantages / Incremental Updates & Selective Deletion",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Five retrieval modes govern what is selected into context per query: local, global, hybrid, naive, mix.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/README.md",
+      "quote": "LightRAG supports five query modes: local... global... hybrid... naive... mix...",
+      "locator": "Key Configuration Guide / Selecting Query Modes",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Embedding model is fixed at indexing time; changing it requires re-embedding all persisted vectors and potentially dropping vector tables.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/README.md",
+      "quote": "The Embedding model must be determined before document indexing, and the same model must be used in the query phase. Once selected, embedding models generally cannot be changed. If changed, you will need to re-embed all text chunks, entities, and relationships.",
+      "locator": "Key Configuration Guide / Embedding Models",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Query-mode LLM caches are keyed by mode prefix (mix:*, hybrid:*, local:*, global:*, naive:*) and are separable from the extraction cache.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/README.md",
+      "quote": "Deletes query-mode LLM cache entries (mix:*, hybrid:*, local:*, global:*, naive:*) while preserving the expensive extraction cache.",
+      "locator": "Maintenance Tools / clean_llm_query_cache.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Vector storage is rebuilt from the graph and text_chunks KV store as the authoritative source, not from the original documents.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/README.md",
+      "quote": "Drops and rebuilds every vector storage from its authoritative source (graph nodes/edges and the text_chunks KV store).",
+      "locator": "Maintenance Tools / rebuild_vdb.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity/relation update frequency is capped by SOURCE_IDS_LIMIT_METHOD; by default updates stop once the chunk association limit is reached.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/README.md",
+      "quote": "SOURCE_IDS_LIMIT_METHOD: Controls whether to keep updating the entity/relation description once an entity/relation exceeds its associated text chunk limit (by default it stops updating, because at that point the entity-relation description is already rich enough and further updates add little value).",
+      "locator": "Key Configuration Guide / Other Important Configurations for Document Processing",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LLM caches and workspace isolation are preserved during migration between KV storage backends.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/README.md",
+      "quote": "Migrates default-mode caches (extraction, summary, multimodal analysis) between KV storage backends, preserving workspace isolation.",
+      "locator": "Maintenance Tools / migrate_llm_cache.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "conversation_history is not persisted; it is client-supplied per-request context forwarded verbatim to the LLM and never written to any store",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/api/routers/query_routes.py",
+      "quote": "History messages are only sent to LLM for context, not used for retrieval. Format: [{'role': 'user/assistant', 'content': 'message'}].",
+      "locator": "QueryRequest.conversation_history field description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval assembles entities, relationships, and text chunks from a knowledge graph and vector store; token budgets control how much fits in the prompt",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/api/routers/query_routes.py",
+      "quote": "Maximum total tokens budget for the entire query context (entities + relations + chunks + system prompt).",
+      "locator": "QueryRequest.max_total_tokens field description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No write, update, delete, or forget path is present in this file; the query routes are read-only with respect to the store",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/api/routers/query_routes.py",
+      "quote": "This module contains all query-related routes for the LightRAG API.",
+      "locator": "module docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval policy is always-retrieve for RAG modes; bypass mode skips retrieval entirely and goes straight to the LLM",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/api/routers/query_routes.py",
+      "quote": "bypass goes straight to the LLM without touching the index",
+      "locator": "QueryRequest.enforce_rag_query_minimum validator, docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Caller-supplied keywords bypass the LLM keyword-extraction step, giving the client direct control over what is retrieved",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/api/routers/query_routes.py",
+      "quote": "Bypass initial LLM call by providing high-level and low-level keywords",
+      "locator": "query_text docstring, Usage Examples section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistent storage is committed via index_done_callback; in-memory backends buffer writes and flush as a unit",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/base.py",
+      "quote": "Changes will be persisted to disk during the next index_done_callback",
+      "locator": "BaseVectorStorage.upsert, BaseKVStorage.upsert, BaseGraphStorage.upsert_node docstrings",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conversation history is a pass-through to LLM context only; it is not indexed, retrieved, or persisted by LightRAG's storage layer",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/base.py",
+      "quote": "# History messages are only sent to LLM for context, not used for retrieval",
+      "locator": "class QueryParam, conversation_history field",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "KV upsert preserves original create_time on update; only update_time advances",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/base.py",
+      "quote": "A key that already exists keeps its stored ``create_time`` and\n               only advances ``update_time`` -- including when ``data``\n               replaces the whole value with business fields only",
+      "locator": "BaseKVStorage.upsert docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete operations are buffered separately from upserts; buffered deletes (tombstones) are never discarded during batch abort, only buffered upserts can be dropped",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/base.py",
+      "quote": "a buffered delete\n        is a tombstone some already-returned operation promised, and dropping\n        one is unrecoverable.",
+      "locator": "StorageNameSpace.drop_pending_upserts docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Duplicate documents are detected by content hash (MD5) and file basename; duplicates are marked in metadata rather than deleted",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/base.py",
+      "quote": "the other candidates are marked ``metadata.is_duplicate=true`` with\n          ``original_doc_id=primary_doc_id``; content is never deleted.",
+      "locator": "DocStatusStorage.repair_source_conflict docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph storage enforces no self-loops at ingestion boundaries; self-loops carry no connectivity for graph retrieval",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/base.py",
+      "quote": "every LightRAG ingress refuses one -- extraction,\n        ``create_relation`` via ``_reject_self_loop_relation``\n        (``lightrag/utils_graph.py``), custom-KG insert",
+      "locator": "BaseGraphStorage.node_degree docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Multi-worker deployments: buffered writes are process-local until index_done_callback; cross-worker read-after-write requires explicit flush",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/base.py",
+      "quote": "In a multi-worker deployment (e.g. lightrag-gunicorn) other workers will not\n            observe these writes until the writing worker has called index_done_callback().\n            Callers that depend on cross-worker read-after-write visibility\n            must explicitly await index_done_callback() before relying on reads from another worker.",
+      "locator": "BaseVectorStorage.upsert docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Document chunks are tracked by ID list per document; chunk IDs are used for deletion when the parent document is removed",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/base.py",
+      "quote": "chunks_list: list[str] | None = field(default_factory=list)\n    \"\"\"List of chunk IDs associated with this document, used for deletion\"\"\"",
+      "locator": "DocProcessingStatus.chunks_list",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "TextChunkSchema stores token count, content, parent doc ID, and chunk order index \u2014 the persisted unit of text",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/base.py",
+      "quote": "class TextChunkSchema(TypedDict):\n    tokens: int\n    content: str\n    full_doc_id: str\n    chunk_order_index: int",
+      "locator": "class TextChunkSchema",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LightRAG uses a JSON-backed key-value storage class (JsonKVStorage) as one of its default persistence backends.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/kg/factory.py",
+      "quote": "from lightrag.kg.json_kv_impl import JsonKVStorage",
+      "locator": "lightrag/kg/factory.py, get_storage_class, JsonKVStorage branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LightRAG uses a vector database storage class (NanoVectorDBStorage) as one of its default persistence backends, indicating embedding-based retrieval is a first-class storage concern.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/kg/factory.py",
+      "quote": "from lightrag.kg.nano_vector_db_impl import NanoVectorDBStorage",
+      "locator": "lightrag/kg/factory.py, get_storage_class, NanoVectorDBStorage branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LightRAG uses a graph storage class (NetworkXStorage) as one of its default persistence backends, indicating a knowledge-graph structure is part of its persistent store.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/kg/factory.py",
+      "quote": "from lightrag.kg.networkx_impl import NetworkXStorage",
+      "locator": "lightrag/kg/factory.py, get_storage_class, NetworkXStorage branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LightRAG tracks document ingestion status in a dedicated storage class (JsonDocStatusStorage), separate from the KV, vector, and graph stores.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/kg/factory.py",
+      "quote": "from lightrag.kg.json_doc_status_impl import JsonDocStatusStorage",
+      "locator": "lightrag/kg/factory.py, get_storage_class, JsonDocStatusStorage branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LightRAG supports pluggable storage backends beyond the four defaults (e.g. Postgres) via a STORAGES registry and dynamic import, without changing core code.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/kg/factory.py",
+      "quote": "import_path = STORAGES[storage_name]\n    module = importlib.import_module(import_path, package=\"lightrag\")",
+      "locator": "lightrag/kg/factory.py, get_storage_class, fallback block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Extracted entities and relations are stored in a knowledge graph (chunk_entity_relation_graph), in KV anchors (full_entities, full_relations), and in vector stores (entities_vdb, relationships_vdb).",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/lightrag.py",
+      "quote": "self.chunk_entity_relation_graph: BaseGraphStorage = self.graph_storage_cls(namespace=NameSpace.GRAPH_STORE_CHUNK_ENTITY_RELATION, ...) self.full_entities: BaseKVStorage = ... self.full_relations: BaseKVStorage = ... self.entities_vdb: BaseVectorStorage = ... self.relationships_vdb: BaseVectorStorage = ...",
+      "locator": "__post_init__, storage initialization block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path is strictly ordered: chunks persisted before extraction, extraction cache flushed before graph mutation, anchors committed before terminal PROCESSED write.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/lightrag.py",
+      "quote": "# Stage 1 (barrier): persist chunks BEFORE extraction. ... # Stage 2: extract now that chunks are persisted, then make the staged chunks AND the extraction cache durable before any graph mutation ... # Stage 3: merge into the knowledge graph.",
+      "locator": "ainsert_custom_chunks, Stage 1/2/3 comments",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A durable write-ahead journal in doc_status.metadata records entity/relation candidates and operation phase before any graph mutation; enables resume or rollback after failure.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/lightrag.py",
+      "quote": "journal: dict[str, Any] = { \"schema_version\": 1, \"operation_id\": operation_id, \"mode\": mode, \"chunk_ids\": [cid for cid, _, _ in chunk_entries], ... \"phase\": \"prepared\", \"entity_names\": ..., \"relation_pairs\": ..., ... } status_row = await self._upsert_custom_chunk_status(doc_key, DocStatus.PROCESSING, base_row=existing_row, journal=journal, ...)",
+      "locator": "ainsert_custom_chunks, journal initialization block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Rollback removes staged chunk contributions from graph/vector/tracking stores, deletes operation-scoped LLM cache rows, prunes recovery anchors, and restores the document to PROCESSED or deletes it.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/lightrag.py",
+      "quote": "rebuild_report = await self._purge_kg_contributions(...) if cache_ids and self.llm_response_cache: await self.llm_response_cache.delete(cache_ids) ... await self._upsert_custom_chunk_status(doc_id, DocStatus.PROCESSED, base_row=row, journal=None, chunks_list=cleaned_chunks, ...)",
+      "locator": "_rollback_one_custom_chunk_patch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Admission control (max_pending_documents) limits the number of concurrent documents in PENDING/PARSING/ANALYZING/PROCESSING states; 0 disables it.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/lightrag.py",
+      "quote": "max_pending_documents: int = field(...) \"\"\"Admission capacity for ordinary ingestion (LR2 \u00a79.1). A new upload / text insert is refused with PipelineBackpressureError (HTTP 429) when strict active count + other in-flight reservation weights + requested would exceed this value.\"\"\"",
+      "locator": "LightRAG dataclass field declarations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Chunk-to-entity and chunk-to-relation provenance is tracked in entity_chunks and relation_chunks KV stores, used during rollback to determine whether a document still contributes to a given entity or relation.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/lightrag.py",
+      "quote": "tracking = (await self.entity_chunks.get_by_id(name) if self.entity_chunks else None) sources = set((tracking or {}).get(\"chunk_ids\") or []) if sources & owned_chunk_ids: keep.append(name)",
+      "locator": "_prune_doc_recovery_anchors",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Extract cache rows (cache_type='extract') are the only LLM cache rows that carry chunk references and can be orphaned; quarantine targets only this type.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/lightrag.py",
+      "quote": "_REFERENCE_CARRYING_CACHE_TYPES: frozenset[str] = frozenset({\"extract\"})",
+      "locator": "module-level constant definition",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "ainsert always uses fixed-token (F) chunking strategy; R/V/P/C strategies require direct use of apipeline_enqueue_documents with a process_options selector.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/lightrag.py",
+      "quote": "Async insert documents with checkpoint support (fixed-token chunking only). SDK convenience entry point. It **always** chunks with the fixed-token (F) strategy",
+      "locator": "ainsert docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Extracted entities and relationships are persisted to a graph store and a vector store; the graph node carries entity_type, description, source_id, file_path, created_at, and truncate fields.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/operate.py",
+      "quote": "node_data = dict(\n            entity_id=entity_name,\n            entity_type=entity_type,\n            description=description,\n            source_id=source_id,\n            file_path=file_path,\n            created_at=int(time.time()),\n            truncate=truncation_info,\n        )",
+      "locator": "_merge_nodes_then_upsert",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity descriptions from multiple source chunks are merged by deduplication and optionally summarised by LLM using a map-reduce approach; the result overwrites the previously stored description.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/operate.py",
+      "quote": "# Handle entity relation description summary using map-reduce approach.\n    ...\n    1. If total tokens < summary_context_size and len(description_list) < force_llm_summary_on_merge, no need to summarize\n    2. If total tokens < summary_max_tokens, summarize with LLM directly\n    3. Otherwise, split descriptions into chunks that fit within token limits\n    4. Summarize each chunk, then recursively process the summaries",
+      "locator": "_handle_entity_relation_summary docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LLM extraction results are cached per chunk in llm_response_cache with cache_type='extract'; when chunks are later deleted, entity/relation descriptions are rebuilt from this cache without re-calling the LLM.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/operate.py",
+      "quote": "if (\n            cache_entry is not None\n            and isinstance(cache_entry, dict)\n            and cache_entry.get(\"cache_type\") == \"extract\"\n            and cache_entry.get(\"chunk_id\") in chunk_ids\n        ):",
+      "locator": "_get_cached_extraction_results",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "On chunk deletion the rebuild policy can be 'best_effort' (historical behaviour) or 'rollback'; rollback treats missing extraction cache as non-fatal semantic degradation and rewrites provenance from surviving chunks while propagating operational storage failures.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/operate.py",
+      "quote": "rebuild_policy: ``best_effort`` preserves historical exception\n            handling for ordinary deletion. ``rollback`` treats missing or\n            unusable extraction data as a non-fatal semantic degradation and\n            structurally rewrites provenance from the surviving chunks, while\n            propagating operational graph/vector/tracking failures so the\n            rollback journal remains retryable.",
+      "locator": "rebuild_knowledge_from_chunks docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write-ahead recovery anchors (candidate entity and relation superset) are persisted and flushed to full_entities_storage and full_relations_storage before any graph/vector/tracking mutation; this enables purge/retry to discover contributions from a crashed merge.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/operate.py",
+      "quote": "# Narrow flush barrier: both anchors must be durable before the first\n        # graph mutation. A failure propagates \u2014 merging without a recovery\n        # anchor would make a later partial failure undiscoverable.\n        for storage_inst in (full_entities_storage, full_relations_storage):\n            try:\n                await storage_inst.index_done_callback()",
+      "locator": "merge_nodes_and_edges / Phase 0",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Re-extracting a chunk does not accumulate duplicate description fragments: _combine_descriptions_dedup sanitizes and deduplicates across both stored and new fragments before the merge/summary cycle.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/operate.py",
+      "quote": "Deduplicating across stored *and* new (not only within the\n    new batch) prevents a re-extracted description from appending a duplicate\n    fragment on every reprocess or resume; it also collapses any\n    legacy duplicate fragments already stored.",
+      "locator": "_combine_descriptions_dedup docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Relation weight tracks distinct contributing source chunks; on rebuild it is floored at len(surviving source IDs) so it cannot under-count evidence after chunk deletion.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/operate.py",
+      "quote": "weight = max(float(weight), float(len(set(limited_chunk_ids))))",
+      "locator": "_rebuild_single_relationship",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A degraded rebuild (no extraction cache available for a relation) preserves the stored weight scalar, meaning a boost applied by edit_relation survives across the rebuild because the degraded path seeds weights from the current stored value.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/operate.py",
+      "quote": "The degraded path has\n    nothing to re-derive from, so it seeds ``weights`` with the stored value\n    above and the boost survives there.",
+      "locator": "_rebuild_single_relationship (weight comment block)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "full_docs store persists raw document content and metadata; doc_status store persists processing status and is written after full_docs to prevent ghost rows.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/pipeline.py",
+      "quote": "4. Store document content in full_docs and status in doc_status \u2026 await self.full_docs.upsert(full_docs_data) \u2026 await self.full_docs.index_done_callback() \u2026 await self.doc_status.upsert(new_docs)",
+      "locator": "apipeline_enqueue_documents, step 4",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "FAILED documents are excluded from automatic resume and are only reset to PENDING via explicit manual retry with an exclusive lock phase.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/pipeline.py",
+      "quote": "FAILED is deliberately absent: a document that genuinely failed is retried only through an explicit manual request, whose EXCLUSIVE_RESET phase pages FAILED\u2192PENDING via _next_failed_page with no worker running (LR2 \u00a77.3) \u2014 never as a side effect of an unrelated upload or rescan.",
+      "locator": "_AUTO_RESUME_DOC_STATUSES block comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Content-hash dedup and filename dedup are applied at enqueue; duplicates are stored as traceable FAILED records rather than silently dropped.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/pipeline.py",
+      "quote": "Identical content already exists under another filename. \u2026 'status': DocStatus.FAILED, \u2026 'metadata': { 'is_duplicate': True, 'duplicate_kind': duplicate_kind, 'original_doc_id': \u2026",
+      "locator": "apipeline_enqueue_documents, duplicate handling block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-attempt metadata is scrubbed on every PENDING reset; only enqueue-time directives survive, preventing stale parse/analyze timings from persisting across retries.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/pipeline.py",
+      "quote": "Directives-only metadata: drop per-attempt timing/result fields, keep process_options / source_file (legacy source_file_name tolerant).",
+      "locator": "_build_pending_reset_update, reset_metadata comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Inconsistent doc_status rows confirmed absent in full_docs are deleted from storage; rows that cannot be confirmed absent (no strict reads) are kept and excluded from the batch with a warning.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/pipeline.py",
+      "quote": "Only a CONFIRMED absence may drive the deletion, and a backend that cannot confirm keeps the row and reports a bounded warning.",
+      "locator": "_validate_and_fix_document_consistency docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Pipeline coordination (busy slot, freeze, manual phase) is isolated per workspace; at most one processing run owns the slot at a time per workspace.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/pipeline.py",
+      "quote": "busy is a single per-workspace slot and this instance is per-workspace, so at most one run is ever published here",
+      "locator": "_run_pipeline_batch, _active_run_ctx comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "chunk_options snapshot is frozen per document at enqueue time and persisted to full_docs, decoupling processing-time chunking from runtime config changes.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/pipeline.py",
+      "quote": "Always snapshot chunk_options at enqueue time \u2014 independent of whether process_options selected a specific strategy \u2014 so the per-doc parameters are frozen even when 'F' (default) is used.",
+      "locator": "apipeline_enqueue_documents, _add_content, chunk_options comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Persisted store is a knowledge graph of extracted entities and relationships, not a message log or raw transcript.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/prompt.py",
+      "quote": "Knowledge Graph Data (Entity):\n\n```json\n{entities_str}\n```\n\nKnowledge Graph Data (Relationship):\n\n```json\n{relations_str}\n```",
+      "locator": "PROMPTS[\"kg_query_context\"]",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path for entities: extract structured tuples from text chunks, merge/summarize descriptions on conflict, with a correction pass to fix missed or malformed records.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/prompt.py",
+      "quote": "Your task is to synthesize a list of descriptions of a given entity or relation into a single, comprehensive, and cohesive summary... In cases of conflicting or inconsistent descriptions, first determine if these conflicts arise from multiple, distinct entities or relationships that share the same name.",
+      "locator": "PROMPTS[\"summarize_entity_descriptions\"], ---Instructions--- section 6",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy: keywords are extracted from each query and used to select relevant graph nodes and document chunks; retrieval is query-driven, not always-on full-graph injection.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/prompt.py",
+      "quote": "your task is to identify both high-level and low-level keywords in the user's query that will be used for effective document retrieval.",
+      "locator": "PROMPTS[\"keywords_extraction\"], ---Goal--- section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conversation history is maintained separately from the knowledge graph and injected into the generation prompt, not persisted as graph facts.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/prompt.py",
+      "quote": "Consider the conversation history if provided to maintain conversational flow and avoid repeating information.",
+      "locator": "PROMPTS[\"rag_response\"], ---Goal--- section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity summary length is bounded by a configurable token limit, meaning older or lower-priority description details may be dropped on update.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/prompt.py",
+      "quote": "Length Constraint: The summary's total length must not exceed {summary_length} tokens, while still maintaining depth and completeness.",
+      "locator": "PROMPTS[\"summarize_entity_descriptions\"], ---Instructions--- section 7",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "No explicit delete or forget prompt is defined in this file; the store is append/merge only at the prompt layer.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/prompt.py",
+      "quote": "PROMPTS: dict[str, Any] = {}",
+      "locator": "prompt.py, module-level PROMPTS dict (no delete/forget key present)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LightRAG persists a knowledge graph of entities and relations as its primary store; nodes carry entity_name, entity_type, description, source_id, file_path attributes; edges carry description, keywords, source_id, file_path, weight.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/utils_graph.py",
+      "quote": "_EDITABLE_ENTITY_FIELDS: dict[str, str] = { \"entity_name\": _TEXT_FIELD, \"entity_type\": _TEXT_FIELD, \"description\": _TEXT_FIELD, \"source_id\": _TEXT_FIELD, \"file_path\": _TEXT_FIELD, } \u2026 _RELATION_DATA_FIELDS: dict[str, str] = { \"description\": _TEXT_FIELD, \"keywords\": _TEXT_FIELD, \"source_id\": _TEXT_FIELD, \"file_path\": _TEXT_FIELD, \"weight\": _NUMBER_FIELD, }",
+      "locator": "module-level constants _EDITABLE_ENTITY_FIELDS and _RELATION_DATA_FIELDS",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity and relation deletion follows a strict phase order: graph commit confirmed first, tracking rows deleted second, vector records flushed last.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/utils_graph.py",
+      "quote": "the work is therefore staged: (1) commit the graph object's removal by itself and verify it actually happened \u2026 (2) only then delete and commit the tracking rows, (3) flush the vector storages last",
+      "locator": "adelete_by_entity docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Chunk-tracking row is written and flushed before the graph node/edge mutation to ensure the only residue is a row with no matching object, never the reverse.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/utils_graph.py",
+      "quote": "Write and commit the attribution row BEFORE the graph mutation \u2026 Writing the row first makes the only residue the benign mirror: a row whose node never became durable.",
+      "locator": "acreate_entity, comment above entity_chunks_storage upsert",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Edit operations use a grow-then-shrink staging for chunk-tracking rows: superset written before graph mutation, subset written only after the graph commit is confirmed.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/utils_graph.py",
+      "quote": "the update is staged as grow-then-shrink around the graph write: the superset row first, the graph write next, the shrunken row last. The row is then never a strict subset of the durable graph evidence",
+      "locator": "aedit_relation, comment above relation_chunks_storage upsert",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity merge concatenates descriptions, keeps first entity_type, joins unique source_ids; relation weight is floored to distinct evidence count after merge.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/utils_graph.py",
+      "quote": "default_entity_merge_strategy = { \"description\": \"concatenate\", \"entity_type\": \"keep_first\", \"source_id\": \"join_unique\", \"file_path\": \"join_unique\", }",
+      "locator": "_merge_entities_impl, default_entity_merge_strategy assignment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Self-loop relations are rejected at creation and merge; source and target must be different entities.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/utils_graph.py",
+      "quote": "Cannot create a self-loop relation on '{source_entity}': source and target must be different entities \u2026 A graph must not contain a self-loop",
+      "locator": "_reject_self_loop_relation and its docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Relation weight is validated to be >= the number of distinct real evidence source IDs; fractional weight below evidence count is rejected unless source_id is empty.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/utils_graph.py",
+      "quote": "A relation weight is its evidence count plus an optional manual boost. A caller may choose a fractional weight only when the relation has no real source IDs; negative weights are therefore always invalid.",
+      "locator": "validate_relation_weight docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Orphan tracking rows are swept on not_found retry paths; a failed prior deletion that left a tracking row without its graph object converges to clean state on the next call.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/utils_graph.py",
+      "quote": "An absent node with a surviving tracking row is by definition an orphan \u2026 Sweeping it here is what makes the staging \u2026 converge on retry.",
+      "locator": "adelete_by_entity, not_found branch comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The graph store is the authoritative source; vector storage is a rebuildable secondary index. Inconsistency is repaired offline via lightrag-rebuild-vdb, not by rollback.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/utils_graph.py",
+      "quote": "No data is lost (the graph is the authoritative source). Stop the LightRAG server and run the offline rebuild tool (lightrag-rebuild-vdb) to restore consistency.",
+      "locator": "multiple VectorStorageConsistencyError raise sites",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-workspace, per-entity keyed locks (get_storage_keyed_lock) serialize concurrent mutations to the same entity or relation across the graph and vector stores.",
+      "kind": "code",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/utils_graph.py",
+      "quote": "Use keyed lock for entity to ensure atomic graph and vector db operations \u2026 namespace = f\"{workspace}:GraphDB\" if workspace else \"GraphDB\"",
+      "locator": "adelete_by_entity, keyed lock acquisition block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LightRAG redefines RAG as Retriever-Agent-Generator rather than retrieval-augmented generation, merging retrieval, agent, and generation concepts into one framework.",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=40911339",
+      "quote": "They define RAG as Retriever-Agent-Generator in contrast to the rest of the industry, which defines it as retrieval-augmented generation.",
+      "locator": "comment by esafak, July 9 2024",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG does include a retrieval component under the label 'retrieval', but the broader framing folds agents into the RAG acronym.",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=40911339",
+      "quote": "they somewhat have real RAG in there under the label of retrieval (though that is more fair since the opposite is also true, retrieval and ranking for search and knowledge type tasks had names before and are frequently clumped under RAG nowadays)",
+      "locator": "comment by dbish, July 9 2024",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community observers note LightRAG lacks document ingestion, a core component expected of a RAG system.",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=40911339",
+      "quote": "It feels the title should be LightLLM or something, was expecting document ingestion etc in the docs but were missing.",
+      "locator": "comment by ashu1461, July 9 2024",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG is positioned as lighter-weight with fewer moving parts than alternative LLM frameworks.",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=40911339",
+      "quote": "Seems more lightweight than alternatives, with less moving parts.",
+      "locator": "comment by haolez, July 9 2024",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG's retrieval references nodes in its knowledge base and documents, but not specific pages or sections \u2014 sub-document provenance is absent natively.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1kpsyc3/lightrag_and_referencing/",
+      "quote": "LightRAG doesn't support this out of the box, it only gives references to the nodes in it's Knowldge Base + references to documents (as opposed to particular pages\\sections)",
+      "locator": "post body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG is designed to use fewer LLM tokens than heavier graph-RAG systems like KAG",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LangChain/comments/1k3cofa/multigraph_rag_ai_systems_lightrags_flexibility/",
+      "quote": "lightrag came after and was supposed to be a simplification of these systems intended to use less tokens",
+      "locator": "comment: u/RMCPhoto",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG's default storage is file-based, not a dedicated vector or graph database",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1jvnuxu/need_guidance_from_rag_veterans_is_switching/",
+      "quote": "Using database backends like PostgreSQL (with extensions like PGVector/AGE), ChromaDB, Neo4j, MongoDB, or Redis instead of LightRAG's default file-based storage",
+      "locator": "post body / Gemini response quote",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG supports swappable storage backends including vector DBs and graph DBs",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1jvnuxu/need_guidance_from_rag_veterans_is_switching/",
+      "quote": "Would it be worth switching from LightRAG's default file-based storage to something like PGVector, ChromaDB, Neo4j, Redis, or MongoDB?",
+      "locator": "post body / OP question",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Default file-based storage may limit retrieval quality at scale (~3000 pages), suggesting the store affects what gets remembered or retrieved accurately",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1jvnuxu/need_guidance_from_rag_veterans_is_switching/",
+      "quote": "with around 3,000 pages of data, there's a good chance I actually might\u2026 unfortunately",
+      "locator": "comment / u/rageagainistjg reply",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is per workspace/graph instance, with only one graph queryable at a time",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1k3cpck/multigraph_rag_ai_systems_lightrags_flexibility/",
+      "quote": "I saw that LightRag query based on the workspace, so I just need to create a Graph for each workspace, user can select which workspace they will need to get the information from. But I only query from 1 graph at a time since this fits my purpose.",
+      "locator": "comment: u/CallDaDa4PaPa",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG requires an external LLM API key (e.g., GPT or Gemini) and cannot run fully offline without one.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1kgqn7t/building_a_knowlegde_graph_locally_from_scratch/",
+      "quote": "No I think you need to link a gpt/Gemini API key",
+      "locator": "comment by u/Advanced_Army4706",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG's code is reasonably structured and readable, making it useful for learning how different query types work.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1kgqn7t/building_a_knowlegde_graph_locally_from_scratch/",
+      "quote": "The code is reasonably structured to understand what's happening with different query types",
+      "locator": "comment by u/visdalal",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community workaround: log chunk IDs alongside metadata in a separate store and match after similarity search, as retrieval layer does not carry metadata automatically.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1kpsyc3/lightrag_and_referencing/",
+      "quote": "I'd log chunk IDs alongside metadata in a separate store and match after a similarity search",
+      "locator": "comment by u/Future_AGI",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Top-k retrieval limits cause hits to be missed when the same content appears multiple times across or within documents.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1kpsyc3/lightrag_and_referencing/",
+      "quote": "big issue I've been having is top-k limits...returns top n best fits...when the same thing may occcur 3x in one doc and 1x in three docs...means you miss a bunch of hits",
+      "locator": "comment by u/Bozo32",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Users route queries to hybrid or vector retrieval modes depending on use case, and find LightRAG stable at ~250 users.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1mn5prw/is_there_a_better_tool_than_lightrag_for/",
+      "quote": "I route diff messages via hybrid or vector depending on the use case. It's been rock solid and was easy to stand up in railway... Have it running an app with 50 clients, prob 250 users in total and it's rock solid.",
+      "locator": "comment by u/PurpleSkyVisuals",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Changing query mode from Global to Mix and response format from Multiple Paragraph to Single Paragraph significantly improved retrieval reliability.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1mn5prw/is_there_a_better_tool_than_lightrag_for/",
+      "quote": "But then I changed the response format to 'Single Paragraph' and query mode to 'Mix' (was Global), it is so far 90% accurate. All the info it is retrieving so far has been reliable.",
+      "locator": "comment by u/108er",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG is reported as buggy and slow when used with LM Studio or Ollama on small-scale deployments.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1mn5prw/is_there_a_better_tool_than_lightrag_for/",
+      "quote": "This app is very buggy for me. I'm using LM Studio and don't want to use Ollama for it. And there's a ton of issues. Also when I tested it with Ollama it was quite slow.",
+      "locator": "original post by u/ZealousidealBunch220",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context drift and multi-step reasoning collapse are identified as structural failure modes in LightRAG on longer documents like legislation or research papers.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1mn5prw/is_there_a_better_tool_than_lightrag_for/",
+      "quote": "chunks and retrieval may look correct, but context still drifts and multi-step reasoning collapses, especially on longer documents like legislation or research papers.",
+      "locator": "comment by u/PSBigBig_OneStarDao",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG provides long-term memory of infrastructure patterns across incidents, enabling recall of past RCAs",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1mueb3a/how_our_agent_uses_lightrag_knowledge_graphs_to/",
+      "quote": "It gives the agent long-term memory of infra patterns: next time the same dependency chain fails, it recalls the past RCA.",
+      "locator": "post body, Why we like this approach",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graph traversal performance degrades at scale",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/Rag/comments/1mueb3a/how_our_agent_uses_lightrag_knowledge_graphs_to/",
+      "quote": "Typically when you start scaling traversal becomes super slow.",
+      "locator": "comment by u/remoteinspace",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Insert and Query are the two primary API entry points for persisting and retrieving knowledge",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/golang/comments/1jjzn83/golightrag_go_implementation_of_lightrag_for/",
+      "quote": "The library has a straightforward API centered around two main functions: Insert (to add documents to the knowledge base) and Query (to retrieve relevant information with context)",
+      "locator": "post body, paragraph 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Three separate stores serve distinct roles: vector DB (semantic), graph DB (relationships), key-value (raw chunks)",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/golang/comments/1jjzn83/golightrag_go_implementation_of_lightrag_for/",
+      "quote": "The vector database handles semantic similarity search... The graph database stores relationships between entities extracted from documents... The key-value store efficiently stores and retrieves the original document chunks needed for context generation.",
+      "locator": "comment by MegaGrindStone, reply to lesichkovm, numbered list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The dependency on three databases is considered a barrier to adoption for users wanting simpler setups",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/golang/comments/1jjzn83/golightrag_go_implementation_of_lightrag_for/",
+      "quote": "Was put off by all the dependencies required: graph db, vector db, key value storage. why can it not just be simpler?",
+      "locator": "comment by lesichkovm",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Running separate containers or binaries for storage backends is a friction point for local or single-binary deployments",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/golang/comments/1jjzn83/golightrag_go_implementation_of_lightrag_for/",
+      "quote": "Having to run separate containers or binaries, install dependencies, etc. is ok on a server but no fun for a local app or even something you want to simply deliver as a single binary.",
+      "locator": "comment by HackAfterDark",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hybrid retrieval outperforms naive vector-only RAG on comprehensiveness and result quality per internal benchmarks",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/golang/comments/1jjzn83/golightrag_go_implementation_of_lightrag_for/",
+      "quote": "The benchmarks in the tests folder show how this hybrid approach outperforms naive vector-only RAG on metrics like comprehensiveness and result quality for certain documents",
+      "locator": "comment by MegaGrindStone, reply to lesichkovm",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graph traversal enables recall of relationship-relevant content spread across distant sections, which vector search misses",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/golang/comments/1jjzn83/golightrag_go_implementation_of_lightrag_for/",
+      "quote": "This might miss important context about their relationship that's scattered across different parts of the book, especially if those parts don't explicitly mention both characters together.",
+      "locator": "comment by MegaGrindStone, Claude-illustrated example, Regular Vector Search Approach section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Storage backend is local/on-prem by default; Azure Blob Storage as a working directory is not confirmed supported",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/madeinpython/comments/1e0xvmg/introducing_lightrag_the_lightning_library_for/",
+      "quote": "I'm testing LightRag, everything works great on prem. But is it possible to set the working directory to an Azure blob storage?",
+      "locator": "comments, u/Wonderful_Pitch2180",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG minimizes abstraction compared to LangChain and LlamaIndex to give developers more control",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/madeinpython/comments/1e0xvmg/introducing_lightrag_the_lightning_library_for/",
+      "quote": "LightRAG is designed to minimize abstraction and give developers more control over their workflow.",
+      "locator": "comments, u/Alleria1809",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG persists four distinct store types: KV (LLM caches, chunks, extraction results), vector (embeddings), graph (knowledge graph), and document status",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/README.md",
+      "quote": "KV_STORAGE: Used to save LLM response caches, text chunking results, entity-relation extraction results, etc. VECTOR_STORAGE: Used to store vector information for text chunks, entities, and relationships. GRAPH_STORAGE: Used to save the knowledge graph. DOC_STATUS_STORAGE: Used to store the document list.",
+      "locator": "Selecting Backend Storage",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Document deletion is supported with automatic KG regeneration using the indexing LLM cache",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/README.md",
+      "quote": "When a document is deleted, the system can use the LLM cache created during indexing to quickly rebuild the affected entities and relationships, substantially improving update efficiency.",
+      "locator": "Features & Advantages \u2014 Incremental Updates & Selective Deletion",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is mode-driven (local/global/hybrid/naive/mix); mix is the default and combines all retrieval paths",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/README.md",
+      "quote": "The default query mode for LightRAG is mix. Using mix mode generally yields the most ideal query results.",
+      "locator": "Selecting Query Modes",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LLM query results are cached by default; same query + mode + model parameters return cached answer",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/README.md",
+      "quote": "ENABLE_LLM_CACHE: Whether to cache query results. Enabled by default; identical query questions, query modes, and LLM model parameters will return the same result.",
+      "locator": "Other Important Configurations for Document Querying",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity/relation descriptions stop updating after their associated chunk count exceeds MAX_SOURCE_IDS_PER_RELATION",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/README.md",
+      "quote": "SOURCE_IDS_LIMIT_METHOD: Controls whether to keep updating the entity/relation description once an entity/relation exceeds its associated text chunk limit (by default it stops updating, because at that point the entity-relation description is already rich enough and further updates add little value; skipping updates can greatly speed up knowledge base construction).",
+      "locator": "Other Important Configurations for Document Processing",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Workspace isolation exists at the cache-migration level; the migrate tool explicitly preserves it",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/README.md",
+      "quote": "Migrates default-mode caches (extraction, summary, multimodal analysis) between KV storage backends, preserving workspace isolation.",
+      "locator": "Maintenance Tools \u2014 migrate_llm_cache.py",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Source conflict between documents sharing the same canonical key is handled by demotion, never automatic deletion",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/README.md",
+      "quote": "Lists documents that claim the same canonical source key, and demotes the candidates the operator did not choose to duplicates. It never picks a winner on its own and never deletes content.",
+      "locator": "Maintenance Tools \u2014 source_conflict_repair.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The page describes retrieve-then-prompt architecture: retrieved graph facts and chunks are assembled into LLM context at query time; there is no separate 'memory' layer distinct from the knowledge graph and vector stores",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/README.md",
+      "quote": "During the query phase, the LLM needs to process a large volume of retrieved information, including entities, relationships, and text chunks. This requires the model to have the capability of generating high-quality responses in long, noisy contexts.",
+      "locator": "Selecting LLM Models",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG persists document content in a full_docs store with frozen chunk_options and process_options snapshots at enqueue time, guaranteeing reproducibility across env changes and restarts.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/FileProcessingPipeline.md",
+      "quote": "full_docs[doc_id][\"chunk_options\"] is frozen at apipeline_enqueue_documents enqueue time: by default it is assembled by resolve_chunk_options(self.addon_params, ...) on the spot",
+      "locator": "\u00a75.1 Responsibilities of process_options vs chunk_options",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "On reprocess (Branch B), LightRAG purges old chunks and graph contributions scoped to the document, then rebuilds from current process_options, without re-parsing the original file.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/FileProcessingPipeline.md",
+      "quote": "Always skip parsing (do not call parse_* again), restart from the ANALYZING stage, clear old chunks / entities, and redo per the current process_options",
+      "locator": "\u00a79.3 Branch B: Already Extracted",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Deduplication uses content hash (MD5 of extracted text) and canonical filename; duplicates are marked FAILED and never overwrite existing documents.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/FileProcessingPipeline.md",
+      "quote": "hitting either marks the attempt a duplicate, records it as FAILED, and never overwrites the existing document",
+      "locator": "\u00a77 Same-name and Duplicate Documents, introduction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Parse engine, process_options, and chunk_options are frozen at enqueue; changing configuration only affects new uploads, not existing records.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/FileProcessingPipeline.md",
+      "quote": "both the engine and the processing options are frozen at enqueue time \u2014 changing LIGHTRAG_PARSER or a hint does not affect an existing record, so re-running with different settings means deleting the document and uploading it again",
+      "locator": "\u00a71.5 First run: ingest one document and verify it worked",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Raw artifact bundles (parse caches) are stored per engine beside parsed output; cache invalidation is triggered by source file hash/size change, engine version change, or endpoint change.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/FileProcessingPipeline.md",
+      "quote": "A mismatch on any of the following is a cache miss. Shared by all three bundles: source file size or sha256 does not match the manifest; the recorded artifacts are missing, or their size / sha256 does not match.",
+      "locator": "\u00a76.3 Raw Artifact Bundles, Manifest invalidation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Deleting a document with 'also delete file' removes source file, parsed artifacts (.parsed/ directory), and raw engine bundles; without this flag only storage state (chunks, vectors, graph, doc_status, full_docs) is removed.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/FileProcessingPipeline.md",
+      "quote": "Neither checked: only storage state is removed \u2014 chunks, vectors, graph contributions, doc_status, full_docs. The source file on disk, the archived copy and .parsed/ sidecar under __parsed__, and the external engines' raw artifact bundles are all kept.",
+      "locator": "\u00a78.4 Deleting a Document: What the Two Checkboxes Remove",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per document (doc_id): chunk lists, graph contributions, and chunk_options snapshots are tracked and purged per doc_id.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/FileProcessingPipeline.md",
+      "quote": "Read status_doc.chunks_list to collect old chunk id set, call _purge_doc_chunks_and_kg(doc_id, chunk_ids): delete chunk rows from chunks_vdb / text_chunks",
+      "locator": "\u00a79.3 Branch B: Already Extracted, sub-step Old chunks / entities / relations cleanup",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Multimodal analysis results are written back into sidecar items as llm_analyze_result; on re-run they are overwritten, with LLM cache hits reusing previous provider responses.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/FileProcessingPipeline.md",
+      "quote": "For enabled modalities, every run recomputes the sidecar item analysis and overwrites the existing llm_analyze_result. The LLM analysis cache still applies: a cache hit reuses the previous provider response, so semantic fields usually stay the same and only runtime fields such as analyze_time are rewritten.",
+      "locator": "\u00a79.3 Branch B: Already Extracted, sub-step analyze_multimodal",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The pipeline stores document state through a status ladder (PENDING \u2192 PARSING \u2192 ANALYZING \u2192 PROCESSING \u2192 PROCESSED) tracked in doc_status; interrupted states are auto-reset to PENDING on restart.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/FileProcessingPipeline.md",
+      "quote": "In-flight documents are left at PARSING / ANALYZING / PROCESSING; they are not written as FAILED. Those interrupted states are automatically reset to PENDING and re-run the next time the pipeline starts",
+      "locator": "\u00a78.2 Stopping a Running Pipeline",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "All inserted data is persisted to a configurable working directory on disk.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/ProgramingWithCore.md",
+      "quote": "All data is persisted to WORKING_DIR.",
+      "locator": "A Simple Program / Notes",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Four storage layers are used: KV (LLM cache, chunks, docs), vector (embeddings), graph (entity-relation), and document status.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/ProgramingWithCore.md",
+      "quote": "LightRAG uses 4 types of storage for different purposes: KV_STORAGE \u2014 LLM response cache, text chunks, document information; VECTOR_STORAGE \u2014 Entity/relation/chunk embedding vectors; GRAPH_STORAGE \u2014 Entity-relation graph structure; DOC_STATUS_STORAGE \u2014 Document indexing status",
+      "locator": "Storage Backends / Storage Types / table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Data isolation between LightRAG instances is provided by the workspace parameter, which is immutable after initialization.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/ProgramingWithCore.md",
+      "quote": "The workspace parameter ensures data isolation between different LightRAG instances. Once initialized, the workspace is immutable.",
+      "locator": "Data Isolation Between LightRAG Instances",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conversation history is passed to the LLM for context but does not influence retrieval (no effect on keyword extraction, vector search, or reranking).",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/ProgramingWithCore.md",
+      "quote": "History messages are only sent to LLM for context, not used for retrieval",
+      "locator": "QueryParam / conversation_history field comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "user_prompt does not affect what is retrieved; it only shapes how the LLM processes already-retrieved results.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/ProgramingWithCore.md",
+      "quote": "The user_prompt parameter in QueryParam does not participate in the RAG retrieval phase \u2014 it guides the LLM on how to process the retrieved results after the query is completed. 'Does not participate in retrieval' means it does not influence what is found or how it is ranked: it is not used for keyword extraction, vector search, or reranking.",
+      "locator": "User Prompt vs. Query",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LLM responses are cached to avoid repeated LLM calls for the same prompt.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/ProgramingWithCore.md",
+      "quote": "enable_llm_cache \u2014 If TRUE , stores LLM results in cache; repeated prompts return cached responses",
+      "locator": "LightRAG Init Parameters / table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "An answer cache keyed by embedding similarity can return previously generated answers without calling the LLM when the new question is sufficiently similar to a cached one.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/ProgramingWithCore.md",
+      "quote": "embedding_cache_config \u2014 Configuration for question-answer caching. ... When a new question's similarity with a cached question exceeds this threshold, the cached answer will be returned directly without calling the LLM.",
+      "locator": "LightRAG Init Parameters / table / embedding_cache_config",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Deleting an entity removes it from the graph, its relationships, its embedding vectors, and its chunk-tracking rows, preventing pre-deletion provenance from being inherited if the entity is recreated.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/ProgramingWithCore.md",
+      "quote": "Deletes and persists the entity and incident-relation chunk-tracking rows, so recreating the entity does not inherit pre-deletion provenance",
+      "locator": "Delete Functions / Delete Entities / bullet list",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Deletion is staged: graph removal is committed first, then tracking rows are deleted and committed, then vector storages are flushed, to guarantee no live entity exists without its provenance row.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/ProgramingWithCore.md",
+      "quote": "A deletion is staged so that no failure can leave a live entity without its authoritative provenance \u2014 the state from which a later document purge concludes 'no remaining sources' and removes an entity other documents still reference. The graph object's removal is committed first, on its own; only then are the tracking rows deleted and committed; the vector storages are flushed last.",
+      "locator": "Delete Functions / Delete Entities / staging paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Deleting by document ID reconstructs entities and relationships that are shared with other documents, rather than simply removing all associated data.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/ProgramingWithCore.md",
+      "quote": "Identify and delete entities/relationships that belong only to this document; Rebuild entities/relationships that still exist in other documents",
+      "locator": "Delete Functions / Delete by Document ID / deletion process bullets",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Switching embedding models requires clearing the vector data directory; existing vectors will not match the new model's space.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/ProgramingWithCore.md",
+      "quote": "when changing the embedding model you MUST clear the data directory (optionally keeping kv_store_llm_response_cache.json for the LLM cache). Existing vectors will not match the new model's space.",
+      "locator": "Custom Embedding Functions / Pitfall paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "An optional kg_extraction_validator hook runs after extraction and before merge, allowing rejection of entities/relations before they enter the graph, vector stores, or source_id chain.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/ProgramingWithCore.md",
+      "quote": "kg_extraction_validator is an optional per-chunk hook that runs after entity / relation extraction and before the merge , so anything it rejects never enters the knowledge graph, the vector stores, or an entity's source_id chain.",
+      "locator": "Extraction Quality Hook (kg_extraction_validator)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A global user prompt prefix is applied server-side to every query and participates in the answer cache key, so changing the prefix invalidates previously cached answers.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/ProgramingWithCore.md",
+      "quote": "The prefix participates in the answer cache key, so editing it invalidates answers generated under the old one.",
+      "locator": "A Global User Prompt Prefix / cache key paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Chunk-tracking provenance rows can become stale or orphaned; an offline repair tool (lightrag-repair-chunk-tracking) rebuilds the tracking namespace from current graph keys and cached extraction results.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/ProgramingWithCore.md",
+      "quote": "A stale or orphaned entity_chunks / relation_chunks row cannot be found, let alone pruned, one row at a time: BaseKVStorage has no enumeration API, so nothing can sweep for it. The repair is therefore whole-namespace \u2014 it replaces one or both namespaces from current graph keys, retaining authoritative rows for live objects and supplementing them from cached extraction results.",
+      "locator": "Delete Functions / Repairing chunk tracking",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "NoopVectorDBStorage allows ingestion into the graph and KV stores without persisting embeddings, for offline backfill scenarios where vector indexes are rebuilt afterward.",
+      "kind": "docs",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/ProgramingWithCore.md",
+      "quote": "NoopVectorDBStorage is intended for an initial or offline corpus backfill where the graph and KV stores are authoritative and vector indexes can be materialized once from the final state. It avoids embedding and persisting intermediate entity, relationship, and chunk revisions during ingestion.",
+      "locator": "Storage Backends / Graph-only ingestion",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LightRAG accepts a graph_storage constructor argument to configure which graph database backend is used for knowledge graph persistence.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/1917",
+      "quote": "rag = LightRAG(\n    working_dir=WORKING_DIR,\n    llm_model_func=gpt_4o_mini_complete,\n    graph_storage=\"FalkorDBStorage\",\n)",
+      "locator": "Example Usage",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG uses fixed token-window chunking, which can break code logic at chunk boundaries and degrade retrieval quality.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/1930",
+      "quote": "lightrag-server splits all files using a fixed token window, which often breaks code logic across chunk boundaries",
+      "locator": "Feature Request Description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG's TokenTracker returns zero for all token counts during document ingestion and query even when LLM calls demonstrably occurred (cache entries were saved), indicating the tracker does not intercept the async LLM path used by RAGAnything.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/2325",
+      "quote": "LLM call count: 0, Prompt tokens: 0, Completion tokens: 0, Total tokens: 0",
+      "locator": "Describe the bug / Steps to reproduce output",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG persists graph and KV state to disk within the working directory after each document processing run.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/2325",
+      "quote": "In memory DB persist to disk\nINFO: Completed processing file 1/1: md.md",
+      "locator": "Logs and screenshots / post-merge log",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG stores entities and relations extracted by an LLM into a graph file (graphml) and multiple KV stores as its primary persistent memory representation.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/2325",
+      "quote": "[_] Created new empty graph file: /tmp/tmp2c9nw0f0/rag_storage/graph_chunk_entity_relation.graphml",
+      "locator": "Logs and screenshots / initialization log",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Storage isolation is per working directory; multiple RAGAnything instances use separate directories and thus separate graphs and KV stores.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/2325",
+      "quote": "Created working directory: /tmp/tmpqte57j3a/rag_storage ... Created working directory: /tmp/tmp2c9nw0f0/rag_storage",
+      "locator": "Logs and screenshots / two separate initialization blocks",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG caches LLM responses under namespaced keys (e.g. default:extract:, mix:keywords:, mix:query:), so repeated identical queries or extractions are served from cache without new LLM calls.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/2325",
+      "quote": "== LLM cache == saving: default:extract:6d8865786e257fde6b26919023bc73fe ... == LLM cache == saving: mix:keywords:3abca453c4747416a8ce13ff65000772 ... == LLM cache == saving: mix:query:7ca3fab27b7b08aef1188957f656a241",
+      "locator": "Logs and screenshots / cache save log lines",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG persists documents via an upsert path in a nano vector DB implementation, embedding chunks before storage.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/2675",
+      "quote": "lightrag/kg/nano_vector_db_impl.py\", line 124, in upsert\n    embeddings_list = await asyncio.gather(*embedding_tasks)",
+      "locator": "LightRAG logs / ERROR traceback",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG assigns a document ID (d-id) to each ingested document, suggesting per-document isolation in the store.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/2675",
+      "quote": "INFO: Processing d-id: doc-399ffc6654e4f90b75161028fc4f6e06",
+      "locator": "LightRAG logs / INFO lines",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG's embedding worker has a hardcoded or configured 60-second timeout, after which the document ingestion pipeline fails and is stopped.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/2675",
+      "quote": "WARNING: Embedding func: Worker timeout for task 140199239737680_5717800.586878799 after 60s\n...\nERROR: Failed to extract document 1/1: LLM for Data Management - 3685800.3685838.pdf\nINFO: Enqueued document processing pipeline stopped",
+      "locator": "LightRAG logs / WARNING, ERROR, INFO lines",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context assembly in multi-tenant queries leaks data across workspaces \u2014 the LIGHTRAG-WORKSPACE header is only partially honored, causing wrong-workspace context to be returned",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/2904",
+      "quote": "This is a **data isolation bug** \u2014 in multi-tenant deployments, queries leak context across workspaces. The header exists and is documented, but only partially implemented for queries.",
+      "locator": "Additional Context",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Workspace isolation in LightRAG is scoped to a working_dir per LightRAG() instance; true per-tenant isolation requires one instance per workspace",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/2904",
+      "quote": "one `LightRAG()` object per workspace with its own `working_dir`",
+      "locator": "Workaround",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Full multi-workspace support is planned for v1.6.x but not present in v1.4.13",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/2904",
+      "quote": "ahead of the full multi-workspace redesign in v1.6.x",
+      "locator": "Suggested Fix",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The /health endpoint correctly extracts workspace from request header via get_workspace_from_request(), but /query does not, indicating inconsistent implementation of workspace routing",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/2904",
+      "quote": "**`/health` endpoint** correctly calls `get_workspace_from_request(request)` to extract the header",
+      "locator": "Root Cause Analysis",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "_find_most_related_edges_from_entities performs greedy full-neighborhood expansion, not top-K filtering",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3096",
+      "quote": "They retrieve ALL connected edges/entities for the given nodes (without any limit or threshold during expansion). They sort the results by rank/weight.",
+      "locator": "Your Question / lightrag/operate.py ~4419",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "_find_most_related_entities_from_relationships likewise expands the full neighborhood before later truncation",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3096",
+      "quote": "_find_most_related_entities_from_relationships \u2026 retrieve ALL connected edges/entities for the given nodes (without any limit or threshold during expansion)",
+      "locator": "Your Question / lightrag/operate.py ~4693",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No early filtering (e.g. max_edges_per_node or min_weight_threshold) exists inside the expansion functions themselves",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3096",
+      "quote": "adding an early filtering mechanism (e.g., max_edges_per_node or min_weight_threshold) inside these functions could significantly improve performance and reduce memory usage",
+      "locator": "Your Question",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval requires three separate round-trips to Neo4j: one for node-edge adjacency, one for edge properties, one for edge degrees",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3130",
+      "quote": "Forces the downstream `get_edges_batch(pairs)` call to re-fetch each edge's properties (the server already had them in memory during step 1). Forces the downstream `edge_degrees_batch(pairs)` call to re-count degrees the server already computed.",
+      "locator": "Issue 1: get_nodes_edges_batch has no fanout bound and forces re-fetches downstream",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The storage layer is multi-tenant with per-tenant node populations; cache isolation per request is an explicit design requirement",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3130",
+      "quote": "Cache invalidation: cleared at the top of every `get_nodes_edges_batch` call \u2014 no cross-request leak. Important for multi-tenant deployments.",
+      "locator": "Issue 1: Proposed change (opt-in, additive)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Proposed denorm neighbor arrays introduce eventual consistency between writes and retrieval ranking",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3130",
+      "quote": "Eventual consistency: top_neighbors lags edge upserts by one recompute. Acceptable for retrieval ranking \u2014 the rank-K cutoff is the only stale signal",
+      "locator": "Issue 2: Proposed change (opt-in, additive \u2014 second PR, dependent on issue 1's API)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG has a dual-level retrieval design",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3571",
+      "quote": "the dual-level retrieval design and the indexing-cost reductions are a big part of why graph-based RAG is practical now",
+      "locator": "issue body, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG incurs LLM token cost at query time, contrasted with zero-token alternatives",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3571",
+      "quote": "LightRAG optimizes build-time cost and end-to-end answer quality with an LLM in the loop",
+      "locator": "issue body, framing paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG supports at least four retrieval modes: local, global, hybrid, mix",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3571",
+      "quote": "mode: local/global/hybrid/mix, any flags",
+      "locator": "issue body, ask paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A failed deletion previously left the document row in `PROCESSED` status with the failure recorded only in metadata, hiding a potentially inconsistent KG state from users.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3659",
+      "quote": "today a failed deletion leaves the document row in `PROCESSED` with the failure recorded only in `metadata` / `error_msg`. The document *looks* healthy in every listing while its chunks/graph contributions may be half gone. Users have no way to discover the inconsistency or to know they should re-run the deletion.",
+      "locator": "## Problem",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The proposed design defers all KG rebuild work to a single invocation at batch finalization, re-deriving rebuild targets from live tracking at that time rather than from any earlier snapshot.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3659",
+      "quote": "One rebuild per batch. Exactly one `rebuild_knowledge_from_chunks()` invocation per batch deletion, covering every surviving entity/relation any deleted document contributed to \u2026 the rebuild target set can be *re-derived* at finalization time from anchors + live tracking \u2014 no serialized target dict needs to be persisted, and re-derivation automatically uses fresh chunk lists.",
+      "locator": "## Design goals, goal 1; ## Proposed implementation, Key insight paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Journal phase metadata and anchor rows in `doc_status.metadata` are the durable source of truth for crash recovery; the status field is a UX projection only.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3659",
+      "quote": "Status is a UX projection; the journal remains the source of truth \u2014 resume decisions are made from `kg_purge` phases and recovery proofs, never from the status value alone.",
+      "locator": "## Design goals, goal 6",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A `DELETING` document is excluded from ingestion auto-resume, manual retry-as-ingestion, and scan classification, making the status scheduling-neutral by construction.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3659",
+      "quote": "`DELETING` is safe precisely because no scheduler consumes it \u2014 which must be made true explicitly, not assumed. Every `DocStatus` consumer is audited and pinned by tests.",
+      "locator": "## `DELETING` lifecycle and consumer audit",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Stale entity summaries during the deferral window (between per-doc chunk deletion and batch rebuild) are a known continuity degradation; queries silently drop stale references rather than surfacing an error.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3659",
+      "quote": "The deferral window (stale entity summaries until the batch rebuild lands) is therefore a soft degradation, bounded by `destructive_busy` exclusion for writers. With `DELETING` visible in the document list, users can also *see* when the system is in this window. This window and its bound must be documented in the PR.",
+      "locator": "## Query behavior during the deferral window",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Silent data loss in NanoVectorDBStorage: applied-but-unsaved upserts are dropped when index_done_callback reloads unconditionally after a concurrent writer commits.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3688",
+      "quote": "The materialized-but-unsaved rows are gone, nothing replays them, and the following save succeeds. **Silent data loss.**",
+      "locator": "The chain / Nano",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "FaissVectorDBStorage has the same silent-drop bug for both upserts and deletes due to the same unconditional reload pattern.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3688",
+      "quote": "Faiss (`lightrag/kg/faiss_impl.py`) is structurally identical: `_flush_pending_locked` clears `_pending_upserts` at its end (`faiss_impl.py:775`-ish), `index_done_callback`'s reload at `faiss_impl.py:951` is unconditional",
+      "locator": "The chain / Faiss",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The pending buffer design is a work queue today but the proposed fix reconceives it as a replay log cleared only after durable save.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3688",
+      "quote": "Treat the pending buffer as a **replay log**, not a work queue: clear it only after the save is durable, and re-apply it after a reload.",
+      "locator": "Proposed direction",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Deletion paths intentionally stay buffered for retry on failure, by design distinct from insert abort paths.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3688",
+      "quote": "deletion paths must use plain `_insert_done` so failed deletes stay buffered for a later retry",
+      "locator": "Proposed direction / Details / Interaction with _discard_pending_index_ops",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "azure_openai_embed's max_token_size decorator value is silently ignored because the function signature does not declare the parameter, so the last-resort truncation never runs on that path.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3720",
+      "quote": "azure_openai_embed decorator=8192 signature declares it: NO -> truncation never runs",
+      "locator": "Description / openai_embed vs azure_openai_embed table",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "With openai_embed the embedding API receives 8192 tokens (truncated); with azure_openai_embed it receives the full 20001 tokens untouched, measured at the network boundary.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3720",
+      "quote": "LightRAG(embedding_func=openai_embed) | 8192 tokens (truncated) \u2026 LightRAG(embedding_func=azure_openai_embed) | 20 001 tokens (untouched)",
+      "locator": "Description / Measured on main @ 7ecd8a05 table",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "No error is logged when the injection is skipped; the failure is silent.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3720",
+      "quote": "No error is logged \u2014 the injection is skipped silently, and openai_embed treats max_token_size=None as \"no limit configured\"",
+      "locator": "Logs and screenshots",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A normal ingestion run does not break because two upstream guards (chunk splitter and VDB payload truncation) cover the common paths; the missing truncation is a last-resort defence for direct or third-party callers.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3720",
+      "quote": "So a normal ingestion run does not break. What is lost is the final defence for anything that reaches the binding without going through those two layers \u2014 a caller invoking rag.embedding_func(...) directly, a third-party integration, lightrag/tools/rebuild_vdb.py, or a future call site that forgets the upstream guard.",
+      "locator": "Description / How much this actually matters",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "delete_llm_cache=True can silently succeed while leaving orphaned LLM cache rows containing chunk text and extracted entities/relations in the store",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3833",
+      "quote": "A user who ticks it for confidentiality reasons, deletes the document, and gets `success` back has no way to learn that some of the text is still stored. That makes this an incomplete-deletion bug rather than a housekeeping one",
+      "locator": "## Why it matters at all",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Orphaned cache rows self-heal on successful re-ingest of the same document because the cache-hit branch also appends to the collector",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3833",
+      "quote": "re-ingesting the same document attaches every stranded key on its second pass. Permanent residue is limited to documents that failed, were never successfully retried, and were then deleted or rolled back",
+      "locator": "## Why this is low priority",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Deletion path (adelete_by_doc_id and _rollback_one_custom_chunk_patch) reads only llm_cache_list to find cache rows; rows never attached are invisible to deletion",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3833",
+      "quote": "Recovery then cannot see the rows. Both collectors read `llm_cache_list` and nothing else",
+      "locator": "## Mechanism",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The orphan bug is present on commit 300d9df1 and earlier",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3833",
+      "quote": "the same window is present on `300d9df1` and earlier, and it belongs to the purge/recovery contract rather than to an extraction hook",
+      "locator": "## Context",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "index_done_callback on file-backed stores publishes the entire namespace, not just the caller's mutation, causing co-tenant partial state to become durable before its author finishes.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3838",
+      "quote": "Any writer's flush therefore durably publishes **every** other writer's pending in-memory mutation in that namespace, including partial state its author had not finished. If the process dies before that other writer completes its sequence, the restart reads a half-applied operation nobody intended to publish.",
+      "locator": "M1 \u2014 `index_done_callback` publishes the whole namespace, not one operation",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Purge self-healing exists: if phantom chunk ids belong to a document still in the corpus, that document's own purge subtracts them. The ghost is permanent only when that document was already removed.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3838",
+      "quote": "**There is a self-healing branch.** If the phantom chunk ids belong to a document still in the corpus, that document's own purge subtracts them (the relation is still named in its `full_relations` anchor). The residue is permanent only when that document was already removed.",
+      "locator": "What the residue actually does \u2014 verified",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "An entity created via acreate_entity without a source_id can never be fully deleted once named by a document, because the manual_creation placeholder makes purge classify it as rebuild instead of delete-outright.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3838",
+      "quote": "Terminal state: an entity that can never be deleted, plus one log line \u2014 identical to the residue traced below, reached without any of M1\u2013M4.",
+      "locator": "M5 \u2014 `acreate_entity` writes a placeholder into the authoritative tracking store",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A single orphan tracking row silently suppresses the entire relation-tracking rebuild for the whole install via the is_empty() gate in _migrate_chunk_tracking_storage.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3838",
+      "quote": "**One leftover row makes that `False` and silently suppresses the relation-tracking rebuild for the whole install.** Verified against an earlier experiment that reserved a journal key inside `relation_chunks`:\n\n```\ndeletion status: fail\nrelation_chunks rows left: ['entity-delete-journal-7fc56270e7a70fa81a5935b72eacbe29']\nrelation_chunks.is_empty() -> False\n=> migration gate would SKIP the relation-tracking rebuild\n```",
+      "locator": "Why today's documented recovery is not sufficient",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "After a commit_in_storage_io hook failure, the caller cannot distinguish a landed write from a failed one, causing adelete_by_entity to skip tracking cleanup even though the node is durably gone.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3838",
+      "quote": "So the GraphML file is already renamed into place \u2014 the deletion is durable \u2014 while the caller sees only an exception and cannot distinguish it from a write that never landed. In `adelete_by_entity` the tracking cleanup is then skipped although the node is durably gone: same terminal state as M3, reached through a different door.",
+      "locator": "M4 \u2014 A commit notification that raises after the write cannot tell its caller the write landed",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The NetworkXStorage class docstring asserts admin flows must be guarded externally for single-writer correctness, but that claim is stale: the WebUI calls /graph/entity/edit, and admin-vs-admin is not serialized.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3838",
+      "quote": "The same docstring's mitigating clause \u2014 \"these flows are currently not exposed in the WebUI\" (`lightrag/kg/networkx_impl.py:217-221`) \u2014 **is stale**: the WebUI calls `/graph/entity/edit` (`lightrag_webui/src/api/lightrag.ts:1171`). Nothing about the exposure argument survives.",
+      "locator": "M2 \u2014 Admin graph mutations are not serialized against each other",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "NetworkXStorage.drop() deletes the GraphML file from disk as the durable persistence layer for the knowledge graph",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3849",
+      "quote": "if os.path.exists(self._graphml_xml_file):\n            os.remove(self._graphml_xml_file)          # durable",
+      "locator": "Summary code block",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A bug exists where a successful store drop (file deleted, in-memory graph reset) can be reported to callers as a failure if the cross-process notification raises, causing the caller to believe data survived when it did not",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3849",
+      "quote": "a clear that actually destroyed the graph data can be reported to the caller as having destroyed nothing, and the input files are then left in place to be re-ingested against storage that no longer matches",
+      "locator": "Why it is worth fixing separately",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Multiple storage backends each implement drop(); the same notification-ordering bug may exist in backends other than NetworkXStorage",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3849",
+      "quote": "Worth auditing the other backends' `drop()` for the same ordering while in there.",
+      "locator": "Scope",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A failed or partial storage_updated notification causes a worker to silently overwrite a durable graph write it never observed, because the flag is the only reload trigger in _get_graph.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3854",
+      "quote": "A worker whose flag was never flipped therefore: 1. does not reload in `_get_graph`, so it mutates a stale in-memory graph; 2. does not decline in `index_done_callback`, because that branch reads the same flag; 3. writes the **whole** GraphML file (networkx has no incremental serialization), silently overwriting the durable update it never saw.",
+      "locator": "Summary",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The staleness window has no upper bound: a process missing one flag notification stays stale indefinitely because the on-disk file is never consulted between commits.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3854",
+      "quote": "A process that misses one notification \u2014 for any reason \u2014 stays stale until *some* later commit anywhere flips its flag again. That window has no upper bound, and the authoritative surface (the file) is never consulted.",
+      "locator": "Scope of the window",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Prior to bc7ed9e9, a failed publish caused _insert_done to reprocess the document, incidentally re-writing and re-notifying \u2014 a probabilistic self-heal, not a designed one.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3854",
+      "quote": "Before that commit, `_insert_done` did reprocess such a document, which incidentally re-wrote and re-notified \u2014 a probabilistic self-heal, not a designed one, and one that never covered the `utils_graph` deletion paths, which simply raise to the caller.",
+      "locator": "Why this is not solvable by how the commit reports itself",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The settled fix is to OR a file fingerprint (st_mtime_ns, st_size) permanently with the existing flag, making the fingerprint the authoritative channel and the flag an accelerator hint.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3854",
+      "quote": "The blind spots are **complementary, not overlapping** \u2026 So the two are OR-ed **permanently**. Removing either one leaves a real hole.",
+      "locator": "Settled design \u2014 Two channels, permanently, with disjoint blind spots",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "st_ino is unusable as a fingerprint discriminator because os.replace causes immediate inode reuse; measured 28 reuse events out of 29 commits.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3854",
+      "quote": "distinct inodes    : 2 / 30\ninode reuse events : 28\n`os.replace` frees the previous target inode and the allocator hands it straight back to the next tmp file in the same directory.",
+      "locator": "Two reversals from the original text",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Reading the Manager Value proxy (storage_updated.value) costs ~66 \u00b5s per call versus ~0.8 \u00b5s for os.stat, making the flag the expensive channel despite being treated as the fast path.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3854",
+      "quote": "`os.stat()` **0.8 \u00b5s** \u2026 `self.storage_updated.value` read (multiprocess = Manager Value RPC) **66 \u00b5s**",
+      "locator": "Measurements that drive the design",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A accepted residue is documented: two commits inside one filesystem timestamp tick with identical file size and a lost notification means the second commit is invisible until the next commit anywhere.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3854",
+      "quote": "Two commits landing inside one filesystem timestamp tick, with identical file size, **and** the notification lost for this process \u2192 this process does not observe the second one until the next commit anywhere. Recovery: the next commit by any process both flips the flag and changes the fingerprint.",
+      "locator": "Accepted residue to document",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The fence making stale writers decline more often will turn previously silent lost writes into surfaced 500 errors on admin write paths, concentrated in the concurrent-overlap variant.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3854",
+      "quote": "the fence makes a stale writer decline more often, so `_commit_graph_or_raise` raises and an admin write returns 500 where it previously lost the write silently.",
+      "locator": "Phasing and priority",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "JsonKVStorage.upsert() replaces the full stored value on update, discarding create_time when the caller's payload omits it",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3870",
+      "quote": "JsonKVStorage.upsert() distinguishes insert from update, but for an existing key it adds only update_time to the caller's replacement value: self._data.update(data) then replaces the complete value for that key. If the caller supplied only business fields, the previous create_time is discarded.",
+      "locator": "Root cause",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A real workspace showed 64 entity_chunks rows missing create_time, all with count >= 2, consistent with rows that had received a later replacement upsert",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3870",
+      "quote": "64 pre-repair rows lacked create_time; all 64 had count >= 2, consistent with rows that had received a later replacement upsert.",
+      "locator": "Steps to reproduce",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Expected behavior is that storage-managed timestamps (create_time, update_time) are maintained by the storage layer and do not require callers to round-trip metadata fields",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3870",
+      "quote": "Storage-managed timestamps do not depend on callers round-tripping metadata fields.",
+      "locator": "Expected behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The admin-concurrency docstring in networkx_impl.py overstates protection: it claims a losing concurrent writer declines with a 500, but the actual code path discards the mutation silently without any error",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3896",
+      "quote": "the admin mutation is discarded, and the index_done_callback that follows finds no divergence and commits successfully. No decline, no 500 \u2014 the silent loss the dropped lock was argued not to cause.",
+      "locator": "The overstated claim",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Empirically reproduced: after a spurious reload, index_done_callback returned True and the committed file contained from_a + Y with no trace of X (X was silently lost)",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3896",
+      "quote": "index_done_callback() returned True, and the file held from_a + Y with no trace of X.",
+      "locator": "Trace (mechanism, independent of the admin flows)",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The bug is pre-existing and was not introduced by the fence PRs #3854 or #3874; it was filed out of PR #3874 as a deliberate separate design call",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3896",
+      "quote": "Pre-existing; not introduced by #3854 or #3874. Filed out of PR #3874, where the spurious-divergence door into the same mechanism was closed and the rest was deliberately left alone as a separate design call.",
+      "locator": "Notes",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "MongoGraphStorage does not override edge_degrees_batch/get_edges_batch, causing per-pair round-trip fallback to BaseGraphStorage default loop",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3907",
+      "quote": "MongoGraphStorage (`lightrag/kg/mongo_impl.py`) does not override `edge_degrees_batch`/`get_edges_batch`, so it falls back to `BaseGraphStorage`'s default per-pair loop \u2014 one `edge_degree()`/`get_edge()` round trip per pair",
+      "locator": "Describe the bug, paragraph 1",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Missing indexes on source_node_id and target_node_id in the MongoGraphStorage edge collection cause full collection scans on every degree/edge query",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3907",
+      "quote": "With neither field indexed, every one of these calls runs a full collection scan (`COLLSCAN`) of the edge collection. This is a per-query cost, not just a concurrency artifact \u2014 even one isolated call scans every document",
+      "locator": "Describe the bug, paragraph 2, point 2",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Document deletion during a busy/latched pipeline state is silently lost from the client's perspective, a continuity failure where a removal is acknowledged but not applied.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3948",
+      "quote": "deletes during the latch return HTTP 200 `status: \"busy\"`, so clients can silently lose updates.",
+      "locator": "Actual behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The pipeline self-deadlock means failed documents queued for retry are never processed, causing indefinite loss of those documents' re-ingestion \u2014 a persistence/continuity gap.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3948",
+      "quote": "The only remaining reservation is the running supervisor's own token. It can only be released when the run returns, and the run cannot return until the reservation is released \u2192 self-deadlock.",
+      "locator": "Describe the bug, step 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG uses JsonKVStorage, NanoVectorDBStorage, NetworkXStorage, and JsonDocStatusStorage as its persistence backends.",
+      "kind": "issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3948",
+      "quote": "Storage: JsonKVStorage / NanoVectorDBStorage / NetworkXStorage / JsonDocStatusStorage.",
+      "locator": "LightRAG Config Used",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG builds knowledge graphs from documents and uses graph-based retrieval to capture entity relationships",
+      "kind": "blog",
+      "url": "https://railway.com/deploy/lightrag.md",
+      "quote": "LightRAG is a graph-based Retrieval-Augmented Generation system that outperforms traditional RAG by building knowledge graphs from your documents. Unlike simple vector search, LightRAG understands relationships between entities, delivering smarter and more contextual answers.",
+      "locator": "Documentation > About Hosting LightRAG",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Persistent storage is not on by default; the data directory must be explicitly backed by a volume to survive restarts",
+      "kind": "blog",
+      "url": "https://railway.com/deploy/lightrag.md",
+      "quote": "Railway provides ephemeral storage. Add a Railway Volume mounted to /app/data for persistent storage",
+      "locator": "Documentation > Dependencies for LightRAG > Deployment Dependencies",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG supports multiple LLM providers for generation and uses configurable embedding models",
+      "kind": "blog",
+      "url": "https://railway.com/deploy/lightrag.md",
+      "quote": "Multiple LLM providers: Works with OpenAI, Groq, OpenRouter, Azure, and AWS Bedrock",
+      "locator": "Documentation > Why Deploy LightRAG on Railway",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG uses graph-based knowledge representation for entity relationship retrieval",
+      "kind": "blog",
+      "url": "https://memgraph.com/docs/ai-ecosystem/integrations.md",
+      "quote": "It provides efficient graph-based knowledge representation and retrieval capabilities, making it ideal for building RAG applications that require sophisticated understanding of entity relationships and context.",
+      "locator": "## LightRAG",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memgraph support not yet available in PyPI release; must install from source",
+      "kind": "blog",
+      "url": "https://memgraph.com/docs/ai-ecosystem/integrations.md",
+      "quote": "you need to install LightRAG from source since Memgraph support is not yet available in the PyPI release",
+      "locator": "## LightRAG / Installation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Workspace isolation is supported per LightRAG instance",
+      "kind": "blog",
+      "url": "https://memgraph.com/docs/ai-ecosystem/integrations.md",
+      "quote": "Use the `MEMGRAPH_WORKSPACE` environment variable to isolate data between different LightRAG instances",
+      "locator": "## LightRAG / Advanced configuration",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG is a lighter and faster GraphRAG variant from HKU (Hong Kong University), released in 2024",
+      "kind": "blog",
+      "url": "https://www.mrlatte.net/en/research/2026/04/27/rag-complete-guide/",
+      "quote": "LightRAG (HKU, 2024) Lighter and faster. Dual-level retrieval (low-level entities + high-level keywords) Quick builds",
+      "locator": "Section 8.6 Comparison of major implementations",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG is positioned as a follow-up to Microsoft GraphRAG, part of active research in graph-based retrieval",
+      "kind": "blog",
+      "url": "https://www.mrlatte.net/en/research/2026/04/27/rag-complete-guide/",
+      "quote": "Follow-up research like LightRAG and HippoRAG is active.",
+      "locator": "Section 11.2 GraphRAG and structured retrieval (2024)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG builds a knowledge graph incrementally alongside a vector index and merges both at query time",
+      "kind": "blog",
+      "url": "https://www.x-cmd.com/install/lightrag/",
+      "quote": "LightRAG constructs the graph incrementally on each document insert, traverses only the relevant subgraph at query time, and uses token-efficient entity-extraction prompts.",
+      "locator": "LightRAG: When Vector RAG Forgets the Connections",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Entity extraction is an LLM call paid per document insert; extraction quality is bounded by the model chosen",
+      "kind": "blog",
+      "url": "https://www.x-cmd.com/install/lightrag/",
+      "quote": "Entity extraction is a real LLM call \u2014 you pay tokens for every document insert. On a 1 GB corpus, this is a non-trivial token bill.",
+      "locator": "FAQ / What is the main cost?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graph quality degrades with duplicate or malformed entity names, causing wrong routing",
+      "kind": "blog",
+      "url": "https://www.x-cmd.com/install/lightrag/",
+      "quote": "Bad entity names, duplicated entities (\"ACME\" vs \"Acme Corp\"), or wrong relations will make the graph worse than useless \u2014 it will confidently route queries to the wrong entity.",
+      "locator": "Things to keep in mind / The graph is only as good as the extraction",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Four query modes allow selective graph cost: local for single-entity, global for cross-entity, hybrid by default",
+      "kind": "blog",
+      "url": "https://www.x-cmd.com/install/lightrag/",
+      "quote": "Defaulting to \"hybrid\" sounds safe but pays the cost of every mode. \"Local\" for single-entity questions, \"global\" for cross-entity questions, \"hybrid\" when in doubt.",
+      "locator": "Things to keep in mind / Pick the query mode deliberately",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The vector index remains active in LightRAG; a poor embedding model is not rescued by the graph",
+      "kind": "blog",
+      "url": "https://www.x-cmd.com/install/lightrag/",
+      "quote": "LightRAG is dual-track, not graph-only. The vector side still does its job for semantic similarity. If your embedding model is bad, the graph does not save you.",
+      "locator": "Things to keep in mind / The vector index still matters",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG is a lightweight RAG framework for document retrieval and response generation optimized for speed and lower resource consumption.",
+      "kind": "blog",
+      "url": "https://sourceforge.net/projects/lightrag.mirror/",
+      "quote": "LightRAG is a lightweight Retrieval-Augmented Generation (RAG) framework designed for efficient document retrieval and response generation. It is optimized for speed and lower resource consumption, making it ideal for real-time applications.",
+      "locator": "Summary section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG supports various embedding models for document indexing.",
+      "kind": "blog",
+      "url": "https://sourceforge.net/projects/lightrag.mirror/",
+      "quote": "Supports various embedding models for document indexing",
+      "locator": "Features list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG is licensed under the MIT License.",
+      "kind": "blog",
+      "url": "https://sourceforge.net/projects/lightrag.mirror/",
+      "quote": "MIT License",
+      "locator": "Additional Project Details / License",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG Memory provides long-term persistent knowledge storage using vector embeddings",
+      "kind": "blog",
+      "url": "https://skywork.ai/skillhub/lightrag-memory/",
+      "quote": "Utilizes vector embeddings for efficient long-term knowledge storage.",
+      "locator": "Key Features \u2014 Long-term Storage",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Knowledge graphs are used for semantic integration and retrieval",
+      "kind": "blog",
+      "url": "https://skywork.ai/skillhub/lightrag-memory/",
+      "quote": "It features vector embeddings for data storage and employs knowledge graphs for semantic data integration and retrieval.",
+      "locator": "About the LightRAG Memory Skill section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval uses advanced algorithms for fast and reliable access",
+      "kind": "blog",
+      "url": "https://skywork.ai/skillhub/lightrag-memory/",
+      "quote": "Enables fast and reliable retrieval of stored knowledge using advanced algorithms.",
+      "locator": "Key Features \u2014 Quick Access",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG uses graph-based indexing and dual-level retrieval paradigms to navigate complex semantic relationships",
+      "kind": "blog",
+      "url": "https://medium.com/stanford-cs224w/synapticrag-integrating-lightrag-and-memorag-for-enhanced-retrieval-augmented-generation-with-3935d0eb45d0",
+      "quote": "LightRAG\u2075 leverages graph-based indexing and dual-level retrieval paradigms to efficiently navigate complex semantic relationships.",
+      "locator": "Introduction",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG constructs a knowledge graph (V, E) from text data with heterogeneous graph structures for entities and relations",
+      "kind": "blog",
+      "url": "https://medium.com/stanford-cs224w/synapticrag-integrating-lightrag-and-memorag-for-enhanced-retrieval-augmented-generation-with-3935d0eb45d0",
+      "quote": "LightRAG constructs a knowledge graph (V, E) from text data.",
+      "locator": "Section 3.3 Graph-Based Indexing with PyG",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LightRAG captures complex semantic structures using GNNs and PyG",
+      "kind": "blog",
+      "url": "https://medium.com/stanford-cs224w/synapticrag-integrating-lightrag-and-memorag-for-enhanced-retrieval-augmented-generation-with-3935d0eb45d0",
+      "quote": "By leveraging these, LightRAG captures complex semantic structures.",
+      "locator": "Section 2. Related Work",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SynapticRAG improves over LightRAG by 2.5\u20133% on average across comprehensiveness, diversity, and empowerment metrics",
+      "kind": "blog",
+      "url": "https://medium.com/stanford-cs224w/synapticrag-integrating-lightrag-and-memorag-for-enhanced-retrieval-augmented-generation-with-3935d0eb45d0",
+      "quote": "SynapticRAG improves over LightRAG by 2.5\u20133% on average.",
+      "locator": "Section 6.4 Key Findings",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/lightrag.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/operate.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/base.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/prompt.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/pipeline.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/utils_graph.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/kg/factory.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/api/routers/query_routes.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/ProgramingWithCore.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/FileProcessingPipeline.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/2904",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/1930",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/1917",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/3130",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/2675",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/3659",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/3838",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/3571",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/3854",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/3833",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/2325",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/3896",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/3096",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/2789",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/3948",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/3907",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/3870",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/3849",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/3720",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HKUDS/LightRAG/issues/3688",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.mrlatte.net/en/research/2026/04/27/rag-complete-guide/",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://sourceforge.net/projects/lightrag.mirror/",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://railway.com/deploy/lightrag.md",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://skywork.ai/skillhub/lightrag-memory/",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://memgraph.com/docs/ai-ecosystem/integrations.md",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.x-cmd.com/install/lightrag/",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://medium.com/stanford-cs224w/synapticrag-integrating-lightrag-and-memorag-for-enhanced-retrieval-augmented-generation-with-3935d0eb45d0",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://skills.lc/shuff57/agents/shuff57-agents-skills-lightrag-memory-skill-md.md",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://news.ycombinator.com/item?id=40911339",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/golang/comments/1jjzn83/golightrag_go_implementation_of_lightrag_for/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/Rag/comments/1mueb3a/how_our_agent_uses_lightrag_knowledge_graphs_to/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/Rag/comments/1kgqn7t/building_a_knowlegde_graph_locally_from_scratch/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/Rag/comments/1jvnuxu/need_guidance_from_rag_veterans_is_switching/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LangChain/comments/1k3cofa/multigraph_rag_ai_systems_lightrags_flexibility/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/madeinpython/comments/1e0xvmg/introducing_lightrag_the_lightning_library_for/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/Rag/comments/1mn5prw/is_there_a_better_tool_than_lightrag_for/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/Rag/comments/1k3cpck/multigraph_rag_ai_systems_lightrags_flexibility/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/Rag/comments/1kpsyc3/lightrag_and_referencing/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "No description of per-user or per-session isolation in the storage layer; the page describes storage types and backends but does not state whether data is namespaced by user, session, agent, or character.",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "No description of conflict/supersession policy when the same entity is extracted from multiple documents with differing descriptions, beyond the chunk-count cap.",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "The page does not describe what is persisted after entity/relation extraction completes (the knowledge graph write path and its storage schema); _process_extract_entities and _insert_done are referenced but not defined here.",
+      "url": "https://github.com/HKUDS/LightRAG/blob/080f6ba3f4500c7d6a589e597ac17a393d5386b7/lightrag/pipeline.py",
+      "kind": "code"
+    },
+    {
+      "text": "The page and comments are silent on how LightRAG persists state across sessions, what is stored between turns, how retrieval is selected into context, or any forget/delete mechanism. For a library billing itself as a RAG+Agent framework these are expected architectural details.",
+      "url": "https://news.ycombinator.com/item?id=40911339",
+      "kind": "community"
+    },
+    {
+      "text": "No information on this page about LightRAG's write path (extract, update, delete, conflict resolution) or forget/deletion behavior",
+      "url": "https://www.reddit.com/r/LangChain/comments/1k3cofa/multigraph_rag_ai_systems_lightrags_flexibility/",
+      "kind": "community"
+    },
+    {
+      "text": "No information on retrieve policy \u2014 whether retrieval is always-on, adaptive, or silence-capable",
+      "url": "https://www.reddit.com/r/LangChain/comments/1k3cofa/multigraph_rag_ai_systems_lightrags_flexibility/",
+      "kind": "community"
+    },
+    {
+      "text": "No information on this page about how LightRAG handles persistent memory across sessions, write/update/delete paths, conflict resolution, or forgetting \u2014 the page focuses solely on storage backend swap trade-offs",
+      "url": "https://www.reddit.com/r/Rag/comments/1jvnuxu/need_guidance_from_rag_veterans_is_switching/",
+      "kind": "community"
+    },
+    {
+      "text": "No information on this page about how LightRAG handles updates or deletions to existing graph/vector store entries (write path, conflict, supersession).",
+      "url": "https://www.reddit.com/r/Rag/comments/1kgqn7t/building_a_knowlegde_graph_locally_from_scratch/",
+      "kind": "community"
+    },
+    {
+      "text": "No information on this page about session or user isolation \u2014 whether stored entities and graph data are scoped per user, session, or shared globally.",
+      "url": "https://www.reddit.com/r/Rag/comments/1kgqn7t/building_a_knowlegde_graph_locally_from_scratch/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of LightRAG's write path: how it extracts entities/relations, updates the knowledge graph on re-ingestion, or handles conflicting information across documents.",
+      "url": "https://www.reddit.com/r/Rag/comments/1kpsyc3/lightrag_and_referencing/",
+      "kind": "community"
+    },
+    {
+      "text": "No information on isolation: whether LightRAG's knowledge graph and vector store are scoped per user, session, or shared globally.",
+      "url": "https://www.reddit.com/r/Rag/comments/1kpsyc3/lightrag_and_referencing/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of how LightRAG handles conflict or supersession when the same entity (e.g. a service) receives contradictory facts from different ingestion events",
+      "url": "https://www.reddit.com/r/Rag/comments/1mueb3a/how_our_agent_uses_lightrag_knowledge_graphs_to/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of forget or delete: whether nodes or edges can be removed from the graph and how staleness is handled",
+      "url": "https://www.reddit.com/r/Rag/comments/1mueb3a/how_our_agent_uses_lightrag_knowledge_graphs_to/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of how conflicts or supersessions are handled when the same entity is mentioned differently across documents",
+      "url": "https://www.reddit.com/r/golang/comments/1jjzn83/golightrag_go_implementation_of_lightrag_for/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of delete or forget behavior \u2014 whether documents or entities can be removed from the vector store, graph, or key-value store",
+      "url": "https://www.reddit.com/r/golang/comments/1jjzn83/golightrag_go_implementation_of_lightrag_for/",
+      "kind": "community"
+    },
+    {
+      "text": "The page does not describe how LightRAG persists state across sessions, what is stored, how it is retrieved into context, or whether any forgetting or conflict resolution exists \u2014 core memory behaviors absent from this post.",
+      "url": "https://www.reddit.com/r/madeinpython/comments/1e0xvmg/introducing_lightrag_the_lightning_library_for/",
+      "kind": "community"
+    },
+    {
+      "text": "Per-user or per-session isolation of the knowledge graph and KV stores is not described; the architecture doc does not clarify whether multiple users share one graph namespace or have isolated stores",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Adaptive retrieve policy (when to stay silent vs. always retrieve) is not described; no mechanism for suppressing retrieval when confidence is low is mentioned",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The page describes a file ingestion and knowledge graph construction pipeline. It does not describe any retrieve path: how stored chunks or graph entities are selected into a query turn, what retrieve policy is used (always retrieve vs adaptive), or how retrieved content is assembled into prompt context.",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/FileProcessingPipeline.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The page does not describe the retrieve policy in detail: whether retrieval is always performed for every query mode, or whether there is an adaptive or conditional retrieval path (e.g., skip retrieval when context is sufficient). The page describes what is retrieved (top_k entities, chunk_top_k chunks) but not the conditions under which retrieval is skipped or short-circuited beyond the 'bypass' mode.",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/ProgramingWithCore.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The page does not describe conflict or supersession handling during entity/relation updates when two documents assert contradictory descriptions for the same entity. The merge and edit APIs are described, but no automatic conflict resolution policy for contradictory facts is documented.",
+      "url": "https://github.com/HKUDS/LightRAG/blob/main/docs/ProgramingWithCore.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of how LightRAG handles conflicting or duplicate entity/relation information across multiple ingested documents beyond the '0 extra entities' merge count.",
+      "url": "https://github.com/HKUDS/LightRAG/issues/2325",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of a forget or delete mechanism for removing previously ingested documents or their extracted entities/relations from the persistent store.",
+      "url": "https://github.com/HKUDS/LightRAG/issues/2325",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how the store write path (ingest, update, delete) enforces workspace isolation at the storage layer, despite this being a canonical multi-tenant architecture issue",
+      "url": "https://github.com/HKUDS/LightRAG/issues/2904",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether 'most related' naming reflects an intentional design decision or a misnomer is unresolved \u2014 the issue asks but no maintainer response is present on this page",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3096",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of forget or delete from store; this is a canonical storage implementation issue and the delete/forget path is entirely absent",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3130",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how conflicts or supersession are handled when the same entity or edge is upserted multiple times",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3130",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of the retrieve policy: how graph/vector objects are selected into the query context, whether retrieval is always-on or adaptive, and how entity summary staleness during the deferral window affects what facts reach the model turn.",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3659",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of the lore/backstory vs. conversational-event distinction: whether LightRAG separates static background documents from dynamically written conversation events in the KG or doc store.",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3659",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe how retrieve/query selects which entities and relations are loaded into the prompt context, or whether there is an adaptive vs always-retrieve policy.",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3838",
+      "kind": "issue"
+    },
+    {
+      "text": "No documentation on the full write path for KV upsert across all backends (how conflict/supersession is supposed to work by design rather than by bug report)",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3870",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of retrieval policy (always retrieve vs adaptive) or how stored graph/vector content is selected into a turn context is present on this page, which is an architecture-relevant API surface for a RAG system.",
+      "url": "https://github.com/HKUDS/LightRAG/issues/3948",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of write path: how entities and relationships are extracted, updated, or deduplicated when new documents are ingested",
+      "url": "https://railway.com/deploy/lightrag.md",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of forget or delete: whether stored graph nodes/edges or vector entries can be removed",
+      "url": "https://railway.com/deploy/lightrag.md",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of retrieve policy: how the system decides which graph nodes or vectors to select into a given turn",
+      "url": "https://railway.com/deploy/lightrag.md",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of what is persisted in the graph store versus what is selected into the LLM context at query time (store vs reader distinction)",
+      "url": "https://memgraph.com/docs/ai-ecosystem/integrations.md",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of update, delete, or conflict/supersession behavior for graph entries",
+      "url": "https://memgraph.com/docs/ai-ecosystem/integrations.md",
+      "kind": "blog"
+    },
+    {
+      "text": "This page does not describe LightRAG's write path, persist/update/delete mechanics, forget behavior, or isolation model \u2014 despite being a comparative architecture survey where those details would be expected for a fully characterized implementation.",
+      "url": "https://www.mrlatte.net/en/research/2026/04/27/rag-complete-guide/",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of forget / delete behavior: whether entities or relations can be removed from the graph store after insertion",
+      "url": "https://www.x-cmd.com/install/lightrag/",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of isolation scope: whether the graph and vector store are per-user, per-session, or shared across users",
+      "url": "https://www.x-cmd.com/install/lightrag/",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of conflict or supersession policy when the same entity or relation is inserted multiple times with differing facts",
+      "url": "https://www.x-cmd.com/install/lightrag/",
+      "kind": "blog"
+    },
+    {
+      "text": "The page does not describe any persistent memory store, write path, forget/delete, session or user isolation, or retrieval policy. As a SourceForge mirror summary this is not the canonical architecture doc, so absence is expected rather than a gap to flag.",
+      "url": "https://sourceforge.net/projects/lightrag.mirror/",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of write path: how facts are extracted, updated, or deleted from the store",
+      "url": "https://skywork.ai/skillhub/lightrag-memory/",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of forget or deletion mechanism",
+      "url": "https://skywork.ai/skillhub/lightrag-memory/",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of isolation scope: whether memory is per user, session, agent, or shared",
+      "url": "https://skywork.ai/skillhub/lightrag-memory/",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of retrieve policy: always-on vs adaptive selection into context",
+      "url": "https://skywork.ai/skillhub/lightrag-memory/",
+      "kind": "blog"
+    }
+  ]
+}
