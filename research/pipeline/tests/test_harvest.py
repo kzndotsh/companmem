@@ -597,6 +597,19 @@ def test_body_markers_match_disambiguates_homonyms() -> None:
         memoryos,
     )
     assert body_markers_match("anything", {"id": "mem0", "name": "Mem0"}) is True
+    memori = {
+        "id": "memori",
+        "name": "Memori",
+        "body_markers": [
+            "MemoriLabs",
+            "memorilabs.ai",
+            "github.com/GibsonAI/memori",
+            "github.com/gibsonai",
+        ],
+    }
+    assert body_markers_match("AI journaling app called Memori", memori) is False
+    assert body_markers_match("We open sourced Memori from MemoriLabs on GitHub", memori)
+    assert body_markers_match("Show HN: Memori (github.com/gibsonai)", memori)
 
 
 def test_reddit_subreddit_prefix_collision_drops_homonyms() -> None:
