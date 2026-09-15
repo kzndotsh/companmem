@@ -1,0 +1,2118 @@
+{
+  "identity": {
+    "id": "sillytavern",
+    "name": "SillyTavern",
+    "repo": "https://github.com/SillyTavern/SillyTavern",
+    "docs": "https://docs.sillytavern.app/llms.txt",
+    "license": "AGPL-3.0",
+    "version_or_commit": "06bde939fb1e9c4c8d8641d810f0a916b5bce127",
+    "observed_at": "2026-09-15"
+  },
+  "claimed_purpose": [
+    {
+      "text": "SillyTavern is a roleplaying-oriented chat interface where users interact with characters at a 'tavern', supporting personalities, avatars, and mood-based avatar changes."
+    },
+    {
+      "text": "World Info is a prompt injection system that dynamically inserts relevant lore into the prompt based on keyword presence in chat messages."
+    },
+    {
+      "text": "It functions as a conditional dictionary, not a memory store \u2014 content is only inserted when keywords are matched in scanned context."
+    },
+    {
+      "text": "RAG is described as a technique for providing external sources of knowledge to the LLM to improve accuracy."
+    },
+    {
+      "text": "The extension is a form of RAG, not a memory or continuity system, and does not guarantee improved memory."
+    },
+    {
+      "text": "World Info functions as a dynamic dictionary keyed on message content, not a persistent memory store."
+    },
+    {
+      "text": "RAG technique to provide external knowledge to the LLM beyond model training data"
+    },
+    {
+      "text": "SillyTavern supports multiple backends, voice input, and a plugin system."
+    },
+    {
+      "text": "The extension explicitly disclaims guaranteed memory improvement."
+    },
+    {
+      "text": "Deprecated; no longer maintained and not recommended"
+    },
+    {
+      "text": "Use is disclaimed from guaranteeing improved memory"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "CharMemory: every 20 messages (configurable), sends recent conversation to an LLM that extracts structured memories \u2014 relationships, events, emotional beats \u2014 saved as editable markdown files in the character's Data Bank; Vector Storage retrieves the most relevant at generation time."
+    },
+    {
+      "text": "VectFox: runs retrieval server-side in a real vector database (Qdrant) using a structured event-based approach; includes optional summarizer injection that pins recent events in chronological order; lighter mode uses SillyTavern's built-in store."
+    },
+    {
+      "text": "Forget (delete): purging a chat's vector index calls /api/vector/purge. This is triggered on CHAT_DELETED and GROUP_CHAT_DELETED events. Individual deleted messages trigger re-synchronization which removes their hashes via deleteVectorItems."
+    },
+    {
+      "text": "Image Prompt Templates are used to shape the prompt sent to the LLM for image generation, but the template prompt is being concatenated with the full chat history and character description rather than replacing it."
+    },
+    {
+      "text": "Context window is the root cause of forgetting: character card, persona, world info, and recent chat share a fixed token budget; oldest messages are dropped when the conversation exceeds it."
+    },
+    {
+      "text": "A rolling context window approach is suggested as the solution: summarizing interactions into key facts (e.g., player disposition, triggered actions) rather than retaining full transcripts."
+    },
+    {
+      "text": "The Story String is a Handlebars template used to assemble character card fields (description, scenario, personality, system prompt, persona) into the prompt preamble at context-build time."
+    },
+    {
+      "text": "Retrieve policy \u2014 vector/embedding alternative: entries can also be selected by embedding similarity to recent messages instead of keyword matching, via the Vector Storage extension."
+    },
+    {
+      "text": "The store is a message log (all chat turns hashed and embedded), not a curated fact/event memory; the retrieval step selects the most semantically relevant past turns into context."
+    },
+    {
+      "text": "Retrieve-then-prompt only: entries are selected by keyword match against recent chat messages and injected into the prompt; nothing is written back to a store during generation."
+    },
+    {
+      "text": "The image generation prompt construction injects the character description, persona, and full chat transcript into the LLM prompt alongside the Image Prompt Template contents."
+    },
+    {
+      "text": "Timed effects (sticky, cooldown, delay) are persisted in chat_metadata.timedWorldInfo and used to force-activate or suppress entries for a configurable number of messages."
+    },
+    {
+      "text": "Vector Storage extension replaces keyword matching with embedding similarity for entry retrieval; all other activation rules (budget, filters, probability) still apply."
+    },
+    {
+      "text": "Inclusion groups implement a soft forget/suppress: when multiple entries sharing a group label are triggered, only one is inserted, discarding the rest for that turn."
+    },
+    {
+      "text": "World Info data is stored as JSON files on the backend, loaded via POST /api/worldinfo/get, and cached client-side in a StructuredCloneMap keyed by lorebook name."
+    },
+    {
+      "text": "Context management is identified as a core difficulty: giving the model too much information degrades behavior, and the challenge is managing context efficiently."
+    },
+    {
+      "text": "Isolation by context: lorebooks can be scoped to a specific character (all chats), a persona (any chat while that persona is active), or an individual chat."
+    },
+    {
+      "text": "Store: World Info entries are authored and stored in lorebook files (.json), not derived from conversation; they are static lore/backstory, not event logs."
+    },
+    {
+      "text": "Persists vector embeddings to a local file-system index (vectra.LocalIndex) scoped by user directories, embedding source, collection ID, and model name."
+    },
+    {
+      "text": "LLMs used in this setup are stateless across conversations; real-time memory is limited to the context window, with no persistent cross-session memory."
+    },
+    {
+      "text": "Outlet position withholds automatic injection; content is stored under a named label and only appears where the author explicitly places the macro."
+    },
+    {
+      "text": "Recursive activation: entries can trigger other entries by having their keywords appear in other entries' content, enabling chained lore injection."
+    },
+    {
+      "text": "Context window size limits how much the AI can retain within a session; forgetting key card details mid-conversation is attributed to this limit."
+    },
+    {
+      "text": "Messages already covered by a prior summary are excluded from re-summarization; the buffer starts from the message after the last summary index."
+    },
+    {
+      "text": "Timed effect state is per-chat; branches inherit the parent chat's timed state but effects are removed if the last message is swiped or deleted."
+    },
+    {
+      "text": "Chat retrieval reads the entire JSONL file and returns all parsed lines as an array \u2014 the complete transcript is loaded, not a selected subset."
+    },
+    {
+      "text": "World Info entries are inserted into the prompt based on configurable conditions, enabling adaptive retrieval rather than always-on injection."
+    },
+    {
+      "text": "SillyTavern persists settings, lore books, character cards, personas, extensions, and API connection settings to a file called settings.json"
+    },
+    {
+      "text": "Retrieval is temporary per-generation: messages are shuffled into context only when the model reply is generated, not permanently reordered."
+    },
+    {
+      "text": "On retrieval, the latest summary is read by scanning the chat array in reverse for the first message with a non-empty `extra.memory` field."
+    },
+    {
+      "text": "Chats are isolated per user handle and per character (avatar PNG name), with group chats stored in a separate directory scoped by group ID."
+    },
+    {
+      "text": "Concurrent writes from two browser tabs produce the same corruption, indicating no write-locking or session isolation on the settings store"
+    },
+    {
+      "text": "The current summary is stored in the chat file's metadata, attached to the last message that was in context when the summary was generated."
+    },
+    {
+      "text": "Conversation history is injected into the prompt as the AI's memory of past events, relationships, and style \u2014 not a curated fact store."
+    },
+    {
+      "text": "Smart Context is deprecated: no longer maintained, required deprecated Extras server and ChromaDB, replaced natively by Vector Storage."
+    },
+    {
+      "text": "Scaffold (retrieve-then-prompt): summary is injected into chat prompts via a configurable Injection Template using a {{summary}} macro"
+    },
+    {
+      "text": "Vectorizes a batch of texts by iterating and calling the single-text vectorizer sequentially, returning an array of embedding arrays."
+    },
+    {
+      "text": "Chat Vectorization extension uses vector database for chat retrieval; page explicitly warns it does not guarantee improved memory"
+    },
+    {
+      "text": "Forget/purge: explicit user-initiated purge clears the entire database for the current chat, useful after edits or deletions"
+    },
+    {
+      "text": "Smart Context (Extras) also uses vector database for context retrieval; same caveat about no guaranteed memory improvement"
+    },
+    {
+      "text": "Items inserted into the store carry hash, text, and index metadata; upsert semantics are used (insert or overwrite)."
+    },
+    {
+      "text": "Retrieval is retrieve-then-prompt only; no persistent memory facts or curated summaries are written back to a store."
+    },
+    {
+      "text": "The summary is injected into the LLM prompt via `setExtensionPrompt`, with configurable position, depth, and role."
+    },
+    {
+      "text": "Store: entire chat history is loaded into a per-chat ChromaDB vector database automatically when a chat is opened"
+    },
+    {
+      "text": "The store structure requires an 'entries' key, distinguishing curated world info entries from a raw message log."
+    },
+    {
+      "text": "Vector retrieval is non-deterministic; keyword matching is recommended when predictable insertion is required."
+    },
+    {
+      "text": "Data Bank provides RAG: retrieval-augmented generation injects external knowledge sources into the LLM prompt"
+    },
+    {
+      "text": "Summarization is triggered on a message-count interval and/or a word-count threshold since the last summary."
+    },
+    {
+      "text": "Isolation is per-chat: vectors are scoped to the current chat and purging only affects that chat's vectors."
+    },
+    {
+      "text": "Deleting a chat removes the JSONL file from disk entirely \u2014 no soft-delete or hide-at-retrieve mechanism."
+    },
+    {
+      "text": "Summarize extension creates, stores, and utilizes automatically generated summaries based on chat events"
+    },
+    {
+      "text": "World Info / Lorebooks used as persistent lore entries (e.g. academic citation styles, paper templates)"
+    },
+    {
+      "text": "The injected prompt is formatted as past events using a template: default 'Past events:\\n{{text}}'."
+    },
+    {
+      "text": "Messages are persisted in the chat itself, not in Data Bank; the vector index is a parallel store."
+    },
+    {
+      "text": "The save operation is asynchronous and non-atomic; reloading the page mid-save corrupts the store"
+    },
+    {
+      "text": "World Info / Lorebooks / Memory Books dynamically insert prompts into chat to guide AI replies"
+    },
+    {
+      "text": "Vectors are stored per message; storage is tied to the current chat, not a separate database."
+    },
+    {
+      "text": "Documents are persisted in three scopes: global (all chats), per-character, and per-chat."
+    },
+    {
+      "text": "Isolation: default scope is per-chat; each chat gets its own ChromaDB collection"
+    },
+    {
+      "text": "Retrieval only activates after 10 messages have accumulated in the chat"
+    },
+    {
+      "text": "Summaries of the past conversation can be included as a prompt element."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "The memory is injected into the LLM prompt as an extension prompt with configurable position, depth, and role.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/extensions/memory/index.js",
+      "quote": "setExtensionPrompt(MODULE_NAME, formatMemoryValue(value), extension_settings.memory.position, extension_settings.memory.depth, extension_settings.memory.scan, extension_settings.memory.role);",
+      "locator": "setMemoryContext()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is a reverse scan of the chat array for the most recent message with extra.memory set \u2014 no vector search or semantic retrieval.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/extensions/memory/index.js",
+      "quote": "for (let mes of reversedChat) {\n        if (mes.extra && mes.extra.memory) {\n            return mes.extra.memory;\n        }\n    }",
+      "locator": "getLatestMemoryFromChat()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Summarization uses an incremental/rolling update strategy: the existing summary is passed as context and the model is instructed to expand it.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/extensions/memory/index.js",
+      "quote": "'If a summary already exists in your memory, use that as a base and expand with new facts.'",
+      "locator": "defaultPrompt constant",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A stale summary is deleted from extra.memory when the message it belongs to is edited or regenerated.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/extensions/memory/index.js",
+      "quote": "getStringHash(lastMessage.mes) !== lastMessageHash) {\n        delete lastMessage.extra.memory;\n    }",
+      "locator": "onChatEvent()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per chat/character/group: summaries generated for one context are discarded if the context changes before the API call returns.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/extensions/memory/index.js",
+      "quote": "console.log('Context changed, summary discarded');",
+      "locator": "isContextChanged()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Summarization fires on message-count interval and/or word-count threshold, not on every message.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/extensions/memory/index.js",
+      "quote": "if (messagesSinceLastSummary >= extension_settings.memory.promptInterval) {\n        conditionSatisfied = true;\n    }\n\n    if (extension_settings.memory.promptForceWords && wordsSinceLastSummary >= extension_settings.memory.promptForceWords) {\n        conditionSatisfied = true;\n    }",
+      "locator": "getSummaryPromptForNow()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "User can manually delete the latest summary via a restore action, reverting to the previous summary.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/extensions/memory/index.js",
+      "quote": "for (let mes of reversedChat) {\n        if (mes.extra && mes.extra.memory == content) {\n            delete mes.extra.memory;\n            break;\n        }\n    }",
+      "locator": "onMemoryRestoreClick()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Messages already covered by a prior summary are excluded from the next summarization buffer; only messages after the last summary index are included.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/extensions/memory/index.js",
+      "quote": "for (let index = latestSummaryIndex + 1; index < chat.length; index++) {",
+      "locator": "getRawSummaryPrompt()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The store is a full message log vectorized, not a curated memory: every non-system chat message is hashed and inserted; there is no explicit extract-to-fact step unless summarization is enabled.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/extensions/vectors/index.js",
+      "quote": "const hashedMessages = context.chat.filter(x => settings.keep_hidden || !x.is_system).map(x => ({ text: String(substituteParams(x.mes)), hash: getStringHash(substituteParams(x.mes)), index: context.chat.indexOf(x) }));",
+      "locator": "synchronizeChat function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieved messages are physically removed from the live chat array passed to the model and re-injected via a separate extension prompt slot at a configurable depth and position.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/extensions/vectors/index.js",
+      "quote": "// Remove queried messages from the original chat array\n        for (const message of chat) {\n            if (queriedMessages.includes(message)) {\n                chat.splice(chat.indexOf(message), 1);\n            }\n        }",
+      "locator": "rearrangeChat function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The most recent N messages (protect, default 5) are always retained in the live chat and never candidates for vector retrieval and removal.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/extensions/vectors/index.js",
+      "quote": "protect: 5,\n...\nconst retainMessages = chat.slice(-settings.protect);",
+      "locator": "settings object and rearrangeChat function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget path: on CHAT_DELETED the entire chat vector index is purged via /api/vector/purge; on FILE_ATTACHMENT_DELETED the file's collection is purged.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/extensions/vectors/index.js",
+      "quote": "eventSource.on(event_types.CHAT_DELETED, purgeVectorIndex);\n        eventSource.on(event_types.GROUP_CHAT_DELETED, purgeVectorIndex);\n        eventSource.on(event_types.FILE_ATTACHMENT_DELETED, purgeFileVectorIndex);",
+      "locator": "init function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Optional summarization acts as a curated write path: messages above a character threshold are summarized before embedding, with the summary cached in-memory by hash for the session.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/extensions/vectors/index.js",
+      "quote": "const cachedSummaries = new Map();\n...\ncachedSummaries.set(element.hash, element.text);",
+      "locator": "module scope and summarize function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The scaffold template wrapping retrieved text defaults to 'Past events:\\n{{text}}', framing past chat turns as narrative memory for the model.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/extensions/vectors/index.js",
+      "quote": "template: 'Past events:\\n{{text}}',",
+      "locator": "settings object",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "World Info entries are stored as named JSON lorebook files on the server, not as a transcript or curated memory; they are authored ahead of time and retrieved by keyword scan at generation time.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/world-info.js",
+      "quote": "const response = await fetch('/api/worldinfo/get', { method: 'POST', headers: getRequestHeaders(), body: JSON.stringify({ name: name }), cache: 'no-cache', }); if (response.ok) { const data = await response.json(); worldInfoCache.set(name, data); return data; }",
+      "locator": "loadWorldInfo function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The scan input is the raw chat message log sliced to a configurable depth (default 4, max 1000 messages), not a summary or curated memory.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/world-info.js",
+      "quote": "export let world_info_depth = 2; ... export const DEFAULT_DEPTH = 4; ... export const MAX_SCAN_DEPTH = 1000;",
+      "locator": "module-level exports",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Timed effects (sticky, cooldown, delay) persist their state in chat_metadata.timedWorldInfo, which is saved with the chat, giving entries session-spanning activation state.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/world-info.js",
+      "quote": "if (!chat_metadata.timedWorldInfo) { chat_metadata.timedWorldInfo = {}; } ['sticky', 'cooldown'].forEach(type => { if (!chat_metadata.timedWorldInfo[type] || typeof chat_metadata.timedWorldInfo[type] !== 'object') { chat_metadata.timedWorldInfo[type] = {}; } });",
+      "locator": "WorldInfoTimedEffects.#ensureChatMetadata",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Lorebook isolation is per-character (primary + additional books), per-chat, per-persona, and global; each scope is loaded independently and de-duplicated to avoid double-injection.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/world-info.js",
+      "quote": "if (selected_world_info.includes(worldName)) { console.debug(`[WI] Character ${name}'s world ${worldName} is already activated in global world info! Skipping...`); continue; } if (chat_metadata[METADATA_KEY] === worldName) { console.debug(`[WI] Character ${name}'s world ${worldName} is already activated in chat lore! Skipping...`); continue; }",
+      "locator": "getCharacterLore function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "There is no automatic write path from conversation content back into lorebook entries; all lorebook content is manually authored. The only write path from a running chat is via slash commands (/createentry, /setentryfield) or the UI editor.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/world-info.js",
+      "quote": "async function createEntryCallback(args, content) { ... const entry = createWorldInfoEntry(file, data); if (key) { entry.key.push(key); ... } if (content) { entry.content = content; } await saveWorldInfo(file, data); ... return String(entry.uid); }",
+      "locator": "createEntryCallback (slash command handler)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Deletion of a lorebook entry is permanent; it removes the entry from data.entries and from the originalData array.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/world-info.js",
+      "quote": "delete data.entries[uid]; return true;",
+      "locator": "deleteWorldInfoEntry function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Keyword matching supports plain text (case-sensitive or insensitive, whole-word or substring) and slash-delimited JavaScript regexes per entry.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/world-info.js",
+      "quote": "const keyRegex = parseRegexFromString(needle); if (keyRegex) { return keyRegex.test(haystack); } haystack = this.#transformString(haystack, entry); ... if (matchWholeWords) { ... } else { return haystack.includes(transformedString); }",
+      "locator": "WorldInfoBuffer.matchKeys",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Group scoring allows entries in the same group to compete; the highest-scoring entry in a group wins injection when group scoring is enabled.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/world-info.js",
+      "quote": "export let world_info_use_group_scoring = false; ... groupWeight: { default: DEFAULT_WEIGHT, type: 'number' }, ... groupOverride: { default: false, type: 'boolean' },",
+      "locator": "module exports and newWorldInfoEntryDefinition",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path uses atomic file writes and an integrity-slug check to prevent silent data loss on concurrent saves.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/endpoints/chats.js",
+      "quote": "if (chatIntegritySlug && !await checkChatIntegrity(filePath, chatIntegritySlug)) {\n    throw new IntegrityMismatchError(`Chat integrity check failed for \"${filePath}\".`);\n}",
+      "locator": "trySaveChat()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Chat isolation is per user handle \u00d7 character (PNG avatar name) for individual chats, and per group ID for group chats.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/endpoints/chats.js",
+      "quote": "const chatFilePath = path.join(request.user.directories.chats, cardName, sanitize(chatFileName));",
+      "locator": "router.post('/save')",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is implemented as hard delete: the JSONL file is removed from disk with no soft-delete layer.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/endpoints/chats.js",
+      "quote": "if (tryDeleteFile(chatFilePath)) { return response.send({ ok: true }); }",
+      "locator": "router.post('/delete')",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval loads the complete transcript \u2014 no adaptive selection or relevance filtering is performed at the persistence layer.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/endpoints/chats.js",
+      "quote": "const lines = chatJSON.split('\\n');\nchatData = lines.map(line => tryParse(line)).filter(x => x);",
+      "locator": "getChatData()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Backup throttle is keyed per user+chat name so that rapid saves in one chat cannot suppress a backup of another chat saved in the same throttle window.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/endpoints/chats.js",
+      "quote": "const key = `${handle} ${name}`;\nif (!backupFunctions.has(key)) {\n    backupFunctions.set(key, _.throttle(backupChat, throttleInterval, { leading: true, trailing: true }));\n}",
+      "locator": "getBackupFunction()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Vector store is persisted to the local filesystem under the user's vectors directory, scoped by source, collectionId, and model.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/endpoints/vectors.js",
+      "quote": "const pathToFile = path.join(directories.vectors, sanitize(source), sanitize(collectionId), sanitize(model)); const store = new vectra.LocalIndex(pathToFile);",
+      "locator": "getIndex function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Insert uses upsert semantics: items with the same vector are inserted or overwritten, not deduplicated by hash at the store level.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/endpoints/vectors.js",
+      "quote": "await store.upsertItem({ vector: vector, metadata: { hash: item.hash, text: item.text, index: item.index } });",
+      "locator": "insertVectorItems function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is not always-retrieve; it is query-driven with a configurable similarity threshold and topK cap.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/endpoints/vectors.js",
+      "quote": "const topK = Number(req.body.topK) || 10; const threshold = Number(req.body.threshold) || 0.0;",
+      "locator": "router.post('/query') handler",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete is by hash: items are found via metadata filter and removed individually from the index.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/endpoints/vectors.js",
+      "quote": "const items = await store.listItemsByMetadata({ hash: { '$in': hashes } }); for (const item of items) { await store.deleteItem(item.id); }",
+      "locator": "deleteVectorItems function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Full purge removes all vector data for all sources for the user; collection-scoped purge removes one collectionId across all sources.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/endpoints/vectors.js",
+      "quote": "await fs.promises.rm(sourcePath, { recursive: true });",
+      "locator": "router.post('/purge-all') and router.post('/purge') handlers",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "World Info is a curated, named entry store (not a full message log) persisted as JSON files in a per-user directory.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/endpoints/worldinfo.js",
+      "quote": "if (!('entries' in worldContent)) { throw new Error('File must contain a world info entries list'); }",
+      "locator": "router.post('/import')",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Atomic writes are used for both edit and import, preventing partial/corrupt state on disk.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/endpoints/worldinfo.js",
+      "quote": "import { sync as writeFileAtomicSync } from 'write-file-atomic';",
+      "locator": "import block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-user isolation: all World Info paths are derived from request.user.directories.worlds, not a shared global directory.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/endpoints/worldinfo.js",
+      "quote": "const jsonFiles = (await fs.promises.readdir(request.user.directories.worlds, { withFileTypes: true }))",
+      "locator": "router.post('/list')",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "SillyTavern produces text embeddings locally via a Transformers.js pipeline using mean pooling and L2 normalization, which is the compute step upstream of any vector store persist or retrieve operation.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/vectors/embedding.js",
+      "quote": "const result = await pipe(text, { pooling: 'mean', normalize: true });",
+      "locator": "getTransformersVector, line ~10",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Batch embedding is sequential (not parallel), meaning throughput for large memory corpora is limited by sequential await calls.",
+      "kind": "code",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/vectors/embedding.js",
+      "quote": "for (const text of texts) {\n        result.push(await getTransformersVector(text));\n    }",
+      "locator": "getTransformersBatchVector, lines ~20-22",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "SillyTavern supports multiple LLM backends.",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=43686837",
+      "quote": "Supports multiple backends, accepts voice input, and has a plugin system.",
+      "locator": "comment by panki27, April 14 2025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SillyTavern originated as a roleplaying interface with character personalities and avatar support, including mood-based avatar changes.",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=43686837",
+      "quote": "SillyTavern started up as a roleplaying model As in 'you meet a person at a tavern' and then you start chatting. People provide different personalities to the project, sometimes with avatars and I think some can even change avatars based on their 'mood'.",
+      "locator": "comment by theshrike79, April 16 2025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SillyTavern acts as RP backend; lore is loaded as static wiki content per character, not updated from conversation events.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1s2ci9r/created_a_sillytavern_extension_that_brings_npcs/",
+      "quote": "you can take any game, download its entire wiki, and feed it into SillyTavern. Then every character has their own full lore, relationships, opinions, etc.",
+      "locator": "post body, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context overflow is a known failure mode: too much information per turn causes undesired model behavior.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1s2ci9r/created_a_sillytavern_extension_that_brings_npcs/",
+      "quote": "the real problem is managing the context as efficiently as possible, even when using a frontier model giving them too much information can make them act a way you dont want them to.",
+      "locator": "comments, u/goodive123",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SillyTavern has no cross-session memory by default; NPCs forget prior interactions entirely when a new session starts.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1s2ci9r/created_a_sillytavern_extension_that_brings_npcs/",
+      "quote": "the fact that LLMs today are stateless, meaning they do not remember things across conversations and their real time memory aka context, is limited",
+      "locator": "comments, u/Pretend-Pangolin-846",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Rolling context with summarized key facts (not full transcript) is the community-identified approach to making NPC memory manageable.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1s2ci9r/created_a_sillytavern_extension_that_brings_npcs/",
+      "quote": "You don't need the entire context of every interaction. an NPC just needs to know that you're a rude player and that you need to be shot on sight because you did x, y, and z.",
+      "locator": "comments, u/the_friendly_dildo",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "This is a retrieve-then-prompt mechanism, not persistent memory: past messages are temporarily shuffled into context at generation time, not stored as curated facts.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/chat-vectorization.md",
+      "quote": "It temporarily shuffles the most relevant messages to the beginning or end of the chat history. This happens when the model's reply to your last message is generated.",
+      "locator": "introduction paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The store is vectors over raw chat log messages; the log itself (full transcript) is the primary record, not a curated memory store.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/chat-vectorization.md",
+      "quote": "Chat vectorization does not use Data Bank to store the chat messages. The messages are stored in the chat.",
+      "locator": "Setting up section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-chat: vector storage and purge operations are scoped to the current chat only.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/chat-vectorization.md",
+      "quote": "The controls for \"Vectorize All\" and \"Purge Vectors\" within Chat vectorization only affect the stored vectors for the current chat.",
+      "locator": "Vector storage controls",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is adaptive by relevance score threshold (default 25%) rather than always injecting a fixed set of messages.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/chat-vectorization.md",
+      "quote": "Past messages must have a relevance score of at least 25% to be included. You can change this with \"Score threshold\".",
+      "locator": "Finding relevant messages to shuffle (vector retrieval)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The product itself warns that the extension does not guarantee improved memory.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/chat-vectorization.md",
+      "quote": "The use of this extension does not guarantee a better chatting experience or improved memory of any sort.",
+      "locator": "warning Disclaimer",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Vector summarization is explicitly not a summarization memory system; it only pre-processes messages to improve vector quality.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/chat-vectorization.md",
+      "quote": "Vector summarization does not create summaries of your chat. It does not turn the retrieved messages into summaries. It does not make your chat history shorter.",
+      "locator": "Vector summarization, warning",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Smart Context is retrieve-then-prompt only: it vector-searches past chat messages and injects matching ones into the prompt; no extraction, summarization, or curated fact writing is performed",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/extras/smart-context.md",
+      "quote": "Smart Context automatically takes the entire history of the chat file and puts it into a vector database. This database is then searched each time you input something new into the chat, and if messages with matching keywords are found, those chat messages are placed into the context so the AI can see them when writing its next reply.",
+      "locator": "How is that useful?",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The store is a verbatim message log, not a memory of curated facts or events; what is persisted is raw chat turns",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/extras/smart-context.md",
+      "quote": "ChromaDB makes a new database for each chat that is opened inside SillyTavern. This database is automatically filled with the entire chat history.",
+      "locator": "Using Smart Context",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-chat by default, with an experimental per-character (all chats) mode",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/extras/smart-context.md",
+      "quote": "Recall only from this chat \u2014 This is the default behavior of smart-context and pulls 'memories' only from the ChromaDB collection for this specific chat.",
+      "locator": "Memory Recall Strategy \u2014 Recall only from this chat",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is manual-only via purge button; there is no automatic deletion or conflict/supersession mechanism described",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/extras/smart-context.md",
+      "quote": "You can use the 'Purge DB' button to clear the database for the current chat. This can be helpful if you find inaccurate memories have been stored (such as chat message you have since deleted or edited).",
+      "locator": "Purging the Database",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "No guarantee of improved continuity or memory quality is made by the product itself",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/extras/smart-context.md",
+      "quote": "The use of this extension does not guarantee a better chatting experience or improved memory of any sort. Only use if you understand all the implications of vector database utilization.",
+      "locator": "Disclaimer",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Extension is deprecated; Chat Vectorization is the recommended successor",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/extras/smart-context.md",
+      "quote": "THIS EXTENSION IS NO LONGER MAINTAINED AND NOT RECOMMENDED TO USE. CONSIDER CHAT VECTORIZATION AS A POSSIBLE ALTERNATIVE.",
+      "locator": "page header warning",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Injected memories are raw message text, potentially truncated by character limit, with no special model instruction about how to treat them except positional placement in context",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/extras/smart-context.md",
+      "quote": "If set too small, the memory could be cut off midway... old messages are inserted directly into the chat history with no special demarcation",
+      "locator": "Individual Memory Length; Injection Strategy \u2014 Replace oldest history",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Summary is stored in chat file metadata, not a separate vector store or database",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/summarize.md",
+      "quote": "The summary is updated and embedded into the chat file's metadata for the message that was the last in context when the summary was generated.",
+      "locator": "## Common configuration \u2013 Current summary",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory mechanism is retrieve-then-prompt: summary is injected into the prompt via template, not used any other way",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/summarize.md",
+      "quote": "Injection Template - defines how the summary will be wrapped when being inserted into regular chat prompts. A special {{summary}} macro should be used to denote the exact location of the current summary state in the prompt injection text.",
+      "locator": "## Common configuration \u2013 Injection Template",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The product itself hedges that summaries are not reliable long-term memory due to hallucination and detail loss",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/summarize.md",
+      "quote": "which could be interpreted as a long-term memory, but take that statement with a grain of salt. Since the summaries are generated by language models, the outputs may lose some important details or contain hallucinations",
+      "locator": "## What is it?",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Rollback to a previous summary state is supported, implying versioned or chained summary history",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/summarize.md",
+      "quote": "Restore Previous - removes the current summary, rolling it back to the previous state.",
+      "locator": "## Common configuration \u2013 Restore Previous",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Summary can be fully disabled by pausing and clearing, acting as a delete/forget of the memory injection",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/summarize.md",
+      "quote": "to effectively disable the summary by clearing the box and stopping updates",
+      "locator": "## Common configuration \u2013 Pause",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Extras API mode uses a BART model with ~1024 token context, severely limiting large-summary handling",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/summarize.md",
+      "quote": "It has a very small context size (~1024 tokens), so its ability to handle large summaries is quite limited.",
+      "locator": "## Supported summary sources \u2013 Extras API",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "World Info / Lorebooks function as a scaffold: they persist lore/backstory and dynamically inject it into prompts rather than maintaining a curated episodic memory store",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/llms.txt",
+      "quote": "World Info (also known as Lorebooks or Memory Books) is a powerful tool available in ST to insert prompts dynamically into your chat to help guide the AI replies.",
+      "locator": "Usage > Prompts > World Info",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Summarize extension represents a curated-facts path: it stores generated summaries of chat events for later utilization, distinct from raw transcript",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/llms.txt",
+      "quote": "This extension allows you to create, store, and utilize automatically generated summaries based on the events happening in your chats.",
+      "locator": "Extensions > Summarize",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Chat Vectorization and Smart Context are retrieve-then-prompt mechanisms, not guaranteed memory; the page explicitly disclaims memory improvement",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/llms.txt",
+      "quote": "The use of this extension does not guarantee a better chatting experience or improved memory of any sort. Only use if you understand all the implications of vector database utilization.",
+      "locator": "Extensions > Chat Vectorization; Extensions > Extras > Smart Context",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Data Bank is a RAG scaffold injecting external knowledge at generation time, not a persistent episodic memory system",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/llms.txt",
+      "quote": "Retrieval-augmented generation (RAG) is a technique for providing external sources of knowledge to the LLM. It helps improve the accuracy of AI answers by accessing information outside of the model's training data.",
+      "locator": "Usage > Characters > Data Bank (RAG)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Per-user data isolation is supported in multi-user mode at the settings/extensions/data level",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/llms.txt",
+      "quote": "Each user has their own settings, extensions, and data.",
+      "locator": "Administration > Multi-user mode",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Chat history is stored per character as a chat file, implying log-style persistence rather than curated fact extraction",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/llms.txt",
+      "quote": "Each character has a name, personality, and conversation history.",
+      "locator": "Usage > Characters",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SillyTavern Data Bank is a retrieve-then-prompt system: documents are stored, chunked, and vector-searched, then injected into the LLM prompt. There is no write-back, summarization, or curated fact store \u2014 it is retrieval, not remembering.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/characters/data-bank.md",
+      "quote": "all available documents from the current scope (see above) are considered for the query. Only the most relevant chunks across all the files are retrieved. Multiple chunks of the same file are inserted in their original order.",
+      "locator": "Vectorization Settings > Data Bank files",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Document scope isolation is per-global, per-character, or per-chat; not per-user or per-session in a multi-user sense",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/characters/data-bank.md",
+      "quote": "1. Global attachments - available in every chat, either solo or group. 2. Character attachments - available only for the currently chosen character, including when they are replying in a group. 3. Chat attachments - available only in the currently open chat.",
+      "locator": "About Documents",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Embeddings must be recalculated when the embedding model changes; switching models invalidates the stored vectors",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/characters/data-bank.md",
+      "quote": "Embeddings are only usable when they are retrieved using the same model that generated them. When changing an embedding model or source, the vectors need to be recalculated.",
+      "locator": "Vector Providers warning",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "This page describes only the retrieve-then-prompt (scaffold) layer: character fields, World Info entries, and extension outputs are assembled into a prompt template. No persistent store write, update, delete, or conflict resolution is described here.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/prompts/context-template.md",
+      "quote": "This field is a template for the prompt preamble (known internally as a story string). This is the main way to add the information defined in Character Cards for text completion and instruct models.",
+      "locator": "Story String",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "World Info / lore is retrieved conditionally (entries must be 'activated') and inserted at defined positions in the story string, not always retrieved unconditionally.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/prompts/context-template.md",
+      "quote": "`{{wiBefore}}` or `{{loreBefore}}`: Combined activated World Info entries with Position set to \"Before Char Defs\".",
+      "locator": "Story String (parameters list)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Summaries and Chat Vectorization outputs are injected via prompt anchors, meaning those extensions handle their own persistence and retrieval; the context template only designates insertion points.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/prompts/context-template.md",
+      "quote": "The `{{anchorBefore}}` and `{{anchorAfter}}` are generic placeholders for prompts added by various extensions and miscellaneous features in a chosen static position, for example: \u2026 Summaries \u2026 Chat Vectorization / Data Bank",
+      "locator": "Prompt Anchors",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "World Info is retrieve-then-prompt only; there is no write-back, extraction, or update of the store from conversation content.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/worldinfo.md",
+      "quote": "It functions like a dynamic dictionary that only inserts relevant information from World Info entries when keywords associated with the entries are present in the message text.",
+      "locator": "# World Info, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Scan depth defines the retrieve window: only the N most recent messages are scanned for keyword triggers.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/worldinfo.md",
+      "quote": "Defines how many messages in the chat history should be scanned for World Info keys.",
+      "locator": "## Activation Settings > ### Scan Depth",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Token budget is the scaffold constraint: once exhausted, no further entries are injected even if keys are present.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/worldinfo.md",
+      "quote": "If the budget is exhausted, then no more entries are activated even if the keys are present in the prompt.",
+      "locator": "## Activation Settings > ### Context % / Budget",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Lorebook isolation can be per-character, per-persona, or per-chat; there is no global-user isolation described.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/worldinfo.md",
+      "quote": "lorebooks can be assigned to specific contexts \u2014 a character, a persona, or an individual chat. These context-specific sources are activated automatically when the relevant character, persona, or chat is active.",
+      "locator": "## Context-Specific Sources",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Timed effects introduce session-scoped stateful memory (sticky/cooldown/delay) counted in messages, not time.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/worldinfo.md",
+      "quote": "The time frames for the effects are measured in messages (not pairs of messages/exchanges), with 0 meaning there is no effect.",
+      "locator": "## Timed Effects > ### Timed Effects Rules",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "There is no automated write path: users author entry content manually; nothing in the conversation is extracted or summarised into the store automatically.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/worldinfo.md",
+      "quote": "Activation keywords, titles, and other information that is not in the Content field is not inserted into context, so each World Info entry should have a comprehensive, standalone description.",
+      "locator": "## Pro Tips",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Recursive scanning enables lore-to-lore chaining: one entry's content can mention keywords that activate further entries, expanding what is scaffolded into the prompt.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/worldinfo.md",
+      "quote": "Entries can activate other entries by mentioning their keywords in the content text.",
+      "locator": "## Activation Settings > ### Recursive scanning",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Vector Storage offers an alternative retrieve policy (embedding similarity instead of keyword) but is a separate extension, not a core World Info mechanism.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/worldinfo.md",
+      "quote": "The Vector Storage extension provides an alternative to keyword matching by using the similarity between the recent chat messages and World Info entry contents.",
+      "locator": "## Vector Storage Matching",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is not implemented as deletion from the store; suppression is achieved via inclusion groups (only one entry inserted per group per turn) or probability set to 0.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/worldinfo.md",
+      "quote": "If multiple entries having the same group label were activated, only one will be inserted into the prompt.",
+      "locator": "### Inclusion Group",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A continuity/fidelity bug exists in 1.17.0: the Experimental Macro Engine silently overwrites escaped macros at send time, so the model receives substituted (resolved) values the user explicitly tried to suppress, corrupting intended prompt content.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5440",
+      "quote": "When the Experimental Macro Engine is enabled, escaping macros ... only takes effect in the frontend. When a prompt is sent to the current API, the escaped macro is automatically resolved as if it was never escaped at all, regardless of what is displayed in the chat's history.",
+      "locator": "Describe the problem",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "84 of 311 chat files on one real install lacked an integrity slug, meaning silent overwrite is a realistic failure mode, not a theoretical one.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5941",
+      "quote": "On one real install I counted **84 of 311 chat files with no `integrity` slug in their header** (chats predating the feature, plus files whose header was rewritten by older code).",
+      "locator": "Additional info",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Image generation via the extensions menu constructs a prompt that incorrectly includes the full chat history and character description rather than using only the Image Prompt Template.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/4479",
+      "quote": "the prompt it generates includes all of chat history and the character description, and the response is completely unrelated to the character, persona, or story/scenario occurring",
+      "locator": "Describe the problem > Issue Description",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Chat history is part of the persistent context passed forward into generation calls; the full transcript (not a summary) is present in the prompt payload.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/4479",
+      "quote": "Test Persona: hey\nTest Cube: hello! how can i assist you today?\nTest Persona: I need to have some chat history to be able to test and reproduce this issue I'm seeing\nTest Cube: Sure\n...",
+      "locator": "Additional info > Console/log output > prompt field",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character description and persona are stored and injected into the prompt context, persisting across turns as part of the system-level scaffold.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/4479",
+      "quote": "Console/log output displays a prompt which contains the character description, persona, and all chat history as well as the \"Image Prompt Template\" contents",
+      "locator": "Describe the problem > Actual behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Two distinct code paths exist for image generation: one that hooks into Image Prompt Templates (triggered by 'yourself') and one that does not (triggered by chat message phrasing), indicating conditional prompt-construction logic.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/4479",
+      "quote": "Using \"yourself\" seems to hook into the extensions template again, since it then provides me the prompt preview window, which other terminology (ex. having it send me a picture of {{char}}) doesn't. This makes me think that it's more likely an issue with something about the template behavior",
+      "locator": "Additional info > paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SillyTavern applies backend-specific post-processing and provider-specific request shaping after the frontend hands off data, meaning the frontend's rawPrompt does not reflect the final outbound API call.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5657",
+      "quote": "Between the frontend handing the data to the backend and the actual outbound API call, SillyTavern may still apply backend-specific post-processing and provider-specific request shaping (API-specific templating and so on).",
+      "locator": "Issue body, 'Is your feature request related to a problem?' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The prompt store (itemizedPrompts) is keyed per AI reply message and persists rawPrompt alongside the message; there is currently no finalRequest field stored there.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5657",
+      "quote": "it stores it in the exact same data structure as rawPrompt. From that point on, both pieces are bound to the same AI reply message and share the same lifecycle and data management",
+      "locator": "Issue body, 'Describe the solution you'd like' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The Author's Note field has its own before/after insertion positions that are separate from World Info positions, and conflating the two creates prompt-layout problems for users.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/4508",
+      "quote": "It's not a great workaround because sometimes I like to use my AN and the position in the prompt would be weird for the actual AN.",
+      "locator": "Issue body, 'Describe alternatives you've considered' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The assembled prompt shows example dialogue appended inside the system turn, followed by test examples placed outside the system turn as bare text separated only by *** delimiters, confirming examples are not wrapped as instruct-mode messages.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/4708",
+      "quote": "'***\\n' +\n    'test example\\n' +\n    '***\\n' +\n    'test example2\\n' +\n    '***\\n'",
+      "locator": "Additional info (prompt dump)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The full-overwrite save approach causes noticeable freezes and lag in long sessions, with save requests taking tens of seconds to over a minute for large chats.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5265",
+      "quote": "rt can be tens of seconds to >1 minute \u2026 This creates noticeable freezes/lag in long sessions.",
+      "locator": "## What I observed",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SillyTavern is used with bigger contexts, richer metadata, and more extensions, which exacerbates the full-overwrite scaling problem.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5265",
+      "quote": "SillyTavern is now used with bigger contexts, richer metadata, and more extensions. Full overwrite on every save does not scale well with these usage patterns.",
+      "locator": "## Why this matters",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Chat entries currently lack stable IDs (indexed by line position), which is identified as a prerequisite problem for any incremental sync approach.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5265",
+      "quote": "each entry has stable id (not line index)",
+      "locator": "## Proposed direction: incremental sync instead of full overwrite \u2014 point 1",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Metadata and message body are not currently isolated in the save path; the proposal calls for treating them separately to reduce accidental overwrite risk.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5265",
+      "quote": "Metadata isolation \u2014 treat metadata updates separately from message body sync (to reduce accidental overwrite risk)",
+      "locator": "## Proposed direction: incremental sync instead of full overwrite \u2014 point 5",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SillyTavern has a character system that supports character personas",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5597",
+      "quote": "SillyTavern's character system + CAJAL = interactive scientific writing",
+      "locator": "Why SillyTavern + CAJAL? > intro line",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SillyTavern supports World Info / Lorebooks as a mechanism for injecting persistent lore or reference content into context",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5597",
+      "quote": "World Info / Lorebooks: Academic citation styles, paper templates as lore entries",
+      "locator": "Why SillyTavern + CAJAL? > bullet 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SillyTavern supports group chats with multiple personas",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5597",
+      "quote": "Group chats: Multiple \"reviewer\" personas critiquing your paper",
+      "locator": "Why SillyTavern + CAJAL? > bullet 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "World Info insertion order is undocumented, making it impossible to predict which entries survive trimming when the candidate set exceeds the context or token budget cap",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5655",
+      "quote": "World Info insertion order is undocumented and non-obvious, leading to inability to predict entry insertion cutoff.",
+      "locator": "Issue body, problem description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The undocumented sort/trim behavior can cause older memory entries to persist while newer ones are trimmed, inverting the intended recency behavior for MemoryBooks",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5655",
+      "quote": "which may cause older memories to stick, while newer memories are trimmed, instead of the significantly more useful version where recent memories are kept and older memories are aged off.",
+      "locator": "Issue body, Issue 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Users can arrange memory entries in low-to-high chronological order for readability, but the trim policy does not currently respect that ordering in a user-controllable way",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5655",
+      "quote": "memory entries could be presented in low -> high chronological order for user ease of use, even if lower numbers are trimmed in a sort of sequentially increasing memories",
+      "locator": "Issue body, Proposal 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The {{noop}} macro no longer prevents newline trimming as intended in the Experimental Macro Engine as of version 1.18.0.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5673",
+      "quote": "{{noop}} is no longer able to prevent newline trimming (Experimental Macro Engine)",
+      "locator": "issue title",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The regression causes {{trim}} to collapse newlines through a {{noop}} boundary that previously acted as a stopper, changing output from preserved line breaks to concatenated text.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5673",
+      "quote": "But now it becomes this:\n\n```\nfoobar\n```",
+      "locator": "issue body, 'Describe the problem'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "API profiles do not persist the selected OpenRouter provider; switching profiles leaves the previously selected provider in place rather than restoring the one saved with the profile",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5813",
+      "quote": "the preset when loaded doesn't actually carry over the selected provider. If I use deepseek through deepseek provider and select minimax, it still has the deepseek provider selected.",
+      "locator": "Issue body, section: Is your feature request related to a problem?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A transient server-side read failure silently overwrites the real chat file with only the greeting message, erasing all conversation history, for any chat whose header lacks an integrity slug.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5941",
+      "quote": "one transient read failure is enough to replace the chat with its greeting, with no confirmation.",
+      "locator": "Impact on core code",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Chat files are structured with a header line containing chat_metadata (integrity slug, main_chat) followed by message entries, stored as line-delimited records on disk.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5941",
+      "quote": "const chatHeader = data.shift(); chat_metadata = chatHeader?.chat_metadata ?? {};",
+      "locator": "Impact on core code / public/script.js getChat()",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Lore books, character cards, and personas are all stored inside settings.json, making them vulnerable to corruption on interrupted save",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5955",
+      "quote": "if you reload silly tavern during saving it corrupts the settings.json, often corrupting lore books, character cards, personas, extensions, API connection settings, and various other UI features (such as themes)",
+      "locator": "Is your feature request related to a problem?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No write-lock or session isolation exists between concurrent tabs; two tabs writing simultaneously corrupt the same persistent data",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5955",
+      "quote": "the exact same issue is seen here https://github.com/SillyTavern/SillyTavern/issues/5864 where a user opened two separate tabs and sent messages from both of them, corrupting all the same data",
+      "locator": "Additional context",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Extensions cannot independently fix the save-corruption problem and moving state outside settings.json introduces additional issues",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5955",
+      "quote": "an extension can not fix this problem. and may create more issues. some extension developers have attempted to fix this issue by saving there settings outside the settings.json, however this creates even more issues then it fixes",
+      "locator": "Describe alternatives you've considered",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A missing linebreak before the Custom Chat Separator causes the Persona Description and Greeting Message to concatenate without whitespace, corrupting the prompt context and potentially breaking character continuity in the opening of a session.",
+      "kind": "issue",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/823",
+      "quote": "the greeting message follows immediately the preceding text without any whitespace, messing up the context that way",
+      "locator": "Describe the bug",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context window overflow is the root cause of character forgetting in SillyTavern; oldest messages are dropped from the prompt when the chat exceeds the window.",
+      "kind": "blog",
+      "url": "https://tavernsprite.com/blog/best-sillytavern-memory-extensions/",
+      "quote": "Every model has a context window, a fixed number of tokens it can read at once. Your character card, persona, world info, and the recent chat all share that budget. When the conversation grows past it, SillyTavern has to drop the oldest messages to make room. That is the moment your character 'forgets.'",
+      "locator": "How Memory Actually Works in SillyTavern",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SillyTavern ships with two built-in memory systems: a Summarize extension and a Vector Storage (RAG) system with Data Bank; neither requires an external server.",
+      "kind": "blog",
+      "url": "https://tavernsprite.com/blog/best-sillytavern-memory-extensions/",
+      "quote": "Yes. SillyTavern includes a built-in Summarize extension and a built-in Vector Storage (RAG) system with a Data Bank. Summarize condenses old messages into a running summary. Vector Storage embeds your chat and retrieves the most relevant past messages at generation time. Neither needs an external server anymore.",
+      "locator": "FAQ: SillyTavern Memory Extensions \u2014 Does SillyTavern have built-in memory?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Built-in Summarize extension: configurable interval (5\u201310 messages common), injects running summary into prompt; weakness is detail loss when summarizing large batches at once.",
+      "kind": "blog",
+      "url": "https://tavernsprite.com/blog/best-sillytavern-memory-extensions/",
+      "quote": "The built-in Summarize extension periodically condenses your chat history into a single running summary and injects it into the prompt. You set an 'update every X messages' interval, choose where the summary gets injected, and it maintains itself. \u2026 The weakness is that summarizing a large batch of messages at once tends to blur detail.",
+      "locator": "Summarize (built-in)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vector Storage embeds messages and retrieves semantically relevant past messages at generation time; replaced the deprecated Smart Context / Extras / ChromaDB stack.",
+      "kind": "blog",
+      "url": "https://tavernsprite.com/blog/best-sillytavern-memory-extensions/",
+      "quote": "Vector Storage is SillyTavern's native retrieval system. Turn on 'Enabled for chat messages' under Extensions, Vector Storage, pick a vectorization source, and it embeds your messages so it can retrieve the most relevant past ones at generation time. \u2026 This is the modern replacement for the old Extras-based Smart Context, and it runs entirely inside SillyTavern with no separate server.",
+      "locator": "Vector Storage and the Data Bank (built-in)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Smart Context is deprecated: official documentation states it is no longer maintained; use Vector Storage instead.",
+      "kind": "blog",
+      "url": "https://tavernsprite.com/blog/best-sillytavern-memory-extensions/",
+      "quote": "The official documentation now states plainly that it is no longer maintained and not recommended. It depended on the deprecated Extras server and a separate ChromaDB install. Everything it did is now handled natively by Vector Storage.",
+      "locator": "What About Smart Context?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Qvink Memory (MessageSummarize): per-message summarization preserves more detail than batch; rolling short-term memory auto-rotates; pinned summaries promoted to persistent long-term memory; requires ST 1.14.0+.",
+      "kind": "blog",
+      "url": "https://tavernsprite.com/blog/best-sillytavern-memory-extensions/",
+      "quote": "Its trick is that it summarizes each message individually instead of summarizing the whole history in one pass, which keeps far more detail intact. It maintains a rolling short-term memory that auto-rotates as the chat grows, and it lets you mark specific summaries with a 'brain' icon to promote them into a separate long-term memory that persists. \u2026 It requires SillyTavern 1.14.0 or newer.",
+      "locator": "Qvink Memory (best overall)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "CharMemory auto-extracts structured memories (relationships, events, emotional beats) every 20 messages into editable markdown files in the Data Bank; Vector Storage retrieves relevant ones at generation time.",
+      "kind": "blog",
+      "url": "https://tavernsprite.com/blog/best-sillytavern-memory-extensions/",
+      "quote": "Every 20 messages (you can change the interval), it sends recent conversation to an LLM that extracts structured memories, relationships, events, emotional beats, and saves them as editable markdown files in the character's Data Bank. At generation time, the built-in Vector Storage retrieves the most relevant ones.",
+      "locator": "CharMemory (best automatic character memory)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory Books converts marked scenes into keyworded lorebook (World Info) entries that trigger only when keywords match; requires ST 1.14.0 and Chat Completion endpoint.",
+      "kind": "blog",
+      "url": "https://tavernsprite.com/blog/best-sillytavern-memory-extensions/",
+      "quote": "You mark the start and end of a scene, and it generates a titled, keyworded JSON summary and saves it as a World Info (lorebook) entry. Because those entries trigger on keywords, the memory activates only when relevant.",
+      "locator": "Memory Books (best for a story bible)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "VectFox uses a real Qdrant vector database server-side with event-based recall and optional chronological summarizer injection; lighter mode uses ST's built-in store.",
+      "kind": "blog",
+      "url": "https://tavernsprite.com/blog/best-sillytavern-memory-extensions/",
+      "quote": "It runs retrieval server-side inside a real vector database (Qdrant) using a structured, event-based approach for sharper recall, and offers an optional summarizer injection that pins recent events in chronological order. There is a lighter mode that uses SillyTavern's built-in store if you are not ready to run Qdrant.",
+      "locator": "VectFox (best heavy-duty option)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forgetting character backstory mid-conversation is a known symptom of character card use in SillyTavern.",
+      "kind": "blog",
+      "url": "https://blog.mini-tavern.com/blog/sillytavern-character-card-troubleshooting-fix-common-errors-and-improve-ai-resp-85981a",
+      "quote": "The AI forgets its backstory mid-conversation",
+      "locator": "Why Character Cards Fail (And How to Spot It)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory in SillyTavern is context-window-bound, not a persistent cross-session store; forgetting is a retrieval/truncation problem.",
+      "kind": "blog",
+      "url": "https://blog.mini-tavern.com/blog/sillytavern-character-card-troubleshooting-fix-common-errors-and-improve-ai-resp-85981a",
+      "quote": "This is often a context window issue. SillyTavern's context size limits how much the AI can 'remember' at once.",
+      "locator": "Common Character Card Errors \u2014 2. The 'Memory Leak'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "This is a retrieve-then-prompt mechanism, not persistent memory: past messages are temporarily injected into the prompt for a single generation turn and are not stored as curated facts.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/chat-vectorization.md",
+      "quote": "It temporarily shuffles the most relevant messages to the beginning or end of the chat history. This happens when the model's reply to your last message is generated.",
+      "locator": "introduction",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The store is a vector index of chat message embeddings; the source of truth for message content remains the chat log itself.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/chat-vectorization.md",
+      "quote": "Chat vectorization does not use Data Bank to store the chat messages. The messages are stored in the chat.",
+      "locator": "Setting up",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The product itself warns it does not guarantee improved memory, positioning this as RAG, not companion continuity.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/chat-vectorization.md",
+      "quote": "The use of this extension does not guarantee a better chatting experience or improved memory of any sort.",
+      "locator": "Disclaimer warning box",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Using Chat Vectorization with prompt caching is counter-productive because each generation reshuffles the prompt prefix, causing frequent cache misses.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/chat-vectorization.md",
+      "quote": "Chat Vectorization restructures the prompt prefix between the LLM calls, which can lead to frequent cache misses. When used with caching, vectorization is often counter-productive, as the modified prompts rarely hit the cache.",
+      "locator": "Setting up \u2014 Prompt Caching Compatibility warning box",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Smart Context is deprecated and no longer maintained",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/smart-context/",
+      "quote": "THIS EXTENSION IS NO LONGER MAINTAINED AND NOT RECOMMENDED TO USE. CONSIDER CHAT VECTORIZATION AS A POSSIBLE ALTERNATIVE.",
+      "locator": "Page banner / disclaimer header",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval has an activation threshold of 10 messages before it begins",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/smart-context/",
+      "quote": "Once the chat has accumulated 10 messages, it will begin recording all messages into the database, and recalling messages as needed.",
+      "locator": "SmartContext only starts after 10 messages are in the chat history",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-chat by default; an experimental mode broadens scope to all chats for a given character",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/smart-context/",
+      "quote": "Recall only from this chat \u2014 This is the default behavior of smart-context and pulls 'memories' only from the ChromaDB collection for this specific chat.",
+      "locator": "Memory Recall Strategy",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistence depends on install type: local installs auto-persist; Colab installs are ephemeral with manual export/import required",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/smart-context/",
+      "quote": "For locally installed Extras servers, Smart Context saves the databases. There is no need to save them manually in usual use cases. For colab users, the databases are wiped when the extras server shuts down.",
+      "locator": "FAQ \u2014 What happens to the databases when I'm done chatting?",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieved memories injected via 'Replace oldest history' carry no special demarcation, which can confuse less capable models",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/smart-context/",
+      "quote": "old messages are inserted directly into the chat history with no special demarcation, and usually have no immediate natural relevance to the preserved natural chat history messages. This can confuse less intelligent AI models.",
+      "locator": "Injection Strategy \u2014 Replace oldest history \u2014 Disadvantage",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories injected at the bottom of context have outsized influence on the next AI response",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/smart-context/",
+      "quote": "because the memories exist very close to the end of the prompt they can have TOO MUCH effect on the AI's response.",
+      "locator": "Injection Strategy \u2014 Add to Bottom \u2014 Disadvantage",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Summary is persisted in chat file metadata, not a separate database or vector store.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/summarize.md",
+      "quote": "The summary is updated and embedded into the chat file's metadata for the message that was the last in context when the summary was generated.",
+      "locator": "Common configuration \u2013 Current summary",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory mechanism is retrieve-then-prompt only: summary is injected into the prompt via a template macro; there is no semantic retrieval or adaptive selection described.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/summarize.md",
+      "quote": "Injection Template - defines how the summary will be wrapped when being inserted into regular chat prompts. A special {{summary}} macro should be used to denote the exact location of the current summary state in the prompt injection text.",
+      "locator": "Common configuration \u2013 Injection Template",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The product itself hedges that summaries are only a rough approximation of long-term memory and may hallucinate.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/summarize.md",
+      "quote": "Summarization can help with outlining general details of what is happening in the story, which could be interpreted as a long-term memory, but take that statement with a grain of salt. Since the summaries are generated by language models, the outputs may lose some important details or contain hallucinations.",
+      "locator": "What is it?",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget / rollback is supported by reverting to the previous stored summary via Restore Previous, and by message-deletion triggering automatic revert.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/summarize.md",
+      "quote": "Restore Previous - removes the current summary, rolling it back to the previous state.",
+      "locator": "Common configuration \u2013 Restore Previous",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Manual override of memory content is explicitly supported: users can edit the current summary directly or pause automatic updates and supply a custom summary.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/summarize.md",
+      "quote": "displays and provides an ability to modify the current summary \u2026 This is useful if you want to provide a custom summary of your own or to effectively disable the summary by clearing the box and stopping updates.",
+      "locator": "Common configuration \u2013 Current summary / Pause",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "An auxiliary BART-based summarization model can be used via Extras API, but has a very small context (~1024 tokens) limiting large-summary handling.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/extensions/summarize.md",
+      "quote": "It has a very small context size (~1024 tokens), so its ability to handle large summaries is quite limited.",
+      "locator": "Supported summary sources \u2013 Extras API",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistence scope is per-character, per-chat, or global \u2014 not a single unified store.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/core-concepts/data-bank/",
+      "quote": "The documents are divided into three scopes of availability. Global attachments - available in every chat, either solo or group. Character attachments - available only for the currently chosen character, including when they are replying in a group. Chat attachments - available only in the currently open chat.",
+      "locator": "About Documents section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy is adaptive via score threshold; chunks scoring below threshold are culled and not injected.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/core-concepts/data-bank/",
+      "quote": "Score threshold - adjust to allow culling the retrieval of chunks based on their relevance score (0 - no match at all, 1 - perfect match).",
+      "locator": "Vectorization Settings \u2014 Shared settings",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieved content is inserted into the prompt at a configured position, reserving context before chat messages fit.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/core-concepts/data-bank/",
+      "quote": "The inserted chunks will reserve a part of the context before fitting the chat messages.",
+      "locator": "Vectorization Settings \u2014 Data Bank files",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "World Info is retrieve-then-prompt only: it selects authored lore entries into the prompt based on keyword or vector match; there is no write path from conversation to the store.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/core-concepts/worldinfo/",
+      "quote": "It functions like a dynamic dictionary that only inserts relevant information from World Info entries when keywords associated with the entries are present in the message text.",
+      "locator": "Introduction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Scan depth controls how many recent messages are checked for keyword matches; default evaluation is stateless across sessions.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/core-concepts/worldinfo/",
+      "quote": "Usually, World Info evaluation is stateless, meaning that the result of the evaluation is the same, only depending on the current chat context.",
+      "locator": "Timed Effects",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Timed effects (sticky, cooldown, delay) introduce session-scoped stateful retrieval; effects reset on swipe or message deletion and are chat-local (branches inherit parent state).",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/core-concepts/worldinfo/",
+      "quote": "Effects only apply in the chat where the entry was activated. Branches inherit the state of the parent chat. Active timed effects are removed if the chat doesn't advance, e.g. if the last message was swiped or deleted.",
+      "locator": "Timed Effects Rules",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Lorebook isolation is three-tier: global, character-bound (exported with card), persona-bound, and chat-bound; each scope activates independently.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/core-concepts/worldinfo/",
+      "quote": "In addition to the global World Info selector, lorebooks can be assigned to specific contexts \u2014 a character, a persona, or an individual chat. These context-specific sources are activated automatically when the relevant character, persona, or chat is active.",
+      "locator": "Context-Specific Sources",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Vector Storage extension can replace keyword matching with embedding similarity for WI entry retrieval; retrieval quality is model-dependent and non-deterministic.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/core-concepts/worldinfo/",
+      "quote": "Since the retrieval quality depends entirely on the outputs of the embedding model, it's impossible to predict exactly what entries will be inserted. If you want deterministic and predictable results, stick to keyword matching.",
+      "locator": "Vector Storage Matching > Note",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Token budget caps total WI insertion per turn; constant entries are prioritized, then higher insertion-order entries fill remaining budget.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/core-concepts/worldinfo/",
+      "quote": "If the budget is exhausted, then no more entries are activated even if the keys are present in the prompt. Constant entries will be inserted first. Then entries with larger order numbers.",
+      "locator": "Activation Settings > Context % / Budget",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Outlet insertion position defers injection to explicit macro placement, allowing author-controlled positioning of lore in the prompt rather than automatic slot insertion.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/core-concepts/worldinfo/",
+      "quote": "Outlet: World Info entry is not injected automatically. Instead, its content is stored under a named outlet so you can decide exactly where it appears in the prompt by calling it with the {{outlet::Name}} macro.",
+      "locator": "Insertion Position > Outlet",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "SillyTavern memory is retrieve-then-prompt: past context reaches the model only by being assembled into the prompt each turn; there is no autonomous write-back or fact extraction layer described on this page.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/prompts/index.md",
+      "quote": "When you send a message to your AI, the text you write is combined with other text to form a single request that's sent to the AI.",
+      "locator": "Prompts (introduction)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "World Info is the primary conditional-retrieval mechanism: entries are inserted into the prompt when configured conditions are met, functioning as an adaptive memory store.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/prompts/index.md",
+      "quote": "By setting the conditions for when the information should be inserted, you can guide the AI to include specific details, change how it responds, or add new elements to the conversation.",
+      "locator": "Adding to the Prompt (World Info)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Summaries are a distinct prompt element from raw message history, suggesting a compression path exists, but the write/update mechanism for summaries is not described on this page.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/prompts/index.md",
+      "quote": "Summaries of the past conversation",
+      "locator": "Prompts (introduction, bullet list of prompt elements)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Message history is the continuity log (log, not curated memory): it carries events, relationships, and style, and is manually editable by the user to correct unwanted behavior.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/prompts/index.md",
+      "quote": "The history is its memory of past events, character interactions and relationships, and its style guide for word choice and writing style.",
+      "locator": "Effect of Message History",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Post-History Instructions scope can be per-character or global, providing isolation at the character level for scaffolding instructions.",
+      "kind": "docs",
+      "url": "https://docs.sillytavern.app/usage/prompts/index.md",
+      "quote": "To use per-character Post-History Instructions, add them to the character's Post-History Instructions and enable Prefer Char. Instructions.",
+      "locator": "Post-History Instructions",
+      "confidence": "medium",
+      "label": "measured"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/world-info.js",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/endpoints/worldinfo.js",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/endpoints/chats.js",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/extensions/memory/index.js",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/extensions/vectors/index.js",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/endpoints/vectors.js",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/src/vectors/embedding.js",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.sillytavern.app/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.sillytavern.app/usage/worldinfo.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.sillytavern.app/usage/characters/data-bank.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.sillytavern.app/usage/prompts/context-template.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.sillytavern.app/extensions/chat-vectorization.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.sillytavern.app/extensions/summarize.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.sillytavern.app/extensions/extras/smart-context.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/4508",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5941",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5955",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5146",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5813",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5819",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5655",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/3508",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/4708",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5265",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5597",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5657",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5108",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5147",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/4479",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/823",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5440",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5673",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5695",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5595",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://blog.sillytavern.app/",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://docs.sillytavern.app/extensions/smart-context/",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.sillytavern.app/usage/prompts/index.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.sillytavern.app/usage/core-concepts/worldinfo/",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.sillytavern.app/usage/core-concepts/data-bank/",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.sillytavern.app/usage/how-to-use-a-self-hosted-model/",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.sillytavern.app/extensions/vrm.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://blog.mini-tavern.com/blog/sillytavern-character-card-troubleshooting-fix-common-errors-and-improve-ai-resp-85981a",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://tavernsprite.com/blog/best-sillytavern-memory-extensions/",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://news.ycombinator.com/item?id=43686837",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1s2ci9r/created_a_sillytavern_extension_that_brings_npcs/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "No mechanism described for forgetting or redacting specific facts from an existing summary short of manual edit or full summary deletion.",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/extensions/memory/index.js",
+      "kind": "code"
+    },
+    {
+      "text": "No description of how conflicts are resolved if two summaries exist at different message indices (only the most recent is used; prior ones are silently superseded).",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/extensions/memory/index.js",
+      "kind": "code"
+    },
+    {
+      "text": "No automatic extraction or summarization of conversation content into lorebook entries is described on this page; it is unclear whether any extension provides this write-back path.",
+      "url": "https://github.com/SillyTavern/SillyTavern/blob/06bde939fb1e9c4c8d8641d810f0a916b5bce127/public/scripts/world-info.js",
+      "kind": "code"
+    },
+    {
+      "text": "No description of how or whether SillyTavern persists conversation history to disk between sessions for these NPC characters.",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1s2ci9r/created_a_sillytavern_extension_that_brings_npcs/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of any write path (extract, update, delete, supersession) for memory entries within SillyTavern for this use case.",
+      "url": "https://www.reddit.com/r/LocalLLaMA/comments/1s2ci9r/created_a_sillytavern_extension_that_brings_npcs/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of cross-session persistence: it is unclear whether vectorized chat messages or their stored vectors survive across separate chat sessions or are scoped only to a single session.",
+      "url": "https://docs.sillytavern.app/extensions/chat-vectorization.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No conflict or supersession policy described: the page does not address what happens when a later message contradicts an earlier one that was previously vectorized and may be retrieved.",
+      "url": "https://docs.sillytavern.app/extensions/chat-vectorization.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No conflict or supersession mechanism is described: if a user corrects a fact stated earlier, there is no documented path to update or hide the outdated stored message",
+      "url": "https://docs.sillytavern.app/extensions/extras/smart-context.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of per-user or per-character isolation for stored summaries; unclear if summaries are scoped to a single chat file or shared across characters",
+      "url": "https://docs.sillytavern.app/extensions/summarize.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of how conflicts are resolved when two summaries exist for overlapping message ranges beyond the revert-on-edit behavior",
+      "url": "https://docs.sillytavern.app/extensions/summarize.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The llms.txt index page links to dedicated docs for World Info, Summarize, Chat Vectorization, and Data Bank but does not describe write path (extract, update, delete, conflict/supersession) or forget mechanics for any of these stores. Those details would be expected in canonical architecture or API docs.",
+      "url": "https://docs.sillytavern.app/llms.txt",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy for World Info (always inject vs. keyword-triggered vs. adaptive) is not described on this index page.",
+      "url": "https://docs.sillytavern.app/llms.txt",
+      "kind": "docs"
+    },
+    {
+      "text": "No forget or delete mechanism for individual documents or chunks is described beyond 'Purge Vectors' which only clears embeddings, not the source documents. Whether documents can be selectively deleted from the store is not addressed.",
+      "url": "https://docs.sillytavern.app/usage/characters/data-bank.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No write path from conversation: the page does not describe any mechanism by which conversation events are automatically extracted and written into the Data Bank or any memory store.",
+      "url": "https://docs.sillytavern.app/usage/characters/data-bank.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No conflict or supersession policy: the page does not address what happens when two documents contain contradictory information about the same entity.",
+      "url": "https://docs.sillytavern.app/usage/characters/data-bank.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This is the canonical context-template doc but does not describe how World Info entries are written, updated, or deleted from the store, nor how conflicts between entries are resolved.",
+      "url": "https://docs.sillytavern.app/usage/prompts/context-template.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The page references Summaries and Chat Vectorization as anchor-injected extensions but does not describe their persist, update, or forget behavior.",
+      "url": "https://docs.sillytavern.app/usage/prompts/context-template.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of an automated write path: this is a canonical architecture doc for World Info and it does not describe any mechanism by which conversation events are extracted, summarised, or written back into the lorebook store automatically.",
+      "url": "https://docs.sillytavern.app/usage/worldinfo.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No forget/delete API for the store: the page describes per-turn suppression (inclusion groups, probability=0, cooldown) but does not describe deleting or expiring entries from the lorebook itself.",
+      "url": "https://docs.sillytavern.app/usage/worldinfo.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of how lorebook entries are selected or triggered for retrieval into the prompt (keyword matching, always-on, embedding search, etc.) is present on this page.",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/4508",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of write, update, delete, or conflict resolution for lorebook/world info entries is present on this page.",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/4508",
+      "kind": "issue"
+    },
+    {
+      "text": "No information on how SillyTavern selects or retrieves persisted chat history into a turn context (retrieve policy, summarization, or windowing).",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5265",
+      "kind": "issue"
+    },
+    {
+      "text": "No information on forget/delete behavior: whether entries can be deleted from the chat store and how that is handled.",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5265",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how or whether lorebook entry conflicts or supersessions are resolved when multiple entries fire for the same entity",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5595",
+      "kind": "issue"
+    },
+    {
+      "text": "The page references auto-backup files in the context of issue #3809 but does not describe the backup mechanism, its trigger conditions, or retention policy.",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5941",
+      "kind": "issue"
+    },
+    {
+      "text": "The page documents corruption on interrupted write but does not describe any conflict-resolution or supersession logic for settings.json when writes collide",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5955",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how lore books and character cards are retrieved into context (retrieve policy, selection criteria) despite lore books being named as a persisted artifact",
+      "url": "https://github.com/SillyTavern/SillyTavern/issues/5955",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe SillyTavern's deletion or forgetting mechanism: whether memories can be explicitly deleted from the store, hidden at retrieval, or suppressed in generation.",
+      "url": "https://tavernsprite.com/blog/best-sillytavern-memory-extensions/",
+      "kind": "blog"
+    },
+    {
+      "text": "The page does not describe isolation scope: whether memory stores are per-user, per-session, per-character, or shared across characters.",
+      "url": "https://tavernsprite.com/blog/best-sillytavern-memory-extensions/",
+      "kind": "blog"
+    },
+    {
+      "text": "This blog does not describe any cross-session persistence mechanism (write path, store, forget/delete) despite covering memory failure as a core topic.",
+      "url": "https://blog.mini-tavern.com/blog/sillytavern-character-card-troubleshooting-fix-common-errors-and-improve-ai-resp-85981a",
+      "kind": "blog"
+    },
+    {
+      "text": "No conflict or supersession handling described: the docs do not explain what happens when two retrieved messages contain contradictory facts about a character or event.",
+      "url": "https://docs.sillytavern.app/extensions/chat-vectorization.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Write path for updating or deleting individual message vectors (other than bulk Purge Vectors) is not described.",
+      "url": "https://docs.sillytavern.app/extensions/chat-vectorization.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No conflict or supersession handling described: when a user edits or contradicts a stored message, the old vector entry remains until manual purge; no fine-grained delete or update path is documented",
+      "url": "https://docs.sillytavern.app/extensions/smart-context/",
+      "kind": "docs"
+    },
+    {
+      "text": "Write path on message edit or deletion is unspecified: the page implies stale entries accumulate (prompting manual purge) but does not describe whether edited messages are re-indexed or removed individually",
+      "url": "https://docs.sillytavern.app/extensions/smart-context/",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of per-user or per-character memory isolation: the page does not state whether summaries are scoped to a character, a user account, or only a single chat file.",
+      "url": "https://docs.sillytavern.app/extensions/summarize.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No conflict or supersession policy described: the page does not explain what happens when two simultaneous summarization requests produce conflicting summaries, or how an older summary is superseded by a newer one beyond simple replacement.",
+      "url": "https://docs.sillytavern.app/extensions/summarize.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No write path described for extracting or updating persistent facts from conversation turns into the Data Bank \u2014 this page covers only manual document ingestion.",
+      "url": "https://docs.sillytavern.app/usage/core-concepts/data-bank/",
+      "kind": "docs"
+    },
+    {
+      "text": "No conflict or supersession behavior described when two documents in the store contradict each other.",
+      "url": "https://docs.sillytavern.app/usage/core-concepts/data-bank/",
+      "kind": "docs"
+    },
+    {
+      "text": "No forget mechanism at the document level (selective delete of a single attachment) is described in this page.",
+      "url": "https://docs.sillytavern.app/usage/core-concepts/data-bank/",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of how or whether World Info entries are ever automatically written, updated, or deleted based on conversation content. The write path from conversation to store is entirely absent from this architecture doc.",
+      "url": "https://docs.sillytavern.app/usage/core-concepts/worldinfo/",
+      "kind": "docs"
+    },
+    {
+      "text": "This page covers LLM backend setup and API connection configuration only. It contains no description of how SillyTavern persists, retrieves, updates, or forgets memory across sessions \u2014 a canonical setup guide would be expected to at least reference memory or context management features if they exist.",
+      "url": "https://docs.sillytavern.app/usage/how-to-use-a-self-hosted-model/",
+      "kind": "docs"
+    },
+    {
+      "text": "This page lists Summaries as a prompt element but does not describe the write path for summaries (how they are created, updated, or what triggers summarization). The Summarize extension is referenced but not detailed here.",
+      "url": "https://docs.sillytavern.app/usage/prompts/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No forget or delete mechanism is described for any store (World Info, message history, or summaries). This page is silent on how past information is removed or suppressed.",
+      "url": "https://docs.sillytavern.app/usage/prompts/index.md",
+      "kind": "docs"
+    }
+  ]
+}
