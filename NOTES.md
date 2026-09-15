@@ -137,3 +137,157 @@ Permissions anchors ([dimensions/permissions_privacy](https://assistantbenchmark
 ### Bottom line
 
 Assistant Benchmark validates the direction: **the exam should test whether memory changes behavior in context**, not whether facts can be retrieved on demand. Their memory + restraint pair is the strongest steal. Their task-agent dimensions and unreproducible runs are what to explicitly **not** optimize for.
+
+---
+
+## awesome-ai-companion audit (2026-09-15)
+
+Source: [DasterProkio/awesome-ai-companion](https://github.com/DasterProkio/awesome-ai-companion) — curated open-source index for long-term AI companion relationships (人机恋开源项目大全). ~685 stars, ~200 entries, ~175 unique GitHub repos. Bilingual README; searchable web mirror at [lutopia.app/companion](https://lutopia.app/companion).
+
+This is **not** a product or benchmark. It is a **field map of the DIY companion stack** — clients, proactive loops, memory layers, embodiment, perception, rituals, continuity tools, and communities. Complements our `seed.json` product audits (zero repo overlap with current 30 seed entries).
+
+### List structure and metadata
+
+Each entry uses:
+
+- **Status:** `ready` (usable app/service) · `adapt` (needs setup) · `infra` (building block) · `verify` (re-check before trusting)
+- **Platform:** host surface (`Android`, `Web`, `Self-host`, `SillyTavern`, `Claude Code`, `AstrBot`, …)
+
+Inclusion criteria ([contributing.md](https://github.com/DasterProkio/awesome-ai-companion/blob/main/contributing.md)):
+
+- Open-source or openly reusable companion infrastructure
+- Useful for **long-term** companion setups, not one-shot chatbots
+- **Code verification over claims** — core logic must be checked in the repo, not README marketing
+- Uncertain projects must use `verify`/`adapt`, not overstated `ready`
+
+Getting-started paths ([getting-started.md](https://github.com/DasterProkio/awesome-ai-companion/blob/main/getting-started.md)):
+
+- **No code:** virtual-phone apps (SullyOS, whale小手机, ZeroChat)
+- **Some tinkering:** RikkaHub/Kelivo + heartbeat plugin + memory gateway when history grows
+- **Full stack:** Headlong or AstrBot backbone + memory layer (Aelios, Paramecium) + voice (GPT-SoVITS)
+
+### Categories (11 + communities + continuity)
+
+1. **Companion Clients & Workspaces** — RikkaHub, Operit, Aura, Ocean, SillyTavern-adjacent web clients, Claude Code hosts
+2. **Virtual Phones & Companion Spaces** — phone-like UIs, cottage/room metaphors, SillyTavern virtual phones
+3. **Background Heartbeats & Proactive Messaging** — Headlong, AstrBot plugins, Kelivo heartbeat, jiwen, revive-companion
+4. **Memory, Identity & Emotion State** — see below (20 entries)
+5. **Voice, Visual Presence & Embodiment** — TTS, Live2D/VRM, VTuber stacks
+6. **Perception** — ASR, screen gaze, speaker familiarity, sensory MCP
+7. **Services & Real-World Integrations** — MCP bridges (maps, weather, health, email agents)
+8. **Game Worlds & Agent Toys** — text games for AI, Minecraft/Stardew bridges
+9. **Shared Activities & Media** — co-reading, music, journaling, focus rituals
+10. **Communities & Forums** — Lutopia, Symposion, GLXY, moltbook
+11. **Continuity & Data Ownership** — session handoff, export tools, character-card specs
+
+Related side docs:
+
+- [INITIATIVE.md](https://github.com/DasterProkio/awesome-ai-companion/blob/main/INITIATIVE.md) — “Open Character” nonprofit vision: public dataset of human decision-making, open methods, eventually open personality weights. About **values/personality training**, not memory eval. Useful context for “character vs memory” boundary.
+- [Awesome-AI-Waifu](https://github.com/parallelarc/Awesome-AI-Waifu), [awesome-ai-agents](https://github.com/alternbits/awesome-ai-agents) — broader related lists
+
+### Memory, Identity & Emotion State (20 entries)
+
+**Memory & identity**
+
+| Project | Architecture notes (from list description) |
+|---------|---------------------------------------------|
+| [Ombre-Brain](https://github.com/P0luz/Ombre-Brain) | Emotional valence/arousal tags, Obsidian Markdown, forgetting curves, vector + BM25 |
+| [Paramecium](https://github.com/Shitsuten/paramecium) | Verbatim chat = source of truth; vectors index only; retrieve original text not summaries |
+| [Memory Constellations](https://github.com/ClaraShafiq/MemoryConstellations) | Facts → topic constellations → narrative episodes; layered retrieval |
+| [nocturne_memory](https://github.com/Dataojitori/nocturne_memory) | Graph-like structured memory, rollbackable, explicitly not vector RAG |
+| [kimi-core](https://github.com/marikagura/kimi-core) | Hybrid retrieval, concern tracking, self-drive/autonomy, adversarial self-audit, pgvector |
+| [kiwi-mem](https://github.com/LucieEveille/kiwi-mem) | Vector search, memory heat ranking, dream/sleep consolidation, calendar summaries |
+| [ai-memory-gateway](https://github.com/garan0613/ai-memory-gateway) | OpenAI-compatible memory proxy; multi-stage consolidation |
+| [omemo](https://github.com/OmniDimen/omemo) | Sits between app and LLM API; built-in or external summarization; full-prompt or RAG inject |
+| [Aelios](https://github.com/wusaki0723/Aelios) | Cloudflare Workers + D1 + Vectorize; tiered write cycle, six memory layers |
+| [imprint-memory](https://github.com/Qizhan7/imprint-memory) | Hook captures every turn; hybrid BM25 + semantic; Claude Code / Telegram adapters |
+| [WrenWen](https://github.com/ssxl0126/WrenWen) | Production write-up: 9D drive-based desires, **2-tier memory scoring**, anti-drift debugging |
+| AstrBot plugins | livingmemory (lifecycle), self_learning (style/slang/affinity evolution) |
+
+**Affect & drives**
+
+| Project | Notes |
+|---------|-------|
+| [Drivesoid](https://github.com/A1batr055/Drivesoid) | HTTP sidecar tracking fatigue, longing, anxiety, play, protectiveness, intimacy |
+| [jiwen (积温)](https://github.com/ClaraShafiq/jiwen) | Five drifting axes trigger proactive behavior at thresholds; ~500 lines, zero deps |
+| [revive-companion](https://github.com/pearthink123/revive-companion) | **Timing only:** Poisson + Bayesian user-state + information gain for when to interrupt |
+| [Eventide](https://github.com/chuli1122/Eventide) / [Tidefall](https://github.com/Vael-KY/Tidefall) | Physiological/body-state engines with drives, dreams, JSON write-back |
+| [ai-companion-cot-emotion](https://github.com/yanke521/ai-companion-cot-emotion) | Guide for inner-monologue CoT + drifting emotion engines |
+
+### Proactive & heartbeat layer (cross-cutting)
+
+Not all memory, but tightly coupled to “remembering at the right time”:
+
+- [Headlong](https://github.com/laude-institute/headlong) — persistent agency, inner monologue loops, proactive outreach
+- [dylan-heartbeat](https://github.com/callie0313/dylan-heartbeat) — periodic wake, timeline continuity, push when AI chooses to reach out
+- [astrbot_plugin_proactive_chat](https://github.com/DBJD-CR/astrbot_plugin_proactive_chat) — DND hours, mood, persistent state
+- [astrbot_plugin_private_companion](https://github.com/menglimi/astrbot_plugin_private_companion) — daily schedule, important dates, diary, low-frequency proactive messages
+- [Ocean](https://github.com/fishwithoctopus/Ocean) — continuity-preserving session rotation (memory + session design)
+
+### Continuity & data ownership
+
+Addresses platform loss / session death — relevant to “memory persists across sessions”:
+
+- [forge-reload](https://github.com/Vivi-Seth/forge-reload), [context-slim](https://github.com/oliviayu0623/context-slim) — Claude Code session continuation / transcript cleanup
+- [character-card-spec-v2/v3](https://github.com/malfoyslastname/character-card-spec-v2) — portable persona across frontends
+- [immortal-skill (永生.skill)](https://github.com/agenmod/immortal-skill) — distills knowledge/style/memories/personality into portable Agent Skill
+
+### Overlap with companmem seed.json
+
+**Zero GitHub repo overlap** with current seed products (mem0, zep, letta, sillytavern, etc.). The lists cover different slices:
+
+| companmem seed | awesome-ai-companion |
+|----------------|----------------------|
+| Memory **libraries** and commercial-adjacent products | **End-user companion stacks** and infra glue |
+| Pipeline audit via harvest → extract → fold | Curated discovery; no unified audit protocol |
+| LoCoMo / academic eval framing | Builder paths and community sentiment |
+
+**Indirect links:** SillyTavern appears as a **host platform** (e.g. 柚月小手机), not as a audited memory engine. Character-card specs connect to RisuAI/SillyTavern ecosystem already partially in seed.
+
+### Ideas mapped to open questions
+
+**Taxonomy for Phase 1 synthesis** — Their 11 categories decompose “companion” better than “memory product.” Useful when synthesizing what recurs: memory is never isolated; it sits beside heartbeat, persona cards, embodiment, and continuity tools.
+
+**Remembering vs retrieving** — [Paramecium](https://github.com/Shitsuten/paramecium) and [Memory Constellations](https://github.com/ClaraShafiq/MemoryConstellations) encode “gist + episode + verbatim” layering — closer to human memory models in QUESTIONS.md than flat RAG.
+
+**Caring vs creepy** — [revive-companion](https://github.com/pearthink123/revive-companion) and [jiwen](https://github.com/ClaraShafiq/jiwen) treat **when to speak** as first-class; pairs with Assistant Benchmark’s restraint dimension.
+
+**Forgetting / maintenance** — Ombre-Brain forgetting curves; kiwi-mem heat ranking and sleep consolidation; AstrBot livingmemory lifecycle — candidates for maintenance probes beyond “did it recall?”
+
+**Anti-drift / self-audit** — kimi-core adversarial self-audit; WrenWen 2-tier memory scoring and anti-drift debugging — production patterns worth harvesting in Phase 1 if we add seed entries.
+
+**Eval gaps** — List has **no standardized exam**. Status tags are maintainer judgment after code inspection, not rerunnable scores. Same limitation as Assistant Benchmark for closed apps, but without even published task anchors.
+
+### Candidate seed additions (Phase 1, not committed)
+
+If expanding beyond memory libraries toward **companion-native memory infra**:
+
+| Priority | Repo | Why |
+|----------|------|-----|
+| High | Paramecium | Verbatim-log philosophy; direct contrast to summary-first stores |
+| High | Memory Constellations | Fact → constellation → episode pipeline |
+| High | nocturne_memory | Structured/rollback memory; explicit anti–vector-RAG positioning |
+| Medium | kimi-core, Ombre-Brain | Hybrid retrieval + drives/affect + maintenance |
+| Medium | imprint-memory | Hook-based capture pattern (Claude Code ecosystem) |
+| Low | revive-companion, jiwen | Proactive **timing** engines, not storage — Phase 2 behavior refs |
+
+Run `just lint-seed` before adding; several are `verify`/`adapt` in the awesome list.
+
+### What to refuse or treat carefully
+
+- **Discovery list, not evidence.** Entries can be personal forks, NSFW-adjacent, or “deeply tied to author’s canon” (ackem, Haven-Ombre, InternalBeyond).
+- **Not companion-realism by default.** Much of the list optimizes for romantic/waifu RP, virtual phones, and game worlds — adjacent to but not identical to “realistic human/companion communication.”
+- **Open Character initiative ≠ memory research.** Personality dataset/training vision; do not conflate with Phase 3 memory exam.
+- **Do not replace seed audits.** Use as **recruitment funnel** for Phase 1 gaps, not as cited product claims without our own harvest.
+- **Chinese-community bias.** Strong Lutopia/AstrBot/Kelivo/RikkaHub cluster; Western closed products (Replika, Nomi) stay in seed, not here.
+
+### Concrete next steps
+
+1. **Synthesis input** — When running `just synthesize`, bucket awesome-list memory entries by representation (verbatim log, graph, vector+summary, proxy gateway, hook capture).
+2. **Cross-walk SillyTavern** — Map ST ecosystem entries (orangechat, virtual phones, character cards) against existing sillytavern audit.
+3. **Phase 2 probes** — Pull proactive timing (revive-companion) and conflict/disambiguation (Memory Constellations narrative layer) as behavior names.
+4. **Optional** — Add 2–3 high-priority repos to `seed.json` after code verification per awesome list’s own inclusion rule.
+
+### Bottom line
+
+awesome-ai-companion is the best **companion-stack field map** we’ve seen for open source: it shows memory is always bundled with proactive loops, persona portability, and continuity anxiety. It does **not** give a rerunnable exam. Use it to expand **what to audit** and **how to categorize**; use Assistant Benchmark + Harbor/LoCoMo critique for **how to score**.
