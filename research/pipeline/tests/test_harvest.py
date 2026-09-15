@@ -610,6 +610,13 @@ def test_body_markers_match_disambiguates_homonyms() -> None:
     assert body_markers_match("AI journaling app called Memori", memori) is False
     assert body_markers_match("We open sourced Memori from MemoriLabs on GitHub", memori)
     assert body_markers_match("Show HN: Memori (github.com/gibsonai)", memori)
+    memu = {
+        "id": "memu",
+        "name": "memU",
+        "body_markers": ["NevaMind-AI", "github.com/NevaMind-AI/memU", "memu.so"],
+    }
+    assert body_markers_match("Is MEmu Android emulator safe to use?", memu) is False
+    assert body_markers_match("Built with memU from NevaMind-AI on GitHub", memu)
 
 
 def test_reddit_subreddit_prefix_collision_drops_homonyms() -> None:

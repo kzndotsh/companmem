@@ -1,0 +1,1470 @@
+{
+  "identity": {
+    "id": "memu",
+    "name": "memU",
+    "repo": "https://github.com/NevaMind-AI/memU",
+    "docs": "https://github.com/NevaMind-AI/memU/blob/main/README.md",
+    "license": "Apache-2.0",
+    "version_or_commit": "08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46",
+    "observed_at": "2026-09-15"
+  },
+  "claimed_purpose": [
+    {
+      "text": "memU has a record seam (\u8bb0\u5f55) that is part of a memory pipeline distinct from retrieval"
+    },
+    {
+      "text": "memU claims to turn every interaction into compounding operational intelligence with cross-deployment persistence"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Agent decides whether to create, patch, or discard a skill \u2014 the judgment is in the agent, not MemoryService"
+    },
+    {
+      "text": "MemoryService does not make LLM calls \u2014 it only stores, embeds, and retrieves; synthesis is entirely the agent's responsibility"
+    },
+    {
+      "text": "Inject seam: a standing instruction in the host's instruction file tells the agent to run retrieve (\u2192 progressive_retrieve) before answering"
+    },
+    {
+      "text": "All hosts share one configured memory backend \u2014 cross-host retrieval is explicit design"
+    },
+    {
+      "text": "Core memory logic is 500 lines \u2014 scoped, inspectable"
+    },
+    {
+      "text": "Conversation transcripts are materialized from MemorizeInput objects into an input directory as JSONL files \u2014 this is the raw session log layer, distinct from the curated memory/skill recall files."
+    },
+    {
+      "text": "Only changed recall files (diff of tracked dirs against manifest) are committed back to the backend, meaning the write path is selective/incremental."
+    },
+    {
+      "text": "Separate job templates exist for memory and skill tracks, indicating that what is extracted from a conversation is split into at least two distinct curated categories before being written."
+    },
+    {
+      "text": "Only one active run is permitted at a time per workspace, providing run-level isolation."
+    },
+    {
+      "text": "On each new session write, stale JSONL files in the output directory are deleted before writing, unless suppressed via the clear flag."
+    },
+    {
+      "text": "Memory projection and skill projection are distinct transformations of the same input, implying the memory write is a curated subset or re-projection, not the raw transcript."
+    },
+    {
+      "text": "Memories are organized into named folders, suggesting a hierarchical or categorical store structure."
+    },
+    {
+      "text": "Memory is structured as a hierarchical file system of intelligent folders managed by a dedicated memory agent that decides autonomously what to record, modify, or archive."
+    },
+    {
+      "text": "Memories are organized into named folders, acting as categorical stores."
+    },
+    {
+      "text": "All hosts share one configured memory backend; what one host's sessions teach memU, another host retrieves."
+    },
+    {
+      "text": "Memory is persisted via a MemoryService configured with a metadata store (SQLite) and a vector index (brute-force), with retrieval method set to RAG."
+    },
+    {
+      "text": "The write path uses an LLM to extract structured memory items from conversation content, parsing the LLM's XML output via _parse_memory_type_response_xml in memorize.py."
+    },
+    {
+      "text": "memU stores memories as files; file_manager.py exposes a file-level delete operation"
+    },
+    {
+      "text": "Recall files have a structured schema validated by Pydantic; the embedding field must be a flat list of floats, not a nested list."
+    },
+    {
+      "text": "A proposed recency_bias / exponential decay parameter would modulate similarity scores by segment age at query time; decay curve is intended to be tunable per query context"
+    },
+    {
+      "text": "Discovery is based on locating `local_*/audit.jsonl` session files under resolved Claude Desktop data roots, with a session count per root."
+    },
+    {
+      "text": "The memory store is explicitly separate from transcript discovery and ingestion; the status command must not touch it."
+    },
+    {
+      "text": "The three public operations on AgenticMemoryBackend are list_all_recall_files, progressive_retrieve, and commit_results."
+    },
+    {
+      "text": "memU organizes memory into three distinct layers: episodic, semantic, and procedural"
+    },
+    {
+      "text": "memU memory persists across deployments"
+    },
+    {
+      "text": "Memory items are written to a persistent PostgreSQL store with pgvector, surviving restarts and allowing backup."
+    },
+    {
+      "text": "Memory operations (storage, retrieval, updates) happen automatically behind the scenes in one call"
+    },
+    {
+      "text": "Cross-session persistence scoped to user"
+    },
+    {
+      "text": "A memory agent automatically decides what to persist, update, or forget \u2014 no manual organization required"
+    },
+    {
+      "text": "Offline memory agent that analyzes, finds patterns, and creates insights over time"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Memory is stored as curated Markdown skills, not raw transcripts \u2014 distinguishing log from memory",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/README.md",
+      "quote": "The host adapter reads new session history, including messages and tool calls. \u2026 `prepare` slices each session into a self-contained job \u2026 The agent reads related existing skills, then chooses to do nothing, patch an existing skill, or create a new one. \u2026 Each skill has a name, description, and reusable workflow",
+      "locator": "README.md \u00a7 Automatic skill extraction, steps 1\u20134",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemoryService is a pure store/embed/retrieve layer with no LLM calls \u2014 synthesis is delegated entirely to the host agent",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/README.md",
+      "quote": "The judgment and synthesis stay inside the agent. `MemoryService` makes no LLM or chat calls; it stores, embeds, and retrieves the skill Markdown the agent prepared.",
+      "locator": "README.md \u00a7 Automatic skill extraction, closing note",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path involves agent choosing to patch an existing skill or create a new one \u2014 supersession is handled by the agent, not MemoryService",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/README.md",
+      "quote": "The agent reads related existing skills, then chooses to do nothing, patch an existing skill, or create a new one.",
+      "locator": "README.md \u00a7 Automatic skill extraction, step 3",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is inject-triggered: a standing instruction patches the host's instruction file to call retrieve before every answer",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/README.md",
+      "quote": "a standing instruction in the host's instruction file tells the agent to run `<binary> retrieve` (\u2192 `progressive_retrieve`) before answering.",
+      "locator": "README.md \u00a7 Host adapters, inject bullet",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per shared backend across all hosts for the same user, not per session or agent",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/README.md",
+      "quote": "All hosts share one configured memory backend via `~/.memu/config.env` \u2014 local or MemU Cloud. What one host's sessions taught memU, another host retrieves.",
+      "locator": "README.md \u00a7 Host adapters, closing paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/delete: memory persists through uninstall by default and is only deleted on explicit user request",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/README.md",
+      "quote": "Memory is erased only when you explicitly ask for it.",
+      "locator": "README.md \u00a7 Uninstall",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memorization is scheduled (background task), not inline during a session",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/README.md",
+      "quote": "capture useful session knowledge through a scheduled background task and turn it into reusable memory.",
+      "locator": "README.md \u00a7 Agent support, Memorize bullet",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "memU separates raw session transcripts (JSONL log) from curated memory and skill recall files \u2014 retrieve and memory write operate on different stores.",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/src/memu/app/memorize/lifecycle.py",
+      "quote": "transcripts = materialize_memorize_inputs(memorize_inputs, workspace.input)",
+      "locator": "prepare_memorize, body",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path is delta-based: only recall files that changed relative to the pre-run manifest snapshot are pushed to the backend on commit.",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/src/memu/app/memorize/lifecycle.py",
+      "quote": "changed = diff_tracked(workspace.base, workspace.track_dirs, workspace.manifest)\n    recall_files = [read_recall_file(path, subdir_track[path.relative_to(workspace.base).parts[0]]) for path in changed]",
+      "locator": "commit_memorize, body",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is split into at least three typed tracks: memory, skill, and resources, each processed by a separate job template.",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/src/memu/app/memorize/lifecycle.py",
+      "quote": "memory_template=templates.resolve(templates.MEMORY_JOB, MEMORY_JOB_TEMPLATE),\n        skill_template=templates.resolve(templates.SKILL_JOB, SKILL_JOB_TEMPLATE),",
+      "locator": "prepare_memorize, prepare_instruction_jobs call",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Run-level isolation is enforced: a workspace can only hold one active memorize run at a time.",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/src/memu/app/memorize/lifecycle.py",
+      "quote": "if workspace.active_run.exists():\n        msg = \"memorize workspace already has an active run\"\n        raise RuntimeError(msg)",
+      "locator": "prepare_memorize, guard block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The backend stores recall files accessible via paginated listing, indicating persistence is server-side (AgenticMemoryBackend), not solely local filesystem.",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/src/memu/app/memorize/lifecycle.py",
+      "quote": "result = await backend.list_all_recall_files(cursor=cursor)",
+      "locator": "_mirror_recall_files, body",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "memU separates a curated memory projection from a full skill projection per session, rather than persisting a single raw transcript.",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/src/memu/app/memorize/materialize.py",
+      "quote": "_atomic_write_text(memory_path, _serialize_items(project_memory(memorize_input)))\n_atomic_write_text(skill_path, _serialize_items(project_skill(memorize_input)))",
+      "locator": "materialize_memorize_input, lines ~59-61",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The forget/clear mechanism deletes all prior JSONL files in the output directory before writing a new session batch, operating at the file level.",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/src/memu/app/memorize/materialize.py",
+      "quote": "if clear:\n    for stale in out_dir.glob(\"*.jsonl\"):\n        stale.unlink()",
+      "locator": "materialize_memorize_input, clear block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistence is file-based JSONL, scoped per session index within an output directory.",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/src/memu/app/memorize/materialize.py",
+      "quote": "memory_path = out_dir / f\"{session_index}.jsonl\"\nskill_path = out_dir / f\"{session_index}_full.jsonl\"",
+      "locator": "materialize_memorize_input, lines ~55-56",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "memU is an embedding-only memory service; no LLM is involved in any step \u2014 only embedding model calls for indexing and vector search.",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/src/memu/app/service.py",
+      "quote": "No LLM is involved anywhere: the only model calls are embeddings for indexing and vector search.",
+      "locator": "MemoryService class docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is scoped to a user model; where-clause filters are validated against that model's fields, enforcing per-user isolation at the query layer.",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/src/memu/app/service.py",
+      "quote": "Validate and clean the `where` scope filters against the configured user model.",
+      "locator": "MemoryService._normalize_where docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "memU uses cosine similarity (top-k) as its retrieve policy for selecting stored items into context.",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/src/memu/vector.py",
+      "quote": "cosine_topk(\n    query_vec: list[float],\n    corpus: Iterable[tuple[str, list[float] | None]],\n    k: int = 5,\n) -> list[tuple[str, float]]:",
+      "locator": "cosine_topk, function signature",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The corpus items are identified by string IDs paired with float vectors; items with None vectors or dimension mismatches are excluded from ranking.",
+      "kind": "code",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/src/memu/vector.py",
+      "quote": "Callers already disagree on whether ``[]`` means \"unembedded\"\n(segments skip only ``None``; resources skip only falsy), so treat both\nthe same way here: unusable rows never enter the ranking.",
+      "locator": "cosine_topk, inline comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "memU is positioned as something that can be enabled in an LLM application as an AI agent capability.",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=44838609",
+      "quote": "If you want to enable your ai agent into your llm application, you could try this",
+      "locator": "comment by sairin1202",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "A community member draws a direct comparison between memU and Mem0, implying they occupy the same category but the differentiation is unclear enough to prompt a public question.",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=44838609",
+      "quote": "What is the most difference between MemU and Mem0?",
+      "locator": "comment by Carrot_Iris",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU organizes memories into categorized folders such as 'profile', 'daily logs', and 'relationships'.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/SideProject/comments/1ml06ii/built_a_memorypowered_emotional_ai_companion_memu/",
+      "quote": "Let the AI organize memories into folders like \"profile\", \"daily logs\", and \"relationships\"",
+      "locator": "post body, bullet list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Users reported that memU-backed recall felt contextually appropriate, not arbitrary \u2014 a recalled detail 'made sense' in context.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/SideProject/comments/1ml06ii/built_a_memorypowered_emotional_ai_companion_memu/",
+      "quote": "It brought up something I said last week - and it made sense.",
+      "locator": "post body, user testimonials",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Prior memory solutions were described as too rigid (manual store definitions), too opaque (black-box vector storage), or lacking emotional awareness \u2014 framing memU as addressing these gaps.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/SideProject/comments/1ml06ii/built_a_memorypowered_emotional_ai_companion_memu/",
+      "quote": "too rigid (manually define what to store), too opaque (black-box vector dumps), or just\u2026 not emotionally aware",
+      "locator": "post body, problem framing",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU uses a hierarchical file-system metaphor for memory storage, with a memory agent handling write, update, and archive decisions autonomously.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1ml0voi/memu_the_nextgen_memory_system_for_ai_companions/",
+      "quote": "Your memories are structured as intelligent folders managed by a memory agent. We do not do explicit modeling for memories. The memory agent automatically decides what to record, modify, or archive.",
+      "locator": "post body, Organize section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forgetting is implemented via deprioritization based on usage frequency, not hard deletion \u2014 less-accessed memories are deprioritized or forgotten.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1ml0voi/memu_the_nextgen_memory_system_for_ai_companions/",
+      "quote": "The memory agent automatically prioritizes information based on usage patterns. Recently accessed memories remain highly accessible, while less relevant content is deprioritized or forgotten. This creates a personalized information hierarchy that evolves with your needs.",
+      "locator": "post body, Never Forget section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "An asynchronous offline process (analogous to sleep-time consolidation) iterates over memory files between queries to surface new correlations.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1ml0voi/memu_the_nextgen_memory_system_for_ai_companions/",
+      "quote": "memU spreads the knowledge graph across multiple files and repeatedly iterates over them between queries to find new correlations and improve the graph, much like our sleep time helps to consolidate our new experiences into new memories correlated with prior memories across many facets.",
+      "locator": "comment by u/kalqlate, final paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A community user noted the technical explanation of memory retention mechanics was absent from the GitHub page, flagging a documentation gap.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1ml0voi/memu_the_nextgen_memory_system_for_ai_companions/",
+      "quote": "How is this doing memory retention? Does it use up more context window? Didn't see the technical explanation on the github page",
+      "locator": "comment by u/A_Light_Spark, first comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A local backend for memU had not yet shipped at time of posting; rollout was described as imminent.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/selfhosted/comments/1ml0g3w/built_a_memorypowered_emotional_ai_companion_memu/",
+      "quote": "their local backend is expected to roll out next week",
+      "locator": "comment by u/Substantial-Swan671",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Users experienced recalled details from prior sessions surfacing at contextually appropriate moments.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/selfhosted/comments/1ml0g3w/built_a_memorypowered_emotional_ai_companion_memu/",
+      "quote": "It brought up something I said last week - and it made sense.",
+      "locator": "post body, user testimonials paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The post itself is suspected by multiple commenters to be AI-generated or bot-driven promotional content, reducing source reliability.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/selfhosted/comments/1ml0g3w/built_a_memorypowered_emotional_ai_companion_memu/",
+      "quote": "Yep it's a bot network. Shame.",
+      "locator": "comment by u/Graffxxxxx",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU stores memory as Markdown skill files, not a full conversation log \u2014 curated skills extracted from session history rather than raw transcripts.",
+      "kind": "docs",
+      "url": "https://github.com/NevaMind-AI/memU/blob/main/README.md",
+      "quote": "the agent itself distills them into memory/skill Markdown",
+      "locator": "README.md, Host adapters > record seam",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is always-on via injected standing instruction; the agent runs retrieve before every answer, not adaptively.",
+      "kind": "docs",
+      "url": "https://github.com/NevaMind-AI/memU/blob/main/README.md",
+      "quote": "a standing instruction in the host's instruction file tells the agent to run <binary> retrieve (\u2192 progressive_retrieve) before answering",
+      "locator": "README.md, Host adapters > inject seam",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per-user across all hosts and sessions via a single shared backend, not per-session or per-agent.",
+      "kind": "docs",
+      "url": "https://github.com/NevaMind-AI/memU/blob/main/README.md",
+      "quote": "All hosts share one configured memory backend via ~/.memu/config.env \u2014 local or MemU Cloud. What one host's sessions taught memU, another host retrieves.",
+      "locator": "README.md, Host adapters",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path involves: extract (host adapter reads session logs), prepare (slice into jobs), agent decides (patch or create skill), commit (submit via commit_results), embed and store.",
+      "kind": "docs",
+      "url": "https://github.com/NevaMind-AI/memU/blob/main/README.md",
+      "quote": "prepare slices each session into a self-contained job \u2026 The agent reads related existing skills, then chooses to do nothing, patch an existing skill, or create a new one \u2026 commit submits changed skill files through commit_results; memU embeds the skill name and description and stores it under the skill track.",
+      "locator": "README.md, How it works > Automatic skill extraction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/delete is not triggered automatically; the memory store is preserved through uninstall and erased only on explicit user request.",
+      "kind": "docs",
+      "url": "https://github.com/NevaMind-AI/memU/blob/main/README.md",
+      "quote": "Memory is erased only when you explicitly ask for it.",
+      "locator": "README.md, Uninstall",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Core memory logic is approximately 500 lines.",
+      "kind": "docs",
+      "url": "https://github.com/NevaMind-AI/memU/blob/main/README.md",
+      "quote": "Its core memory logic is only 500 lines \u2014 compact enough to inspect, understand, and adapt.",
+      "locator": "README.md, opening description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A crash between cursor-advance (prepare) and commit permanently loses all sessions in that batch: they are marked seen in the cursor and their transcripts are wiped on the next prepare, so they are never offered for mining again.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/518",
+      "quote": "permanently and **silently** loses every session in that batch: the next `prepare` wipes the transcripts and job files, and the cursor already marks those sessions as seen, so they are never offered for mining again. No error is ever surfaced; the next run reports success.",
+      "locator": "Summary",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Read and write paths are completely disconnected in the 0.1.8 release: RecallAgent reads from an empty file directory, MemoryAgent writes to PostgreSQL",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/393",
+      "quote": "The read and write paths are completely disconnected. RecallAgent initializes MemoryFileManager pointing at a file directory that is empty. It never touches PG.",
+      "locator": "Root Cause / Diagnosis",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory retrieval API endpoint is POST /api/v1/memory/retrieve/related-memory-items accepting query, user_id, and top_k",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/393",
+      "quote": "POST /api/v1/memory/retrieve/related-memory-items\n{\"query\": \"test\", \"user_id\": \"boris\", \"top_k\": 5}",
+      "locator": "Diagnosis",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "v1.5.x architecture is considered correct but requires Python \u22653.13, blocking users on 3.11/3.12",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/393",
+      "quote": "The v1.5.x architecture looks correct \u2014 just needs a PyPI release. Note: v1.5.x requires Python \u22653.13, which blocks users on 3.11/3.12",
+      "locator": "Suggestion",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU uses a MemoryService with pluggable metadata store (SQLite) and vector index backends, and a configurable retrieval method (RAG).",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/407",
+      "quote": "database_config={\"metadata_store\": {\"provider\": \"sqlite\", \"dsn\": sqlite_dsn,}, \"vector_index\": {\"provider\": \"bruteforce\"},}, retrieve_config={\"method\": \"rag\"},",
+      "locator": "Description > code block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is per user_id: both save and search operations require a user_id parameter.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/407",
+      "quote": "\"user_id\": \"user_123\"",
+      "locator": "Description > code block (save_tool.ainvoke and search_tool.ainvoke calls)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write path extracts structured facts from content via an LLM prompt that produces XML, parsed in memu/app/memorize.py at _parse_memory_type_response_xml.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/407",
+      "quote": "File \"/home/amsr/linchao/memU/src/memu/app/memorize.py\", line 1406, in _parse_memory_type_response_xml\n    root = ET.fromstring(xml_content)",
+      "locator": "Description > traceback",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Continuity failure: the LLM extraction prompt causes the model to hallucinate memories beyond what was actually saved, injecting facts (occupation, age, hobbies) the user never provided in the current content, which could corrupt the memory store with false personal data.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/407",
+      "quote": "In fact, the xml input should only include \"The user prefers dark mode\", since the content is \"The user prefers dark mode.\" ... 1. <item><memory><content>The user works as a product manager at an internet company</content>...",
+      "locator": "Description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU version at time of issue is v1.5.1.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/407",
+      "quote": "v1.5.1",
+      "locator": "Version",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU has a delete_memories method in the Python SDK client targeting user and optionally agent",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/42",
+      "quote": "\u5728 client.py \u4e2d\u5b9e\u73b0\u4e86 delete_memories \u65b9\u6cd5\uff0c\u652f\u6301\u5220\u9664\u6307\u5b9a\u7528\u6237\u7684\u8bb0\u5fc6\uff0c\u53ef\u9009\u62e9\u6027\u5220\u9664\u7279\u5b9a\u4ee3\u7406\u7684\u8bb0\u5fc6\uff0c\u5305\u542b\u5b8c\u6574\u7684\u9519\u8bef\u5904\u7406\u548c\u65e5\u5fd7\u8bb0\u5f55",
+      "locator": "\u5ba2\u6237\u7aef\u5b9e\u73b0 - Python SDK",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU has a parallel delete implementation in the JavaScript/TypeScript SDK",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/42",
+      "quote": "\u5728 client.ts \u4e2d\u4e5f\u5b9e\u73b0\u4e86\u76f8\u5e94\u7684\u5220\u9664\u529f\u80fd\uff0c\u63d0\u4f9b\u4e86TypeScript\u7c7b\u578b\u652f\u6301",
+      "locator": "\u5ba2\u6237\u7aef\u5b9e\u73b0 - JavaScript SDK",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU persists memories as files; file_manager.py handles file-level deletion",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/42",
+      "quote": "file_manager.py \u4e2d\u7684 delete_memory_file \u65b9\u6cd5\u63d0\u4f9b\u4e86\u6587\u4ef6\u7ea7\u522b\u7684\u5220\u9664\u529f\u80fd",
+      "locator": "\u5e95\u5c42\u5b9e\u73b0",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The server-side /api/v1/memory/delete endpoint is not implemented; delete calls fail with 404",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/42",
+      "quote": "\u5728 memory.py \u8def\u7531\u6587\u4ef6\u4e2d\u6ca1\u6709\u627e\u5230 /api/v1/memory/delete \u7aef\u70b9\u7684\u5b9e\u73b0\u2026\u2026\u5ba2\u6237\u7aef\u7684\u5220\u9664\u529f\u80fd\u76ee\u524d\u65e0\u6cd5\u6b63\u5e38\u5de5\u4f5c\uff0c\u4f1a\u8fd4\u56de404\u9519\u8bef",
+      "locator": "\u670d\u52a1\u7aef\u7f3a\u5931",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU commit persists named recall files with track, description, content, and an embedding vector; the schema is enforced by Pydantic (RecallFile model).",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/499",
+      "quote": "error: 1 validation error for RecallFile\nembedding.0\n  Input should be a valid number [type=float_type, input_value=[0.0, 0.0, ...], input_type=list]",
+      "locator": "Issue body, \u73b0\u8c61 section, error output",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU retrieve uses vector similarity: it embeds the query, then searches stored recall-file embeddings. An empty store bypasses this path.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/499",
+      "quote": "\u5e26\u6570\u636e\u7684 memu retrieve \u540c\u6837\u53d7\u5f71\u54cd\uff08\u7a7a\u5e93 retrieve \u6b63\u5e38\uff0c\u56e0\u4e3a\u4e0d\u4f1a\u8d70\u5230\u5411\u91cf\u6d88\u8d39\u8def\u5f84\uff09",
+      "locator": "Issue body, \u73b0\u8c61 section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The embedding layer is abstracted behind a base client (src/memu/embedding/base.py) with at least two concrete implementations (openai_sdk.py, http_client.py), making the embedding provider pluggable.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/499",
+      "quote": "\u6240\u6709 embedding client \u7684 embed() \u8fd4\u56de tuple[list[list[float]], raw_response]\uff1asrc/memu/embedding/base.py:18 / src/memu/embedding/openai_sdk.py / src/memu/embedding/http_client.py:68",
+      "locator": "Issue body, \u6839\u56e0 section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU is built with Rust extensions via maturin and targets Python 3.13; it runs on Windows.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/499",
+      "quote": "\u5b89\u88c5\u65b9\u5f0f\uff1a\u6e90\u7801\u6784\u5efa\uff08maturin\uff09\uff0cuv run --python 3.13 --with <repo> / \u5e73\u53f0\uff1aWindows 11 / CPython 3.13.12",
+      "locator": "Issue body, \u73af\u5883 section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A single missed self-evolve+commit cycle results in 10 sessions of history becoming permanently un-mineable with zero trace in logs.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/518",
+      "quote": "One missed self-evolve+commit = 10 sessions of history permanently un-mineable, zero trace.",
+      "locator": "Reproduction table",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A proposed fix is to advance the cursor only after a successful commit, staging the new cursor to a pending file at prepare time and promoting it at commit.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/518",
+      "quote": "advance the cursor only after a successful `commit` (e.g. `prepare` stages the new cursor to a pending file; `commit` promotes it)",
+      "locator": "Candidate fixes \u2014 At-least-once semantics",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A two-phase manifest approach (per-session prepared vs committed line counts) is proposed so that prepare can re-select sessions where prepared count exceeds committed count.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/518",
+      "quote": "per-session `prepared` vs `committed` line counts; `prepare` re-selects any session whose `prepared > committed`",
+      "locator": "Candidate fixes \u2014 Two-phase manifest",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The record/write seam silently never runs in Desktop-app-only environments, while the task reports success \u2014 a continuity failure where memories are never written",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/538",
+      "quote": "Major\u2014\u2014\u5728\u4efb\u4f55 Desktop-app-only \u7684\u73af\u5883\u4e0b\uff0crecord/bridging seam \u90fd\u4f1a\u9759\u9ed8\u5730\u6c38\u4e0d\u8fd0\u884c\uff0c\u4e14 task \u8fd8\u62a5\u544a\u6210\u529f\u3002retrieval \u4e0d\u53d7\u5f71\u54cd\u3002",
+      "locator": "Severity",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "commit populates the store with 50 embedded segments and 2 memory entries; retrieve returns them with scores 0.72 and 0.55",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/538",
+      "quote": "\u4f1a\u8bdd\u5185 `commit` \u628a store \u586b\u5145\u4e3a 50 \u4e2a embedded segments\u30012 \u6761 memory\uff0c\u968f\u540e `retrieve` \u80fd\u8fd4\u56de\u5b83\u4eec\uff08score 0.72 / 0.55\uff09",
+      "locator": "Additional Information, bullet 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The bridging task is what drives the record seam \u2014 without it, no new memories are written to the store even though retrieval of previously written memories still works",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/538",
+      "quote": "record seam\uff08\u8bb0\u5f55\uff09\u6bcf\u6b21\u90fd\u8dd1\u4e0d\u8d77\u6765",
+      "locator": "Description, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The issue was split from #514; a companion issue #539 covers Windows scheduling-registration; #530 covers scheduler PATH capture for cron",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/538",
+      "quote": "\u4ece\u5df2\u5173\u95ed\u7684 #514 \u62c6\u5206\u800c\u6765\uff1a\u672c issue = host-CLI \u8fd9\u4e00\u534a\uff08discoverability + headless auth\uff09\uff1b\u914d\u5957 issue #539 = Windows scheduling-registration \u90a3\u4e00\u534a\u3002\u5e94\u4e0e #530 \u5408\u5e76",
+      "locator": "Additional Information, bullets 2 and final",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Two concurrent memorize runs (e.g. one from Codex host, one from Claude host) corrupt the shared memory tree because there is currently no lock \u2014 this is an active, acknowledged bug.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/544",
+      "quote": "We have no lock, and it is starting to hurt.",
+      "locator": "Background",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "retrieve does not force-write or bootstrap the mirror when files are missing if a memorize may be in flight, causing a continuity gap where memory records are absent but cannot be safely initialized.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/544",
+      "quote": "retrieve would like to force-write/bootstrap the mirror when it is missing, but without a signal that 'a memorize is in flight' it can't do this safely.",
+      "locator": "Problems, item 2",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is per-user at the ~/.memu tree level, with partial host-scoping: session_manifest is host-scoped but the core memory/skill mirror, manifest, jobs, sessions, and resources.md are shared across hosts for the same user.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/544",
+      "quote": "`session_manifest` *is* host-scoped, so the collision is specifically the shared tree.",
+      "locator": "Problems, item 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The memorize pipeline's write path spans three processes (prepare CLI, the agent's own work, commit CLI), making fd-based locking across the full critical section non-trivial.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/544",
+      "quote": "our critical section spans three processes (`prepare`, the agent's own work, `commit`). No single fd can span that, and a crash/reboot in the middle is exactly the nightmare case.",
+      "locator": "The hard part: our critical section spans multiple processes",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The proposed supervisor subcommand memu-<host> memorize would be the scheduled task entry point that holds an OS advisory lock for the full memorize session, providing crash/reboot-safe exclusive access.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/544",
+      "quote": "ship a supervisor subcommand \u2014 `memu-<host> memorize` \u2014 that acquires flock (blocking, with timeout + jitter) \u2192 spawns/execs the agent \u2192 releases on exit. This supervisor *is* the scheduled task.",
+      "locator": "Proposed direction \u2014 Details",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A fallback persistent lock file design would store {host, pid, boot_id, started_at}, using liveness detection and boot_id comparison for stale-lock reclaim on crash or reboot.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/544",
+      "quote": "A persistent lock file holding `{host, pid, boot_id, started_at}` that `prepare` writes and `commit` deletes. Since no fd spans the run, crash-safety comes from liveness detection by the next contender: recorded pid no longer alive \u2192 stale, reclaim (handles crash); `boot_id` differs from current \u2192 machine rebooted, pid is meaningless \u2192 reclaim",
+      "locator": "Fallback if we truly can't wrap the launcher",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU has a memory pipeline that is functional and separate from the scheduling subsystem",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/561",
+      "quote": "memory pipeline \u4e0e scheduling \u90fd\u6ca1\u95ee\u9898",
+      "locator": "Severity section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Continuity failure: stale credentials and decommissioned hosts are returned when querying current state, because superseded segments are not removed or demoted",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/630",
+      "quote": "When asking 'SSH password for homelab servers,' memU returns segments about SSH credentials. All are from the same import date (2026-07-31) so they have equal temporal weight. But in practice, passwords change, hosts get decommissioned, and preferences evolve. Without temporal signal, stale information competes on equal footing with current information.",
+      "locator": "## Problem",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Decay is proposed as query-time score adjustment, not index-time, to allow per-query tuning between historical and current-state queries",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/630",
+      "quote": "Why query-time, not index-time: The decay curve should be tunable per query context. A query about 'what happened in February' wants less decay than 'what's the current setup.'",
+      "locator": "## Implementation notes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "24 explicit retrieve failures were observed over roughly 8 days in Claude Code session records, indicating a persistent continuity gap during that period.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/644",
+      "quote": "From the first confirmed Claude Code retrieve failure through 2026-08-17, I found 24 explicit `502`/`503` retrieve failures in the raw Claude Code session records.",
+      "locator": "Additional Information",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU memory is scoped to a cloud project, identified by a project ID.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/644",
+      "quote": "memU Cloud project ID: `f8fb4012-1206-4359-8f67-fd76ffc5bd21`",
+      "locator": "Environment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A silent scope nulling bug means memory committed with a misspelled user key is stored under a null user_id, which is a continuity failure: the memory would not be retrieved for the intended user in subsequent sessions",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/648",
+      "quote": "The commit succeeds and prints None.",
+      "locator": "Steps to reproduce",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU ingests Claude Desktop conversation transcripts (Cowork) from local audit log files as a source of memory input.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/657",
+      "quote": "total discovered Cowork `local_*/audit.jsonl` sessions",
+      "locator": "Description section, bullet list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU separates the memory store from raw transcript content; ingestion and store writes are distinct pipeline stages.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/657",
+      "quote": "The command must not read or print transcript content, advance the session cursor, create jobs, touch the memory store, or change scheduler/config files.",
+      "locator": "Description section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU supports cross-platform Claude Desktop data root discovery (macOS and Linux paths) as part of its Cowork transcript ingestion.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/657",
+      "quote": "cross-platform root providers \u2026 gives macOS/Linux testers a concise result to report when conventional Claude Desktop paths need correction",
+      "locator": "Motivation section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The shared AgenticMemoryBackend surface exposes exactly three public operations: list_all_recall_files, progressive_retrieve, and commit_results.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/667",
+      "quote": "\u5f53\u524d\u516c\u5f00\u8fb9\u754c\u53ea\u7edf\u4e00\u4e86\u4e09\u4e2a\u6700\u7ec8\u64cd\u4f5c\uff1a\n```python\nlist_all_recall_files(...)\nprogressive_retrieve(...)\ncommit_results(...)\n```",
+      "locator": "Issue body, section '\u5f53\u524d\u516c\u5f00\u8fb9\u754c\u53ea\u7edf\u4e00\u4e86\u4e09\u4e2a\u6700\u7ec8\u64cd\u4f5c'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The evolving write path uses temporary files (session JSONL, job TXT, run marker) as its only intermediate record; these are deleted after a successful commit, leaving no persistent operation log.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/667",
+      "quote": "\u6210\u529f commit \u540e\uff0c`jobs/*.txt`\u3001`sessions/*.jsonl` \u548c resource \u4e34\u65f6\u6587\u4ef6\u4f1a\u88ab\u5220\u9664\u3002\u5916\u90e8\u5e94\u7528\u76ee\u524d\u53ea\u80fd\u901a\u8fc7\u5de5\u4f5c\u76ee\u5f55\u662f\u5426\u5b58\u5728 job\u3001cursor \u662f\u5426\u63a8\u8fdb\u3001\u6700\u7ec8\u6587\u4ef6\u53d1\u751f\u4e86\u4ec0\u4e48\u53d8\u5316\u6765\u7c97\u7565\u63a8\u65ad\u8fdb\u5ea6\uff1b\u65e0\u6cd5\u67e5\u8be2\u4e00\u4e2a\u7a33\u5b9a\u7684 operation record\uff0c\u4e5f\u6ca1\u6709\u6301\u4e45\u8bb0\u5f55\u6bcf\u4e2a job \u505a\u51fa\u7684\u51b3\u5b9a\u3002",
+      "locator": "Issue body, section '\u5f53\u524d evolving \u8def\u5f84\u7684\u8bc1\u636e\u662f\u4e34\u65f6\u6587\u4ef6\uff0c\u800c\u4e0d\u662f\u516c\u5171\u64cd\u4f5c\u8bb0\u5f55'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "progressive_retrieve performs a file roll-up that keeps only the max segment score and does not surface which segments contributed to a file hit, and segments carry no provenance back to source messages.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/667",
+      "quote": "file roll-up \u53ea\u4fdd\u7559 max segment score\uff0c\u6ca1\u6709\u5728 file hit \u4e0a\u8fd4\u56de `matched_segment_ids`\uff1bsegment \u4e5f\u6ca1\u6709\u6307\u5411\u539f\u59cb source message/trajectory \u7684 provenance\u3002",
+      "locator": "Issue body, section '3. \u4e3a retrieve \u5b9a\u4e49 hit provenance \u548c\u53ef\u9009 trace'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The local backend uses SQLite or PostgreSQL with RecallFile, RecallFileSegment, and Resource models; this schema is not portable to cloud and is not part of the public contract.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/667",
+      "quote": "local backend \u901a\u8fc7\u5f00\u6e90 repository/model \u5b9e\u73b0\uff1b\nmemU Cloud \u4f7f\u7528\u72ec\u7acb\u7684 server storage adapter\uff1b\n`CloudMemoryClient` \u53ea\u900f\u4f20\u4e09\u4e2a\u516c\u5171\u64cd\u4f5c\u7684\u8bf7\u6c42\u548c\u6700\u7ec8\u54cd\u5e94\uff0c\u4e0d\u516c\u5f00 server \u6570\u636e\u5e93",
+      "locator": "Issue body, section '\u4e0d\u80fd\u628a local \u6570\u636e\u5e93\u8868\u5f53\u4f5c trace API'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU has a `memorize_conversation` step that ingests a conversation and persists memories from it.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/8",
+      "quote": "after I ran the `memorize_conversation` and confirmed the task finished successfully",
+      "locator": "issue body, first paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Stored memories carry `created_at` and `updated_at` timestamps; the server returned null for both fields, causing a validation failure in the Python SDK.",
+      "kind": "issue",
+      "url": "https://github.com/NevaMind-AI/memU/issues/8",
+      "quote": "categories.0.memories.0.created_at\n  Input should be a valid datetime [type=datetime_type, input_value=None, input_type=NoneType]\n    ...\ncategories.0.memories.0.updated_at\n  Input should be a valid datetime [type=datetime_type, input_value=None, input_type=NoneType]",
+      "locator": "issue body, traceback",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU organizes memory into episodic, semantic, and procedural layers as a knowledge graph",
+      "kind": "blog",
+      "url": "https://memu.pro/blog/mem0-ai-memory-layer-agent-personalization",
+      "quote": "MemU organizes operational knowledge into three distinct memory layers \u2014 episodic memory that captures specific interaction sequences and their outcomes, semantic memory that models relationships between concepts in the agent's domain, and procedural memory that encodes the action patterns that produced the best results.",
+      "locator": "section: The MemU Agentic Memory Framework: From Fact Lookup to Structured Agentic Reasoning",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU memory persists across deployments (cross-session, cross-agent)",
+      "kind": "blog",
+      "url": "https://memu.pro/blog/mem0-ai-memory-layer-agent-personalization",
+      "quote": "cross-deployment persistence that turns every interaction into compounding operational intelligence",
+      "locator": "section: Get Started with MemU",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU released on PyPI as memu-py in February 2026, built by NevaMind-AI, supports Python 3.13+",
+      "kind": "blog",
+      "url": "https://a-bots.com/blog/memu-2026",
+      "quote": "Released on PyPI as memu-py in February 2026, memU provides the persistent memory layer that LLM-based agents need to operate continuously without losing context between sessions.",
+      "locator": "What Is MemU and How Does It Work",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU achieves 92.09% average accuracy on the Locomo benchmark across all reasoning tasks",
+      "kind": "blog",
+      "url": "https://a-bots.com/blog/memu-2026",
+      "quote": "The framework achieves 92.09% average accuracy on the Locomo benchmark across all reasoning tasks, significantly outperforming competitors in fact recall, temporal reasoning, and entity relationship mapping.",
+      "locator": "MemU vs Mem0 vs LangChain Memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory Agent extracts structured facts autonomously and handles ADD, UPDATE, and natural decay decisions",
+      "kind": "blog",
+      "url": "https://a-bots.com/blog/memu-2026",
+      "quote": "The Memory Agent decides on its own: it extracts relevant facts, checks existing memory for conflicts or duplicates, and decides whether to ADD a new item, UPDATE an existing one, or let it naturally decay through non-use.",
+      "locator": "Layer 2: Memory Item Layer",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Companion use case: memU maintains emotional continuity and detects behavioral changes across weeks and months",
+      "kind": "blog",
+      "url": "https://a-bots.com/blog/memu-2026",
+      "quote": "The agent detects behavior changes ('You have been online late again \u2014 should we try a screen-free night plan?'), follows up on absent users ('Haven't heard from you lately. Everything okay?'), and maintains emotional continuity across weeks and months of interaction.",
+      "locator": "AI Companions and Emotional Support Apps",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Manual memory seeding recommended before production deployment to avoid cold-start",
+      "kind": "blog",
+      "url": "https://a-bots.com/blog/memu-2026",
+      "quote": "Before deploying your memU agent to production, manually seed critical knowledge into the memory store. Import existing documents, customer profiles, technical runbooks, and historical incident data. This gives your agent a running start instead of a cold start.",
+      "locator": "Lifehack 1: Seed Your Memory Strategically",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Named LLM profiles optimization can reduce monthly API costs by 60\u201370%",
+      "kind": "blog",
+      "url": "https://a-bots.com/blog/memu-2026",
+      "quote": "This optimization can cut your monthly API costs by 60-70% without sacrificing quality on important decisions.",
+      "locator": "Lifehack 5: Use Multiple LLM Profiles",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "NevaMind-AI GitHub organization hosts companion projects: memUBot, memU-server, memU-ui, memU-sdk-go",
+      "kind": "blog",
+      "url": "https://a-bots.com/blog/memu-2026",
+      "quote": "The NevaMind-AI GitHub organization hosts multiple companion projects: memUBot (described as 'The Enterprise-Ready OpenClaw \u2014 Your Proactive AI Assistant That Remembers Everything'), memU-server (the FastAPI backend wrapper), memU-ui (the web management interface), and memU-sdk-go (a Go SDK for memU clients).",
+      "locator": "Where MemU Is Already Being Used",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU-server is a FastAPI wrapper exposing memU capabilities as HTTP endpoints, with optional Docker Compose stack including PostgreSQL and Temporal workflow engine",
+      "kind": "blog",
+      "url": "https://a-bots.com/blog/memu-2026",
+      "quote": "For teams that need a REST API interface, NevaMind-AI provides memU-server \u2014 a FastAPI wrapper that exposes memU's capabilities as HTTP endpoints\u2026 For full infrastructure including PostgreSQL and the Temporal workflow engine, use Docker Compose.",
+      "locator": "MemU Server Deployment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Autonomous memory write path also includes periodic memory cleanup and consolidation to remove stale or contradictory entries",
+      "kind": "blog",
+      "url": "https://a-bots.com/blog/memu-2026",
+      "quote": "Schedule periodic memory cleanup routines where your agent reviews and consolidates its knowledge base. MemU's evolving memory system naturally decays unused memories, but actively pruning stale entries keeps retrieval fast and accurate.",
+      "locator": "Lifehack 6: Implement Memory Hygiene Routines",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU persists memory across sessions using PostgreSQL with pgvector, surviving agent restarts.",
+      "kind": "blog",
+      "url": "https://yuv.ai/blog/memu",
+      "quote": "Persistent Storage with pgvector - Uses PostgreSQL with vector extensions for reliable, queryable long-term memory. Your agent's memory survives restarts and can be backed up like any database.",
+      "locator": "Key Features",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU uses a hierarchical file-system metaphor (folders/files/mount points) to organize memory, with mount points being raw source material (conversations, documents, data streams) and files being extracted discrete memory items.",
+      "kind": "blog",
+      "url": "https://yuv.ai/blog/memu",
+      "quote": "Folders \u2192 Categories: Topics and themes that are auto-organized. Files \u2192 Memory Items: Specific facts, preferences, learned skills. Mount Points \u2192 Resources: Raw conversations, documents, data streams. The source material that memory items are extracted from.",
+      "locator": "How memU Works",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU is open-source and created by NevaMind-AI.",
+      "kind": "blog",
+      "url": "https://yuv.ai/blog/memu",
+      "quote": "memU is an open-source memory framework that enables AI agents to maintain long-term context and run proactively 24/7. Created by NevaMind-AI",
+      "locator": "Key Takeaway",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memU requires PostgreSQL with pgvector and persistent infrastructure; it is not suitable for simple one-off chat or basic RAG.",
+      "kind": "blog",
+      "url": "https://yuv.ai/blog/memu",
+      "quote": "memU requires PostgreSQL with pgvector extension and infrastructure for 24/7 operation. It's designed for persistent agents, not simple one-off conversations or basic RAG applications.",
+      "locator": "Frequently Asked Questions \u2013 What are the limitations of memU?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Single API call handles both response generation and memory management",
+      "kind": "blog",
+      "url": "https://memu.pro/blog/response-api-launch",
+      "quote": "One call = Response + Memory. The future of AI is here.",
+      "locator": "Page subtitle",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory operations (store, retrieve, update) are automated without developer intervention",
+      "kind": "blog",
+      "url": "https://memu.pro/blog/response-api-launch",
+      "quote": "Automatic memory operations: storage, retrieval, and updates happen behind the scenes",
+      "locator": "Lightest Integration You'll Ever Implement",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is scoped per user, maintaining preferences and context",
+      "kind": "blog",
+      "url": "https://memu.pro/blog/response-api-launch",
+      "quote": "Complete user understanding that maintains preferences and context",
+      "locator": "MemU as Your Complete Agent Backend",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "This blog post describes an earlier version of memU and may not reflect current architecture",
+      "kind": "blog",
+      "url": "https://memu.pro/blog/response-api-launch",
+      "quote": "This article describes an earlier version of memU. It is preserved for historical context. Product architecture, capabilities, setup steps, APIs, and benchmarks may no longer match the current version.",
+      "locator": "Page banner",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory agent automatically decides what to persist, update, or forget without manual input",
+      "kind": "blog",
+      "url": "https://dev.to/pratikmahalle/memu-the-game-changer-for-digital-companions-27kh.md",
+      "quote": "it has a memory agent (basically like having a personal librarian in your head) that automatically decides what's worth remembering, what needs updating, and what can be forgotten. No more manually organising or structured data input - it just handles everything naturally.",
+      "locator": "What Makes MemU Different",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Offline processing: memory agent continues to analyze and improve the knowledge base without a live connection",
+      "kind": "blog",
+      "url": "https://dev.to/pratikmahalle/memu-the-game-changer-for-digital-companions-27kh.md",
+      "quote": "it keeps working even when you're offline. The memory agent analyzes existing memories, finds patterns, creates insights, and basically makes your knowledge base smarter over time.",
+      "locator": "How It Actually Works (The Cool Stuff)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "92% accuracy on memory benchmarks",
+      "kind": "blog",
+      "url": "https://dev.to/pratikmahalle/memu-the-game-changer-for-digital-companions-27kh.md",
+      "quote": "They're hitting 92% accuracy on memory benchmarks (that's insanely good)",
+      "locator": "The Numbers That Made Me Do a Double-Take",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Core framework is open source under Apache License 2.0",
+      "kind": "blog",
+      "url": "https://dev.to/pratikmahalle/memu-the-game-changer-for-digital-companions-27kh.md",
+      "quote": "The core framework is available on GitHub under Apache License 2.0, which means the community can contribute, modify, and improve it together.",
+      "locator": "The Open Source Thing",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Self-hosted deployment supports full local data control and customization",
+      "kind": "blog",
+      "url": "https://dev.to/pratikmahalle/memu-the-game-changer-for-digital-companions-27kh.md",
+      "quote": "For people who want complete control over their data and prefer running everything locally. Perfect if privacy is your main concern or if you want to customize everything.",
+      "locator": "Three Ways to Try It Out",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/src/memu/app/memorize/lifecycle.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/src/memu/app/memorize/materialize.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/src/memu/app/service.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/src/memu/vector.py",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/42",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/666",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/644",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/606",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/459",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/499",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/8",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/539",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/538",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/518",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/475",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/458",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/393",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/407",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/667",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/657",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/648",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/630",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/561",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NevaMind-AI/memU/issues/544",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://a-bots.com/blog/memu-2026",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://yuv.ai/blog/memu",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://memu.pro/blog/response-api-launch",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://dev.to/pratikmahalle/memu-the-game-changer-for-digital-companions-27kh.md",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://memu.pro/blog/mem0-ai-memory-layer-agent-personalization",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/selfhosted/comments/1ml0g3w/built_a_memorypowered_emotional_ai_companion_memu/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/machinelearningnews/comments/1ml0voi/memu_the_nextgen_memory_system_for_ai_companions/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://news.ycombinator.com/item?id=44838609",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/SideProject/comments/1ml06ii/built_a_memorypowered_emotional_ai_companion_memu/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "progressive_retrieve policy is named but not described: when it stays silent, how many results it returns, or whether retrieval is always-on vs adaptive",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Conflict/supersession detail for the 'skill' track: what happens when two sessions produce overlapping skills beyond 'patch or create new' \u2014 no merge or dedup policy described",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "The AgenticMixin (imported as the base class) implements list_all_recall_files, progressive_retrieve, and commit_results \u2014 their persist, retrieve, update, and delete logic is not visible on this page.",
+      "url": "https://github.com/NevaMind-AI/memU/blob/08e1ed4cdf4c0cb1fe5387e4a532ea588a8cbe46/src/memu/app/service.py",
+      "kind": "code"
+    },
+    {
+      "text": "The page is the canonical Show HN submission for memU and links to its repo, but no commenter or the submitter describes what is persisted, how retrieval works, how facts are updated or deleted, isolation scope, or any forgetting mechanism. Core memory behaviors are entirely absent.",
+      "url": "https://news.ycombinator.com/item?id=44838609",
+      "kind": "community"
+    },
+    {
+      "text": "Forget mechanism is described only as 'fade naturally' \u2014 no detail on whether this is hard deletion, retrieval suppression, or score decay in the store.",
+      "url": "https://www.reddit.com/r/SideProject/comments/1ml06ii/built_a_memorypowered_emotional_ai_companion_memu/",
+      "kind": "community"
+    },
+    {
+      "text": "Retrieve policy is not described \u2014 unclear whether memories are always injected, retrieved adaptively, or selected by the agent during reflection.",
+      "url": "https://www.reddit.com/r/SideProject/comments/1ml06ii/built_a_memorypowered_emotional_ai_companion_memu/",
+      "kind": "community"
+    },
+    {
+      "text": "No technical explanation of memory retention mechanics visible on the GitHub page per a community member \u2014 the canonical repo doc appears to omit how retrieval and pruning are implemented.",
+      "url": "https://github.com/NevaMind-AI/memU",
+      "kind": "community"
+    },
+    {
+      "text": "No description of the actual write path: how memU extracts, structures, or updates a memory entry from conversation turns.",
+      "url": "https://www.reddit.com/r/selfhosted/comments/1ml0g3w/built_a_memorypowered_emotional_ai_companion_memu/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of retrieve policy: whether retrieval is always-on, query-triggered, or adaptive per turn.",
+      "url": "https://www.reddit.com/r/selfhosted/comments/1ml0g3w/built_a_memorypowered_emotional_ai_companion_memu/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of isolation model: whether memory stores are per-user, per-session, per-agent, or per-character.",
+      "url": "https://www.reddit.com/r/selfhosted/comments/1ml0g3w/built_a_memorypowered_emotional_ai_companion_memu/",
+      "kind": "community"
+    },
+    {
+      "text": "Conflict/supersession policy: the page states the agent chooses to 'patch an existing skill or create a new one' but does not specify how conflicts between contradictory skill facts are resolved.",
+      "url": "https://github.com/NevaMind-AI/memU/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "progressive_retrieve behavior: the retrieve verb maps to progressive_retrieve internally but the page does not describe what 'progressive' means (e.g., iterative expansion, ranked cutoff, adaptive inclusion).",
+      "url": "https://github.com/NevaMind-AI/memU/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of forget / delete behavior in the memory_items store",
+      "url": "https://github.com/NevaMind-AI/memU/issues/393",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how memories are written/extracted from conversation (write path trigger, summarization, or conflict/supersession logic)",
+      "url": "https://github.com/NevaMind-AI/memU/issues/393",
+      "kind": "issue"
+    },
+    {
+      "text": "The forget / delete path for recall files is not described anywhere in this issue; it is a core memory behavior for a store-and-retrieve system.",
+      "url": "https://github.com/NevaMind-AI/memU/issues/499",
+      "kind": "issue"
+    },
+    {
+      "text": "Isolation scope (per-user, per-session, per-agent) of the recall-file store is not mentioned.",
+      "url": "https://github.com/NevaMind-AI/memU/issues/499",
+      "kind": "issue"
+    },
+    {
+      "text": "The retrieve policy (always retrieve vs adaptive, silence conditions) is not described \u2014 only that retrieve returns scored results",
+      "url": "https://github.com/NevaMind-AI/memU/issues/538",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe the forget/delete path: how memory records are removed or superseded from the ~/.memu store once written.",
+      "url": "https://github.com/NevaMind-AI/memU/issues/544",
+      "kind": "issue"
+    },
+    {
+      "text": "The retrieve selection policy is not described: how _shape_for_agent decides which memory records to inject into a given turn (always-all vs. adaptive/semantic retrieval).",
+      "url": "https://github.com/NevaMind-AI/memU/issues/544",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of write path: how segments are extracted, deduplicated, updated, or marked superseded on ingestion. This is a canonical memory architecture gap given the issue describes supersession failures.",
+      "url": "https://github.com/NevaMind-AI/memU/issues/630",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of forget/delete: whether segments can be explicitly removed from the store, hidden at retrieve time, or omitted in generation.",
+      "url": "https://github.com/NevaMind-AI/memU/issues/630",
+      "kind": "issue"
+    },
+    {
+      "text": "The issue notes the host continues without retrieved memory on terminal failure, but does not describe whether a fallback, warning, or degraded-mode signal is surfaced to the user or model.",
+      "url": "https://github.com/NevaMind-AI/memU/issues/644",
+      "kind": "issue"
+    },
+    {
+      "text": "The where validation path rejects unsupported scope fields but its mechanism is not described; unclear whether it shares the same Pydantic model or uses a separate guard",
+      "url": "https://github.com/NevaMind-AI/memU/issues/648",
+      "kind": "issue"
+    },
+    {
+      "text": "docs/adr/0012-cloud-backed-agentic-backend.md is cited as the canonical document for local/cloud backend boundary and resource/scope differences but its content is not reproduced here.",
+      "url": "https://github.com/NevaMind-AI/memU/issues/667",
+      "kind": "issue"
+    },
+    {
+      "text": "This page does not describe how memU writes to or updates its memory store \u2014 no extract, update, delete, or conflict/supersession behavior is specified for the episodic, semantic, or procedural layers.",
+      "url": "https://memu.pro/blog/mem0-ai-memory-layer-agent-personalization",
+      "kind": "blog"
+    },
+    {
+      "text": "Forget / deletion behavior is not described \u2014 no mechanism for removing or hiding stored memories is mentioned.",
+      "url": "https://memu.pro/blog/mem0-ai-memory-layer-agent-personalization",
+      "kind": "blog"
+    },
+    {
+      "text": "Isolation scope is not specified \u2014 the page does not state whether memU memory is isolated per user, session, agent, or character.",
+      "url": "https://memu.pro/blog/mem0-ai-memory-layer-agent-personalization",
+      "kind": "blog"
+    },
+    {
+      "text": "Retrieve policy is not described \u2014 no details on when retrieval is triggered, whether it is adaptive or always-on, or what controls silence.",
+      "url": "https://memu.pro/blog/mem0-ai-memory-layer-agent-personalization",
+      "kind": "blog"
+    },
+    {
+      "text": "The Intention Layer is described as the core proactive mechanism but is stated as 'currently in development' \u2014 no API, trigger conditions, or retrieval policy documented on this page.",
+      "url": "https://a-bots.com/blog/memu-2026",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete path: this page does not describe how memory items are deleted, superseded, or marked stale from the store.",
+      "url": "https://yuv.ai/blog/memu",
+      "kind": "blog"
+    },
+    {
+      "text": "Conflict and supersession: no description of how contradictory or outdated memory items are resolved or overwritten.",
+      "url": "https://yuv.ai/blog/memu",
+      "kind": "blog"
+    },
+    {
+      "text": "Isolation model: no statement on whether memory is scoped per user, per session, per agent instance, or shared.",
+      "url": "https://yuv.ai/blog/memu",
+      "kind": "blog"
+    },
+    {
+      "text": "Retrieve policy details: no description of when retrieved memory is injected into context (always, threshold-gated, etc.) beyond the dual-mode trigger description.",
+      "url": "https://yuv.ai/blog/memu",
+      "kind": "blog"
+    },
+    {
+      "text": "Retrieve policy (always retrieve vs adaptive) not described \u2014 page only states retrieval is automatic",
+      "url": "https://memu.pro/blog/response-api-launch",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of how conflicts or supersession are handled when a stored memory contradicts new information",
+      "url": "https://dev.to/pratikmahalle/memu-the-game-changer-for-digital-companions-27kh.md",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of isolation model \u2014 whether memory is scoped per user, per session, per agent, or per character",
+      "url": "https://dev.to/pratikmahalle/memu-the-game-changer-for-digital-companions-27kh.md",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of the retrieve policy \u2014 whether retrieval is always-on or adaptive based on relevance signals",
+      "url": "https://dev.to/pratikmahalle/memu-the-game-changer-for-digital-companions-27kh.md",
+      "kind": "blog"
+    }
+  ]
+}
