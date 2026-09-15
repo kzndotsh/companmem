@@ -667,6 +667,13 @@ def test_body_markers_match_disambiguates_homonyms() -> None:
     }
     assert body_markers_match("Generic AI chat app memory tips", agnai) is False
     assert body_markers_match("Agnai memory books on github.com/agnaistic/agnai", agnai)
+    risuai = {
+        "id": "risuai",
+        "name": "RisuAI",
+        "body_markers": ["RisuAI", "github.com/kwaroran/Risuai"],
+    }
+    assert body_markers_match("Best lorebook tips for any chatbot", risuai) is False
+    assert body_markers_match("RisuAI lorebook on github.com/kwaroran/Risuai", risuai)
 
 
 def test_reddit_subreddit_prefix_collision_drops_homonyms() -> None:

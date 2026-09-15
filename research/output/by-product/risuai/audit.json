@@ -1,0 +1,1367 @@
+{
+  "identity": {
+    "id": "risuai",
+    "name": "RisuAI",
+    "repo": "https://github.com/kwaroran/Risuai",
+    "docs": "https://github.com/kwaroran/Risuai/wiki/Lorebook",
+    "license": "GPL-3.0",
+    "version_or_commit": "cad8595aa39620df4246f56918f0962c2aa0263a",
+    "observed_at": "2026-09-15"
+  },
+  "claimed_purpose": [
+    {
+      "text": "The platform supports bot creation with persistent character definitions including personality, appearance, backstory, and a first message."
+    },
+    {
+      "text": "HypaProcesser provides vector-based memory storage and similarity retrieval for RisuAI, operating over embedded text chunks."
+    },
+    {
+      "text": "RisuAI has its own export controls for character or lorebook formats."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "For contextual embedding models, items sharing the same metadata are grouped and embedded together; on a cache miss the already-cached siblings are evicted from both this.vectors and resultMap so the whole group is re-embedded with full context."
+    },
+    {
+      "text": "Conflict/supersession: when the accumulated supaMemory grows to 4 or more paragraph chunks (3 in hypa mode), the entire supaMemory is re-summarized into a shorter string, replacing the old value."
+    },
+    {
+      "text": "Persisted memory is stored per chat room as a single string field `room.supaMemoryData`. On load, the first line is parsed as a checkpoint message ID and the remainder is the summarized text."
+    },
+    {
+      "text": "Two distinct lorebook stores exist per character: globalLore (character-scoped, persisted on the character object) and localLore (chat-session-scoped, persisted on the individual chat page)."
+    },
+    {
+      "text": "Embedding vectors are persisted to a localforage instance named 'hypaVector', keyed by content and model, providing a persistent on-device cache of embeddings across sessions."
+    },
+    {
+      "text": "RisuAI inserts a 'Start a new chat' system message at the boundary of a new conversation, but its placement is malformed under certain context conditions with Cohere API."
+    },
+    {
+      "text": "There is no explicit delete or forget operation: old chat messages are spliced from the in-memory array and their content is either captured in the summary or discarded."
+    },
+    {
+      "text": "On addText, the store is checked first; if a cached embedding exists it is loaded with alreadySaved=true and skipped on write-back, avoiding redundant embedding calls."
+    },
+    {
+      "text": "Memory is returned to the caller (not written inside this function); the caller is responsible for persisting the returned `memory` string back to room.supaMemoryData."
+    },
+    {
+      "text": "Summarization is triggered around 20 messages into a new chat, or when enabled on an existing longer chat, indicating a message-count or token-threshold write path."
+    },
+    {
+      "text": "Document embedding batches chunks in groups up to MAX_CHUNKS_PER_REQUEST (16000) and MAX_INPUTS_PER_REQUEST (1000) per API call, with input_type set to 'document'."
+    },
+    {
+      "text": "A community plugin previously accessed the internal database directly to bundle and back up most settings; this access path was blocked after the plugin v3 update."
+    },
+    {
+      "text": "Memory update triggered by parameter state changes: when certain states change, the chatbot's prompt is replaced and memory is updated to record key events."
+    },
+    {
+      "text": "Users must manually recap context to prevent the persona from reverting to generic responses, indicating no automatic memory persistence or retrieval."
+    },
+    {
+      "text": "Chat lore section is used to store persistent character or user facts (e.g. appearance, relationship state) that the model is expected to recall."
+    },
+    {
+      "text": "Memory and persona consistency are achieved through manual configuration of character cards, rules, and memory setup \u2014 not automatic."
+    },
+    {
+      "text": "Ordering the context window (last chat and previous chat position) affects how well the model remembers earlier conversation."
+    },
+    {
+      "text": "Retrieval is cosine-similarity search over all vectors in this.vectors, returning results ranked by score descending."
+    },
+    {
+      "text": "HypaMemory V3 is the default memory type shown under a 'Long-term Memory' tab in the 'Other Bots' settings menu."
+    },
+    {
+      "text": "Character behavior anchors over time as the model accumulates enough context from the conversation"
+    },
+    {
+      "text": "RisuAI has a 'SupaMemory' feature that uses an auxiliary model for long-term memory."
+    },
+    {
+      "text": "The modified HyperMemory code removes existing summaries when past chats are deleted"
+    },
+    {
+      "text": "RisuAI includes lorebook and memory features, with SupaMemory cited as an example."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "HypaMemoryV2/V3 perform memory compression to support long-term conversation context.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/README.md",
+      "quote": "Advanced memory systems including HypaMemoryV2/V3 memory compression, SupaMemory for context management to maintain long-term conversation context.",
+      "locator": "README.md, Features section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "globalLore is persisted on the character object (character-scoped); localLore is persisted on the individual chat page (session-scoped), giving two isolation levels.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/lorebook.svelte.ts",
+      "quote": "DBState.db.characters[selectedID].globalLore.push({...})\n        DBState.db.characters[selectedID].chats[page].localLore.push({...})",
+      "locator": "addLorebook, type===0 and else branches",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is keyword-triggered from a bounded scan window of recent messages, not full-transcript search; no semantic/embedding retrieval is present.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/lorebook.svelte.ts",
+      "quote": "const sliced = messages.slice(messages.length - arg.searchDepth,messages.length)",
+      "locator": "loadLoreBookV3Prompt, searchMatch function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "There is no automatic write path: lorebook entries are only written by user action (addLorebook, importLoreBook) or decorator-triggered chat-var state flags, not by summarising or extracting conversation content.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/lorebook.svelte.ts",
+      "quote": "setChatVar('__internal_ka_' + (fullLore[i].id ?? pickHashRand(5555,fullLore[i].content).toString()), 'true')",
+      "locator": "loadLoreBookV3Prompt, keepActivateAfterMatch block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/suppression is implemented as a persistent deactivation flag (dont_activate_after_match chat var) rather than deletion from the store.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/lorebook.svelte.ts",
+      "quote": "setChatVar('__internal_da_' + (fullLore[i].id ?? pickHashRand(5555,fullLore[i].content).toString()), 'true')",
+      "locator": "loadLoreBookV3Prompt, dontActivateAfterMatch block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Token budget enforces a hard cap on total injected lore tokens; entries exceeding the budget are omitted from the prompt regardless of activation status.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/lorebook.svelte.ts",
+      "quote": "const loreToken = char.loreSettings?.tokenBudget ?? DBState.db.loreBookToken\n    ...\n    const activesFiltered = activesSorted.filter((act) => {\n        if(usedTokens + act.tokens <= loreToken){\n            usedTokens += act.tokens\n            return true\n        }\n        return false\n    })",
+      "locator": "loadLoreBookV3Prompt, loreToken declaration and activesFiltered block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Lore content is scaffold (authored static text injected into the prompt context) not a log and not a curated memory written from conversation events.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/lorebook.svelte.ts",
+      "quote": "content: '',\n            mode: 'normal',\n            insertorder: 100,\n            alwaysActive: false,\n            secondkey: \"\",\n            selective: false",
+      "locator": "addLorebook, new entry shape",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "is_greeting decorator gates lore activation on which first-message (greeting) variant is active, enabling backstory lore scoped to a specific character greeting branch.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/lorebook.svelte.ts",
+      "quote": "case 'is_greeting':{\n                        const int = parseInt(arg[0])\n                        if(Number.isNaN(int)){\n                            return false\n                        }\n                        if(((char.chats[page].fmIndex ?? -1) + 1) !== int){\n                            activated = false\n                        }\n                        return\n                    }",
+      "locator": "loadLoreBookV3Prompt, decorator parser, is_greeting case",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "RisuAI distinguishes document embedding (write/index path) from query embedding (retrieve path) using separate API calls with different input_type values ('document' vs 'query').",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/contextualEmbedding.ts",
+      "quote": "\"input_type\": \"document\"",
+      "locator": "contextualEmbedding.ts:61",
+      "confidence": "unknown",
+      "label": "measured"
+    },
+    {
+      "claim": "Cache keys for contextual embeddings are parameterized by the surrounding context texts via a hash, so embeddings stored under different contexts are treated as distinct entries.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/contextualEmbedding.ts",
+      "quote": "`|ctx:${contextHash(contextTexts)}`",
+      "locator": "contextualEmbedding.ts:91",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Voyage Context 3 is the only contextual embedding model recognized by isContextModel; all other model strings return null from getContextProvider, meaning contextual embedding is opt-in and model-gated.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/contextualEmbedding.ts",
+      "quote": "export function isContextModel(model: string): boolean {\n  return model === 'voyageContext3';\n}",
+      "locator": "contextualEmbedding.ts:14-16",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Document groups are batched to stay within 16000 chunks and 1000 inputs per API request; batching logic is internal to RisuAI and not delegated to the Voyage SDK.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/contextualEmbedding.ts",
+      "quote": "const MAX_CHUNKS_PER_REQUEST = 16000;\nconst MAX_INPUTS_PER_REQUEST = 1000;",
+      "locator": "contextualEmbedding.ts:25-26",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Embeddings for memory chunks are persisted to browser-local storage (localforage, IndexedDB-backed) under the instance name 'hypaVector', surviving across sessions.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypamemory.ts",
+      "quote": "this.forage = localforage.createInstance({\n            name: \"hypaVector\"\n        })",
+      "locator": "hypamemory.ts:HypaProcesser constructor",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path checks the store before embedding: existing cached vectors are loaded into session memory and flagged alreadySaved to skip re-persistence.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypamemory.ts",
+      "quote": "const itm:memoryVector = await this.forage.getItem(texts[i] + '|' + this.model + suffix)\n            if(itm){\n                itm.alreadySaved = true\n                this.vectors.push(itm)\n            }",
+      "locator": "hypamemory.ts:HypaProcesser.addText",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "There is no delete or forget path in this file; no API for removing a stored vector from localforage is present.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypamemory.ts",
+      "quote": "export class HypaProcesser{\n    oaikey:string\n    vectors:memoryVector[]\n    forage:LocalForage\n    model:HypaModel",
+      "locator": "hypamemory.ts:HypaProcesser class (full)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is always-retrieve over the full in-session vector list; there is no selective or adaptive gating before similarity search.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypamemory.ts",
+      "quote": "const memoryVectors = this.vectors\n          const sim = similarity\n          const searches = memoryVectors\n                .map((vector, index) => ({\n                    similarity: sim(query, vector.embedding),\n                    index,\n                }))\n                .sort((a, b) => (a.similarity > b.similarity ? -1 : 0))",
+      "locator": "hypamemory.ts:HypaProcesser.similaritySearchVectorWithScore",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Embedding vectors are persisted across sessions via localforage under the store name 'hypaVector'.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypamemoryv2.ts",
+      "quote": "private forage: LocalForage = localforage.createInstance({\n    name: \"hypaVector\",\n  });",
+      "locator": "HypaProcessorV2 class field declaration",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Query embeddings are never written to the persistent store or in-memory map; only document embeddings are stored.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypamemoryv2.ts",
+      "quote": "// Get query embeddings (don't save to memory)\n    const ebdResults = await this.getEmbeds(ebdTexts, false);",
+      "locator": "similaritySearchScoredBatch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is a full scan of all stored vectors with cosine similarity scoring; there is no selective or adaptive retrieval \u2014 all vectors are always scored.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypamemoryv2.ts",
+      "quote": "const scoredVectors = Array.from(this.vectors.values())\n        .map((vector): [EmbeddingResult<TMetadata>, number] => [\n          vector,\n          this.similarity(ebdResult.embedding, vector.embedding),\n        ])\n        .sort((a, b) => b[1] - a[1]);",
+      "locator": "similaritySearchScoredBatch \u2014 similarity scoring loop",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The embedding model defaults to 'MiniLM' if not set in the database, with the key read from db.hypaModel.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypamemoryv2.ts",
+      "quote": "model: db.hypaModel || \"MiniLM\",",
+      "locator": "HypaProcessorV2 constructor",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "For contextual embedding models, cache misses for one item in a metadata group invalidate all already-cached siblings so the group is re-embedded together, constituting a group-level update/supersession on model change.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypamemoryv2.ts",
+      "quote": "for (const item of additionalItems) {\n        resultMap.delete(item.id);\n        if (this.vectors.has(item.id)) {\n          this.vectors.delete(item.id);\n        }\n      }",
+      "locator": "getEmbeds \u2014 contextual model cache-miss eviction block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Summaries are persisted per chat room as a structured array of objects containing summary text, source message memo IDs, importance flag, category, and tags.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypav3.ts",
+      "quote": "interface Summary {\n    text: string;\n    chatMemos: Set<string>;\n    isImportant: boolean;\n    categoryId?: string;\n    tags?: string[];\n}",
+      "locator": "Summary interface, hypav3.ts",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Orphaned summaries (whose source messages have been deleted or edited out) are removed from the store before retrieval unless the preserveOrphanedMemory setting is enabled.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypav3.ts",
+      "quote": "if (!settings.preserveOrphanedMemory) {\n    cleanOrphanedSummary(chats, data);\n}",
+      "locator": "hypaMemoryV3Main and hypaMemoryV3MainExp, clean orphaned summaries",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval selects summaries via four ranked tiers \u2014 important, recent, similarity-based, random \u2014 each with a configurable token-budget ratio; leftover budget from earlier tiers is redistributed to later ones.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypav3.ts",
+      "quote": "const reservedRecentMemoryTokens = Math.floor(\n    availableMemoryTokens * settings.recentMemoryRatio\n);\n...\nlet reservedSimilarMemoryTokens = Math.floor(\n    availableMemoryTokens * settings.similarMemoryRatio\n);\n...\nlet reservedRandomMemoryTokens = Math.floor(\n    availableMemoryTokens * randomMemoryRatio\n);",
+      "locator": "hypaMemoryV3Main, retrieval section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The memory scaffold is injected as a system-role message tagged <Past Events Summary> prepended to the context, not inline in the conversation.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypav3.ts",
+      "quote": "const memoryPromptTag = \"Past Events Summary\";\n...\nconst memory = wrapWithXml(\n    memoryPromptTag,\n    selectedSummaries.map((e) => e.text).join(summarySeparator)\n);",
+      "locator": "module-level constant and hypaMemoryV3Main final assembly",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Similarity search queries are derived from the most recent queryChatCount messages; in the experimental path each query is weighted by recency position using a triangular weighting scheme.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypav3.ts",
+      "quote": "const weight =\n    (index + 1) /\n    ((recentChats.length * (recentChats.length + 1)) / 2) /\n    subQueries.length;",
+      "locator": "hypaMemoryV3MainExp, query weight calculation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "In the standard path, an optional enableSimilarityCorrection mode additionally summarizes the recent query messages before embedding them, aiming to improve similarity match quality.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypav3.ts",
+      "quote": "if (settings.enableSimilarityCorrection && recentChats.length > 1) {\n    // Raw + Summarized recent chat search\n    // Summarizing is meaningful when there are more than 2 recent chats\n    ...const summarizeResult = await summarize(recentChats);\n    queries.push(summarizeResult);\n}",
+      "locator": "hypaMemoryV3Main, similar memory selection",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Summarization can run against a remote sub-model API or a local WebLLM model; local models are forced to sequential execution (maxConcurrentTasks: 1).",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypav3.ts",
+      "quote": "maxConcurrentTasks:\n    settings.summarizationModel === \"subModel\"\n        ? settings.summarizationMaxConcurrent\n        : 1,",
+      "locator": "hypaMemoryV3MainExp, rate limiter initialization",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistent memory is stored as a single string per chat room (room.supaMemoryData): first line is a checkpoint message ID, remaining lines are the summarized text.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/supaMemory.ts",
+      "quote": "if(room.supaMemoryData && room.supaMemoryData.length > 4){ const splited = room.supaMemoryData.split('\\n') let id = splited.splice(0,1)[0] const data = splited.join('\\n')",
+      "locator": "supaMemory, supaMemoryData parsing block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "HypaMemory mode stores a JSON array of {id, supa, hypa[]} objects in the same field, distinguished by a 'hypa:' prefix on the first line.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/supaMemory.ts",
+      "quote": "if(id.startsWith(\"hypa:\")){ ... HypaData = JSON.parse(data.trim()) ... type HypaData = {id:string,supa:string,hypa:string[]}",
+      "locator": "supaMemory, hypa: prefix check; HypaData type definition",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path: oldest messages are chunked up to maxChunkSize tokens, stringlized with role/name prefixes, summarized, and appended to supaMemory; the raw messages are spliced from the chat array.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/supaMemory.ts",
+      "quote": "stringlizedChat += `${cont.role === 'assistant' ? char.type === 'group' ? '' : char.name : getUserName()}: ${cont.content}\\n\\n` ... const result = await summarize(stringlizedChat) ... SupaMemoryList.push(result.replace(/\\n+/g,'\\n')) ... chats.splice(0, spiceLen)",
+      "locator": "supaMemory, while(currentTokens > maxContextTokens) inner loop",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Supersession: when supaMemory accumulates 4+ paragraph chunks (3+ in hypa mode) it is re-summarized wholesale, replacing its prior content.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/supaMemory.ts",
+      "quote": "if(SupaMemoryList.length >= (arg.asHyper ? 3 : 4)){ const oldSupaMemory = supaMemory const result = await summarize(supaMemory) ... supaMemory = result",
+      "locator": "supaMemory, SupaMemoryList length check",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Scaffold: the summarized memory is injected as a system-role message (memo: 'supaMemory') at position 0 of the chat array before the LLM receives it.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/supaMemory.ts",
+      "quote": "chats.unshift({ role: \"system\", content: supaMemory, memo: \"supaMemory\" })",
+      "locator": "supaMemory, final chats.unshift calls",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "HypaMemory retrieve policy: similarity search against the first 4 non-system/non-function messages of the current turn; top 3 results injected as a separate system message prefixed 'past events:'.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/supaMemory.ts",
+      "quote": "const filteredChat = chats.filter((r) => r.role !== 'system' && r.role !== 'function') const s = await hypa.similaritySearch(stringlizeChat(filteredChat.slice(0, 4), char?.name ?? '', false)) hypaResult = \"past events: \" + s.slice(0,3)",
+      "locator": "supaMemory, hypa similarity search block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "There is no explicit forget or delete API; old messages are spliced from the runtime array and their content is either captured in the summary or permanently lost.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/supaMemory.ts",
+      "quote": "chats.splice(0, spiceLen)",
+      "locator": "supaMemory, chats.splice call",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per chat room; HypaData entries within a room are keyed by checkpoint message ID.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/supaMemory.ts",
+      "quote": "type HypaData = {id:string,supa:string,hypa:string[]}",
+      "locator": "HypaData type definition",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The summarizer prompt is user-configurable; default instructs the model to summarize the role story and remove redundancy to reduce tokens.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/supaMemory.ts",
+      "quote": "const supaPrompt = db.supaMemoryPrompt === '' ? \"[Summarize the ongoing role story, It must also remove redundancy and unnecessary text and content from the output to reduce tokens for gpt3 and other sublanguage models]\\n\" : db.supaMemoryPrompt",
+      "locator": "summarize() inner function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is not persisted inside this function; the updated memory string is returned to the caller for external persistence.",
+      "kind": "code",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/supaMemory.ts",
+      "quote": "return { currentTokens: currentTokens, chats: chats, memory: lastId + '\\n' + supaMemory, lastId: lastId }",
+      "locator": "supaMemory, return statements",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Early messages lack sufficient context anchor, causing character inconsistency that resolves as conversation history grows",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAi_NSFW/comments/13u94os/damn_risuai_is_totally_fire/",
+      "quote": "it usually disappears after 5 or so messages when it has enough of an anchor in what it should write",
+      "locator": "comment: u/Snoo-66699",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The AI taking actions or writing on behalf of the user is a noted continuity/control failure users try to work around via prompt editing",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAi_NSFW/comments/13u94os/damn_risuai_is_totally_fire/",
+      "quote": "Is there a way to somehow stop the AI from creating the whole conversation? Like the AI will make myself do things or say things I didn't even say/do.",
+      "locator": "comment: u/Jumpy-Coffee-9169",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "RisuAI memory consistency depends on user-configured character cards and rules, not on automatic session persistence.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/HeavenGF/comments/1r5k8e7/my_honest_review_on_risuai_as_an_ai_girlfriend/",
+      "quote": "character cards, rules, and memory setup can make a persona feel surprisingly consistent, especially if you import a well-written card",
+      "locator": "post body, u/Ok-Strain6080",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "There is no automatic memory retrieval; users must manually recap past context each session to prevent generic drift.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/HeavenGF/comments/1r5k8e7/my_honest_review_on_risuai_as_an_ai_girlfriend/",
+      "quote": "I had to recap often or she'd drift into generic responses",
+      "locator": "comment, u/Perfect-Boot384",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "RisuAI's memory scaffold relies on user-authored lore documents (lore bible, relationship contract) rather than emergent recall of conversation events.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/HeavenGF/comments/1r5k8e7/my_honest_review_on_risuai_as_an_ai_girlfriend/",
+      "quote": "It asked for a lore bible and a relationship contract.",
+      "locator": "comment, u/Pretend-Raspberry-87",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Persona and memory stability are not maintained automatically; ongoing user effort is required to avoid continuity failure.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/HeavenGF/comments/1r5k8e7/my_honest_review_on_risuai_as_an_ai_girlfriend/",
+      "quote": "if stability depends on constant tuning, anyone will get exhausted quickly",
+      "locator": "comment, u/SexinessAI",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character memory is entirely static/authored (lore/backstory in a description field) with no mechanism described for updating it from conversation events.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/VenusAI_Official/comments/13uhmir/risuai/",
+      "quote": "the description is what the AI follows. You can put personality, looks, names, backstory, anything into it and that is what the AI will follow.",
+      "locator": "post body, Bot Making section, First Page",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The model frequently fails to honor character description facts (e.g. physical appearance) unless the description block is manually moved to a more influential position in the formatting order \u2014 a continuity/recall failure.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/VenusAI_Official/comments/13uhmir/risuai/",
+      "quote": "it refused to describe her physical appearance accurately. despite the fact it worked fine in both other places even without input from me... I moved \"Character Description\" till it was second to the bottom. And that did it, suddenly the very next reply i generated became accurate.",
+      "locator": "comments, u/Demonlordesedesss thread",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The model takes control of the user's character ('godmoding'), a continuity/agency failure where the model does not respect the user/character boundary.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/VenusAI_Official/comments/13uhmir/risuai/",
+      "quote": "sometimes the bot randomly takes control of your character (for a short while.)",
+      "locator": "comments, u/buttered_t0astt",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "With jailbreak enabled the model ignores pacing/progression described in character or prompt, rushing to explicit content regardless of context \u2014 a failure to maintain authored behavioral state across turns.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/VenusAI_Official/comments/13uhmir/risuai/",
+      "quote": "the chars are EXTREMELY horny with the jailbreak on. like, \"will you let me dominate you all night long\" within three messages, horny. like, i just asked you what books you like, geez.",
+      "locator": "comments, u/Demonlordesedesss",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Response length is unbounded \u2014 bots generate until they run out of context space, with no native length management.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/VenusAI_Official/comments/13uhmir/risuai/",
+      "quote": "Risu bots seem to just post and post till they quite literally run out of space to say anything. Is there a way to fix that?",
+      "locator": "comments, u/GELID_ICE",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A persistent save error ('DBSaveError: Can't find variable: CompressionStream') suggests unreliable local storage of conversation or character state.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/VenusAI_Official/comments/13uhmir/risuai/",
+      "quote": "the damn website keeps saying \"DBSaveError: Can't find variable: CompressionStream. report to the developer\"",
+      "locator": "comments, u/lolcrazyright",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Editing a generated response manually can nudge the model toward better continuity in subsequent turns.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/VenusAI_Official/comments/13uhmir/risuai/",
+      "quote": "That's fixed by just editing the responses and removing some of the long ass stuff. It picks up eventually.",
+      "locator": "comments, u/ButterscotchRound668",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The chat lore section does not reliably persist relational state (e.g. 'he respects her') across messages \u2014 factual appearance attributes may work but attitude/relationship facts often do not.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/VenusAI_Official/comments/13wops6/risuai_gpt_being_shit/",
+      "quote": "I usually put those commands like my character's appearance in the chat lore section, I don't know if that's useful, like if I put I have long black hair then it'll recognise it, but when I put in 'he respects her' it doesn't work",
+      "locator": "comment by u/Disastrous_Prompt404",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Users manually patch lost context mid-session by injecting plot summaries via double-parenthesis out-of-character commands, a workaround for absent automatic memory recovery.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/VenusAI_Official/comments/13wops6/risuai_gpt_being_shit/",
+      "quote": "I fixed it with a direct order to the bot with double parentheses. For example ((you lost your memory. The current plot is yada yada yada))",
+      "locator": "comment by u/Decent_Actuator672",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SupaMemory is RisuAI's long-term memory option, implemented via an auxiliary model; its effectiveness is unconfirmed by the commenter.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/VenusAI_Official/comments/13wops6/risuai_gpt_being_shit/",
+      "quote": "Risu has \"SupaMemory\" using an auxiliary model (can't say how well it works, I don't use Risu).",
+      "locator": "comment by u/Hodoss",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context order (position of last chat and previous chat blocks) is user-configurable and materially affects recall quality.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/VenusAI_Official/comments/13wops6/risuai_gpt_being_shit/",
+      "quote": "If you change the order under chatbot to have last chat and previous chat at the bottom it usually remembers a lot better",
+      "locator": "comment by u/Gay_Syrup",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Author's note is the highest-weighted prompt section for steering character behavior and can be updated mid-conversation for immediate effect.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/VenusAI_Official/comments/13wops6/risuai_gpt_being_shit/",
+      "quote": "The author's note section is also extremely powerful, and has a massive effect on responses. Based on the default settings, I believe it's the strongest factor in determining their reply.",
+      "locator": "comment by u/VanceLandow",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "RisuAI supports updating memory (key events) when character state parameters change, suggesting a write path tied to state transitions rather than continuous logging.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1021",
+      "quote": "When certain parameter states change, replace the chatbot's prompt and update its memory (remember key events).",
+      "locator": "issue body, paragraph 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Loadout toggle state for import targets (Modules, Global Variables, Presets, Personas) does not currently persist across UI reopens or app restarts",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1423",
+      "quote": "I would like the toggle state of these import targets to be saved globally, so that the selected options persist even after reopening the Loadout UI or restarting the app",
+      "locator": "issue body, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Failure to persist Loadout toggle state causes unintended module loads, requiring manual reconfiguration \u2014 a continuity/state management failure",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1423",
+      "quote": "If I later use the Loadout import feature and forget to disable the \"Modules\" toggle, modules may be unintentionally loaded. When this happens, I have to go back and manually reconfigure my modules, or update and re-save all Loadouts whenever I add a new module",
+      "locator": "issue body, paragraph 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "HypaMemory V3 summarization fails with SystemMessageOrderError when the system prompt is not placed first in the messages array, a continuity failure that cancels generation.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1051",
+      "quote": "[HypaV3] Summarization failed: SystemMessageOrderError: System prompt should always be the first message in `messages`.",
+      "locator": "issue body, error message",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The failure occurs after approximately 20 messages in a new chat, or when HypaMemory V3 is enabled mid-session on a longer existing chat, meaning memory is not active from turn one and can be enabled retroactively.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1051",
+      "quote": "After 20 or so messages in a new chat, or if i enable it on a longer existing chat, an error pos up and the generation is cancled",
+      "locator": "issue body, first paragraph",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The summarization model is user-configurable; the reporter selected Qwen 4b without further changes to other defaults.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1051",
+      "quote": "SupaMemory Modelk: qwen 4b\n...didn't tinker with those settings, just selected Qwen 4b as a model",
+      "locator": "issue body, settings block and follow-up note",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The bug was reproduced on two separate hardware configurations, ruling out hardware-specific causes and suggesting a systemic issue in the summarization write path.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1051",
+      "quote": "tried it on a different system with a ryzen 5 and gtx 3060ti to eliminate an hardware incompatibility",
+      "locator": "issue body, specs section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Regex scripts can optionally be applied during memory reroll, suggesting a post-retrieval or post-generation transform step exists in the memory pipeline.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1051",
+      "quote": "Apply Regex Script When Rerolling: false",
+      "locator": "issue body, settings block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "RisuAI's persistent state is stored in an internal database that distinguishes between settings/presets and bot chat histories.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1174",
+      "quote": "the plugin accessed the internal database directly, which could pose security concerns, and after the plugin v3 update this approach was blocked",
+      "locator": "body, paragraph 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Personas are a persistent, named data type in RisuAI's store, separate from bot cards and chat histories.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1174",
+      "quote": "Items to include: User settings / Prompts / Personas / Modules / Presets",
+      "locator": "Requested Backup Scope / Items to include",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "When multi-iteration MCP tool loops run with extended thinking, prior iterations' tool_call tags and response text are stripped from prompt history, causing the model to lose all context about earlier tool calls on subsequent turns.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1327",
+      "quote": "all previous iterations' `<tool_call>` tags and response text are stripped from the prompt history. Only the content after the **last** `</Thoughts>` tag survives. This means on subsequent turns, the model loses all context about earlier tool calls and their results.",
+      "locator": "Bug Description",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The greedy regex at line 918 matches from the first <Thoughts> to the last </Thoughts>, consuming all intermediate content including tool_call tags and response text from earlier iterations.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1327",
+      "quote": "The regex uses **greedy** `.+` with the `s` (dotAll) flag. When a single assistant message contains multiple `<Thoughts>` blocks (one per MCP loop iteration), the greedy quantifier matches from the **first** `<Thoughts>` to the **last** `</Thoughts>`, consuming all intermediate content \u2014 including `<tool_call>` tags and response text from earlier iterations.",
+      "locator": "Root Cause, src/ts/process/index.svelte.ts:918",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "After the greedy regex, multi-iteration tool call history collapses to only the final iteration's response and tool_call, with all prior iterations' content deleted.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1327",
+      "quote": "After line 918's greedy regex, `formatedChat` becomes:\n\nFinal response text\n<tool_call>id3\u2026</tool_call>\n\nEverything between the first `<Thoughts>` and the last `</Thoughts>` is deleted.",
+      "locator": "Root Cause / Example",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The continuity failure is reproducible: after a multi-iteration MCP response, a follow-up turn shows the model has no memory of earlier tool calls because they were stripped from prompt_chat.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1327",
+      "quote": "Observe that the model has no memory of earlier tool calls \u2014 because they were stripped from `prompt_chat`",
+      "locator": "Reproduction, step 4",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "RisuAI has a 'memory' property on model/character configuration objects, referenced in aux model settings code",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1419",
+      "quote": "TypeError: Cannot read properties of undefined (reading 'memory')",
+      "locator": "Stack trace, issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User preference for which Loadout elements to import is expected to be consistent and should be globally persistent",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1423",
+      "quote": "I believe many users have a consistent preference for which elements they want to import via Loadouts, so having this preference persist globally would improve usability",
+      "locator": "issue body, paragraph 5",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "'Save data to account' is the primary cross-device persistence mechanism; not enabling it causes data to remain local only.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1425",
+      "quote": "I used Risu for several days without enabling \"Save data to account\". Later, I tried to sync/save data, but I got this error",
+      "locator": "issue body, 'What happened' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mobile and PC data stores are isolated from each other by default; cross-device sync requires explicit account save, and failure leaves mobile with no recoverable state.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1425",
+      "quote": "On mobile, data cannot be loaded at all \u2014 neither through Google backup nor \"Save data to account\", so I cannot proceed.",
+      "locator": "issue body, 'Issue' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The storage layer involves at least two modules: accountStorage.ts (account-level persistence) and autoStorage.ts (automatic sync orchestration).",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1425",
+      "quote": "at ../../src/ts/storage/accountStorage.ts:39:23\n    at ../../src/ts/storage/autoStorage.ts:82:50",
+      "locator": "issue body, stack trace",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "RisuAI internally supports a cachePoint field on OpenAIChat messages; the public Plugin API v3 does not yet expose it.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1538",
+      "quote": "The public V3 type in `src/ts/plugins/apiV3/risuai.d.ts` currently only exposes: interface OpenAIChat { role: 'system' | 'user' | 'assistant' | 'function'; content: string; name?: string; function_call?: { name: string; arguments: string; }; }",
+      "locator": "Current gap",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Stable long-term memory is identified as a distinct segment in the prompt pipeline, positioned after system/persona instructions and before chat history, and is a candidate location for a cache boundary.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1538",
+      "quote": "A provider-independent plugin can analyze the final request on every turn and mark stable prefix boundaries, such as: after stable system/persona instructions, before long-term memory, before chat history, at a repeatedly observed prompt prefix",
+      "locator": "Use case",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A cachePoint set by a beforeRequest plugin must be preserved through ProviderArguments.prompt_chat and not silently dropped or moved by normalization.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1538",
+      "quote": "A `cachePoint` returned by `beforeRequest` should be preserved through `ProviderArguments.prompt_chat`. The boundary should remain immediately after the marked message.",
+      "locator": "Required runtime semantics",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory content is a named semantic card (type: 'memory') within the prompt template and is distinct from lorebook, persona, and chat content at the template level, but loses that identity after flattening",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1539",
+      "quote": "A plugin can see `system`, `user`, and `assistant` messages, but cannot reliably determine which content came from cards such as `lorebook`, `memory`, `persona`, or `chat`.",
+      "locator": "Summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Persistent template state is stored in db.promptTemplate; request-scoped transformations are explicitly kept separate from this persistent store",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1539",
+      "quote": "Returning a modified template must not:\n- update `db.promptTemplate`\n- modify the saved preset\n- affect later requests unless the plugin performs the same transformation again",
+      "locator": "Request-scoped behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The internal PromptItem union and prompt builder are implemented in src/ts/process/prompt.ts and src/ts/process/index.svelte.ts respectively",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1539",
+      "quote": "`src/ts/process/prompt.ts` \u2014 internal `PromptItem` union\n`src/ts/process/index.svelte.ts` \u2014 effective template selection, tokenization, final prompt construction, and `cache` card handling",
+      "locator": "Relevant implementation areas",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A plugin example shows inserting a transient cache card before the memory card by finding it by type: 'memory' in the template array, indicating memory occupies a positional slot in the ordered prompt template",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1539",
+      "quote": "const memoryIndex = result.findIndex(\n    (item) => item.type === 'memory'\n);\n\nif (memoryIndex !== -1) {\n    result.splice(memoryIndex, 0, {\n        type: 'cache',\n        name: 'Automatic cache boundary before memory',\n        depth: 1,\n        role: 'all',\n    });\n}",
+      "locator": "Example use case: semantic cache placement",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "HypaMemory V3 is RisuAI's named long-term memory subsystem, surfaced as the default tab in the 'Other Bots' settings panel.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1586",
+      "quote": "The default tab that opens is \"Long-term Memory\" (HypaMemory V3)",
+      "locator": "Steps to reproduce, step 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "HypaMemory V3 computes a max memory token ratio derived from the model's max context value; when no model/API is connected and this value cannot be resolved, the calculation enters an unguarded infinite reactive loop.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1586",
+      "quote": "the max memory token ratio calculation for HypaMemory V3 enters an infinite reactive loop when it cannot resolve a max context value, and this loop is not guarded against",
+      "locator": "Additional notes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The memory type is a selectable setting; the issue reproduces regardless of which preset or memory type is selected, including the default.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1586",
+      "quote": "Any preset (including default) or memory type selected",
+      "locator": "Actual behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A null content field in the API response causes a TypeError when RisuAI attempts to call .trim() on it, indicating the app does not guard against null assistant message content before processing",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/RisuAI/issues/205",
+      "quote": "TypeError: Cannot read properties of null (reading 'trim')",
+      "locator": "issue body, error message section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "RisuAI constructs and sends a multi-message array to the model, including system prompt, assistant-role backstory/lore, and user turn, showing the scaffold passed into context each turn",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/RisuAI/issues/205",
+      "quote": "\"messages\": [{\"role\": \"system\", \"content\": \"...\"}, {\"role\": \"system\", \"content\": \"[Start a new chat]\"}, {\"role\": \"assistant\", \"content\": \"*Lemon is your personal maid...*\"}, {\"role\": \"user\", \"content\": \"*says nothing*\"}]",
+      "locator": "issue body, Request Body section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character lore and backstory are injected as a static system message rather than retrieved from a dynamic memory store, suggesting no retrieval step for this content",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/RisuAI/issues/205",
+      "quote": "\"role\": \"system\", \"content\": \"1. This is role-playing...\\n[character (lemon)\\n{\\nGender(\\\"Female\\\")...\"",
+      "locator": "issue body, Request Body messages[0]",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Global Regex is a user-configurable setting in RisuAI that, when misconfigured, can break message sending entirely, pointing to a preprocessing step applied to message content before the API call",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/RisuAI/issues/205",
+      "quote": "I applyed this into Globol Regex and it happened.",
+      "locator": "issue body, error description section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character-specific translation memory is proposed to be built by having an LLM generate optimized prompts from the per-character log via self-reflection",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/34",
+      "quote": "AI automatically generates optimized translation prompts for each character card when using some LLaM to support \"character-specific translation memory\" that enables self-reflection.",
+      "locator": "issue body, bullet list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "hanuraiMemory has a bug where the same chat turns used as search queries are also indexed as search documents, causing duplicate/redundant retrieval results.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/399",
+      "quote": "I think it's a definite bug that the chat used as search_query goes into search_document as well.",
+      "locator": "issue body, opening paragraph",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Recent chats that are within the query window remain duplicated even after skipping them in the document index, because their contextual similarity to themselves is still high.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/399",
+      "quote": "Even if you make it like this, recent chats have a similar context, so recent chats that are not in query also have a high similarity; the recent chat is still duplicate.",
+      "locator": "issue body, discussion section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The reporter proposes that only chats excluded from the LLM context due to token-length limits should be indexed as documents, implying hanuraiMemory is intended to surface older, context-pruned history.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/399",
+      "quote": "So I propose to put in the document only past chats that were not sent to LLM due to token length limitations.",
+      "locator": "issue body, proposal section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The token budget of the current context is passed into hanuraiMemory, suggesting retrieval is conditioned on available token space.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/399",
+      "quote": "export async function hanuraiMemory(chats:OpenAIChat[],arg:{ currentTokens:number, maxContextTokens:number, tokenizer:ChatTokenizer })",
+      "locator": "issue body, proposed fix code block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Deleting past chats in the modified version triggers removal of existing HyperMemory V2 summaries, a continuity loss for users",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/700",
+      "quote": "the additional role of the current modified HyperMemory code is solely to remove existing summaries when deleting past chats to resolve errors",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "RisuAI uses a 'Start a new chat' delimiter injected into conversation history/context to mark session boundaries, but its placement is buggy with Cohere v1 when context fields are empty.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/633",
+      "quote": "the [Start a new chat] system message gets malformed, and the first message is lost if it belongs to user role",
+      "locator": "Issue body, problem description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Previous retrieval policy deduplicated between summary and detail slots by restricting similarity search to chunks older than those already in Past Events Summary.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/714",
+      "quote": "Past Events Details: Performed similarity search only on chunks older than those in `Past Event Summary`, ensuring no duplication",
+      "locator": "Issue #714, section: Implementation Change \u2014 Previous implementation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Current retrieval policy removed deduplication, allowing the same chunk to appear in both Past Events Summary and Past Events Details.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/714",
+      "quote": "Past Events Details: Performs similarity search on ALL chunks, meaning content from `Past Event Summary` could be duplicated in `Past Event Details`",
+      "locator": "Issue #714, section: Implementation Change \u2014 Current implementation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Granular sub-chunk splitting allows for more diverse memory retrieval but risks separating related context, a recognized continuity tradeoff.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/714",
+      "quote": "AI might miss broader context. Related information might be separated",
+      "locator": "Issue #714, section: Proposed split text option \u2014 When true (current behavior) \u2014 Disadvantages",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Whole-chunk retrieval was flagged as producing memory that feels unnaturally perfect, always recalling exact times and places.",
+      "kind": "issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/714",
+      "quote": "Too detailed/perfect memory which may feel unnatural (e.g., always remembering exact times/places)",
+      "locator": "Issue #714, section: Proposed split text option \u2014 When false \u2014 Disadvantages",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character cards store character setup but not the events of a specific chat; lore and chat are separate records.",
+      "kind": "blog",
+      "url": "https://thredly.io/export-risuai-chats",
+      "quote": "Character-card formats primarily preserve character setup. Preserve the specific chat separately when you need its events and relationship developments.",
+      "locator": "FAQ: Can an exported RisuAI character card include the chat story?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "RisuAI has native export controls for character and lorebook formats.",
+      "kind": "blog",
+      "url": "https://thredly.io/export-risuai-chats",
+      "quote": "Use RisuAI's own current export controls for character or lorebook formats.",
+      "locator": "FAQ: Does thredly export RisuAI data?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Chat history and character/lore assets are distinct records that must be preserved separately to retain both.",
+      "kind": "blog",
+      "url": "https://thredly.io/export-risuai-chats",
+      "quote": "Export or copy the character and lore assets separately from the chat record when both matter.",
+      "locator": "section: A practical RisuAI preservation workflow",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "RisuAI has lorebook and memory features, with SupaMemory as a named memory mechanism.",
+      "kind": "blog",
+      "url": "https://sourceforge.net/projects/risuai.mirror/",
+      "quote": "Lorebook and memory features (e.g. SupaMemory)",
+      "locator": "Features list",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/lorebook.svelte.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypamemory.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypav3.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/supaMemory.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/contextualEmbedding.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypamemoryv2.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/1174",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/700",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/633",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/1586",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/1051",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/1538",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/1021",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/735",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/254",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/34",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/399",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/139",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/1539",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/1423",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/1327",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/714",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/596",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/1425",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/1419",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/kwaroran/Risuai/issues/205",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://realm.risuai.net/?q=tag%3ARoleplay",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://sourceforge.net/projects/risuai.mirror/",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://thredly.io/guides",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://thredly.io/export-risuai-chats",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/HeavenGF/comments/1r5k8e7/my_honest_review_on_risuai_as_an_ai_girlfriend/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/VenusAI_Official/comments/13wops6/risuai_gpt_being_shit/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/CharacterAi_NSFW/comments/13u94os/damn_risuai_is_totally_fire/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/VenusAI_Official/comments/13uhmir/risuai/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/Homicipher/comments/1ivauns/the_risuai_roleplay_is_hot_and_sexy_af/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/RisuAI/comments/1ca1svr/whats_the_link_to_the_risu_ai_website/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/RisuAI/comments/1frzhw5/is_risuai_better_on_android/?tl=es-es",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "README names HypaMemoryV2/V3 and SupaMemory but does not describe write path (extract, update, delete, conflict/supersession), retrieve policy, isolation scope, or forget behavior for any of these systems. As a repo root doc this is expected to reference them without specifying mechanics.",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "User/character/session isolation is not addressed here; the store key uses only text and model name, leaving open whether callers namespace by character elsewhere.",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypamemory.ts",
+      "kind": "code"
+    },
+    {
+      "text": "Conflict or supersession policy when a new summary contradicts an existing one is not addressed; summaries are only appended, never merged or overwritten based on content.",
+      "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypav3.ts",
+      "kind": "code"
+    },
+    {
+      "text": "No information on whether RisuAI persists any memory automatically between sessions (write path, store mechanism, or retrieval policy).",
+      "url": "https://www.reddit.com/r/HeavenGF/comments/1r5k8e7/my_honest_review_on_risuai_as_an_ai_girlfriend/",
+      "kind": "community"
+    },
+    {
+      "text": "No information on whether RisuAI supports forgetting or deletion of stored facts/events.",
+      "url": "https://www.reddit.com/r/HeavenGF/comments/1r5k8e7/my_honest_review_on_risuai_as_an_ai_girlfriend/",
+      "kind": "community"
+    },
+    {
+      "text": "No information on this page about how or whether RisuAI persists conversation history across sessions (log vs. memory, session isolation).",
+      "url": "https://www.reddit.com/r/VenusAI_Official/comments/13uhmir/risuai/",
+      "kind": "community"
+    },
+    {
+      "text": "No information on this page about forget/delete mechanisms for stored character data or conversation.",
+      "url": "https://www.reddit.com/r/VenusAI_Official/comments/13uhmir/risuai/",
+      "kind": "community"
+    },
+    {
+      "text": "The summarization write path that constructs the messages array is not shown; it is unclear where the system prompt is being misplaced relative to prior turn messages, which is the root cause of the SystemMessageOrderError.",
+      "url": "https://github.com/kwaroran/Risuai/issues/1051",
+      "kind": "issue"
+    },
+    {
+      "text": "No information on conflict resolution or supersession when settings are restored over existing state.",
+      "url": "https://github.com/kwaroran/Risuai/issues/1174",
+      "kind": "issue"
+    },
+    {
+      "text": "What 'cold storage' stores vs. what 'accountStorage' stores \u2014 whether cold storage holds long-term memory/history distinct from active session data \u2014 is not explained on this page.",
+      "url": "https://github.com/kwaroran/Risuai/issues/1425",
+      "kind": "issue"
+    },
+    {
+      "text": "The page references a 'memory' card type but does not describe how memory content is written, updated, or deleted \u2014 the write path for the memory card is not covered in this issue",
+      "url": "https://github.com/kwaroran/Risuai/issues/1539",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe retrieval policy for lorebook or memory cards \u2014 whether content is always injected, conditionally selected, or keyword/embedding triggered is not stated here",
+      "url": "https://github.com/kwaroran/Risuai/issues/1539",
+      "kind": "issue"
+    },
+    {
+      "text": "The page shows the full request body but does not describe how RisuAI persists, retrieves, updates, or forgets memory across sessions; no store, retrieval policy, or write path is documented here",
+      "url": "https://github.com/kwaroran/RisuAI/issues/205",
+      "kind": "issue"
+    },
+    {
+      "text": "The page requests docs for APIs added since 0.7.0 but does not describe the actual persist/retrieve/forget architecture of RisuAI's memory system; canonical API or architecture coverage is absent.",
+      "url": "https://github.com/kwaroran/Risuai/issues/34",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how retrieved documents are inserted into the prompt or what instructions govern their use by the model.",
+      "url": "https://github.com/kwaroran/Risuai/issues/399",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of the write path: how or when chat turns are persisted to the HypaProcesser store, and whether entries are ever deleted or updated.",
+      "url": "https://github.com/kwaroran/Risuai/issues/399",
+      "kind": "issue"
+    },
+    {
+      "text": "This is the canonical issue report for long-term memory on Android but does not describe how any of the three memory options (SupaMemory, HypaMemory v2, HanuraiMemory) persist, retrieve, update, or forget data, nor whether the failure is a retrieval-path error, a write-path error, or a platform-specific network issue.",
+      "url": "https://github.com/kwaroran/Risuai/issues/596",
+      "kind": "issue"
+    },
+    {
+      "text": "The page confirms a long-term memory feature exists using embeddings but does not describe what is persisted, how retrieval is triggered, or how the memory store is written to, updated, or deleted.",
+      "url": "https://github.com/kwaroran/Risuai/issues/735",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how RisuAI persists, retrieves, or forgets memory within sessions; the page is a third-party export guide and does not describe RisuAI's internal memory architecture.",
+      "url": "https://thredly.io/export-risuai-chats",
+      "kind": "blog"
+    },
+    {
+      "text": "The page names SupaMemory as a memory feature but provides no detail on how it persists, retrieves, updates, or forgets state. The canonical architecture of RisuAI's memory/lorebook system is not described here.",
+      "url": "https://sourceforge.net/projects/risuai.mirror/",
+      "kind": "blog"
+    }
+  ]
+}
