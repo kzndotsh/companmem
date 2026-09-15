@@ -617,6 +617,13 @@ def test_body_markers_match_disambiguates_homonyms() -> None:
     }
     assert body_markers_match("Is MEmu Android emulator safe to use?", memu) is False
     assert body_markers_match("Built with memU from NevaMind-AI on GitHub", memu)
+    everos = {
+        "id": "everos",
+        "name": "EverOS",
+        "body_markers": ["EverMind-AI", "github.com/EverMind-AI/EverOS", "docs.evermind.ai"],
+    }
+    assert body_markers_match("Everos world map for my fantasy campaign", everos) is False
+    assert body_markers_match("Meet EverOS from EverMind-AI on GitHub", everos)
 
 
 def test_reddit_subreddit_prefix_collision_drops_homonyms() -> None:
