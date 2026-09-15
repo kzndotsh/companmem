@@ -7,7 +7,7 @@ import json
 import re
 from pathlib import Path
 
-from companmem_pipeline.harvest import product_ids
+from companmem_pipeline.harvest import canonical_github_product_url, product_ids
 from companmem_pipeline.log import PipelineLogger
 from companmem_pipeline.paths import product_cache
 
@@ -185,15 +185,28 @@ def is_self_referential_summary(text: str, product_id: str, product_name: str) -
     return any(marker in inspired_fragment for marker in product_markers(product_id, product_name))
 
 
+def is_peripheral_mechanism(text: str) -> bool:
+    blob = normalize_claim(text)
+    if blob.startswith("a community plugin"):
+        return True
+    if "start a new chat" in blob and "cohere" in blob:
+        return True
+    return False
+
+
 def filter_summary_items(
     items: list[dict[str, object]],
     product_id: str,
     product_name: str,
+    *,
+    drop_peripheral: bool = False,
 ) -> list[dict[str, object]]:
     kept: list[dict[str, object]] = []
     for item in items:
         text = str(item.get("text") or "").strip()
         if not text:
+            continue
+        if drop_peripheral and is_peripheral_mechanism(text):
             continue
         if is_self_referential_summary(text, product_id, product_name):
             continue
@@ -300,11 +313,21 @@ def fold_pages(
     unknowns: list[dict[str, object]] = []
     sources_by_url: dict[str, dict[str, object]] = {}
     dropped_uncited = 0
+    product_stub: dict[str, object] = {
+        "id": identity.get("id"),
+        "name": identity.get("name"),
+        "repo": identity.get("repo"),
+    }
+    repo_meta: dict[str, object] = {"origin": manifest.get("repo") or identity.get("repo")}
 
     for page in manifest.get("pages") or []:
         if not isinstance(page, dict):
             continue
-        url = str(page.get("url") or "").strip()
+        url = canonical_github_product_url(
+            str(page.get("url") or "").strip(),
+            product_stub,
+            repo_meta,
+        )
         if not url:
             continue
         sources_by_url[url] = {
@@ -331,7 +354,11 @@ def fold_pages(
         for item in extract.get("unknowns") or []:
             if not isinstance(item, dict) or not item.get("text"):
                 continue
-            url = str(item.get("url") or "").strip()
+            url = canonical_github_product_url(
+                str(item.get("url") or "").strip(),
+                product_stub,
+                repo_meta,
+            )
             if not url:
                 continue
             kind = str(item.get("kind") or "")
@@ -350,10 +377,14 @@ def fold_pages(
             if not isinstance(row, dict) or not has_citation(row):
                 dropped_uncited += 1
                 continue
+            row = dict(row)
+            url = str(row.get("url") or "").strip()
+            if url:
+                row["url"] = canonical_github_product_url(url, product_stub, repo_meta)
             key = ledger_key(row)
             existing = ledger_by_key.get(key)
             if existing is None or quote_len(row) > quote_len(existing):
-                ledger_by_key[key] = dict(row)
+                ledger_by_key[key] = row
     unknowns = filter_unknown_items(unknowns)
 
     ledger = list(ledger_by_key.values())
@@ -366,7 +397,12 @@ def fold_pages(
         ledger,
     )
     mechanism_kept = cited_summaries(
-        filter_summary_items(mechanisms, product_id, product_name),
+        filter_summary_items(
+            mechanisms,
+            product_id,
+            product_name,
+            drop_peripheral=True,
+        ),
         ledger,
     )
     audit["claimed_purpose"] = purpose_kept

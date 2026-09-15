@@ -8,6 +8,7 @@ from companmem_pipeline.harvest import (
     LOGIN_PATH_RE,
     SEARCH_CAP,
     allowed_source_url,
+    canonical_github_product_url,
     blog_seed_urls,
     body_markers_match,
     community_confirm_queries,
@@ -157,6 +158,36 @@ def test_public_https_repo_from_ssh() -> None:
     assert (
         public_https_repo("ssh://git@github.com/plastic-labs/honcho", None)
         == "https://github.com/plastic-labs/honcho"
+    )
+
+
+def test_allowed_source_url_github_wiki_raw() -> None:
+    product = {
+        "id": "risuai",
+        "name": "RisuAI",
+        "repo": "https://github.com/kwaroran/Risuai",
+    }
+    repo_meta = {"origin": "https://github.com/kwaroran/Risuai"}
+    raw = (
+        "https://raw.githubusercontent.com/wiki/kwaroran/Risuai/Lorebook.md"
+    )
+    assert allowed_source_url(raw, product, repo_meta)
+    assert not allowed_source_url(
+        "https://raw.githubusercontent.com/wiki/other/Risuai/Lorebook.md",
+        product,
+        repo_meta,
+    )
+
+
+def test_canonical_github_product_url() -> None:
+    product = {
+        "id": "risuai",
+        "repo": "https://github.com/kwaroran/Risuai",
+    }
+    repo_meta = {"origin": "https://github.com/kwaroran/Risuai"}
+    wrong = "https://github.com/kwaroran/RisuAI/issues/205"
+    assert canonical_github_product_url(wrong, product, repo_meta) == (
+        "https://github.com/kwaroran/Risuai/issues/205"
     )
 
 

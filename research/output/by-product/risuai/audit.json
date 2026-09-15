@@ -24,6 +24,9 @@
       "text": "For contextual embedding models, items sharing the same metadata are grouped and embedded together; on a cache miss the already-cached siblings are evicted from both this.vectors and resultMap so the whole group is re-embedded with full context."
     },
     {
+      "text": "Write path: when the context window fills (token limit reached), the system automatically requests an AI to summarize the conversation. If summaries accumulate and fill the context again, those summaries are themselves re-summarized."
+    },
+    {
       "text": "Conflict/supersession: when the accumulated supaMemory grows to 4 or more paragraph chunks (3 in hypa mode), the entire supaMemory is re-summarized into a shorter string, replacing the old value."
     },
     {
@@ -34,9 +37,6 @@
     },
     {
       "text": "Embedding vectors are persisted to a localforage instance named 'hypaVector', keyed by content and model, providing a persistent on-device cache of embeddings across sessions."
-    },
-    {
-      "text": "RisuAI inserts a 'Start a new chat' system message at the boundary of a new conversation, but its placement is malformed under certain context conditions with Cohere API."
     },
     {
       "text": "There is no explicit delete or forget operation: old chat messages are spliced from the in-memory array and their content is either captured in the summary or discarded."
@@ -54,9 +54,6 @@
       "text": "Document embedding batches chunks in groups up to MAX_CHUNKS_PER_REQUEST (16000) and MAX_INPUTS_PER_REQUEST (1000) per API call, with input_type set to 'document'."
     },
     {
-      "text": "A community plugin previously accessed the internal database directly to bundle and back up most settings; this access path was blocked after the plugin v3 update."
-    },
-    {
       "text": "Memory update triggered by parameter state changes: when certain states change, the chatbot's prompt is replaced and memory is updated to record key events."
     },
     {
@@ -64,6 +61,9 @@
     },
     {
       "text": "Chat lore section is used to store persistent character or user facts (e.g. appearance, relationship state) that the model is expected to recall."
+    },
+    {
+      "text": "Each lore entry activates only when one of its activation keys appears in the recent chat, making injection conditional rather than always-on."
     },
     {
       "text": "Memory and persona consistency are achieved through manual configuration of character cards, rules, and memory setup \u2014 not automatic."
@@ -75,7 +75,13 @@
       "text": "Retrieval is cosine-similarity search over all vectors in this.vectors, returning results ranked by score descending."
     },
     {
+      "text": "Insertion order controls the relative priority/impact of multiple simultaneously activated lore entries on the model."
+    },
+    {
       "text": "HypaMemory V3 is the default memory type shown under a 'Long-term Memory' tab in the 'Other Bots' settings menu."
+    },
+    {
+      "text": "A configurable prompt controls what is sent to the summarization model. Leaving it blank uses a default prompt."
     },
     {
       "text": "Character behavior anchors over time as the model accumulates enough context from the conversation"
@@ -596,6 +602,42 @@
       "label": "inferred"
     },
     {
+      "claim": "The page describes only a retrieve-then-prompt pattern: lore is static content selected by keyword match and inserted as a prompt fragment; no write path, update, delete, or conflict resolution is described.",
+      "kind": "docs",
+      "url": "https://raw.githubusercontent.com/wiki/kwaroran/Risuai/Lorebook.md",
+      "quote": "each entry of Lorebook is called `lore`. lore activates when one of the activation key is in the recent chat.",
+      "locator": "# Lorebook",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Insertion order is the only prioritization mechanism mentioned for competing lore entries.",
+      "kind": "docs",
+      "url": "https://raw.githubusercontent.com/wiki/kwaroran/Risuai/Lorebook.md",
+      "quote": "Insertion order of the lore. if there is multiple lores, higher value = higher impact on AI",
+      "locator": "# Writing Lore",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is implemented as cascading AI-generated summaries: conversation is summarized when tokens are full, and summaries are re-summarized if they in turn fill the context. This is a log-compression approach, not a curated fact store.",
+      "kind": "docs",
+      "url": "https://raw.githubusercontent.com/wiki/kwaroran/Risuai/SupaMemory.md",
+      "quote": "SupaMemory achieves long-term memory by just simply automaticly request summarize to an AI when token is full, and re-summarizes the summarizations when if its needed.",
+      "locator": "# SupaMemory",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The summarization prompt is user-configurable but defaults to a built-in prompt; the page recommends leaving it blank.",
+      "kind": "docs",
+      "url": "https://raw.githubusercontent.com/wiki/kwaroran/Risuai/SupaMemory.md",
+      "quote": "SuperMemory Prompt decides what prompt should be sent to summarize. if you leave it blank, it will use the default prompt. leaving blank is recommended.",
+      "locator": "# How to able it",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
       "claim": "RisuAI supports updating memory (key events) when character state parameters change, suggesting a write path tied to state transitions rather than continuous logging.",
       "kind": "issue",
       "url": "https://github.com/kwaroran/Risuai/issues/1021",
@@ -859,7 +901,7 @@
     {
       "claim": "A null content field in the API response causes a TypeError when RisuAI attempts to call .trim() on it, indicating the app does not guard against null assistant message content before processing",
       "kind": "issue",
-      "url": "https://github.com/kwaroran/RisuAI/issues/205",
+      "url": "https://github.com/kwaroran/Risuai/issues/205",
       "quote": "TypeError: Cannot read properties of null (reading 'trim')",
       "locator": "issue body, error message section",
       "confidence": "medium",
@@ -868,7 +910,7 @@
     {
       "claim": "RisuAI constructs and sends a multi-message array to the model, including system prompt, assistant-role backstory/lore, and user turn, showing the scaffold passed into context each turn",
       "kind": "issue",
-      "url": "https://github.com/kwaroran/RisuAI/issues/205",
+      "url": "https://github.com/kwaroran/Risuai/issues/205",
       "quote": "\"messages\": [{\"role\": \"system\", \"content\": \"...\"}, {\"role\": \"system\", \"content\": \"[Start a new chat]\"}, {\"role\": \"assistant\", \"content\": \"*Lemon is your personal maid...*\"}, {\"role\": \"user\", \"content\": \"*says nothing*\"}]",
       "locator": "issue body, Request Body section",
       "confidence": "medium",
@@ -877,7 +919,7 @@
     {
       "claim": "Character lore and backstory are injected as a static system message rather than retrieved from a dynamic memory store, suggesting no retrieval step for this content",
       "kind": "issue",
-      "url": "https://github.com/kwaroran/RisuAI/issues/205",
+      "url": "https://github.com/kwaroran/Risuai/issues/205",
       "quote": "\"role\": \"system\", \"content\": \"1. This is role-playing...\\n[character (lemon)\\n{\\nGender(\\\"Female\\\")...\"",
       "locator": "issue body, Request Body messages[0]",
       "confidence": "medium",
@@ -886,7 +928,7 @@
     {
       "claim": "Global Regex is a user-configurable setting in RisuAI that, when misconfigured, can break message sending entirely, pointing to a preprocessing step applied to message content before the API call",
       "kind": "issue",
-      "url": "https://github.com/kwaroran/RisuAI/issues/205",
+      "url": "https://github.com/kwaroran/Risuai/issues/205",
       "quote": "I applyed this into Globol Regex and it happened.",
       "locator": "issue body, error description section",
       "confidence": "medium",
@@ -1068,6 +1110,24 @@
     {
       "url": "https://github.com/kwaroran/Risuai/blob/cad8595aa39620df4246f56918f0962c2aa0263a/src/ts/process/memory/hypamemoryv2.ts",
       "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/wiki/kwaroran/Risuai/Lorebook.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/wiki/kwaroran/Risuai/SupaMemory.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/wiki/kwaroran/Risuai/Prompt-Template.md",
+      "kind": "docs",
       "accessed_at": "2026-09-15",
       "quality": "high"
     },
@@ -1299,6 +1359,41 @@
       "kind": "community"
     },
     {
+      "text": "This is a canonical lorebook architecture doc but does not describe a write path: no mechanism for extracting new facts from conversation, updating existing lore, or deleting stale entries is mentioned.",
+      "url": "https://raw.githubusercontent.com/wiki/kwaroran/Risuai/Lorebook.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No forget or hide-at-retrieve mechanism described; unclear whether lore entries can be disabled or removed at runtime.",
+      "url": "https://raw.githubusercontent.com/wiki/kwaroran/Risuai/Lorebook.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No isolation scope described: unclear whether lorebooks are per-character, per-user, per-session, or global.",
+      "url": "https://raw.githubusercontent.com/wiki/kwaroran/Risuai/Lorebook.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No conflict or supersession policy described for multiple lore entries that activate simultaneously beyond insertion order.",
+      "url": "https://raw.githubusercontent.com/wiki/kwaroran/Risuai/Lorebook.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy is not described: the page does not explain how or when summaries are selected back into the prompt, only that summarization is triggered on token overflow.",
+      "url": "https://raw.githubusercontent.com/wiki/kwaroran/Risuai/SupaMemory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete behavior is not described: no mention of how to remove a summary, reset memory for a character, or handle conflicting or superseded facts within a summary.",
+      "url": "https://raw.githubusercontent.com/wiki/kwaroran/Risuai/SupaMemory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict / supersession policy is absent: the page does not address what happens when a later summary contradicts an earlier one that has already been re-summarized.",
+      "url": "https://raw.githubusercontent.com/wiki/kwaroran/Risuai/SupaMemory.md",
+      "kind": "docs"
+    },
+    {
       "text": "The summarization write path that constructs the messages array is not shown; it is unclear where the system prompt is being misplaced relative to prior turn messages, which is the root cause of the SystemMessageOrderError.",
       "url": "https://github.com/kwaroran/Risuai/issues/1051",
       "kind": "issue"
@@ -1325,7 +1420,7 @@
     },
     {
       "text": "The page shows the full request body but does not describe how RisuAI persists, retrieves, updates, or forgets memory across sessions; no store, retrieval policy, or write path is documented here",
-      "url": "https://github.com/kwaroran/RisuAI/issues/205",
+      "url": "https://github.com/kwaroran/Risuai/issues/205",
       "kind": "issue"
     },
     {

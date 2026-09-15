@@ -13,7 +13,7 @@ import subprocess
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, urlunparse
 
 import httpx
 
@@ -372,6 +372,39 @@ def page_slug(url: str) -> str:
     path = re.sub(r"[^A-Za-z0-9._-]", "_", path)
     digest = hashlib.sha256(url.encode()).hexdigest()[:8]
     return f"{path}_{digest}"
+
+
+def canonical_github_product_url(
+    url: str,
+    product: dict[str, object],
+    repo_meta: dict[str, object],
+) -> str:
+    """Normalize github.com owner/repo casing to the seeded product repo."""
+    if not url or host_of(url) != "github.com":
+        return url
+    pair = github_owner_repo(str(repo_meta.get("origin") or "")) or github_owner_repo(
+        str(product.get("repo") or "")
+    )
+    if not pair:
+        return url
+    owner, repo = pair
+    parsed = urlparse(url)
+    parts = [part for part in parsed.path.split("/") if part]
+    if len(parts) < 2:
+        return url
+    if parts[0].lower() != owner.lower() or parts[1].lower() != repo.lower():
+        return url
+    new_path = "/" + "/".join([owner, repo, *parts[2:]])
+    return urlunparse(
+        (
+            parsed.scheme,
+            parsed.netloc,
+            new_path,
+            parsed.params,
+            parsed.query,
+            parsed.fragment,
+        )
+    )
 
 
 def github_owner_repo(url: str) -> tuple[str, str] | None:
@@ -1874,6 +1907,10 @@ def allowed_source_url(
             return False
         prefix = f"/{pair[0]}/{pair[1]}".lower()
         return path.lower().startswith(prefix)
+    if host == "raw.githubusercontent.com" and pair:
+        wiki_prefix = f"/wiki/{pair[0]}/{pair[1]}".lower()
+        if path.lower().startswith(wiki_prefix):
+            return True
     if host not in first_party_hosts(product, repo_meta):
         return False
     prefix = docs_host_path_prefix(product)

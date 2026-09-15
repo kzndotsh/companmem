@@ -7,6 +7,7 @@ from companmem_pipeline.fold import (
     fold_pages,
     is_documented_capability_unknown,
     is_near_duplicate_summary,
+    is_peripheral_mechanism,
     is_self_referential_summary,
     mentions_add_search_loop,
 )
@@ -386,6 +387,46 @@ def test_filter_summary_items_drops_self_referential_rows() -> None:
     kept = filter_summary_items(items, "microsoft-graphrag", "Microsoft GraphRAG")
     assert len(kept) == 1
     assert "hierarchy levels" in kept[0]["text"]
+
+
+def test_is_peripheral_mechanism() -> None:
+    assert is_peripheral_mechanism("A community plugin adds extra lorebook slots")
+    assert is_peripheral_mechanism(
+        "Start a new chat uses the Cohere API for reranking"
+    )
+    assert not is_peripheral_mechanism("HypaMemory v3 compresses conversation history")
+
+
+def test_fold_canonicalizes_github_issue_urls() -> None:
+    manifest = {
+        **_manifest(),
+        "id": "risuai",
+        "name": "RisuAI",
+        "repo": "https://github.com/kwaroran/Risuai",
+    }
+    extracts = [
+        {
+            "identity_hints": {},
+            "claimed_purpose": [],
+            "mechanisms": [],
+            "ledger": [
+                {
+                    "claim": "lorebook",
+                    "kind": "issue",
+                    "url": "https://github.com/kwaroran/RisuAI/issues/205",
+                    "quote": "lorebook entry",
+                    "locator": "#issue",
+                    "confidence": "medium",
+                    "label": "measured",
+                }
+            ],
+            "unknowns": [],
+        }
+    ]
+    audit = fold_pages(extracts, manifest)
+    assert audit["ledger"][0]["url"] == (
+        "https://github.com/kwaroran/Risuai/issues/205"
+    )
 
 
 def test_fold_drops_uncited_mechanisms() -> None:
