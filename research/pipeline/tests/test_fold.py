@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from companmem_pipeline.fold import fold_pages
+from companmem_pipeline.fold import (
+    dedupe_near_duplicate_summaries,
+    fold_pages,
+    is_near_duplicate_summary,
+)
 from companmem_pipeline.lint import lint_audit
 
 
@@ -231,6 +235,86 @@ def test_fold_keeps_this_file_absence_on_two_urls() -> None:
         "https://github.com/plastic-labs/honcho/blob/main/src/a.py",
         "https://github.com/plastic-labs/honcho/blob/main/src/b.py",
     }
+
+
+def test_is_near_duplicate_summary_merges_rephrased_purpose() -> None:
+    left = "EverOS is a memory operating system for LLM agents with persistent structured memory"
+    right = "EverOS memory operating system for LLM agents with persistent structured memory across sessions"
+    assert is_near_duplicate_summary(left, right)
+    assert not is_near_duplicate_summary(left, "Vector database for document retrieval only")
+
+
+def test_dedupe_near_duplicate_summaries_keeps_longest() -> None:
+    items = [
+        {"text": "EverOS memory operating system for agents"},
+        {
+            "text": "EverOS is a memory operating system for LLM agents with persistent structured memory",
+        },
+    ]
+    kept = dedupe_near_duplicate_summaries(items)
+    assert len(kept) == 1
+    assert "persistent structured memory" in kept[0]["text"]
+
+
+def test_fold_dedupes_near_duplicate_claimed_purpose() -> None:
+    ledger = [
+        {
+            "claim": "EverOS is a memory operating system for LLM agents",
+            "kind": "docs",
+            "url": "https://docs.evermind.ai/llms.txt",
+            "quote": "EverOS is the Memory Operating System for Agentic AI",
+            "locator": "intro",
+            "confidence": "high",
+            "label": "measured",
+        }
+    ]
+    extracts = [
+        {
+            "identity_hints": {},
+            "claimed_purpose": [
+                {
+                    "text": "EverOS is a memory operating system for LLM agents with persistent structured memory",
+                    "quote": "EverOS is the Memory Operating System for Agentic AI",
+                    "locator": "intro",
+                },
+                {
+                    "text": "Memory operating system for agentic AI providing persistent structured memory across sessions",
+                    "quote": "EverOS is the Memory Operating System for Agentic AI",
+                    "locator": "intro",
+                },
+            ],
+            "mechanisms": [],
+            "ledger": ledger,
+            "unknowns": [],
+        }
+    ]
+    audit = fold_pages(extracts, _manifest())
+    assert len(audit["claimed_purpose"]) == 1
+
+
+def test_fold_dedupes_unknowns_with_same_text_on_different_urls() -> None:
+    extracts = [
+        {
+            "identity_hints": {},
+            "claimed_purpose": [],
+            "mechanisms": [],
+            "ledger": [],
+            "unknowns": [
+                {
+                    "text": "Conflict resolution policy is not documented",
+                    "url": "https://docs.evermind.ai/llms.txt",
+                    "kind": "docs",
+                },
+                {
+                    "text": "Conflict resolution policy is not documented",
+                    "url": "https://docs.evermind.ai/cloud/overview",
+                    "kind": "docs",
+                },
+            ],
+        }
+    ]
+    audit = fold_pages(extracts, _manifest())
+    assert len(audit["unknowns"]) == 1
 
 
 def test_fold_drops_uncited_mechanisms() -> None:

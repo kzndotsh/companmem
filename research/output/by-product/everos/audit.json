@@ -10,222 +10,195 @@
   },
   "claimed_purpose": [
     {
-      "text": "EverOS is described as a self-organizing memory operating system for LLM agents, treating memory as a lifecycle rather than a flat store"
+      "text": "EverOS is a memory operating system for LLM agents providing persistent, structured memory that extracts knowledge, resolves contradictions, and retrieves context intelligently across sessions."
     },
     {
       "text": "Stores conversations, files, and agent trajectories as readable Markdown, then syncs local SQLite and LanceDB indexes for fast retrieval and self-evolving reuse."
     },
     {
-      "text": "Cascade subsystem projects markdown (md) files into LanceDB as the memory pipeline"
-    },
-    {
-      "text": "Local-first memory runtime that stores every agent memory as plain Markdown, indexed by SQLite and LanceDB"
-    },
-    {
-      "text": "EverOS is a memory operating system for LLM agents providing persistent, structured memory that extracts knowledge, resolves contradictions, and retrieves context intelligently across sessions."
-    },
-    {
-      "text": "Memory operating system for agentic AI providing persistent, structured memory across sessions"
+      "text": "EverOS is described as a self-organizing memory operating system for LLM agents, treating memory as a lifecycle rather than a flat store"
     },
     {
       "text": "User Memory tracks what users say, prefer, and who they are over time to make agents more personal and context-aware."
     },
     {
+      "text": "Local-first memory runtime that stores every agent memory as plain Markdown, indexed by SQLite and LanceDB"
+    },
+    {
       "text": "Treats memory as a lifecycle rather than store-and-retrieve, inspired by biological engram principles"
     },
     {
-      "text": "Solves context window limitations by structuring long-term dialogues into discrete memory cells"
+      "text": "Extracts memory from messages and multimodal data, supporting multi-user group chat and Human-AI chat"
+    },
+    {
+      "text": "Cascade subsystem projects markdown (md) files into LanceDB as the memory pipeline"
     }
   ],
   "mechanisms": [
     {
-      "text": "EverOS retrieves in multiple rounds, using a small decider model to judge when sufficient context has been gathered, rather than a fixed top-k"
-    },
-    {
-      "text": "EverOS logs memory updates and retrievals, enabling audit trails, data lineage tracing, and retention policy enforcement"
-    },
-    {
-      "text": "EverOS supports sub-500ms retrieval and self-evolving skill memory when built on EverCore infrastructure"
-    },
-    {
-      "text": "Direct file editing triggers a cascade watcher that syncs the indexes."
-    },
-    {
-      "text": "User and agent memory are separate first-class tracks: user episodes/profile and agent cases/skills."
-    },
-    {
-      "text": "Retrieval is scoped orthogonally by user_id, agent_id, app_id, project_id, and session_id."
-    },
-    {
-      "text": "Knowledge Wiki provides editable, source-backed Markdown knowledge pages with taxonomy, CRUD APIs, and topic search."
-    },
-    {
-      "text": "Offline reflection merges episode clusters and refines profiles and skills between sessions \u2014 memory evolves rather than being retrieval-only."
-    },
-    {
-      "text": "Core memory flow is: ingest \u2192 extract \u2192 index \u2192 recall."
-    },
-    {
-      "text": "Write path uses a /memory/add endpoint to ingest messages into a session, followed by an explicit /memory/flush call to persist them into durable Markdown-backed memory and cascade indexing."
-    },
-    {
-      "text": "Episodes are a curated write distinct from the raw message log: extracted after UserMemoryPipeline writes its record, one episode per user sender, so one MemCell can produce multiple episodes."
-    },
-    {
-      "text": "Extracted Episodes are persisted as markdown files scoped by owner_id (per-sender isolation), app_id, and project_id."
-    },
-    {
-      "text": "Memory is hard-partitioned by (owner_type, memory_type) into four distinct stores: user+episode, user+profile, agent+agent_case, agent+agent_skill"
-    },
-    {
-      "text": "Retrieval is scoped by owner_id, owner_type, app_id, and project_id, providing multi-tenant isolation at the filter level"
-    },
-    {
-      "text": "CanonicalMessage is the normalized internal message shape persisted into an unprocessed_buffer before algo-layer processing."
-    },
-    {
-      "text": "IngestResult carries app_id and project_id as scope identifiers so that memcells, buffer rows, and markdown paths all land in the correct namespace."
-    },
-    {
-      "text": "Memory is organized into two isolation tracks: user_memory and agent_memory."
-    },
-    {
-      "text": "A single algo Episode can fan out to one memory record per user sender: the pipeline runs the algo once per memcell and loops senders, each getting an Episode rooted at its own owner_id."
-    },
-    {
-      "text": "All curated memory types (Episode, AtomicFact, Foresight, AgentCase) carry a parent_id linking them back to their source MemCell or Episode, forming an audit chain."
-    },
-    {
-      "text": "The unprocessed buffer is a single shared track named 'memorize'; boundary detection is single-pass and switching mode requires a fresh process"
-    },
-    {
-      "text": "Episodes store atomic_facts as sub-units; atomic_facts are populated in search results only when the HYBRID pipeline runs, because single-route recall has no per-fact query-relevance score"
-    },
-    {
-      "text": "Hybrid retrieval combining BM25, vector search, and scalar filtering in a single LanceDB query, called mRAG"
-    },
-    {
-      "text": "Two separate memory tracks: user-side (Profiles, Episodes, Facts) and agent-side (Cases, Skills)"
-    },
-    {
-      "text": "Self-evolving Skills: repeated Cases are distilled offline into reusable procedures"
+      "text": "A continuity failure is reported: the /search interface retrieves episodic memory entries by ID but returns no specific information (no summary, title, or other enriched fields) in the search result objects, unlike the full GET /api/v1/memories response."
     },
     {
       "text": "Write path is boundary-driven and asynchronous: messages accumulate in a session buffer; a detector watches for topic shift or time gap, closes the buffer into a MemCell, then extracts episode narrative and atomic facts."
     },
     {
-      "text": "Isolation is per user_id or agent_id; a query never crosses app_id / project_id scopes. Users own episode and profile types; agents own agent_case and agent_skill types."
+      "text": "Episodes are a curated write distinct from the raw message log: extracted after UserMemoryPipeline writes its record, one episode per user sender, so one MemCell can produce multiple episodes."
     },
     {
-      "text": "Delete is a scoped soft-delete (Cloud-only), scoped by any combination of user_id, agent_id, session_id."
+      "text": "Write path uses a /memory/add endpoint to ingest messages into a session, followed by an explicit /memory/flush call to persist them into durable Markdown-backed memory and cascade indexing."
     },
     {
-      "text": "Consolidation runs autonomously in background: duplicates merge, contradictions between old and new facts resolve, user profile is rewritten"
+      "text": "Episodes store atomic_facts as sub-units; atomic_facts are populated in search results only when the HYBRID pipeline runs, because single-route recall has no per-fact query-relevance score"
     },
     {
-      "text": "Search returns episode summaries and profile attributes as context, not raw message logs; recommended agent loop always searches before generating"
-    },
-    {
-      "text": "Edit profile supports add/update/delete operations on profile items; requires a profile extraction to already exist (Cloud-only)"
-    },
-    {
-      "text": "Boundary detection triggers extraction of derived memory types from stored messages"
-    },
-    {
-      "text": "Memory is scoped per user via a required user_id field."
-    },
-    {
-      "text": "SQLite handles local metadata, state, queues, and lightweight coordination"
-    },
-    {
-      "text": "Memory corpus can be shared across multiple agents"
-    },
-    {
-      "text": "EverOS can be configured as a long-term-memory backend, and this is distinct from merely being integrated via a contract."
-    },
-    {
-      "text": "Memory search supports a retrieve_method parameter with at least a 'vector' option, scoped by user_id and memory_types such as 'episodic_memory', with top_k and radius controls."
-    },
-    {
-      "text": "The search response exposes a pending_messages list \u2014 messages not yet consolidated into episodic memory \u2014 separate from retrieved memories."
-    },
-    {
-      "text": "A continuity failure is reported: the /search interface retrieves episodic memory entries by ID but returns no specific information (no summary, title, or other enriched fields) in the search result objects, unlike the full GET /api/v1/memories response."
-    },
-    {
-      "text": "Memory write pipeline is append-only across three named vector collections: episodic_memory, event_log, and foresight"
-    },
-    {
-      "text": "EverOS uses a multimodal retrieval strategy (mRAG) supporting ingestion across PDFs, images, Word documents, spreadsheets, presentations, emails, HTML pages, text files, and URLs."
-    },
-    {
-      "text": "Continuous real-time update of user profiles from every interaction"
+      "text": "A single algo Episode can fan out to one memory record per user sender: the pipeline runs the algo once per memcell and loops senders, each getting an Episode rooted at its own owner_id."
     },
     {
       "text": "Raw agent trajectories (reasoning steps, tool calls, tool responses, final answers) are sent to EverOS and processed into two types of structured memory: Agent Cases and Agent Skills."
     },
     {
-      "text": "Trajectories are stored per user_id and session_id; agents search memory by user_id, scoping isolation to user namespace."
+      "text": "EverOS uses a multimodal retrieval strategy (mRAG) supporting ingestion across PDFs, images, Word documents, spreadsheets, presentations, emails, HTML pages, text files, and URLs."
     },
     {
-      "text": "Skills are not locked to a single agent or session; any agent in the same namespace can retrieve and apply them."
+      "text": "Memory search supports a retrieve_method parameter with at least a 'vector' option, scoped by user_id and memory_types such as 'episodic_memory', with top_k and radius controls."
     },
     {
-      "text": "Raw text is converted into structured semantic units called MemCells, organized into adaptive memory graphs called MemScenes"
+      "text": "Isolation is per user_id or agent_id; a query never crosses app_id / project_id scopes. Users own episode and profile types; agents own agent_case and agent_skill types."
     },
     {
-      "text": "EverOS uses persistent memory solutions to preserve critical context across interactions."
-    },
-    {
-      "text": "EverOS uses contextual learning algorithms that continuously refine memory processes."
-    },
-    {
-      "text": "Episodic segmentation: continuous dialogue is monitored and segmented into coherent events via semantic boundary detection"
-    },
-    {
-      "text": "Structured encoding into MemCells: each event is synthesized into a concise third-person Episode, atomic Facts, and time-bounded Prospections"
-    },
-    {
-      "text": "Semantic consolidation: MemCells are clustered into thematic MemScenes (e.g., 'Health', 'Work') rather than flat storage"
-    },
-    {
-      "text": "Profile evolution: MemScenes are continuously distilled to update a structured User Profile, separating stable traits from temporary states"
-    },
-    {
-      "text": "Self-evolving agent memory: agent runs are recorded as Cases, recurring Cases are distilled into reusable Skills"
-    },
-    {
-      "text": "Full lifecycle control including delete: memory is not append-only"
+      "text": "All curated memory types (Episode, AtomicFact, Foresight, AgentCase) carry a parent_id linking them back to their source MemCell or Episode, forming an audit chain."
     },
     {
       "text": "Retrieval uses a proprietary mRAG (multimodal RAG) approach targeting precision without loading the entire context window, with stated p95 latency under 500 ms."
     },
     {
-      "text": "mRAG (multimodal RAG) ingests visual cues, documents, and environmental context alongside audio recordings"
+      "text": "Retrieval via hybrid search (BM25/vector/RRF) or Agentic Retrieval; iterates until context is 'necessary and sufficient'; filters for time-valid evidence"
     },
     {
-      "text": "Distills repeated patterns into reusable knowledge for anticipatory retrieval"
+      "text": "IngestResult carries app_id and project_id as scope identifiers so that memcells, buffer rows, and markdown paths all land in the correct namespace."
     },
     {
-      "text": "Structures audio into searchable knowledge graph rather than raw recording"
+      "text": "Memory is hard-partitioned by (owner_type, memory_type) into four distinct stores: user+episode, user+profile, agent+agent_case, agent+agent_skill"
     },
     {
-      "text": "Users can inspect, edit, or delete any memory via the Memory Bank interface"
+      "text": "Search returns episode summaries and profile attributes as context, not raw message logs; recommended agent loop always searches before generating"
     },
     {
-      "text": "Users can pause ingestion during sensitive moments (granular capture control)"
+      "text": "The unprocessed buffer is a single shared track named 'memorize'; boundary detection is single-pass and switching mode requires a fresh process"
     },
     {
-      "text": "Claims higher accuracy on long-dialogue benchmarks and temporal knowledge tracking vs. competitors relying on traditional RAG"
+      "text": "EverOS retrieves in multiple rounds, using a small decider model to judge when sufficient context has been gathered, rather than a fixed top-k"
     },
     {
-      "text": "Agent runs are stored as reusable Cases rather than discarded after completion"
+      "text": "Offline reflection merges episode clusters and refines profiles and skills between sessions \u2014 memory evolves rather than being retrieval-only."
     },
     {
-      "text": "Repeated successful behaviors are distilled into reusable Skills"
+      "text": "Consolidation runs autonomously in background: duplicates merge, contradictions between old and new facts resolve, user profile is rewritten"
     },
     {
-      "text": "Structured memory preferred over raw transcript; transcript is explicitly rejected as the store"
+      "text": "The search response exposes a pending_messages list \u2014 messages not yet consolidated into episodic memory \u2014 separate from retrieved memories."
+    },
+    {
+      "text": "Continuous profile evolution: MemScenes are distilled into a structured User Profile separating stable traits from temporary states"
+    },
+    {
+      "text": "Retrieval scoped by user_id, agent_id, app_id, project_id, and session_id for isolation in multi-agent and multi-user deployments"
+    },
+    {
+      "text": "Edit profile supports add/update/delete operations on profile items; requires a profile extraction to already exist (Cloud-only)"
+    },
+    {
+      "text": "CanonicalMessage is the normalized internal message shape persisted into an unprocessed_buffer before algo-layer processing."
+    },
+    {
+      "text": "Raw text is converted into structured semantic units called MemCells, organized into adaptive memory graphs called MemScenes"
+    },
+    {
+      "text": "Retrieval is scoped by owner_id, owner_type, app_id, and project_id, providing multi-tenant isolation at the filter level"
+    },
+    {
+      "text": "EverOS can be configured as a long-term-memory backend, and this is distinct from merely being integrated via a contract."
+    },
+    {
+      "text": "Trajectories are stored per user_id and session_id; agents search memory by user_id, scoping isolation to user namespace."
+    },
+    {
+      "text": "EverOS logs memory updates and retrievals, enabling audit trails, data lineage tracing, and retention policy enforcement"
+    },
+    {
+      "text": "Writes via add are asynchronous by default; the request is enqueued and returns HTTP 202. Synchronous mode is available."
+    },
+    {
+      "text": "Extracted Episodes are persisted as markdown files scoped by owner_id (per-sender isolation), app_id, and project_id."
+    },
+    {
+      "text": "Memory write pipeline is append-only across three named vector collections: episodic_memory, event_log, and foresight"
+    },
+    {
+      "text": "Knowledge Wiki provides editable, source-backed Markdown knowledge pages with taxonomy, CRUD APIs, and topic search."
+    },
+    {
+      "text": "Self-evolving agent memory: each agent run is recorded as a Case; recurring Cases are distilled into reusable Skills"
+    },
+    {
+      "text": "Skills are not locked to a single agent or session; any agent in the same namespace can retrieve and apply them."
+    },
+    {
+      "text": "Hybrid retrieval combining BM25, vector search, and scalar filtering in a single LanceDB query, called mRAG"
+    },
+    {
+      "text": "EverOS supports sub-500ms retrieval and self-evolving skill memory when built on EverCore infrastructure"
+    },
+    {
+      "text": "Delete is a scoped soft-delete (Cloud-only), scoped by any combination of user_id, agent_id, session_id."
+    },
+    {
+      "text": "User and agent memory are separate first-class tracks: user episodes/profile and agent cases/skills."
+    },
+    {
+      "text": "EverOS uses persistent memory solutions to preserve critical context across interactions."
+    },
+    {
+      "text": "Isolation is physical: memory is partitioned by owner directory (user, agent, knowledge)"
+    },
+    {
+      "text": "EverOS uses contextual learning algorithms that continuously refine memory processes."
+    },
+    {
+      "text": "Markdown files are the primary store \u2014 the source of truth for memory, not a database"
+    },
+    {
+      "text": "Boundary detection triggers extraction of derived memory types from stored messages"
+    },
+    {
+      "text": "Write routing is automatic based on message role \u2014 no manual routing required"
+    },
+    {
+      "text": "Memory is organized into two isolation tracks: user_memory and agent_memory."
+    },
+    {
+      "text": "SQLite handles local metadata, state, queues, and lightweight coordination"
+    },
+    {
+      "text": "Retrieval is handled by mRAG, selecting memory at the right granularity"
+    },
+    {
+      "text": "Direct file editing triggers a cascade watcher that syncs the indexes."
+    },
+    {
+      "text": "Search memories with keyword, vector, hybrid, or agentic strategies."
+    },
+    {
+      "text": "Continuous real-time update of user profiles from every interaction"
+    },
+    {
+      "text": "Full lifecycle control including delete; memory is not append-only"
+    },
+    {
+      "text": "Core memory flow is: ingest \u2192 extract \u2192 index \u2192 recall."
+    },
+    {
+      "text": "Memory corpus can be shared across multiple agents"
     }
   ],
   "ledger": [
@@ -748,6 +721,114 @@
       "url": "https://www.reddit.com/r/hermesagent/comments/1ujfodk/herding_hermes_persistent_memory_from_selfhosting/",
       "quote": "at the start of each turn it automatically retrieves relevant historical memories and injects them into context (prefetch)",
       "locator": "Hooking it up to Hermes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "EverOS provides a unified Memory API v2 for persistent agent memory, available on both Cloud and OSS.",
+      "kind": "docs",
+      "url": "https://docs.evermind.ai/api-reference/introduction",
+      "quote": "EverOS exposes a single Memory API (v2) for building AI agents with persistent memory. The same request and response contracts are shared across EverOS Cloud (managed SaaS) and EverOS OSS (self-hosted).",
+      "locator": "API Overview",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path is asynchronous by default with a synchronous opt-in via async_mode: false.",
+      "kind": "docs",
+      "url": "https://docs.evermind.ai/api-reference/introduction",
+      "quote": "Writes via add are asynchronous by default: the request is validated and enqueued, returning HTTP 202 with status: \"queued\". Set async_mode: false to write synchronously and receive the engine's HTTP 200 result directly.",
+      "locator": "Response format",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Extraction pipeline moves raw session messages through a buffer into episodes (memcells); buffered turns are accessible before extraction completes.",
+      "kind": "docs",
+      "url": "https://docs.evermind.ai/api-reference/introduction",
+      "quote": "Because extraction is asynchronous, the newest turns in a session may not belong to an episode yet. POST /api/v2/memory/search can return that in-flight buffer as raw messages in data.unprocessed_messages.",
+      "locator": "Reading messages before they are extracted",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Search supports keyword, vector, hybrid, and agentic retrieval modes.",
+      "kind": "docs",
+      "url": "https://docs.evermind.ai/api-reference/introduction",
+      "quote": "POST /api/v2/memory/search \u2014 Search memories (keyword, vector, hybrid, agentic)",
+      "locator": "Endpoints table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Sessions reset model knowledge; EverOS provides cross-session persistence",
+      "kind": "docs",
+      "url": "https://docs.evermind.ai/cloud/overview",
+      "quote": "each session resets what they learned about the user, the task, and the mistakes they already made.",
+      "locator": "EverOS Cloud intro paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval is adaptive/agentic, not always-retrieve: iterates until context is necessary and sufficient",
+      "kind": "docs",
+      "url": "https://docs.evermind.ai/cloud/overview",
+      "quote": "EverOS navigates MemScenes, filters for time-valid evidence, and iterates until the retrieved context is \"necessary and sufficient.\"",
+      "locator": "How EverOS works \u2014 step 5: Reconstructive Recollection",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path includes extraction, structuring into MemCells, and consolidation into MemScenes; not raw transcript storage",
+      "kind": "docs",
+      "url": "https://docs.evermind.ai/cloud/overview",
+      "quote": "it synthesizes a MemCell containing a concise third-person Episode, atomic Facts, and time-bounded Prospections.",
+      "locator": "How EverOS works \u2014 step 2: Structured Encoding",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Profile evolution is continuous, distinguishing stable traits from temporary states (lore vs. events)",
+      "kind": "docs",
+      "url": "https://docs.evermind.ai/cloud/overview",
+      "quote": "The system continuously distills these scenes to update a structured User Profile, separating stable traits from temporary states.",
+      "locator": "How EverOS works \u2014 step 4: Profile Evolution",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Delete is supported; memory is a governable asset, not append-only",
+      "kind": "docs",
+      "url": "https://docs.evermind.ai/cloud/overview",
+      "quote": "Add, search, edit, and delete. Memory is a governable asset you control, not an append-only black box.",
+      "locator": "What EverOS gives your product \u2014 Full lifecycle control card",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is scoped by owner, type, and user/agent/app/project/session",
+      "kind": "docs",
+      "url": "https://docs.evermind.ai/cloud/overview",
+      "quote": "Scope by owner, type, and user / agent / app / project / session.",
+      "locator": "What EverOS gives your product \u2014 User + Agent memory card",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agent memory evolves via Case-to-Skill distillation; a form of write-path supersession/consolidation",
+      "kind": "docs",
+      "url": "https://docs.evermind.ai/cloud/overview",
+      "quote": "Records each agent run as a Case and distills recurring Cases into reusable Skills, so your agents get better at a task the more they run it.",
+      "locator": "What EverOS gives your product \u2014 Self-evolving memory card",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LoCoMo 93.05%, LongMemEval 83.00%, HaluMem recall 90.04% benchmark scores; +234.8% task-success lift; ~450ms P95 latency; >90% fewer tokens than full-context",
+      "kind": "docs",
+      "url": "https://docs.evermind.ai/cloud/overview",
+      "quote": "LoCoMo 93.05% \u00b7 LongMemEval 83.00% \u00b7 HaluMem recall 90.04% \u2014 memory accuracy and anti-hallucination. +234.8% peak task-success lift from the self-evolving skill engine. ~450ms P95 latency \u00b7 >90% fewer tokens than full-context (about 10\u00d7 lower cost)",
+      "locator": "Proven on public benchmarks",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -1319,6 +1400,60 @@
       "label": "inferred"
     },
     {
+      "claim": "EverOS stores memory as plain Markdown files inspectable via editor, grep, Git, or Obsidian",
+      "kind": "blog",
+      "url": "https://www.marktechpost.com/2026/06/29/meet-everos-an-open-source-markdown-first-agent-memory-runtime-with-hybrid-bm25-vector-retrieval-and-self-evolving-skills/",
+      "quote": "Every record lands as a .md file. You can open, edit, grep, and Git-version it, or view it in Obsidian.",
+      "locator": "What is EverOS?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is available per user_id, agent_id, app_id, project_id, and session_id",
+      "kind": "blog",
+      "url": "https://www.marktechpost.com/2026/06/29/meet-everos-an-open-source-markdown-first-agent-memory-runtime-with-hybrid-bm25-vector-retrieval-and-self-evolving-skills/",
+      "quote": "You can scope a search by user_id, agent_id, app_id, project_id, and session_id. That scoping is important in multi-agent and multi-user deployments where data isolation is required.",
+      "locator": "The Architecture \u2014 Markdown, SQLite, and LanceDB",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cases distilled into Skills constitute self-evolving procedural memory shared across an agent team without manual curation",
+      "kind": "blog",
+      "url": "https://www.marktechpost.com/2026/06/29/meet-everos-an-open-source-markdown-first-agent-memory-runtime-with-hybrid-bm25-vector-retrieval-and-self-evolving-skills/",
+      "quote": "Repeated successful patterns are distilled offline into reusable Skills. Skills are shared across an agent team, with no manual curation and no hardcoding.",
+      "locator": "How Memory Self-Evolves \u2014 Cases Become Skills",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "EverOS reports 93.05% on LoCoMo, 83.00% on LongMemEval, 93.04% on HaluMem, and sub-500ms p95 retrieval latency \u2014 all EverMind-reported figures",
+      "kind": "blog",
+      "url": "https://www.marktechpost.com/2026/06/29/meet-everos-an-open-source-markdown-first-agent-memory-runtime-with-hybrid-bm25-vector-retrieval-and-self-evolving-skills/",
+      "quote": "EverMind team reports 93.05% on LoCoMo, 83.00% on LongMemEval, and 93.04% on HaluMem. It also cites sub-500ms p95 retrieval latency. These numbers come from EverMind posts.",
+      "locator": "Benchmark",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Licensed Apache 2.0; open source",
+      "kind": "blog",
+      "url": "https://www.marktechpost.com/2026/06/29/meet-everos-an-open-source-markdown-first-agent-memory-runtime-with-hybrid-bm25-vector-retrieval-and-self-evolving-skills/",
+      "quote": "It ships under an Apache 2.0 license.",
+      "locator": "Introduction paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Requires Python 3.12 or newer",
+      "kind": "blog",
+      "url": "https://www.marktechpost.com/2026/06/29/meet-everos-an-open-source-markdown-first-agent-memory-runtime-with-hybrid-bm25-vector-retrieval-and-self-evolving-skills/",
+      "quote": "EverOS requires Python 3.12 or newer.",
+      "locator": "A Five-Minute Code Walkthrough",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
       "claim": "EverOS supports multimodal ingestion across a wide range of document and media types.",
       "kind": "blog",
       "url": "https://evermind.ai/blogs/best-open-source-agent-memory-frameworks-2026",
@@ -1580,87 +1715,6 @@
       "label": "inferred"
     },
     {
-      "claim": "EverOS segments dialogue into episodic events using semantic boundary detection",
-      "kind": "docs",
-      "url": "https://docs.evermind.ai/cloud/overview",
-      "quote": "EverOS monitors the continuous dialogue stream and uses semantic boundary detection to segment interactions into coherent events.",
-      "locator": "How EverOS works / step 1: Episodic Trace Formation",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "Each event is encoded as a MemCell containing an Episode (third-person summary), atomic Facts, and time-bounded Prospections",
-      "kind": "docs",
-      "url": "https://docs.evermind.ai/cloud/overview",
-      "quote": "For each event, it synthesizes a MemCell containing a concise third-person Episode, atomic Facts, and time-bounded Prospections.",
-      "locator": "How EverOS works / step 2: Structured Encoding",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "MemCells are dynamically clustered into thematic MemScenes rather than stored flat",
-      "kind": "docs",
-      "url": "https://docs.evermind.ai/cloud/overview",
-      "quote": "Instead of flat storage, MemCells are dynamically clustered into thematic MemScenes (e.g., \"Health\", \"Work\") to capture high-level contexts.",
-      "locator": "How EverOS works / step 3: Semantic Consolidation",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "A structured User Profile is continuously updated from MemScenes, with stable traits separated from temporary states",
-      "kind": "docs",
-      "url": "https://docs.evermind.ai/cloud/overview",
-      "quote": "The system continuously distills these scenes to update a structured User Profile, separating stable traits from temporary states.",
-      "locator": "How EverOS works / step 4: Profile Evolution",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "Retrieval uses hybrid search (BM25/vector/RRF) or Agentic Retrieval with time-validity filtering and iterative sufficiency check",
-      "kind": "docs",
-      "url": "https://docs.evermind.ai/cloud/overview",
-      "quote": "EverOS navigates MemScenes, filters for time-valid evidence, and iterates until the retrieved context is \"necessary and sufficient.\"",
-      "locator": "How EverOS works / step 5: Reconstructive Recollection",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "Memory is scoped by owner type across user, agent, app, project, and session dimensions",
-      "kind": "docs",
-      "url": "https://docs.evermind.ai/cloud/overview",
-      "quote": "Scope by owner, type, and user / agent / app / project / session.",
-      "locator": "What EverOS gives your product / User + Agent memory card",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "Memory supports full lifecycle operations including delete; it is not append-only",
-      "kind": "docs",
-      "url": "https://docs.evermind.ai/cloud/overview",
-      "quote": "Add, search, edit, and delete. Memory is a governable asset you control, not an append-only black box.",
-      "locator": "What EverOS gives your product / Full lifecycle control card",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "Agent runs are recorded as Cases; recurring Cases are distilled into reusable Skills (self-evolving agent memory)",
-      "kind": "docs",
-      "url": "https://docs.evermind.ai/cloud/overview",
-      "quote": "Records each agent run as a Case and distills recurring Cases into reusable Skills, so your agents get better at a task the more they run it.",
-      "locator": "What EverOS gives your product / Self-evolving memory card",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "LoCoMo 93.05%, LongMemEval 83.00%, HaluMem recall 90.04% benchmark scores reported by vendor",
-      "kind": "docs",
-      "url": "https://docs.evermind.ai/cloud/overview",
-      "quote": "LoCoMo 93.05% \u00b7 LongMemEval 83.00% \u00b7 HaluMem recall 90.04% \u2014 memory accuracy and anti-hallucination",
-      "locator": "Proven on public benchmarks",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
       "claim": "Three memory types are persisted: Profile, Episodic, and Skill \u2014 auto-tagged on write with no manual curation.",
       "kind": "docs",
       "url": "https://evermind.ai/everos",
@@ -1715,155 +1769,65 @@
       "label": "inferred"
     },
     {
-      "claim": "EverOS structures dialogues into discrete memory cells rather than storing full transcripts",
+      "claim": "EverOS extracts memory from messages and multimodal inputs for persistence across sessions",
       "kind": "docs",
-      "url": "https://evermind.ai/usecases/ai-wearable-memory",
-      "quote": "EverOS solves this by structuring long-term dialogues into discrete memory cells \u2014 delivering precise context-aware retrieval and setting a new standard for conversational coherence in any AI memory device.",
-      "locator": "Overcoming context window limitations",
+      "url": "https://docs.evermind.ai/introduction",
+      "quote": "Extract memory from messages and multimodal data, supporting both multi-user group chat and Human-AI chat.",
+      "locator": "Welcome section, opening blockquote",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "Memory is organized via engram-inspired thematic scenes combined with hypergraph memory systems",
+      "claim": "EverOS memory is described as persistent and evolving, implying write/update over time rather than static storage",
       "kind": "docs",
-      "url": "https://evermind.ai/usecases/ai-wearable-memory",
-      "quote": "EverOS uses an engram-inspired memory mechanism that structures long-term dialogues into thematic scenes. Combined with hypergraph memory systems, it maintains coherent context across days, sessions, and platforms.",
-      "locator": "FAQ \u2014 How does the wearable handle long conversations and multi-day context?",
+      "url": "https://docs.evermind.ai/introduction",
+      "quote": "persistent, evolving memory",
+      "locator": "EverOS Cloud card",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "Retrieval is multimodal (audio, visual, documents, environmental context) via mRAG",
+      "claim": "A multi-stage memory pipeline exists and is exposed for customization in the open-source variant",
       "kind": "docs",
-      "url": "https://evermind.ai/usecases/ai-wearable-memory",
-      "quote": "mRAG ingests visual cues, documents, and environmental context alongside recordings \u2014 so when a user asks a question, the AI retrieves the exact moment, not just a keyword match.",
-      "locator": "02 \u00b7 Multimodal \u2014 Context-aware multimodal retrieval",
+      "url": "https://docs.evermind.ai/introduction",
+      "quote": "customize every stage of the memory pipeline",
+      "locator": "Open Source card",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "Write path includes entity identification and integration into a self-evolving knowledge graph",
+      "claim": "Markdown is the source of truth for memory storage",
       "kind": "docs",
-      "url": "https://evermind.ai/usecases/ai-wearable-memory",
-      "quote": "it structures the conversation, identifies key entities, and integrates information into a self-evolving knowledge graph for instant retrieval.",
-      "locator": "FAQ \u2014 What makes an AI wearable with memory different from a standard voice recorder?",
+      "url": "https://docs.evermind.ai/open-source/overview",
+      "quote": "Markdown files are the source of truth for memory, not a database.",
+      "locator": "Overview section",
       "confidence": "medium",
-      "label": "inferred"
+      "label": "measured"
     },
     {
-      "claim": "Forget/delete path exists: users can delete individual memories via Memory Bank interface",
+      "claim": "Physical directory partitioning provides isolation per user, agent, and knowledge domain",
       "kind": "docs",
-      "url": "https://evermind.ai/usecases/ai-wearable-memory",
-      "quote": "users have transparent control over their Memory Bank \u2014 inspect, edit, or delete any memory at any time.",
-      "locator": "FAQ \u2014 Is my personal data secure and private?",
+      "url": "https://docs.evermind.ai/open-source/overview",
+      "quote": "md partitioned by owner dir \u2192 user / agent / knowledge physically isolated",
+      "locator": "How the Design Cascades section",
       "confidence": "medium",
-      "label": "inferred"
+      "label": "measured"
     },
     {
-      "claim": "Capture can be paused by the user, giving per-session ingestion control",
+      "claim": "Write path routes automatically by message role with no manual configuration",
       "kind": "docs",
-      "url": "https://evermind.ai/usecases/ai-wearable-memory",
-      "quote": "Users can pause ingestion during sensitive moments.",
-      "locator": "FAQ \u2014 Are AI-powered wearables allowed in workplaces?",
+      "url": "https://docs.evermind.ai/open-source/overview",
+      "quote": "Writes are routed automatically based on message `role`. No manual routing or configuration required.",
+      "locator": "Three Memory Tracks section",
       "confidence": "medium",
-      "label": "inferred"
+      "label": "measured"
     },
     {
-      "claim": "Offline-first: local capture and processing on device, syncs to persistent store when online",
+      "claim": "Retrieval uses mRAG to select memory at the right granularity",
       "kind": "docs",
-      "url": "https://evermind.ai/usecases/ai-wearable-memory",
-      "quote": "Basic audio capture and local context processing happen on the hardware; the device syncs to the broader memory nebula once connectivity returns.",
-      "locator": "FAQ \u2014 Do AI wearables work without an internet connection?",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "Repeated patterns are distilled into reusable knowledge for anticipatory surfacing (scaffolding / write path)",
-      "kind": "docs",
-      "url": "https://evermind.ai/usecases/ai-wearable-memory",
-      "quote": "EverOS distills repeated patterns into reusable knowledge, allowing your wearable to anticipate user needs and surface relevant context before they have to ask.",
-      "locator": "A memory that evolves",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "Claims higher accuracy on long-dialogue benchmarks versus competitors; includes temporal knowledge tracking",
-      "kind": "docs",
-      "url": "https://evermind.ai/usecases/ai-wearable-memory",
-      "quote": "EverOS achieves higher accuracy on long-dialogue benchmarks and provides temporal knowledge tracking and effectively unlimited context capacity.",
-      "locator": "FAQ \u2014 How does this compare to competitors like the Limitless Pendant or Bee?",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "EverOS stores agent runs as Cases for cross-session reuse (write path: persist run as case)",
-      "kind": "docs",
-      "url": "https://evermind.ai/usecases/computer-use-agent-memory",
-      "quote": "Agent runs can be stored as reusable cases instead of disappearing after completion, giving every future run access to what already worked.",
-      "locator": "section: Store runs as Cases (01 \u00b7 Trajectories)",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "EverOS distills repeated successful behaviors into Skills (write path: extract pattern \u2192 store as skill)",
-      "kind": "docs",
-      "url": "https://evermind.ai/usecases/computer-use-agent-memory",
-      "quote": "Repeated successful behaviors become skills the system can reuse in future workflows \u2014 no need to rediscover the same playbook.",
-      "locator": "section: Skills from repeatable patterns (02 \u00b7 Distillation)",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "Isolation is per agent, per user, and per group \u2014 three distinct memory scopes",
-      "kind": "docs",
-      "url": "https://evermind.ai/usecases/computer-use-agent-memory",
-      "quote": "Evermind supports agent memory, user memory, and group memory so systems stay clean and governable.",
-      "locator": "section: Separate task, user, and agent memory (03 \u00b7 Scoping)",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "Log vs memory: raw transcript is explicitly not the store; structured memory is preferred",
-      "kind": "docs",
-      "url": "https://evermind.ai/usecases/computer-use-agent-memory",
-      "quote": "A raw transcript is noisy and expensive to reuse. Structured memory makes retrieval more relevant and keeps the agent focused on what matters.",
-      "locator": "section: Frequently Asked Questions \u2014 Why not just save the transcript?",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "Memory supports inspectable objects \u2014 a transparency/governance requirement listed as a design goal",
-      "kind": "docs",
-      "url": "https://evermind.ai/usecases/computer-use-agent-memory",
-      "quote": "Support inspectable memory objects.",
-      "locator": "section: Technical buyer checklist \u2014 item 3",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "Memory tracks evolving state over time, not just static facts",
-      "kind": "docs",
-      "url": "https://evermind.ai/usecases/computer-use-agent-memory",
-      "quote": "Track evolving state over time.",
-      "locator": "section: Technical buyer checklist \u2014 item 2",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "Procedural memory (not just facts) is a stated design requirement",
-      "kind": "docs",
-      "url": "https://evermind.ai/usecases/computer-use-agent-memory",
-      "quote": "Preserve procedural memory, not just facts.",
-      "locator": "section: Technical buyer checklist \u2014 item 1",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "Prompt injection and operational safety are listed as in-scope memory system concerns",
-      "kind": "docs",
-      "url": "https://evermind.ai/usecases/computer-use-agent-memory",
-      "quote": "Handle prompt injection and operational safety workflows.",
-      "locator": "section: Technical buyer checklist \u2014 item 4",
+      "url": "https://docs.evermind.ai/open-source/overview",
+      "quote": "How mRAG selects the right memory at the right granularity.",
+      "locator": "Retrieval card link",
       "confidence": "medium",
       "label": "inferred"
     }
@@ -1925,6 +1889,18 @@
     },
     {
       "url": "https://docs.evermind.ai/llms-full.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.evermind.ai/cloud/overview",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.evermind.ai/api-reference/introduction",
       "kind": "docs",
       "accessed_at": "2026-09-15",
       "quality": "high"
@@ -2062,26 +2038,8 @@
       "quality": "high"
     },
     {
-      "url": "https://evermind.ai/usecases/computer-use-agent-memory",
-      "kind": "docs",
-      "accessed_at": "2026-09-15",
-      "quality": "high"
-    },
-    {
       "url": "https://evermind.ai/blogs/introducing-self-evolving-agent-memory-how-everos-helps-your-ai-agents-learn-from-experience",
       "kind": "blog",
-      "accessed_at": "2026-09-15",
-      "quality": "high"
-    },
-    {
-      "url": "https://evermind.ai/usecases/ai-wearable-memory",
-      "kind": "docs",
-      "accessed_at": "2026-09-15",
-      "quality": "high"
-    },
-    {
-      "url": "https://docs.evermind.ai/cloud/overview",
-      "kind": "docs",
       "accessed_at": "2026-09-15",
       "quality": "high"
     },
@@ -2114,6 +2072,24 @@
       "kind": "blog",
       "accessed_at": "2026-09-15",
       "quality": "high"
+    },
+    {
+      "url": "https://docs.evermind.ai/introduction",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.evermind.ai/open-source/overview",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://www.marktechpost.com/2026/06/29/meet-everos-an-open-source-markdown-first-agent-memory-runtime-with-hybrid-bm25-vector-retrieval-and-self-evolving-skills/",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
     },
     {
       "url": "https://www.reddit.com/r/AIDeveloperNews/comments/1uip18r/meet_everos_an_open_source_markdownfirst_agent/",
@@ -2197,6 +2173,16 @@
       "text": "Retrieve policy details: the page says retrieval is automatic per turn but does not describe how relevance is scored or whether retrieval can be suppressed when nothing relevant exists.",
       "url": "https://www.reddit.com/r/hermesagent/comments/1ujfodk/herding_hermes_persistent_memory_from_selfhosting/",
       "kind": "community"
+    },
+    {
+      "text": "Conflict and supersession policy: this architecture overview page describes distillation and profile evolution but does not explain how contradictory facts are resolved or which fact wins when user state changes.",
+      "url": "https://docs.evermind.ai/cloud/overview",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget path detail: delete is listed as a supported operation but this page does not specify whether forget is implemented as hard delete from store, hide at retrieval, or omission in generation.",
+      "url": "https://docs.evermind.ai/cloud/overview",
+      "kind": "docs"
     },
     {
       "text": "Forget / selective suppression: the delete endpoint is documented as a scoped soft-delete but the page does not describe whether soft-deleted memories are hidden at retrieve time, hard-purged after a delay, or permanently excluded from consolidation.",
@@ -2299,6 +2285,21 @@
       "kind": "issue"
     },
     {
+      "text": "Forget / delete path: this blog post does not describe how records are deleted from the store or suppressed at retrieval time",
+      "url": "https://www.marktechpost.com/2026/06/29/meet-everos-an-open-source-markdown-first-agent-memory-runtime-with-hybrid-bm25-vector-retrieval-and-self-evolving-skills/",
+      "kind": "blog"
+    },
+    {
+      "text": "Conflict / supersession policy: no description of how contradictory or outdated facts are resolved or replaced in the store",
+      "url": "https://www.marktechpost.com/2026/06/29/meet-everos-an-open-source-markdown-first-agent-memory-runtime-with-hybrid-bm25-vector-retrieval-and-self-evolving-skills/",
+      "kind": "blog"
+    },
+    {
+      "text": "Retrieve policy: no description of whether retrieval is always-on per turn or adaptive (triggered by query relevance or explicit call)",
+      "url": "https://www.marktechpost.com/2026/06/29/meet-everos-an-open-source-markdown-first-agent-memory-runtime-with-hybrid-bm25-vector-retrieval-and-self-evolving-skills/",
+      "kind": "blog"
+    },
+    {
       "text": "Forget or deletion mechanism \u2014 the page does not describe how memories are removed or superseded in EverOS.",
       "url": "https://evermind.ai/blogs/best-open-source-agent-memory-frameworks-2026",
       "kind": "blog"
@@ -2364,16 +2365,6 @@
       "kind": "blog"
     },
     {
-      "text": "Write-path conflict and supersession policy: the page describes distillation and profile evolution but does not specify how contradictory or updated facts are resolved or which version wins",
-      "url": "https://docs.evermind.ai/cloud/overview",
-      "kind": "docs"
-    },
-    {
-      "text": "Forget / explicit delete behavior: the page states delete is supported but does not describe whether deletion removes from store, hides at retrieval, or omits in generation, nor whether it propagates to derived MemScenes or User Profile",
-      "url": "https://docs.evermind.ai/cloud/overview",
-      "kind": "docs"
-    },
-    {
       "text": "Forget / delete path: this page does not describe how memories are deleted, suppressed at retrieval, or superseded when conflicting facts are stored. For a product describing itself as a full-lifecycle memory OS, the absence of conflict resolution and deletion semantics is a gap.",
       "url": "https://evermind.ai/everos",
       "kind": "docs"
@@ -2389,33 +2380,23 @@
       "kind": "docs"
     },
     {
-      "text": "Retrieve policy is not described: the page does not state when or whether retrieval is adaptive (always-on vs. triggered) or how the model is instructed to use retrieved memory cells in generation.",
-      "url": "https://evermind.ai/usecases/ai-wearable-memory",
+      "text": "This is the introduction/index page and does not describe retrieve policy, forget/delete behavior, conflict or supersession handling, or how memories are selected into a turn. The full architecture docs are linked via https://docs.evermind.ai/llms.txt but were not provided.",
+      "url": "https://docs.evermind.ai/introduction",
       "kind": "docs"
     },
     {
-      "text": "Conflict and supersession policy is absent: no description of how EverOS handles contradictory memories or updates to previously stored facts.",
-      "url": "https://evermind.ai/usecases/ai-wearable-memory",
+      "text": "Forget / delete behavior: this overview page does not describe how memory is deleted or hidden from retrieval",
+      "url": "https://docs.evermind.ai/open-source/overview",
       "kind": "docs"
     },
     {
-      "text": "Isolation scope is unspecified: the page does not state whether the Memory Bank is per-user, per-device, per-session, or per-agent.",
-      "url": "https://evermind.ai/usecases/ai-wearable-memory",
+      "text": "Conflict and supersession policy: this overview page does not describe how conflicting or outdated memory entries are resolved or overwritten",
+      "url": "https://docs.evermind.ai/open-source/overview",
       "kind": "docs"
     },
     {
-      "text": "Retrieve policy is not described: no detail on when or how stored Cases and Skills are selected back into context (always-on, adaptive, threshold-based, or query-driven).",
-      "url": "https://evermind.ai/usecases/computer-use-agent-memory",
-      "kind": "docs"
-    },
-    {
-      "text": "Forget / delete behavior is absent: the page does not describe how memories are deleted, expired, superseded, or hidden \u2014 a core memory behavior gap for a page presenting the product's memory architecture.",
-      "url": "https://evermind.ai/usecases/computer-use-agent-memory",
-      "kind": "docs"
-    },
-    {
-      "text": "Conflict and supersession are not described: no mechanism stated for handling contradicting Cases or outdated procedural knowledge.",
-      "url": "https://evermind.ai/usecases/computer-use-agent-memory",
+      "text": "Retrieve policy detail: mRAG is named but this page does not describe when retrieval is triggered, what is always retrieved, or when the system stays silent",
+      "url": "https://docs.evermind.ai/open-source/overview",
       "kind": "docs"
     }
   ]

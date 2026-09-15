@@ -79,6 +79,47 @@ def ledger_matches(item: dict[str, object], ledger: list[dict[str, object]]) -> 
     return False
 
 
+def summary_tokens(text: str) -> set[str]:
+    return {token for token in re.split(r"[^a-z0-9]+", normalize_claim(text)) if len(token) >= 4}
+
+
+def is_near_duplicate_summary(left: str, right: str) -> bool:
+    """True when two purpose/mechanism summaries say the same thing in different words."""
+    normalized_left = normalize_claim(left)
+    normalized_right = normalize_claim(right)
+    if not normalized_left or not normalized_right:
+        return False
+    if normalized_left == normalized_right:
+        return True
+    if normalized_left in normalized_right or normalized_right in normalized_left:
+        return True
+    left_tokens = summary_tokens(left)
+    right_tokens = summary_tokens(right)
+    if not left_tokens or not right_tokens:
+        return False
+    overlap = len(left_tokens & right_tokens) / min(len(left_tokens), len(right_tokens))
+    return overlap >= 0.6
+
+
+def dedupe_near_duplicate_summaries(
+    items: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    """Drop near-duplicate summary rows, keeping the longest wording."""
+    kept: list[dict[str, object]] = []
+    for item in sorted(
+        items,
+        key=lambda row: len(str(row.get("text") or "")),
+        reverse=True,
+    ):
+        text = str(item.get("text") or "").strip()
+        if not text:
+            continue
+        if any(is_near_duplicate_summary(text, str(row.get("text") or "")) for row in kept):
+            continue
+        kept.append(item)
+    return kept
+
+
 def cited_summaries(
     items: list[dict[str, object]],
     ledger: list[dict[str, object]],
@@ -97,7 +138,23 @@ def cited_summaries(
             continue
         seen.add(key)
         out.append({"text": text})
-    return out
+    return dedupe_near_duplicate_summaries(out)
+
+
+def dedupe_unknowns_by_text(items: list[dict[str, object]]) -> list[dict[str, object]]:
+    """Keep one row per unknown stem across URLs."""
+    kept: list[dict[str, object]] = []
+    seen: set[str] = set()
+    for item in items:
+        text = str(item.get("text") or "").strip()
+        if not text:
+            continue
+        key = normalize_claim(text)
+        if key in seen:
+            continue
+        seen.add(key)
+        kept.append(item)
+    return kept
 
 
 def is_page_absence(text: str) -> bool:
@@ -215,10 +272,20 @@ def fold_pages(
             continue
         seen_unknown.add(key)
         unique_unknowns.append(item)
-    absence_in = sum(
-        1 for item in unique_unknowns if is_page_absence(str(item.get("text") or ""))
-    )
-    audit["unknowns"] = fold_page_absence_unknowns(unique_unknowns)
+    absence_candidates = [
+        item
+        for item in unique_unknowns
+        if is_page_absence(str(item.get("text") or ""))
+    ]
+    non_absence = [
+        item
+        for item in unique_unknowns
+        if not is_page_absence(str(item.get("text") or ""))
+    ]
+    folded_absence = fold_page_absence_unknowns(absence_candidates)
+    deduped_non_absence = dedupe_unknowns_by_text(non_absence)
+    audit["unknowns"] = folded_absence + deduped_non_absence
+    absence_in = len(absence_candidates)
     audit["sources"] = list(sources_by_url.values())
     audit["copy"] = []
     audit["refuse"] = []
