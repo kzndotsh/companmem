@@ -3,9 +3,12 @@ from __future__ import annotations
 from companmem_pipeline.fold import (
     dedupe_near_duplicate_summaries,
     filter_summary_items,
+    filter_unknown_items,
     fold_pages,
+    is_documented_capability_unknown,
     is_near_duplicate_summary,
     is_self_referential_summary,
+    mentions_add_search_loop,
 )
 from companmem_pipeline.lint import lint_audit
 
@@ -342,6 +345,37 @@ def test_is_self_referential_summary_drops_circular_product_reference() -> None:
         "lightrag",
         "LightRAG",
     )
+
+
+def test_mentions_add_search_loop_marks_integration_duplicates() -> None:
+    left = "The integration pattern is retrieve-then-store: search() before answering, add() after."
+    right = "Memory is written by calling add() after each turn and read by calling search() before responding."
+    assert mentions_add_search_loop(left)
+    assert is_near_duplicate_summary(left, right)
+
+
+def test_filter_unknown_items_drops_documented_capabilities_and_piwheels() -> None:
+    items = [
+        {
+            "text": "Forget / explicit deletion is available via MCP (delete_memory)",
+            "url": "https://github.com/TeleAI-UAGI/telemem",
+            "kind": "docs",
+        },
+        {
+            "text": "Forget/deletion behavior from the memory store is not described",
+            "url": "https://www.piwheels.org/project/telemem/",
+            "kind": "blog",
+        },
+        {
+            "text": "Conflict resolution policy is not described beyond similarity clustering",
+            "url": "https://teleai-uagi.github.io/telemem/api/",
+            "kind": "docs",
+        },
+    ]
+    kept = filter_unknown_items(items)
+    assert is_documented_capability_unknown(items[0]["text"])
+    assert len(kept) == 1
+    assert "Conflict resolution" in kept[0]["text"]
 
 
 def test_filter_summary_items_drops_self_referential_rows() -> None:

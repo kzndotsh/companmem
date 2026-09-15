@@ -1,0 +1,1020 @@
+{
+  "identity": {
+    "id": "agnai",
+    "name": "Agnai",
+    "repo": "https://github.com/agnaistic/agnai",
+    "docs": "https://github.com/agnaistic/agnai/blob/dev/instructions/memory.md",
+    "license": "AGPL-3.0",
+    "version_or_commit": "fccee00f5f7628d150760c787c4be87e6b1a652c",
+    "observed_at": "2026-09-15"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Agnai is a chat interface supporting character-based AI conversations with optional account persistence across devices."
+    },
+    {
+      "text": "Memory in Agnai is enabled through keyword-triggered memory books and dynamic embed systems"
+    },
+    {
+      "text": "Optional pipeline features include long-term memory and document embedding"
+    },
+    {
+      "text": "Platform positioned as a competitor to C.AI for roleplay"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "MongoDB is required for permanent server-side storage of user data, characters, and chats; without it Agnai runs in anonymous-only mode backed only by browser local storage."
+    },
+    {
+      "text": "scanDepth, tokenBudget, and recursiveScanning fields are present on MemoryBook but currently unsupported, meaning those retrieval-control behaviours are not yet active."
+    },
+    {
+      "text": "Chat embeds capture individual messages with author and timestamp, forming a separate vector-searchable message log distinct from the curated MemoryBook entries."
+    },
+    {
+      "text": "Memory entry retrieval is keyword/pattern triggered, not always-on; trigger phrases (including wildcards) determine when an entry is selected into context."
+    },
+    {
+      "text": "Without a database, anonymous user data is saved to browser local storage and persists only within that browser; clearing application data deletes it"
+    },
+    {
+      "text": "Browser-side message availability is capped at 100 on initial load, which can cause keywords to fail to trigger if Memory Depth exceeds that cap."
+    },
+    {
+      "text": "A default memory book can be applied globally to all users via settings.json, indicating memory books are per-application-configurable"
+    },
+    {
+      "text": "Each memory entry is a curated record with a name, weight, priority, entry text, enabled flag, and keywords \u2014 not a raw log line."
+    },
+    {
+      "text": "Imported chat history influences bot response style in new dialogue \u2014 prior conversation acts as implicit memory scaffold"
+    },
+    {
+      "text": "Guest/anonymous users always have the full chat history available for prompt building, bypassing the 100-message limit."
+    },
+    {
+      "text": "When the token budget is exceeded, entries are discarded by ascending priority (lowest priority dropped first)."
+    },
+    {
+      "text": "Character cards store names, personas, and memory books; importable from SillyTavern/Tavern formats"
+    },
+    {
+      "text": "Memory books are isolated per user: all CRUD operations pass userId as the owning scope."
+    },
+    {
+      "text": "MongoDB is used for persistence when available; Redis is used for distributed messaging"
+    },
+    {
+      "text": "Memory Books persist world-building, lore, and character backgrounds for AI reference"
+    },
+    {
+      "text": "Session history is kept and past chats can be revisited for continuity"
+    },
+    {
+      "text": "Long-term memory is an optional pipeline feature"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Long-term memory is gated behind an optional pipeline flag and is not part of the default runtime",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/README.md",
+      "quote": "Optional pipeline features\n  - Long-term memory\n  - Wikipedia Article and PDF embedding",
+      "locator": "README.md, Features section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Without MongoDB, persistence is limited to browser local storage and is not durable across devices or after cache clear",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/README.md",
+      "quote": "Anonymous users have their data saved to the browser's local storage. Your data will \"persist\", but not be shareable between devices or other browsers. Clearing your browser's application data/cookies will delete this data.",
+      "locator": "README.md, Running Manually section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory books can be scoped globally to all users via a server-side settings.json configuration",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/README.md",
+      "quote": "I want a \"default memory book\" applied to all users.",
+      "locator": "README.md, Self-Hosting Settings section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory in Agnai is a keyword-triggered book of curated entries, not a raw transcript log. Retrieval is keyword search over a bounded chat history window; matched entry text is injected into the prompt up to a token budget.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/common/memory.ts",
+      "quote": "const entries = getEnabledEntriesFromBooks(opts.books)\n\n  const matches = await findAllMatches(entries, opts.lines, ctx)\n  matches.sort(byPriorityThenAge)\n\n  const allowed = await getMatchesWithinBudget(matches, ctx)\n  allowed.sort(byWeightThenAge)",
+      "locator": "common/memory.ts:buildMemoryPrompt",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval depth is bounded by memoryDepth setting; lines outside the window are never scanned, so distant history is silently ignored.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/common/memory.ts",
+      "quote": "const depth = +(opts.settings?.memoryDepth || presetDefaults.memoryDepth || Infinity)",
+      "locator": "common/memory.ts:getMemoryPromptContext",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory entries support per-entry enable/disable; disabled entries are excluded before any keyword matching occurs.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/common/memory.ts",
+      "quote": "if (!entry.enabled) continue",
+      "locator": "common/memory.ts:getEnabledEntriesFromBooks",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Bot name and sender name are substituted into entry text at retrieval time using BOT_REPLACE and SELF_REPLACE tokens.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/common/memory.ts",
+      "quote": "const text = entry.entry\n    .replace(BOT_REPLACE, ctx.bot)\n    .replace(SELF_REPLACE, ctx.sender)\n    .concat('\\n')",
+      "locator": "common/memory.ts:findMatchWithLowestAge",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemoryBook is the persisted memory unit, scoped to a user, containing curated entries rather than a raw message log.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/common/types/memory.ts",
+      "quote": "export interface MemoryBook {\n  kind: 'memory'\n  _id: string\n  name: string\n  userId: string\n  entries: MemoryEntry[]",
+      "locator": "memory.ts: MemoryBook interface",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Token-budget overflow is resolved by discarding lowest-priority entries first.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/common/types/memory.ts",
+      "quote": "/** When choosing which memories to discard, lowest priority will be discarded first */\n  priority: number",
+      "locator": "memory.ts: MemoryEntry interface",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A separate ChatEmbed structure exists for vector-indexed message-log retrieval, distinct from the curated MemoryBook write path.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/common/types/memory.ts",
+      "quote": "export type ChatEmbed = { _id: string; msg: string; name: string; createdAt: string }",
+      "locator": "memory.ts: ChatEmbed type",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Vector retrieval results carry a distance score, indicating semantic similarity search over stored text.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/common/types/memory.ts",
+      "quote": "export type UserEmbed<T = {}> = {\n  id: string\n  distance: number\n  text: string\n  date: string\n}",
+      "locator": "memory.ts: UserEmbed type",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "scanDepth, tokenBudget, and recursiveScanning are acknowledged V2 fields that are currently unsupported and not enforced.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/common/types/memory.ts",
+      "quote": "// currently unsupported V2 fields which are here so that we don't destroy them\n  scanDepth?: number\n  tokenBudget?: number\n  recursiveScanning?: boolean",
+      "locator": "memory.ts: MemoryBook interface, V2 fields comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is always-on keyword matching rather than adaptive or semantic; any message in the scan window containing a keyword triggers insertion.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/instructions/memory.md",
+      "quote": "These are words that \"trigger\" the memory to be inserted into your prompt.",
+      "locator": "## How does it work?",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "There is no documented forget or delete mechanism for memory entries on this page.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/instructions/memory.md",
+      "quote": "At the moment I have no idea. I would be very interested to hear your experiences as you experiment with them.",
+      "locator": "## What memory generation settings do you recommend?",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation scope is not addressed; the page does not state whether books are per-character, per-chat, or per-user.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/instructions/memory.md",
+      "quote": "Memory books are a way to dynamically provide context to your characters as you talk with them.",
+      "locator": "## What is it?",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "This file provides server-side embedding computation only \u2014 it produces vectors from text but contains no logic to persist, retrieve, update, or delete embeddings from any store",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/srv/api/chat/embedding.ts",
+      "quote": "export const embedText = handle(async (req, res) => {\n  assertValid({ inputs: ['string'] }, req.body )\n  ...\n  const embeds = match.batch ? await embedMultiple(texts, match) : await embedSingle(texts, match)\n  return { embeds }",
+      "locator": "embedding.ts:embedText",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Embedding server selection and credentials are managed at the admin/server configuration level, not per user or per chat session",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/srv/api/chat/embedding.ts",
+      "quote": "const cfg = await store.admin.getServerConfiguration()\n  if (!cfg.embedding || !cfg.embeddings?.length) return",
+      "locator": "embedding.ts:getEmbeddingServer",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is stored as curated keyword-tagged entries inside named books, not as a raw message log.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/srv/api/memory/index.ts",
+      "quote": "const validEntry = {\n  name: 'string',\n  weight: 'number',\n  priority: 'number',\n  entry: 'string',\n  enabled: 'boolean',\n  keywords: ['string'],\n} as const",
+      "locator": "srv/api/memory/index.ts, validEntry definition",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per user: getBooks, createBook, updateBook, and deleteBook all scope to userId.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/srv/api/memory/index.ts",
+      "quote": "const books = await store.memory.getBooks(userId!)",
+      "locator": "srv/api/memory/index.ts, getUserBooks handler",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The book update route replaces the full book (name, description, entries array), which is the write path for adding, editing, or removing entries.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/srv/api/memory/index.ts",
+      "quote": "assertValid(validBook, body)\n  await store.memory.updateBook(userId!, id!, body)",
+      "locator": "srv/api/memory/index.ts, updateBook handler",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is persisted as curated 'MemoryBook' documents in a dedicated collection, distinct from the message log \u2014 this is a lore/fact store not a transcript.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/srv/db/memory.ts",
+      "quote": "kind: 'memory',",
+      "locator": "srv/db/memory.ts:createBook",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per user: all CRUD operations filter by userId, so memory books are not shared across users.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/srv/db/memory.ts",
+      "quote": "await db('memory').updateOne(\n    { _id: bookId, userId },",
+      "locator": "srv/db/memory.ts:updateBook",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path supports create, full-entry-array update, and hard delete from the store.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/srv/db/memory.ts",
+      "quote": "await db('memory').insertOne(newBook)\n...\nawait db('memory').updateOne(...)\n...\nawait db('memory').deleteOne({ _id: bookId, userId })",
+      "locator": "srv/db/memory.ts:createBook,updateBook,deleteBook",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entries have an 'enabled' flag and keywords, suggesting keyword-matched conditional retrieval \u2014 not all entries are always injected.",
+      "kind": "code",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/srv/db/memory.ts",
+      "quote": "enabled: entry.enabled,\n      entry: entry.entry,\n      keywords: entry.keywords,",
+      "locator": "srv/db/memory.ts:createBook entry mapping",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Importing a prior chat causes the bot to mirror old response patterns, functioning as a style/memory carry-over rather than a fresh start",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAi_NSFW/comments/1fyl3yo/my_thoughts_on_agnai/",
+      "quote": "i imported a chat from c.ai and the bot mimicked the old responses in the new dialogue, which i think is pretty nice. no jarring changes in the way messages are structured. unfortunately, that also means you probably won't get messages like the ones you see above, if you prefer those. you'd have to start a fresh new chat for that.",
+      "locator": "post body, import section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No searchable chat history \u2014 absence of chat search is cited as a usability gap",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAi_NSFW/comments/1fyl3yo/my_thoughts_on_agnai/",
+      "quote": "i think this would be a direct competitor if the site was a bit faster, easier to navigate and if there was a way of searching chats",
+      "locator": "post body, overall impressions",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No built-in character database; users must source characters externally or create them",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAi_NSFW/comments/1fyl3yo/my_thoughts_on_agnai/",
+      "quote": "the big thing about agnai is that there's no database of pre-made characters on the site itself.",
+      "locator": "post body, character database paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User persona feature is limited or confusing \u2014 perceived as only useful for impersonating already-imported bots, not for defining the user's own persistent identity",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAi_NSFW/comments/1fyl3yo/my_thoughts_on_agnai/",
+      "quote": "the \"persona\" option would've been nice if it wasn't just for impersonating other bots you've already imported. i might be wrong about that though",
+      "locator": "post body, features paragraph",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "No discoverable way to set a user-side roleplay description (user persona/character description for the player), which other sites offer",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAi_NSFW/comments/1fyl3yo/my_thoughts_on_agnai/",
+      "quote": "a lot of other sites have a thing where you can create a description for the character you want to roleplay as but i cant find such a thing on agnai? how are you guys dealing with that or am i just kinda stupid?",
+      "locator": "comments, u/tallarest",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Long-term memory is available as an optional pipeline feature, alongside Wikipedia article and PDF embedding",
+      "kind": "docs",
+      "url": "https://github.com/agnaistic/agnai/blob/dev/README.md",
+      "quote": "Optional pipeline features\n\nLong-term memory\n\nWikipedia Article and PDF embedding",
+      "locator": "README.md, Features section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Without MongoDB, user data is stored in browser local storage; it persists locally but is lost if browser data is cleared",
+      "kind": "docs",
+      "url": "https://github.com/agnaistic/agnai/blob/dev/README.md",
+      "quote": "Anonymous users have their data saved to the browser's local storage. Your data will \"persist\", but not be shareable between devices or other browsers. Clearing your browser's application data/cookies will delete this data.",
+      "locator": "README.md, Running Manually section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MongoDB is the persistence backend when available; Redis handles distributed messaging",
+      "kind": "docs",
+      "url": "https://github.com/agnaistic/agnai/blob/dev/README.md",
+      "quote": "MongoDB for persistence\n\nRedis for distributed messaging for websockets.",
+      "locator": "README.md, Tech Stack section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A default memory book can be configured server-wide and applied to all users via settings.json",
+      "kind": "docs",
+      "url": "https://github.com/agnaistic/agnai/blob/dev/README.md",
+      "quote": "I want a \"default memory book\" applied to all users.",
+      "locator": "README.md, Self-Hosting Settings section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory retrieval is keyword-triggered and retrieve-then-prompt only; no extraction, summarisation, consolidation, or autonomous write-back is described.",
+      "kind": "docs",
+      "url": "https://github.com/agnaistic/agnai/blob/dev/instructions/memory.md",
+      "quote": "These are words that \"trigger\" the memory to be inserted into your prompt.",
+      "locator": "How does it work?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Keyword scanning depth above 100 messages is unreliable due to the server only sending 100 messages on initial chat load.",
+      "kind": "docs",
+      "url": "https://github.com/agnaistic/agnai/blob/dev/instructions/memory.md",
+      "quote": "If you configure your memory depth above 100 , the keywords may not trigger as you expect them to. When you initially load your chat, you will be sent a maximum of 100 messages from the server.",
+      "locator": "Why is it important to remember this occurs in the browser?",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Optimal generation settings for memory (depth, context limit) are unknown; no recommendations are given.",
+      "kind": "docs",
+      "url": "https://github.com/agnaistic/agnai/blob/dev/instructions/memory.md",
+      "quote": "At the moment I have no idea. I would be very interested to hear your experiences as you experiment with them.",
+      "locator": "What memory generation settings do you recommend?",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Agnai has a Memory Book feature with an import-from-file UI flow, including a file chooser and an approval modal.",
+      "kind": "issue",
+      "url": "https://github.com/agnaistic/agnai/issues/1244",
+      "quote": "when your memory book is approved for import the name of the memory book flashes but then finally displays \"no file chosen\". I believed for a moment that the memory book had imported automatically and that I needed to refresh the page.",
+      "locator": "Issue body, 'Describe the bug' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "After import approval, the UI does not retain the selected filename next to the 'choose file' button, causing user confusion about whether the import succeeded.",
+      "kind": "issue",
+      "url": "https://github.com/agnaistic/agnai/issues/1244",
+      "quote": "user expects the name of the file next to the \"choose file\" button",
+      "locator": "Issue body, 'Expected behavior' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The reporter proposes a split weighting model \u2014 first assess recent conversation, then layer personality attributes on top \u2014 as a potential fix for continuity failure.",
+      "kind": "issue",
+      "url": "https://github.com/agnaistic/agnai/issues/301",
+      "quote": "I wonder whether it might be necessary to create some form of split weighting model, to firstly assess the recent conversation, and then to layer over the personality attributes, to reground the character in its underlying attributes.",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User persona state is global across chats rather than isolated per chat session",
+      "kind": "issue",
+      "url": "https://github.com/agnaistic/agnai/issues/282",
+      "quote": "Instead of having one global profile, it would be neat if the user could define or choose one per chat.",
+      "locator": "issue title / opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agnai uses a memory book whose entries are retrieved into context by keyword matching; more entries/longer chat increases the volume of memory the AI must review.",
+      "kind": "issue",
+      "url": "https://github.com/agnaistic/agnai/issues/363",
+      "quote": "As the length of chats increases, the memory that AI needs to review will become longer and longer. The current method of managing the memory book will become more and more cumbersome.",
+      "locator": "issue body, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Feature request: dual keyword (AND-logic) trigger for memory book entries, analogous to SillyTavern \u2014 entry fires only when both keywords appear in context simultaneously.",
+      "kind": "issue",
+      "url": "https://github.com/agnaistic/agnai/issues/363",
+      "quote": "if dual verification is enabled, then only when both \"Chris\" and \"hair\" appear in the context at the same time (regardless of whether they are connected) can the entry's content be triggered",
+      "locator": "issue body, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The roadmap at time of issue did not include plans for multi-keyword trigger logic.",
+      "kind": "issue",
+      "url": "https://github.com/agnaistic/agnai/issues/363",
+      "quote": "I have looked through your roadmap briefly and it seems that there are no plans related to this feature",
+      "locator": "issue body, paragraph 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A feature request exists to make certain definition fields temporary/evictable from context, similar to how Tavernai handles example dialogues, extending to scenario-specific details and additional characters",
+      "kind": "issue",
+      "url": "https://github.com/agnaistic/agnai/issues/67",
+      "quote": "I think it would be great to adapt this feature from Tavernai and extend its functionality for using defs as well",
+      "locator": "issue body, paragraph 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Continuity/isolation failure: the main bot absorbs or copies unique characteristics from the impersonated character's persona into its own behavior, attributing them to itself rather than the impersonated character",
+      "kind": "issue",
+      "url": "https://github.com/agnaistic/agnai/issues/756",
+      "quote": "When impersonating a character, sometimes the main bot will steal or copy unique characteristics of the impersonated character as if they were from its own Persona. Example: \"John makes everyone around him feel the urge to laugh\". In this example John is the impersonated character and Mickey is the main bot, in the chat the following will usually happen \"John feels an urge to laugh because of Mickey's power\".",
+      "locator": "Bug Description section, issue body",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agnai has an impersonate selection feature but lacks per-user personas that persist as a default across all chats",
+      "kind": "issue",
+      "url": "https://github.com/agnaistic/agnai/issues/804",
+      "quote": "In the impersonate selection, you would see a second button where you could create your user personas. You could set one of your personas as default for all chats",
+      "locator": "Describe the solution you'd like",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agnai currently supports character-level personas for already-created bots but not user-level personas scoped to the user's profile",
+      "kind": "issue",
+      "url": "https://github.com/agnaistic/agnai/issues/804",
+      "quote": "we got one for already-created bots but why not making a alt ego of your profile?",
+      "locator": "Is your feature request related to a problem?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session history is persisted and retrievable for continuity",
+      "kind": "blog",
+      "url": "https://aitools.aiting.com/ai/agnai",
+      "quote": "Run multi-turn conversations, keep session history, and revisit past chats for continuity.",
+      "locator": "Agnai Features \u2013 Chat Workspace",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Library acts as a persistent store of prompts, scenes, and lore that can be seeded into new sessions",
+      "kind": "blog",
+      "url": "https://aitools.aiting.com/ai/agnai",
+      "quote": "Store prompts, scenes, and lore snippets to seed new sessions and maintain continuity across projects.",
+      "locator": "Agnai FAQs \u2013 Can I reuse prompts and scenes?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conversation quality depends on context management configuration, not solely on the model",
+      "kind": "blog",
+      "url": "https://aitools.aiting.com/ai/agnai",
+      "quote": "Conversation quality depends on underlying model configuration and context management.",
+      "locator": "Agnai Pros and Cons \u2013 Cons",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory Books define world-building, lore, and character backgrounds that the AI references during conversation",
+      "kind": "blog",
+      "url": "https://weavai.app/blog/en/2026/06/02/agnai-chat-review-2026-multi-engine-ai-roleplay/",
+      "quote": "Memories (Memory Books) : Define world-building, lore, and character backgrounds for AI reference.",
+      "locator": "Deep Review of Five Core Features / 2. Memory Books",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character cards carry per-character memory books, enabling character-level memory isolation",
+      "kind": "blog",
+      "url": "https://weavai.app/blog/en/2026/06/02/agnai-chat-review-2026-multi-engine-ai-roleplay/",
+      "quote": "You can set names, personas, and memory books, or import existing cards from other platforms seamlessly.",
+      "locator": "Deep Review of Five Core Features / 5. Character Customization and Import",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agnai supports two distinct memory mechanisms: keyword-triggered memory books and dynamic Chat/User Embeds",
+      "kind": "blog",
+      "url": "https://agnai.guide/docs/memory/",
+      "quote": "Memory in Agnai chat bots is made possible via both manual keyword-triggered entries in memory books, as well as dynamic Chat Embeds and User Embeds.",
+      "locator": "Memory intro paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory entries are keyword-triggered retrieval into prompt context, not curated persistent facts; there is no write/update/delete path described \u2014 entries are authored manually.",
+      "kind": "blog",
+      "url": "https://agnai.guide/docs/memory/memory-books.html",
+      "quote": "When you create a Memory Entry , you provide: keywords and the entry text.",
+      "locator": "Memory Books > How does it work?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval is shallow and recency-bounded: only the most recent N messages (depth) are scanned for keyword matches, so older conversation facts are not retrieved unless re-triggered.",
+      "kind": "blog",
+      "url": "https://agnai.guide/docs/memory/memory-books.html",
+      "quote": "This is the maximum number of chat messages that Agnai will scan for keywords.",
+      "locator": "Memory Books > What memory generation settings do you recommend?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Guest users have full chat history available for prompt building, while authenticated users receive at most 100 messages on initial load, creating a retrieval asymmetry.",
+      "kind": "blog",
+      "url": "https://agnai.guide/docs/memory/memory-books.html",
+      "quote": "This does not apply to anonymous/guest users. Guest users always have the entire chat history available for prompt building.",
+      "locator": "Memory Books > How does it work? (Note block)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory retrieval is keyword/pattern triggered per entry, not global or always-on.",
+      "kind": "blog",
+      "url": "https://agnai.guide/docs/quick-start/",
+      "quote": "List out a series of phrases that should trigger the memory. These could be one work, multiple words, or pattern-matching like 'dino*'",
+      "locator": "Step-by-Step > Create a memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Chat persistence across sessions requires account login; anonymous use does not guarantee persistence.",
+      "kind": "blog",
+      "url": "https://agnai.guide/docs/quick-start/",
+      "quote": "login / create an account (if you want your chats to persist across devices or you want to sign up for higher context / more powerful LLMs)",
+      "locator": "Step-by-Step > Step 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Browser local storage is the persistence layer for anonymous (non-logged-in) users; clearing browser data destroys it.",
+      "kind": "blog",
+      "url": "https://agnai.guide/docs/running-locally/",
+      "quote": "Anonymous users have their data saved to the browser's local storage. Your data will \"persist\", but not be shareable between devices or other browsers. Clearing your browser's application data/cookies will delete this data.",
+      "locator": "Running AGNai Locally \u2014 introductory bullet points",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MongoDB provides permanent, server-side persistence for user data, characters, and chats when Agnai is self-hosted.",
+      "kind": "blog",
+      "url": "https://agnai.guide/docs/running-locally/",
+      "quote": "MongoDB (recommended) - necessary to enable permanent storage for user data, characters, chats, etc. If it is not installed, Agnai will run in anonymous-only mode (see above).",
+      "locator": "Running AGNai Locally \u2014 Additional optional components",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/instructions/memory.md",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/common/memory.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/common/types/memory.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/srv/db/memory.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/srv/api/memory/index.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/srv/api/chat/embedding.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/blob/dev/instructions/memory.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/blob/dev/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/843",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/360",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/363",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/270",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/824",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/301",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/801",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/349",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/67",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/894",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/537",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/282",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/1244",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/804",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/560",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/437",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/351",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/340",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/265",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agnaistic/agnai/issues/756",
+      "kind": "issue",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://agnai.guide/docs/running-locally/",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://weavai.app/blog/en/2026/06/02/agnai-chat-review-2026-multi-engine-ai-roleplay/",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://agnai.guide/docs/quick-start/",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://aitools.aiting.com/ai/agnai",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://agnai.guide/docs/memory/memory-books.html",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://agnai.guide/docs/memory/",
+      "kind": "blog",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/PygmalionAI/comments/13m1t3m/agnai_chat_memory_book/?rdt=46540",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/CharacterAi_NSFW/comments/1fyl3yo/my_thoughts_on_agnai/",
+      "kind": "community",
+      "accessed_at": "2026-09-15",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "The README names 'Memory/Lore books' and 'Long-term memory' as distinct features but does not describe the write path (extract, update, delete, conflict), retrieve policy, or forget mechanism for either. As this is the canonical repo README, those omissions are notable.",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Forget / delete behaviour: no API or logic for removing entries from the store or suppressing them at retrieval is defined here.",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/common/types/memory.ts",
+      "kind": "code"
+    },
+    {
+      "text": "Conflict / supersession policy: how contradictory entries are resolved is absent from this type definition file.",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/common/types/memory.ts",
+      "kind": "code"
+    },
+    {
+      "text": "No write path described: the page does not explain how memory entries are persisted to or deleted from the store, nor how conflicts or supersessions are handled.",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/instructions/memory.md",
+      "kind": "code"
+    },
+    {
+      "text": "No forget mechanism documented: the page does not describe deleting, hiding, or suppressing a memory entry once written.",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/instructions/memory.md",
+      "kind": "code"
+    },
+    {
+      "text": "Isolation scope not stated: the page does not specify whether memory books are scoped per-user, per-session, per-character, or per-chat.",
+      "url": "https://github.com/agnaistic/agnai/blob/fccee00f5f7628d150760c787c4be87e6b1a652c/instructions/memory.md",
+      "kind": "code"
+    },
+    {
+      "text": "No information on whether Agnai persists any curated facts, summaries, or memory entries across sessions beyond raw chat history",
+      "url": "https://www.reddit.com/r/CharacterAi_NSFW/comments/1fyl3yo/my_thoughts_on_agnai/",
+      "kind": "community"
+    },
+    {
+      "text": "The page lists Memory/Lore books and long-term memory as features but does not describe the write path (extract, update, delete, conflict), retrieval policy, forget mechanism, or isolation model for either. These are core memory behaviors absent from this canonical README.",
+      "url": "https://github.com/agnaistic/agnai/blob/dev/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of a write path: how memory entries are created, updated, or deleted programmatically or automatically during a session.",
+      "url": "https://github.com/agnaistic/agnai/blob/dev/instructions/memory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of forget or delete behaviour: how entries are removed from the store or suppressed at retrieval.",
+      "url": "https://github.com/agnaistic/agnai/blob/dev/instructions/memory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of isolation scope: whether memory books are per-user, per-character, per-chat, or shared.",
+      "url": "https://github.com/agnaistic/agnai/blob/dev/instructions/memory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of conflict or supersession: what happens when multiple entries match the same keyword or contradict each other beyond priority ordering.",
+      "url": "https://github.com/agnaistic/agnai/blob/dev/instructions/memory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description on this page of how memory book entries are selected or retrieved into the prompt (retrieve policy, keyword matching, always-on vs adaptive).",
+      "url": "https://github.com/agnaistic/agnai/issues/265",
+      "kind": "issue"
+    },
+    {
+      "text": "The memory book entry enable/disable (toggle) state is not being persisted correctly on save \u2014 the page describes the symptom but the underlying write/persist path is not explained here.",
+      "url": "https://github.com/agnaistic/agnai/issues/270",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how the current global user profile is stored, retrieved, or injected into the prompt \u2014 the page is silent on the persistence and retrieval mechanism for user persona data",
+      "url": "https://github.com/agnaistic/agnai/issues/282",
+      "kind": "issue"
+    },
+    {
+      "text": "No information on how memory book entries are retrieved into context or what triggers retrieval",
+      "url": "https://github.com/agnaistic/agnai/issues/340",
+      "kind": "issue"
+    },
+    {
+      "text": "Current memory mechanism not described; this canonical feature-request issue implies a gap in persistent/long-term memory but does not describe what Agnai currently does for memory persistence, retrieval, or forgetting.",
+      "url": "https://github.com/agnaistic/agnai/issues/349",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of write path for memory book entries (how facts are extracted, updated, or deleted from the store) on this page.",
+      "url": "https://github.com/agnaistic/agnai/issues/363",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of retrieve policy (always-on keyword scan vs. adaptive selection, or how many entries are injected per turn) on this page.",
+      "url": "https://github.com/agnaistic/agnai/issues/363",
+      "kind": "issue"
+    },
+    {
+      "text": "No explanation of how memory book triggering/retrieval works is present on this page, despite the issue being specifically about memory book activation mechanics",
+      "url": "https://github.com/agnaistic/agnai/issues/537",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not clarify the actual eviction/override policy for Agnai's Sample Conversation field at context limit \u2014 the reporter hedges with 'I presume'",
+      "url": "https://github.com/agnaistic/agnai/issues/67",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether this auto-summarization feature was implemented: the page is a feature request issue and does not confirm acceptance, implementation status, or any code path for automatic summarization",
+      "url": "https://github.com/agnaistic/agnai/issues/801",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe how Agnai's existing impersonate/persona data is persisted, retrieved, or scoped \u2014 canonical behavior absent from this issue",
+      "url": "https://github.com/agnaistic/agnai/issues/804",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how or when stored memory (persona, lore, history) is selected into the active prompt \u2014 retrieve policy is not described",
+      "url": "https://aitools.aiting.com/ai/agnai",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of write path: how facts are extracted, updated, or superseded in the store",
+      "url": "https://aitools.aiting.com/ai/agnai",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of forget or delete behavior for stored personas, characters, or history",
+      "url": "https://aitools.aiting.com/ai/agnai",
+      "kind": "blog"
+    },
+    {
+      "text": "Write path for Memory Books not described: how entries are created, updated, deleted, or superseded during or after a session",
+      "url": "https://weavai.app/blog/en/2026/06/02/agnai-chat-review-2026-multi-engine-ai-roleplay/",
+      "kind": "blog"
+    },
+    {
+      "text": "Retrieve policy not described: whether memory book entries and embeddings are always injected or selected adaptively per turn",
+      "url": "https://weavai.app/blog/en/2026/06/02/agnai-chat-review-2026-multi-engine-ai-roleplay/",
+      "kind": "blog"
+    },
+    {
+      "text": "Forget / delete behavior not described: no mention of how to remove or suppress stored memory entries",
+      "url": "https://weavai.app/blog/en/2026/06/02/agnai-chat-review-2026-multi-engine-ai-roleplay/",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of how memory entries are persisted server-side or synced across sessions \u2014 this is a canonical feature doc that omits the storage/persistence model entirely.",
+      "url": "https://agnai.guide/docs/memory/memory-books.html",
+      "kind": "blog"
+    },
+    {
+      "text": "No forget or delete mechanism described: the page does not address how entries are removed, superseded, or hidden.",
+      "url": "https://agnai.guide/docs/memory/memory-books.html",
+      "kind": "blog"
+    },
+    {
+      "text": "No isolation model described: whether memory books are per-user, per-character, per-chat, or shared is not stated.",
+      "url": "https://agnai.guide/docs/memory/memory-books.html",
+      "kind": "blog"
+    },
+    {
+      "text": "Forget/delete behavior: no description of how to remove a memory entry or whether retrieval can be suppressed without deletion.",
+      "url": "https://agnai.guide/docs/quick-start/",
+      "kind": "docs"
+    },
+    {
+      "text": "Chat Embeds mechanism: how chat history is curated into embeds (extraction method, update frequency, conflict handling) is referenced but not described here.",
+      "url": "https://agnai.guide/docs/quick-start/",
+      "kind": "docs"
+    }
+  ]
+}

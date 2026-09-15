@@ -660,6 +660,13 @@ def test_body_markers_match_disambiguates_homonyms() -> None:
     }
     assert body_markers_match("Generic mem0 tutorial for chatbots", telemem) is False
     assert body_markers_match("TeleMem from TeleAI-UAGI on GitHub", telemem)
+    agnai = {
+        "id": "agnai",
+        "name": "Agnai",
+        "body_markers": ["Agnai", "github.com/agnaistic/agnai"],
+    }
+    assert body_markers_match("Generic AI chat app memory tips", agnai) is False
+    assert body_markers_match("Agnai memory books on github.com/agnaistic/agnai", agnai)
 
 
 def test_reddit_subreddit_prefix_collision_drops_homonyms() -> None:

@@ -90,12 +90,47 @@ def distinctive_shared_tokens(left: str, right: str) -> set[str]:
     return left_tokens & right_tokens
 
 
+def mentions_add_search_loop(text: str) -> bool:
+    blob = normalize_claim(text)
+    return "add()" in blob and "search()" in blob
+
+
+def is_documented_capability_unknown(text: str) -> bool:
+    """Unknown rows should be gaps; drop rows that assert a capability exists."""
+    blob = normalize_claim(text)
+    if "not " in blob[:80]:
+        return False
+    return bool(
+        re.search(r"\bis available\b|\bare available\b|\bavailable via\b", blob, re.I)
+    )
+
+
+LOW_QUALITY_UNKNOWN_HOSTS = ("piwheels.org",)
+
+
+def filter_unknown_items(items: list[dict[str, object]]) -> list[dict[str, object]]:
+    kept: list[dict[str, object]] = []
+    for item in items:
+        text = str(item.get("text") or "").strip()
+        url = str(item.get("url") or "").strip()
+        if not text or not url:
+            continue
+        if is_documented_capability_unknown(text):
+            continue
+        if any(host in url for host in LOW_QUALITY_UNKNOWN_HOSTS):
+            continue
+        kept.append(item)
+    return kept
+
+
 def is_near_duplicate_summary(left: str, right: str) -> bool:
     """True when two purpose/mechanism summaries say the same thing in different words."""
     normalized_left = normalize_claim(left)
     normalized_right = normalize_claim(right)
     if not normalized_left or not normalized_right:
         return False
+    if mentions_add_search_loop(left) and mentions_add_search_loop(right):
+        return True
     if normalized_left == normalized_right:
         return True
     if normalized_left in normalized_right or normalized_right in normalized_left:
@@ -319,6 +354,7 @@ def fold_pages(
             existing = ledger_by_key.get(key)
             if existing is None or quote_len(row) > quote_len(existing):
                 ledger_by_key[key] = dict(row)
+    unknowns = filter_unknown_items(unknowns)
 
     ledger = list(ledger_by_key.values())
     audit = empty_audit(identity)

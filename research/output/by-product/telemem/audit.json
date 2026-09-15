@@ -10,323 +10,377 @@
   },
   "claimed_purpose": [
     {
-      "text": "Exposes TeleMem's long-term memory operations as MCP tools so that any MCP-compatible client can store and retrieve memories through a local TeleMem instance."
+      "text": "TeleMem is positioned as a memory system for agents, addressing histories beyond context windows, multi-character isolation, video memory, and low-latency retrieval."
     },
     {
-      "text": "TeleMem presents itself as a high-performance drop-in replacement for Mem0, re-exporting the mem0 API surface with its own classes layered on top."
+      "text": "TeleMem is positioned as an agent-memory system evaluated against benchmark tasks requiring persistent memory across conversations."
     },
     {
-      "text": "TeleMem is characterized as having a comprehensive and advanced memory management system with multimodal extensions."
+      "text": "TeleMem provides text memory (and optionally video memory) for agents, installable as a core package or with extras."
     },
     {
-      "text": "TeleMem is used as a long-term memory layer for chat engines."
+      "text": "TeleMem is described as having a comprehensive and advanced memory management system with multimodal extensions"
+    },
+    {
+      "text": "TeleMem can act as a drop-in replacement for mem0, providing memory storage and retrieval for agents or chains."
+    },
+    {
+      "text": "TeleMem is described as local-first, disabling mem0's anonymized PostHog telemetry by default."
     }
   ],
   "mechanisms": [
     {
-      "text": "The batch write path uses a buffer keyed by run_id and user_id scope. When the buffer reaches buffer_size, it is flushed. Flushing clusters all candidate and similar existing memories by cosine similarity before LLM fusion and write."
+      "text": "Write path: add_memory accepts either a single text statement or a list of conversation turns (role/content messages). By default it runs an LLM inference step to extract salient facts before storing; setting infer=false stores raw text as-is."
     },
     {
-      "text": "Write path \u2014 add: accepts either a single text statement or conversation turns (message log); optionally extracts salient facts via LLM before storing, or stores raw text as-is."
+      "text": "TeleMem applies a similarity threshold when comparing memories, used to determine when two memories are considered the same (relevant to deduplication or conflict/supersession on write)."
     },
     {
-      "text": "Each chunk of messages is summarized into a 20\u2013100 character curated summary covering key nouns, times, and actions \u2014 this is the write path from raw log to curated memory"
+      "text": "Per-run message log: a deep copy of the base message list is made at the start of each run, so conversation state is isolated to a single invocation and not persisted across calls"
     },
     {
-      "text": "TeleMem buffers events up to a configurable maximum before flushing them to a vector store, distinguishing a transient event buffer from the persistent vector store."
+      "text": "add_mm() ingests a raw video into persistent memory through three cached stages: frame extraction, caption generation, and vector database embedding of clip captions."
     },
     {
-      "text": "The update step receives a set of similar (retrieved) memory fragments alongside the new memory fragment, implying retrieve-before-write for conflict/deduplication"
+      "text": "Write path (infer=True): latest turn is summarized against earlier turns, embedded, matched against similar memories, LLM-fused, and dual-written to FAISS + JSON."
     },
     {
-      "text": "Lore/events distinction: conversation-level event memories are stored under a dedicated pseudo-user 'events' and are always included in searches automatically."
+      "text": "TeleMem buffers events up to a configurable maximum before flushing them to a vector store, distinguishing a transient buffer from persisted vector storage."
     },
     {
-      "text": "search_mm() runs a ReAct-style agent (MMCoreAgent) with a THINK\u2192ACTION\u2192OBSERVATION loop to retrieve and reason over stored video memory using three tools"
+      "text": "Action-conditional evaluation (MEMTRACK-style) is planned for the MCP server, suggesting the MCP server component has a store/action-linked memory path."
     },
     {
-      "text": "Per-user isolation: each user_id has an independent memory profile; a search scoped to one user_id never surfaces another character's private memories."
+      "text": "Video database (vector store) is initialised once and reused across runs \u2014 this is the only state that persists across questions within a session"
     },
     {
-      "text": "Write path (infer=False): each non-system message's content is stored verbatim with no LLM extraction call; message role is recorded in metadata."
+      "text": "Event/conversation-level memories are kept under a separate pseudo-user scope 'events' and are searched automatically alongside user memories."
     },
     {
-      "text": "Retrieve policy: search always includes shared 'events' memories regardless of user_id; results merged and ranked by score, optionally reranked."
+      "text": "Tool results are appended to the in-turn message list as 'tool' role messages; they are not extracted into a separate curated memory store"
     },
     {
-      "text": "The buffer key distinguishing event memories from person memories is derived from run_id plus user_id, with 'events' used when user_id is None."
+      "text": "On-policy evaluation is planned, where the agent's behavior shapes what gets stored \u2014 implying a write path driven by agent interaction."
     },
     {
-      "text": "Per-run message log: a deep copy of the base message list is taken at the start of each run, so conversation state is not shared across calls."
+      "text": "Storage format: FAISS index for retrieval plus JSON metadata for human-readable auditability, organized by session and character"
     },
     {
-      "text": "Video database is initialised from a caption path and embedding dimension and persisted on the instance for the lifetime of the agent."
+      "text": "The integration pattern is explicitly described as retrieve-then-prompt: search() before answering, add() after each exchange."
     },
     {
-      "text": "Memory is written by calling add() with a message list and a user_id, persisting facts extracted from conversation turns."
+      "text": "Ingestion and query are distinct measured operations, implying a separate store (ingestion) and retrieve (query) path."
     },
     {
-      "text": "Retrieve: search_memories performs semantic search and returns a single fused text passage, not ranked rows"
+      "text": "Retrieve policy: search always includes shared events memories regardless of which character profile is queried."
     },
     {
-      "text": "Forget/delete surface inherited from mem0: delete, delete_all, reset available on the TeleMem object."
+      "text": "The store is per-video: one NanoVectorDB file per video, isolated by video name in a dedicated subdirectory."
     },
     {
-      "text": "The integration pattern is retrieve-then-store: search() before answering, add() after each exchange."
+      "text": "Delete, update, history, and reset operations are inherited from mem0 and available on the TeleMem object."
     },
     {
-      "text": "Memory is written by calling add() after each turn and read by calling search() before responding."
+      "text": "Change history: a per-memory audit log of ADD/UPDATE/DELETE events is retrievable via memory.history()."
     },
     {
-      "text": "Isolation: memory scope is per user_id, agent_id, or run_id; a default user scope is configurable"
+      "text": "Isolation is per user_id (character profile); each user_id gets an independent memory profile."
     },
     {
-      "text": "Uses faiss-cpu as a dependency, indicating vector-based retrieval is part of the memory mechanism"
+      "text": "Write is skipped if the database file already exists; no update or merge logic is applied."
     },
     {
-      "text": "Change history: a memory_history tool exposes ADD/UPDATE/DELETE event log per memory_id."
+      "text": "Memory is isolated per character, searchable by character identity"
     },
     {
-      "text": "TeleMem previously reported results on ZH-4O with deterministic multiple-choice scoring."
+      "text": "search() returns results in a mem0-compatible shape."
     },
     {
-      "text": "Memory is isolated per character, queryable by character identity"
-    },
-    {
-      "text": "search() returns a mem0-compatible results shape."
-    },
-    {
-      "text": "Memory store is local (closed-world)"
+      "text": "TeleMem includes a video memory capability."
     }
   ],
   "ledger": [
     {
-      "claim": "TeleMem achieved 86.33% QA accuracy on ZH-4O Chinese multi-character long-dialogue benchmark, 19% higher than Mem0",
+      "claim": "TeleMem achieved 86.33% QA accuracy on the ZH-4O Chinese multi-character long-dialogue benchmark, 19% higher than Mem0",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/README.md",
       "quote": "Achieved 86.33% accuracy on the ZH-4O Chinese multi-character long-dialogue benchmark, 19% higher than Mem0.",
-      "locator": "Research Highlights",
+      "locator": "Research Highlights (bullet 1)",
       "confidence": "medium",
       "label": "measured"
     },
     {
-      "claim": "Write performance is 2\u20133\u00d7 faster than Mem0 via batch flush + concurrency",
+      "claim": "Benchmark table shows TeleMem at 86.33% vs Mem0 at 70.20%, MOOM 72.60%, A-mem 73.78%, Memobase 76.78% on ZH-4O dataset using Qwen3-8B + Qwen3-Embedding-8B",
+      "kind": "code",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/README.md",
+      "quote": "| **[TeleMem](https://github.com/TeleAI-UAGI/TeleMem)** | **86.33** |",
+      "locator": "Experimental Results / table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write performance is 2\u20133\u00d7 faster than Mem0 due to batch flush and concurrency",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/README.md",
       "quote": "Batch flush + concurrency: 2\u20133\u00d7 faster writes",
-      "locator": "TeleMem vs Mem0: Core Advantages \u2014 comparison table",
+      "locator": "TeleMem vs Mem0: Core Advantages / table row 'Write performance'",
       "confidence": "medium",
       "label": "measured"
     },
     {
-      "claim": "Character-profiled memory management builds independent memory archives per character, ensuring isolation",
+      "claim": "Storage format is FAISS index plus JSON metadata dual-write, enabling fast retrieval and human-readable auditability",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/README.md",
-      "quote": "Character-profiled memory management: Builds independent memory archives for each character in a dialogue, ensuring precise isolation and personalized management.",
-      "locator": "Project Introduction \u2014 Features",
-      "confidence": "high",
-      "label": "measured"
-    },
-    {
-      "claim": "Multi-perspective summarization covers global event summary plus per-character perspectives (actions, preferences, relationships)",
-      "kind": "code",
-      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/README.md",
-      "quote": "Multi-perspective summarization: Global event summary; Character 1's perspective (actions, preferences, relationships); Character 2's perspective.",
-      "locator": "Core Functions \u2014 Add Memory (add) \u2014 Internal Workflow of add()",
-      "confidence": "high",
-      "label": "measured"
-    },
-    {
-      "claim": "infer=False bypasses LLM extraction and stores message contents verbatim \u2014 this is a log-style write, not a curated memory write",
-      "kind": "code",
-      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/README.md",
-      "quote": "`False` stores message contents verbatim with no LLM call",
-      "locator": "Core Functions \u2014 Add Memory (add) \u2014 Parameter Description",
-      "confidence": "high",
-      "label": "measured"
-    },
-    {
-      "claim": "Shared event memories are stored under a pseudo-user 'events' and always co-retrieved alongside per-character memories",
-      "kind": "code",
-      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/README.md",
-      "quote": "The shared event memories (pseudo-user \"events\") are always searched as well",
-      "locator": "Core Functions \u2014 Search Memory (search) \u2014 Parameter Description",
-      "confidence": "high",
-      "label": "measured"
-    },
-    {
-      "claim": "MCP tool memory_history is exposed, suggesting a history or audit trail of memory operations is accessible",
-      "kind": "code",
-      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/README.md",
-      "quote": "The server exposes eight tools: `add_memory`, `search_memories`, `get_memories`, `get_memory`, `update_memory`, `delete_memory`, `delete_all_memories`, and `memory_history`.",
-      "locator": "MCP Server",
+      "quote": "FAISS + JSON metadata dual-write: fast retrieval + human-readable",
+      "locator": "TeleMem vs Mem0: Core Advantages / table row 'Storage format'",
       "confidence": "medium",
       "label": "measured"
     },
     {
-      "claim": "Telemetry from the underlying mem0ai library is disabled by default by TeleMem at import time",
+      "claim": "Per-character memory isolation: automatically creates independent memory profiles per character; Mem0 does not support this",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/README.md",
-      "quote": "TeleMem itself collects no telemetry. The underlying `mem0ai` library ships anonymized PostHog usage telemetry, which TeleMem disables by default (`import telemem` sets `MEM0_TELEMETRY=False` unless you have already set it).",
+      "quote": "Multi-character separation: Mem0 \u274c Not supported | TeleMem \u2705 Automatically creates independent memory profiles per character",
+      "locator": "TeleMem vs Mem0: Core Advantages / table row 'Multi-character separation'",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Summarization uses context-aware and character-focused prompts covering key entities, actions, and timestamps",
+      "kind": "code",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/README.md",
+      "quote": "Context-aware + character-focused prompts covering key entities, actions, and timestamps",
+      "locator": "TeleMem vs Mem0: Core Advantages / table row 'Summary quality'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "TeleMem disables mem0ai's PostHog telemetry by default by setting MEM0_TELEMETRY=False at import time",
+      "kind": "code",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/README.md",
+      "quote": "The underlying `mem0ai` library ships anonymized PostHog usage telemetry, which TeleMem disables by default (`import telemem` sets `MEM0_TELEMETRY=False` unless you have already set it).",
       "locator": "Telemetry & Privacy",
       "confidence": "high",
       "label": "measured"
     },
     {
-      "claim": "TeleMem is a drop-in replacement for Mem0, inheriting its full API including memory persistence and retrieval mechanisms.",
+      "claim": "Fully local operation supported: runs end-to-end on local hardware with Qwen + FAISS, no cloud service or data egress",
       "kind": "code",
-      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/__init__.py",
-      "quote": "TeleMem: a high-performance drop-in replacement for Mem0.",
-      "locator": "module docstring, telemem/__init__.py:1",
-      "confidence": "medium",
-      "label": "measured"
-    },
-    {
-      "claim": "TeleMem is local-first and disables mem0's PostHog telemetry by default; users can opt back in via MEM0_TELEMETRY=true.",
-      "kind": "code",
-      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/__init__.py",
-      "quote": "TeleMem is local-first: the anonymized PostHog telemetry inherited from the mem0 base library is DISABLED by default. Opt back in by setting MEM0_TELEMETRY=true in your environment before importing telemem.",
-      "locator": "inline comment, telemem/__init__.py:4-7",
-      "confidence": "medium",
-      "label": "measured"
-    },
-    {
-      "claim": "Events are buffered transiently (up to buffer_size=64) before being flushed to a vector store, establishing a two-stage write path between raw event log and persistent memory store.",
-      "kind": "code",
-      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/configs.py",
-      "quote": "Maximum number of events to buffer before flushing to vector store",
-      "locator": "telemem/configs.py: TeleMemoryConfig.buffer_size Field description",
-      "confidence": "medium",
-      "label": "measured"
-    },
-    {
-      "claim": "A similarity threshold of 0.95 governs whether a new memory is treated as a duplicate of an existing one, implying deduplication or supersession logic on write.",
-      "kind": "code",
-      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/configs.py",
-      "quote": "Threshold for determining similarity between memories",
-      "locator": "telemem/configs.py: TeleMemoryConfig.similarity_threshold Field description",
-      "confidence": "medium",
-      "label": "measured"
-    },
-    {
-      "claim": "The orchestrator role is assigned to o3 while caption and tool calls use gpt-4.1-mini, indicating a hierarchical scaffold where a stronger model controls memory reasoning over lighter models used for perception.",
-      "kind": "code",
-      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/configs.py",
-      "quote": "\"AOAI_ORCHESTRATOR_LLM_MODEL_NAME\": \"o3\", \"AOAI_CAPTION_VLM_MODEL_NAME\": \"gpt-4.1-mini\", \"AOAI_TOOL_VLM_MODEL_NAME\": \"gpt-4.1-mini\"",
-      "locator": "telemem/configs.py: TeleMemoryConfig.vlm default dict",
-      "confidence": "medium",
-      "label": "measured"
-    },
-    {
-      "claim": "TeleMem exposes long-term memory (add, search, list, get, update, delete, delete-all, history) as MCP tools over stdio or HTTP transports.",
-      "kind": "code",
-      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mcp/server.py",
-      "quote": "Exposes TeleMem's long-term memory operations as MCP tools so that any MCP-compatible client (Claude Desktop, Claude Code, Cursor, ...) can store and retrieve memories through a local TeleMem instance.",
-      "locator": "module docstring",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/README.md",
+      "quote": "Fully local by default \u2014 runs end-to-end on your hardware (Qwen + FAISS); no cloud service, no paid tier, no data leaving your machine.",
+      "locator": "Why TeleMem? (bullet 3)",
       "confidence": "high",
       "label": "measured"
     },
     {
-      "claim": "The add_memory write path optionally uses an LLM to extract salient facts before storing; raw storage is available by setting infer=False.",
+      "claim": "memory_type='procedural_memory' routes through mem0's procedural memory pipeline; omitting it uses the conversational memory path",
+      "kind": "code",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/README.md",
+      "quote": "Pass `\"procedural_memory\"` to create procedural memories via mem0's pipeline; omit for conversational memories",
+      "locator": "Core Functions / Add Memory (add) / Parameter Description / memory_type",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "TeleMem is versioned at 1.10.0 at this commit.",
+      "kind": "code",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/__init__.py",
+      "quote": "__version__ = \"1.10.0\"",
+      "locator": "line 17",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "TeleMem exposes Memory, TeleMemory, and TeleMemoryConfig as its primary public classes alongside everything mem0 exposes.",
+      "kind": "code",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/__init__.py",
+      "quote": "__all__ = sorted(\n    {name for name in dir(_mem0) if not name.startswith(\"_\")}\n    | {\"Memory\", \"TeleMemory\", \"TeleMemoryConfig\"}\n)",
+      "locator": "lines 20-23",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "TeleMem is local-first and disables mem0's telemetry by default, positioning itself as a privacy-preserving replacement.",
+      "kind": "code",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/__init__.py",
+      "quote": "TeleMem is local-first: the anonymized PostHog telemetry inherited from the mem0 base library is DISABLED by default.",
+      "locator": "inline comment, line 4",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Events are buffered in memory up to 64 items before being flushed to the vector store, meaning the vector store is the durable persistence layer and the buffer is transient.",
+      "kind": "code",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/configs.py",
+      "quote": "buffer_size: int = Field(description=\"Maximum number of events to buffer before flushing to vector store\", default=64)",
+      "locator": "telemem/configs.py, TeleMemoryConfig.buffer_size",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A 0.95 similarity threshold governs whether two memories are treated as duplicates or distinct, implying a deduplication or supersession step on write.",
+      "kind": "code",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/configs.py",
+      "quote": "similarity_threshold: float = Field(description=\"Threshold for determining similarity between memories\", default=0.95, ge=0.0, le=1.0)",
+      "locator": "telemem/configs.py, TeleMemoryConfig.similarity_threshold",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Video is segmented into 10-second clips sampled at 2 fps at 360p resolution before entering the memory pipeline.",
+      "kind": "code",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/configs.py",
+      "quote": "\"VIDEO_RESOLUTION\": \"360\", \"VIDEO_FPS\": 2, \"CLIP_SECS\": 10",
+      "locator": "telemem/configs.py, TeleMemoryConfig.vlm",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "TeleMem's default add pipeline extracts salient facts via an LLM before persisting, distinguishing curated memory writes from raw log storage.",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mcp/server.py",
       "quote": "Extract salient facts with the LLM before storing (TeleMem's default pipeline). Set false to store the raw text as-is.",
-      "locator": "add_memory tool, `infer` parameter description",
-      "confidence": "high",
+      "locator": "add_memory tool, infer parameter Field description",
+      "confidence": "medium",
       "label": "measured"
     },
     {
-      "claim": "Event memories (conversation-level) are stored under a pseudo-user 'events' and are automatically included in every search, separate from user-scoped memories.",
+      "claim": "Event/conversation memories occupy a distinct pseudo-user namespace ('events') and are always included in search automatically.",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mcp/server.py",
-      "quote": "conversation-level event memories are kept under the pseudo-user \"events\" and searched automatically.",
-      "locator": "SERVER_INSTRUCTIONS",
-      "confidence": "high",
+      "quote": "conversation-level event memories are kept under the pseudo-user \"events\" and searched automatically",
+      "locator": "SERVER_INSTRUCTIONS constant",
+      "confidence": "medium",
       "label": "measured"
     },
     {
-      "claim": "Isolation is per user_id, agent_id, and run_id; delete-all requires an explicit scope and will not fall back to the default user.",
+      "claim": "Memories are isolated by user_id, agent_id, and run_id; bulk delete is blocked unless an explicit scope is provided.",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mcp/server.py",
       "quote": "Refusing to wipe memories without an explicit user_id, agent_id, or run_id.",
-      "locator": "delete_all_memories tool, missing-scope guard",
-      "confidence": "high",
+      "locator": "delete_all_memories action, error detail string",
+      "confidence": "medium",
       "label": "measured"
     },
     {
-      "claim": "Memory history tracks ADD/UPDATE/DELETE events per memory_id, providing an audit log of changes.",
+      "claim": "A per-memory change history (ADD/UPDATE/DELETE events) is stored and retrievable, providing an audit trail for mutations.",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mcp/server.py",
       "quote": "Show the change history (ADD/UPDATE/DELETE events) of a memory.",
       "locator": "memory_history tool description",
-      "confidence": "high",
-      "label": "measured"
-    },
-    {
-      "claim": "Default backend uses OpenAI models and a local vector store when no config is provided.",
-      "kind": "code",
-      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mcp/server.py",
-      "quote": "Without it, TeleMem's default configuration is used (OpenAI models, local vector store).",
-      "locator": "module docstring, Environment variables section",
       "confidence": "medium",
       "label": "measured"
     },
     {
-      "claim": "TeleMem stores curated LLM-extracted summaries in a vector store, not raw message logs, on the infer=True path.",
+      "claim": "Default backend uses OpenAI models for LLM inference and a local vector store for persistence.",
+      "kind": "code",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mcp/server.py",
+      "quote": "TeleMem's default configuration is used (OpenAI models, local vector store).",
+      "locator": "module docstring, TELEMEM_CONFIG env var description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "TeleMem extends mem0.Memory and delegates procedural memory creation unchanged to mem0's pipeline.",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mem0.py",
-      "quote": "If True (default), an LLM is used to extract key facts from 'messages' and decide whether to add, update, or delete related memories. If False, 'messages' are added as raw memories directly.",
-      "locator": "file:telemem/mem0.py, TeleMemory.add docstring, infer param",
+      "quote": "class TeleMemory(mem0.Memory):\n...if memory_type == MemoryType.PROCEDURAL.value:\n    # Delegate to mem0's procedural-memory pipeline unchanged.\n    return self._create_procedural_memory(messages, metadata=metadata, prompt=prompt)",
+      "locator": "class definition; add() method body",
       "confidence": "high",
       "label": "measured"
     },
     {
-      "claim": "Memory isolation is per user_id, agent_id, and run_id; the 'events' scope is a shared bucket used when no user_id is given.",
+      "claim": "The in-memory buffer accumulates extracted summaries across concurrent batch tasks per (run_id, scope) key and is flushed either when buffer_size is reached or after all tasks complete.",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mem0.py",
-      "quote": "mem_type = \"events\" if user_id is None else f\"person_{user_id}\"\n        return f\"{run_id}_{mem_type}\"",
-      "locator": "file:telemem/mem0.py, TeleMemory._get_buffer_key",
+      "quote": "def _get_buffer_key(self, run_id: str, user_id: Optional[str]) -> str:\n    \"\"\"\u751f\u6210\u552f\u4e00 buffer key: run_id + user_id \u6216 'events'\"\"\"\n    mem_type = \"events\" if user_id is None else f\"person_{user_id}\"\n    return f\"{run_id}_{mem_type}\"",
+      "locator": "_get_buffer_key() method",
       "confidence": "high",
       "label": "measured"
     },
     {
-      "claim": "Write path performs conflict resolution via LLM fusion of new summaries against retrieved similar memories; only LLM-selected summaries are written (ADD only, no explicit UPDATE or DELETE events emitted in this code).",
+      "claim": "Memories with no content or from the 'system' role are silently skipped on the infer=False path.",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mem0.py",
-      "quote": "stored_summaries = [item[\"summary\"] for item in result.get(\"stored_memories\", [])]\n            ...\n            returned_memories.append({\"id\": memory_id, \"memory\": mem, \"event\": \"ADD\"})",
-      "locator": "file:telemem/mem0.py, TeleMemory._sync_memory_to_vector_store and _flush_buffer",
+      "quote": "if not content or msg.get(\"role\") == \"system\":\n    continue",
+      "locator": "_add_raw_memories() method body",
       "confidence": "high",
       "label": "measured"
     },
     {
-      "claim": "Search always merges results from both a named user scope and the shared 'events' scope, with optional reranking and score-based truncation to the limit.",
+      "claim": "Search results capped at limit across merged scopes by score when no reranker is configured, preventing N*limit result inflation.",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mem0.py",
-      "quote": "user_ids_to_search = [user_id, \"events\"]\n        ...\n        if rerank and self.reranker and all_memories:\n            all_memories = self.reranker.rerank(query, all_memories, limit=limit)",
-      "locator": "file:telemem/mem0.py, TeleMemory.search",
+      "quote": "# Honor `limit` across the merged scopes (user profile + \"events\"):\n# without this cap, searching N scopes could return up to N*limit\n# results when no reranker is configured.\nif len(results) > limit:\n    results.sort(key=lambda m: m.get(\"score\") or 0.0, reverse=True)\n    results = results[:limit]",
+      "locator": "search() method body",
       "confidence": "high",
       "label": "measured"
     },
     {
-      "claim": "Batch processing uses a per-scope buffer flushed at buffer_size; flush clusters candidates by cosine similarity before LLM fusion, enabling deduplication across a batch before writing.",
+      "claim": "Singleton clusters (no similar existing memory) are written directly without a fusion LLM call; only clusters containing both new and existing memories trigger the fusion prompt.",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mem0.py",
-      "quote": "if len(self.memory_buffer[buffer_key]) >= self.buffer_size:\n                            returned_memories.extend(self._flush_buffer(buffer_key) or [])",
-      "locator": "file:telemem/mem0.py, TeleMemory.add_batch",
+      "quote": "if len(cluster) == 1:\n    mem = cluster[0]\n    if mem[\"is_new\"]:\n        summary = mem[\"text\"]\n        if summary.strip():\n            metadata = cluster[0].get(\"metadata\", {})\n            memory_id = self._create_memory(data=summary, existing_embeddings={}, metadata=metadata)\n            returned_memories.append({\"id\": memory_id, \"memory\": summary, \"event\": \"ADD\"})\n    continue",
+      "locator": "_flush_buffer() method body",
       "confidence": "high",
       "label": "measured"
     },
     {
-      "claim": "Extraction uses only the last message as the active turn and the preceding messages as context, not the full conversation log.",
+      "claim": "UUID hallucination guard: existing memory UUIDs are replaced with integer indices before being passed to the LLM fusion prompt, then remapped afterward.",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mem0.py",
-      "quote": "parsed_messages = parse_messages(messages[-1:])\n        context_messages = parse_messages(messages[0:-1])",
-      "locator": "file:telemem/mem0.py, TeleMemory._extract_summary_from_messages",
+      "quote": "# mapping UUIDs with integers for handling UUID hallucinations\ntemp_uuid_mapping = {}\nfor idx, item in enumerate(retrieved_old_memory):\n    temp_uuid_mapping[str(idx)] = item[\"id\"]\n    retrieved_old_memory[idx][\"id\"] = str(idx)",
+      "locator": "_extract_summary_from_messages() method body",
       "confidence": "high",
       "label": "measured"
     },
     {
-      "claim": "Each invocation gets an isolated copy of the message history; there is no cross-session or cross-call state accumulation.",
+      "claim": "Persisted records contain embedding vector, clip start/end timestamps, and timestamped caption text; these are curated clip-level summaries, not a raw message log.",
+      "kind": "code",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mm_utils/build_database.py",
+      "quote": "\"__vector__\": np.array(emb),\n                    \"time_start_secs\": timestamp[0],\n                    \"time_end_secs\": timestamp[1],\n                    \"caption\": prefix + cap['caption'],",
+      "locator": "build_database.py: init_single_video_db, data construction loop",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path is upsert-only on first build; if the output file already exists the build is skipped entirely \u2014 no incremental update or delete path is present in this file.",
+      "kind": "code",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mm_utils/build_database.py",
+      "quote": "if os.path.exists(output_video_db_path):\n        print(f\"Database {output_video_db_path} already exists.\")",
+      "locator": "build_database.py: init_single_video_db, existence check",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is adaptive by design: clip_search_tool uses top_k=16 default; frame_inspect_tool uses configurable AOAI_TOOL_VLM_MAX_FRAME_NUM; global_browse_tool uses GLOBAL_BROWSE_TOPK \u2014 none retrieve all records unconditionally.",
+      "kind": "code",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mm_utils/build_database.py",
+      "quote": "top_k: A[int, D(\"The maximum number of top results to retrieve. Just use the default value.\")] = 16",
+      "locator": "build_database.py: clip_search_tool signature",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "subject_registry / character_registry is stored as non-vector additional metadata on the database, serving as a lore/character roster distinct from per-clip event records.",
+      "kind": "code",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mm_utils/build_database.py",
+      "quote": "subject_registry = captions.pop('subject_registry', captions.pop('character_registry', None))          \n        ...        \n        vdb.store_additional_data(**addtional_data)",
+      "locator": "build_database.py: init_single_video_db, additional data block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Store isolation is per-video: each video gets its own NanoVectorDB file, with no shared cross-video store visible in this file.",
+      "kind": "code",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mm_utils/build_database.py",
+      "quote": "output_video_db_path = os.path.join(video_vdb_dir, f\"{video_name}_vdb.json\")",
+      "locator": "build_database.py: __main__ block, output path construction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Message state is not persisted across sessions; each run starts from a fresh deep copy of the base scaffold with no recall of prior conversations",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mm_utils/core.py",
       "quote": "msgs = copy.deepcopy(self.messages)",
@@ -335,7 +389,7 @@
       "label": "measured"
     },
     {
-      "claim": "The video database (vector store) is the only persistent artefact; it is read-only from the agent's perspective within a run.",
+      "claim": "The only persistent store across questions within one agent instance is the video vector database; no conversational or user-fact store is written or read",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mm_utils/core.py",
       "quote": "self.video_db = init_single_video_db(video_caption_path, video_db_path, self.cfg['emb_dim'], self.cfg)",
@@ -344,7 +398,16 @@
       "label": "measured"
     },
     {
-      "claim": "Tool results are appended as raw content to the running message list, functioning as a session log rather than curated memory.",
+      "claim": "The in-turn message log is a full transcript (system prompt + user question + all assistant and tool turns), not a curated fact or summary store",
+      "kind": "code",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mm_utils/core.py",
+      "quote": "msgs.append(response) ... self._append_tool_msg(tool_call[\"id\"], name, result, msgs)",
+      "locator": "MMCoreAgent.run main loop",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "There is no write path for extracting, updating, or deleting curated memories; the only append operation is adding raw tool and assistant messages to the in-turn log",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mm_utils/core.py",
       "quote": "msgs.append({\"tool_call_id\": tool_call_id, \"role\": \"tool\", \"name\": name, \"content\": content})",
@@ -353,16 +416,16 @@
       "label": "measured"
     },
     {
-      "claim": "TeleMem distinguishes a raw message log from curated memory: raw turns are parsed and chunked, then an LLM summarization step produces compact curated memory entries (20\u2013100 chars) covering key nouns, times, and actions",
+      "claim": "The persisted memory unit is an LLM-generated summary string, not a raw transcript entry; the write path is: chunk turns \u2192 LLM summarise \u2192 deduplicate against similar existing memories \u2192 store as {\"summary\": \"...\"}",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/utils.py",
-      "quote": "\u8bf7\u4f60\u752820-100\u4e2a\u5b57\u603b\u7ed3\u8fd9\u8f6e\u5bf9\u8bdd\u7684\u6458\u8981\u3002\n\u4f60\u7684\u603b\u7ed3\u8981\u7cbe\u7b80\u4e00\u4e9b\uff0c\u80fd\u8868\u8fbe\u6e05\u695a\u610f\u601d\u5373\u53ef\u3002\u540c\u65f6\u8981\u5c3d\u53ef\u80fd\u8986\u76d6\u5bf9\u8bdd\u4e2d\u7684\u5173\u952e\u540d\u8bcd\u3001\u65f6\u95f4\u3001\u52a8\u4f5c\u7b49\u8981\u70b9\u3002",
-      "locator": "get_recent_messages_prompt, user_prompt string",
+      "quote": "\u8bf7\u8f93\u51fa\u4fdd\u7559\u540e\u7684\u8bb0\u5fc6\u5217\u8868\uff0c\u683c\u5f0f\u4e3aJSON\uff1a\n{\n  \"stored_memories\": [\n    {\"summary\": \"\u4fdd\u7559\u540e\u7684\u8bb0\u5fc6\u6458\u89811\"},\n    {\"summary\": \"\u4fdd\u7559\u540e\u7684\u8bb0\u5fc6\u6458\u89812\"}\n  ]\n}",
+      "locator": "get_update_memory_prompt, user_prompt string",
       "confidence": "high",
       "label": "measured"
     },
     {
-      "claim": "TeleMem supports a character-scoped memory write path that extracts relationship, plot-event, trait, and item/location facts for a named target character",
+      "claim": "Memory isolation includes a per-character dimension: a named target_character parameter scopes extraction to facts about that character specifically.",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/utils.py",
       "quote": "\u4f60\u7684\u4efb\u52a1\u662f\uff1a**\u805a\u7126\u4e8e\"{target_character}\"\u8fd9\u4e2a\u89d2\u8272**\uff0c\u4ece\u8fd9\u8f6e\u5bf9\u8bdd\u4e2d\u62bd\u53d6\u4ee5\u4e0b\u56db\u7c7b\u5173\u952e\u4fe1\u606f",
@@ -371,43 +434,34 @@
       "label": "measured"
     },
     {
-      "claim": "The update/deduplication path performs a retrieve-before-write: similar existing memories are fetched and passed alongside the new memory so an LLM can decide what to retain or drop",
-      "kind": "code",
-      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/utils.py",
-      "quote": "\u76f8\u4f3c\u8bb0\u5fc6\u7247\u6bb5\uff1a\n{similary_mem_text}\n\n\u65b0\u8bb0\u5fc6\u7247\u6bb5\uff1a\n{new_mem_text}",
-      "locator": "get_update_memory_prompt, user_prompt string",
-      "confidence": "high",
-      "label": "measured"
-    },
-    {
-      "claim": "Cosine similarity is used to compare memory vectors, supporting the similar-memory retrieval used in the deduplication/update path",
+      "claim": "Retrieval candidate selection uses cosine similarity over numpy vectors; similar memories are retrieved before the update prompt is constructed, indicating an adaptive retrieve-then-write path rather than always-retrieve-all.",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/utils.py",
       "quote": "similarity = np.dot(a, b) / (norm_a * norm_b)\n    return float(np.clip(similarity, -1.0, 1.0))",
       "locator": "_cosine_similarity function",
-      "confidence": "high",
+      "confidence": "medium",
       "label": "measured"
     },
     {
-      "claim": "Conversation is chunked into overlapping windows of 3 turns (configurable) with prior context included, before summarization \u2014 the unit of memory write is a windowed chunk, not a single exchange",
+      "claim": "The sliding-window chunker pairs messages into user+assistant turns and includes up to 3 prior turns as context when generating each chunk's summary, so summaries are written with local conversational context.",
       "kind": "code",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/utils.py",
-      "quote": "def chunk_with_context(messages, window_size=3):\n    if len(messages) % 2 != 0:\n        messages = messages[:-1]",
+      "quote": "def chunk_with_context(messages, window_size=3):\n    ...    start = max(0, i - window_size)\n        context_turns = turns[start:i+1]",
       "locator": "chunk_with_context function",
       "confidence": "high",
       "label": "measured"
     },
     {
-      "claim": "TeleMem exposes long-term memory as MCP tools covering add, search, list, fetch, update, delete, wipe, and history",
+      "claim": "TeleMem exposes long-term memory as MCP tools covering store, retrieve, update, delete, and history",
       "kind": "docs",
       "url": "https://teleai-uagi.github.io/telemem/MCP/",
       "quote": "TeleMem ships a Model Context Protocol (MCP) server that exposes its long-term memory operations as MCP tools.",
-      "locator": "TeleMem MCP Server (intro paragraph)",
+      "locator": "TeleMem MCP Server / opening paragraph",
       "confidence": "high",
       "label": "measured"
     },
     {
-      "claim": "search_memories fuses related memories into a single passage rather than returning ranked individual rows",
+      "claim": "search_memories returns a single fused passage rather than ranked rows; TeleMem clusters and merges related memories",
       "kind": "docs",
       "url": "https://teleai-uagi.github.io/telemem/MCP/",
       "quote": "search_memories returns a single fused text passage, not ranked rows \u2014 this is TeleMem's design (related memories are clustered and merged).",
@@ -416,178 +470,214 @@
       "label": "measured"
     },
     {
-      "claim": "Memory is isolated per user_id, agent_id, or run_id scope; defaults to TELEMEM_DEFAULT_USER_ID when none is provided",
+      "claim": "Default configuration uses OpenAI models and a local vector store",
       "kind": "docs",
       "url": "https://teleai-uagi.github.io/telemem/MCP/",
-      "quote": "Memory scope used when a tool call provides no user_id / agent_id / run_id .",
-      "locator": "Environment variables table, TELEMEM_DEFAULT_USER_ID row",
-      "confidence": "high",
+      "quote": "TeleMem's default configuration is used (OpenAI models, local vector store), which needs OPENAI_API_KEY .",
+      "locator": "Environment variables table",
+      "confidence": "medium",
       "label": "measured"
     },
     {
-      "claim": "The memory store is local and closed-world (openWorldHint=false)",
+      "claim": "memory_history provides an ADD/UPDATE/DELETE audit trail per memory_id",
       "kind": "docs",
       "url": "https://teleai-uagi.github.io/telemem/MCP/",
-      "quote": "openWorldHint is false everywhere \u2014 the memory store is local",
-      "locator": "Tools (MCP metadata paragraph)",
-      "confidence": "high",
-      "label": "measured"
-    },
-    {
-      "claim": "memory_history tracks the ADD/UPDATE/DELETE lifecycle of a memory entry",
-      "kind": "docs",
-      "url": "https://teleai-uagi.github.io/telemem/MCP/",
-      "quote": "memory_history: Show the ADD/UPDATE/DELETE history of a memory.",
+      "quote": "memory_history \u2014 Show the ADD/UPDATE/DELETE history of a memory.",
       "locator": "Tools table",
       "confidence": "high",
       "label": "measured"
     },
     {
-      "claim": "Default config uses OpenAI models and a local vector store",
-      "kind": "docs",
-      "url": "https://teleai-uagi.github.io/telemem/MCP/",
-      "quote": "TeleMem's default configuration is used (OpenAI models, local vector store), which needs OPENAI_API_KEY .",
-      "locator": "Environment variables table, TELEMEM_CONFIG row",
-      "confidence": "medium",
-      "label": "measured"
-    },
-    {
-      "claim": "Write path uses LLM summarization, embedding, similarity matching, LLM fusion, and dual-write to FAISS + JSON store.",
+      "claim": "TeleMem's write path (infer=True) extracts salient facts via LLM, embeds them, matches against existing memories, LLM-fuses results, and dual-writes to FAISS + JSON store.",
       "kind": "docs",
       "url": "https://teleai-uagi.github.io/telemem/api/",
-      "quote": "the latest turn is summarized against the earlier turns as context \u2014 from the global view (no user_id, stored in \"events\") or the named character's perspective \u2014 then embedded, matched against similar memories, LLM-fused, and dual-written to FAISS + JSON.",
-      "locator": "add(), description paragraph",
+      "quote": "Internally (when infer=True): the latest turn is summarized against the earlier turns as context \u2014 from the global view (no user_id, stored in \"events\") or the named character's perspective \u2014 then embedded, matched against similar memories, LLM-fused, and dual-written to FAISS + JSON.",
+      "locator": "add() \u2014 implementation note paragraph",
       "confidence": "medium",
       "label": "measured"
     },
     {
-      "claim": "Per-user isolation: each user_id has an independent memory profile; shared events scope is separate.",
+      "claim": "Each user_id receives an independent memory profile, providing per-character isolation.",
       "kind": "docs",
       "url": "https://teleai-uagi.github.io/telemem/api/",
-      "quote": "each user_id gets an independent memory profile. Omit to store into the shared \"events\" scope",
-      "locator": "add(), parameter table, user_id row",
+      "quote": "each user_id gets an independent memory profile",
+      "locator": "add() \u2014 Parameter table, user_id row",
       "confidence": "medium",
       "label": "measured"
     },
     {
-      "claim": "Retrieve always merges character profile results with shared 'events' scope results.",
+      "claim": "A shared events scope is maintained separately from character profiles and is always merged into search results.",
       "kind": "docs",
       "url": "https://teleai-uagi.github.io/telemem/api/",
-      "quote": "Character profile to search; shared \"events\" memories are always included",
-      "locator": "search(), parameter table, user_id row",
+      "quote": "user_id: Character profile to search; shared \"events\" memories are always included",
+      "locator": "search() \u2014 Parameter table, user_id row",
       "confidence": "medium",
       "label": "measured"
     },
     {
-      "claim": "Verbatim storage (log-mode) is available when infer=False, bypassing LLM extraction.",
+      "claim": "infer=False bypasses LLM extraction and stores raw message content verbatim, enabling a log-style rather than curated-facts write path.",
       "kind": "docs",
       "url": "https://teleai-uagi.github.io/telemem/api/",
       "quote": "False stores each non-system message's content verbatim, with no LLM call (the message role is recorded in metadata)",
-      "locator": "add(), parameter table, infer row",
+      "locator": "add() \u2014 Parameter table, infer row",
       "confidence": "medium",
       "label": "measured"
     },
     {
-      "claim": "Conflict/supersession handled via cosine similarity clustering at write time with a configurable threshold (default 0.95).",
-      "kind": "docs",
-      "url": "https://teleai-uagi.github.io/telemem/api/",
-      "quote": "similarity_threshold: 0.95 \u2014 Cosine threshold for semantic clustering",
-      "locator": "Configuration, field table, similarity_threshold row",
-      "confidence": "medium",
-      "label": "measured"
-    },
-    {
-      "claim": "Delete and reset operations are available via inherited mem0 surface but are not described in TeleMem-specific detail on this page.",
+      "claim": "Delete, update, history, and reset are available via inherited mem0 surface; forget is possible but not described as a TeleMem-specific mechanism on this page.",
       "kind": "docs",
       "url": "https://teleai-uagi.github.io/telemem/api/",
       "quote": "the full mem0 surface \u2014 get, get_all, update, delete, delete_all, history, reset \u2014 is available",
       "locator": "API Reference, opening paragraph",
       "confidence": "medium",
-      "label": "inferred"
+      "label": "measured"
     },
     {
-      "claim": "TeleMem scored 86.33% overall on the ZH-4O Chinese multi-character long-dialogue benchmark (600-turn conversations, QA accuracy), versus Mem0 at 70.20% and others.",
+      "claim": "Similarity threshold of 0.95 cosine similarity is used for semantic clustering during write, affecting conflict/supersession behavior.",
       "kind": "docs",
-      "url": "https://teleai-uagi.github.io/telemem/",
-      "quote": "Method Overall (%): RAG 62.45, Mem0 70.20, MOOM 72.60, A-mem 73.78, Memobase 76.78, TeleMem 86.33",
-      "locator": "Results / table",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "Benchmark used Qwen3-8B as LLM and Qwen3-Embedding-8B for embeddings; reproduction harness is in baselines/.",
-      "kind": "docs",
-      "url": "https://teleai-uagi.github.io/telemem/",
-      "quote": "LLM: Qwen3-8B, embeddings: Qwen3-Embedding-8B. Reproduction harness in baselines/",
-      "locator": "Results / table caption",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "Summarization is both global and per-character, indicating two distinct summary scopes are maintained in the store.",
-      "kind": "docs",
-      "url": "https://teleai-uagi.github.io/telemem/",
-      "quote": "Character-aware summarization (global + per-character)",
-      "locator": "How it works / flowchart",
+      "url": "https://teleai-uagi.github.io/telemem/api/",
+      "quote": "similarity_threshold: 0.95 \u2014 Cosine threshold for semantic clustering",
+      "locator": "Configuration \u2014 Field table, similarity_threshold row",
       "confidence": "medium",
       "label": "measured"
     },
     {
-      "claim": "TeleMem persists memories scoped to a user_id via memory.add(), enabling cross-session recall.",
+      "claim": "TeleMem disables mem0's PostHog telemetry by default on import.",
+      "kind": "docs",
+      "url": "https://teleai-uagi.github.io/telemem/api/",
+      "quote": "import telemem sets MEM0_TELEMETRY=False unless that environment variable is already set.",
+      "locator": "Telemetry section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "TeleMem supports multi-character isolation as a named capability.",
+      "kind": "docs",
+      "url": "https://teleai-uagi.github.io/telemem/evaluation/",
+      "quote": "Where TeleMem earns its keep: histories beyond the context window, multi-character isolation, video memory, and millisecond retrieval at a token cost that full-context cannot match.",
+      "locator": "Choosing a memory system (including ours)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "TeleMem has separate ingestion and query phases, implying a distinct write (store) and read (retrieve) path.",
+      "kind": "docs",
+      "url": "https://teleai-uagi.github.io/telemem/evaluation/",
+      "quote": "Every run reports token usage and wall-clock for ingestion and query, not just accuracy.",
+      "locator": "The charter \u2014 Cost and latency are first-class metrics",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "TeleMem's write path is influenced by agent behavior during interaction (on-policy), planned but not yet shipped.",
+      "kind": "docs",
+      "url": "https://teleai-uagi.github.io/telemem/evaluation/",
+      "quote": "On-policy evaluation \u2014 AMemGym / MemoryBench-style interactive testing, where the agent's behavior shapes what gets stored",
+      "locator": "Roadmap, Stage 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "TeleMem's MCP server component is planned for action-conditional (MEMTRACK-style) evaluation, implying store operations tied to agent actions.",
+      "kind": "docs",
+      "url": "https://teleai-uagi.github.io/telemem/evaluation/",
+      "quote": "Action-conditional evaluation (MEMTRACK-style) for the MCP server",
+      "locator": "Roadmap, Stage 5",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "TeleMem includes a ZH-4O evaluation using deterministic multiple-choice scoring with the same Qwen3-8B stack for all systems.",
+      "kind": "docs",
+      "url": "https://teleai-uagi.github.io/telemem/evaluation/",
+      "quote": "Existing published results (such as the README's ZH-4O table, which uses deterministic multiple-choice scoring with the same Qwen3-8B stack for every system)",
+      "locator": "Scope and status",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "TeleMem's evaluation harness (LongMemEval) with full-context and grep baselines is shipped in baselines/longmemeval/.",
+      "kind": "docs",
+      "url": "https://teleai-uagi.github.io/telemem/evaluation/",
+      "quote": "Full-context + grep baselines built into the LongMemEval harness \u2705 shipped ( baselines/longmemeval/ )",
+      "locator": "Roadmap, Stage 1",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "TeleMem supports text memory as its core capability, with video memory available as an extra.",
       "kind": "docs",
       "url": "https://teleai-uagi.github.io/telemem/quickstart/",
-      "quote": "memory.add(messages=messages, user_id=\"Jordan\")",
+      "quote": "pip install telemem # core (text memory)\npip install \"telemem[all]\" # + MCP server + video pipeline",
+      "locator": "Install section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is retrieved via search() scoped to a user_id, returning ranked results.",
+      "kind": "docs",
+      "url": "https://teleai-uagi.github.io/telemem/quickstart/",
+      "quote": "results = memory.search(\"How does Jordan get to work?\", user_id=\"Jordan\")",
       "locator": "First memory section",
       "confidence": "medium",
-      "label": "inferred"
+      "label": "measured"
     },
     {
-      "claim": "Per-user memory isolation is enforced: one user_id cannot access another user's private memories.",
-      "kind": "docs",
-      "url": "https://teleai-uagi.github.io/telemem/quickstart/",
-      "quote": "search(..., user_id=\"Jordan\") only sees Jordan's profile plus shared events \u2014 never another character's private memories.",
-      "locator": "Character isolation section",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "The recommended integration pattern is retrieve-before-turn, store-after-turn (search then add), not continuous logging.",
+      "claim": "The product's recommended usage pattern is retrieve-then-prompt (search before answering, add after exchange), not autonomous or adaptive recall.",
       "kind": "docs",
       "url": "https://teleai-uagi.github.io/telemem/quickstart/",
       "quote": "The integration pattern is two calls: search() before answering, add() after each exchange.",
       "locator": "Framework integrations section",
       "confidence": "medium",
-      "label": "inferred"
+      "label": "measured"
     },
     {
-      "claim": "Caption generation uses a VLM to describe each clip; these captions are the unit stored and later embedded for retrieval",
+      "claim": "Memory is isolated per user_id; shared conversation events are stored under a pseudo-user \"events\" and injected into every user-scoped search.",
       "kind": "docs",
-      "url": "https://teleai-uagi.github.io/telemem/video/",
-      "quote": "Caption generation \u2014 a VLM (e.g. Qwen3-Omni, GPT-4.1-mini) describes each clip. Vector database \u2014 clip captions are embedded for semantic retrieval",
-      "locator": "Pipeline section",
+      "url": "https://teleai-uagi.github.io/telemem/quickstart/",
+      "quote": "Every user_id gets an independent memory profile; conversation-level events are stored under the shared pseudo-user \"events\" and searched automatically.",
+      "locator": "Character isolation section",
       "confidence": "medium",
       "label": "measured"
     },
     {
-      "claim": "Retrieval is agentic and adaptive (ReAct loop with multiple tools) rather than a single always-retrieve pass",
+      "claim": "Video memory write path: raw video \u2192 frames \u2192 captions \u2192 vector DB, with per-stage output caching to skip already-processed stages.",
+      "kind": "docs",
+      "url": "https://teleai-uagi.github.io/telemem/video/",
+      "quote": "add_mm() turns a raw video into retrievable memory in three cached stages: Frame extraction \u2014 decode the video to JPEG frames at the configured FPS; Caption generation \u2014 a VLM (e.g. Qwen3-Omni, GPT-4.1-mini) describes each clip; Vector database \u2014 clip captions are embedded for semantic retrieval",
+      "locator": "Pipeline section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve path uses semantic (vector) search over stored clip captions, not full transcript replay.",
+      "kind": "docs",
+      "url": "https://teleai-uagi.github.io/telemem/video/",
+      "quote": "clip_search_tool \u2014 Semantic search for specific content",
+      "locator": "ReAct-style video QA section, tool table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve is agentic/adaptive: the MMCoreAgent decides which tools to call (global browse, clip search, frame inspect) via a ReAct loop rather than always retrieving everything.",
       "kind": "docs",
       "url": "https://teleai-uagi.github.io/telemem/video/",
       "quote": "search_mm() runs MMCoreAgent, a THINK \u2192 ACTION \u2192 OBSERVATION loop with three tools",
       "locator": "ReAct-style video QA section",
-      "confidence": "medium",
+      "confidence": "high",
       "label": "measured"
     },
     {
-      "claim": "Design draws on Deep Video Discovery's agentic search and tool-use approach",
+      "claim": "Video memory design draws on Deep Video Discovery's agentic search and tool-use approach.",
       "kind": "docs",
       "url": "https://teleai-uagi.github.io/telemem/video/",
       "quote": "The design draws on Deep Video Discovery's agentic search and tool-use approach.",
-      "locator": "Video Memory intro paragraph",
+      "locator": "Video Memory, intro paragraph",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "TeleMem is described as having a memory management system with multimodal extensions.",
+      "claim": "TeleMem has a memory management system with multimodal extensions",
       "kind": "issue",
       "url": "https://github.com/TeleAI-UAGI/telemem/issues/1",
       "quote": "Impressive work on TeleMem's comprehensive and advanced memory management system with multimodal extensions!",
@@ -596,43 +686,43 @@
       "label": "inferred"
     },
     {
-      "claim": "TeleMem has an evaluation charter with explicit reporting rules including no win claims across overlapping Wilson intervals and required cost/latency framing when accuracy does not beat baselines.",
+      "claim": "TeleMem has previously published a score of 86.33% on ZH-4O using deterministic multiple-choice scoring.",
+      "kind": "issue",
+      "url": "https://github.com/TeleAI-UAGI/telemem/issues/10",
+      "quote": "TeleMem currently reports results on ZH-4O (86.33%, deterministic multiple-choice scoring \u2014 see the README)",
+      "locator": "issue body, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "TeleMem maintains an evaluation charter that constrains how benchmark results may be reported, including rules against win claims across overlapping confidence intervals.",
       "kind": "issue",
       "url": "https://github.com/TeleAI-UAGI/telemem/issues/10",
       "quote": "Reporting rules (from the charter): no win claims across overlapping Wilson intervals; if TeleMem doesn't beat full-context + grep on accuracy, the published claim must be about cost/latency/scale, stated as such.",
-      "locator": "issue body, Reporting rules section",
+      "locator": "issue body, Reporting rules",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "TeleMem has a harness at baselines/longmemeval/ that already enforces its evaluation charter.",
-      "kind": "issue",
-      "url": "https://github.com/TeleAI-UAGI/telemem/issues/10",
-      "quote": "The harness in `baselines/longmemeval/` already enforces the charter.",
-      "locator": "issue body, Task checklist preamble",
-      "confidence": "medium",
-      "label": "inferred"
-    },
-    {
-      "claim": "TeleMem's evaluation distinguishes ingestion from search as separate measurable phases, implying a store/retrieve architecture.",
+      "claim": "TeleMem has a distinct ingestion phase separate from retrieval/search, suggesting a write path that pre-processes or stores content before query time.",
       "kind": "issue",
       "url": "https://github.com/TeleAI-UAGI/telemem/issues/10",
       "quote": "ingestion wall-clock, search latency, answer+memory-side token usage",
-      "locator": "issue body, Task checklist, Cost/latency table item",
+      "locator": "issue body, Task checklist",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "TeleMem scored 86.33% on ZH-4O using deterministic multiple-choice scoring.",
+      "claim": "TeleMem is a drop-in replacement for mem0.",
       "kind": "issue",
-      "url": "https://github.com/TeleAI-UAGI/telemem/issues/10",
-      "quote": "TeleMem currently reports results on ZH-4O (86.33%, deterministic multiple-choice scoring \u2014 see the README).",
-      "locator": "issue body, opening paragraph",
+      "url": "https://github.com/TeleAI-UAGI/telemem/issues/6",
+      "quote": "TeleMem can already act as a drop-in mem0 replacement",
+      "locator": "issue body, opening sentence",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "TeleMem exposes add() and search() as its core memory API, with add() used to persist facts after each turn and search() used to retrieve relevant facts before a response.",
+      "claim": "The write path is add() called after each turn; the read path is search() called before responding.",
       "kind": "issue",
       "url": "https://github.com/TeleAI-UAGI/telemem/issues/6",
       "quote": "stores and recalls facts through `telemem.Memory` (`add()` after each turn, `search()` before responding)",
@@ -641,7 +731,7 @@
       "label": "inferred"
     },
     {
-      "claim": "search() returns results in a mem0-compatible shape as of v1.5.0+.",
+      "claim": "search() returns a mem0-compatible {\"results\": [...]} shape as of v1.5.0+.",
       "kind": "issue",
       "url": "https://github.com/TeleAI-UAGI/telemem/issues/6",
       "quote": "`search()` returns the mem0-compatible `{\"results\": [...]}` shape (v1.5.0+)",
@@ -659,11 +749,11 @@
       "label": "inferred"
     },
     {
-      "claim": "TeleMem acts as a long-term memory layer, persisting salient facts across sessions for use in chat engines.",
+      "claim": "A quickstart example exists that demonstrates the minimal add/search flow.",
       "kind": "issue",
       "url": "https://github.com/TeleAI-UAGI/telemem/issues/7",
-      "quote": "show TeleMem as the long-term memory layer for a LlamaIndex chat engine",
-      "locator": "issue body, Task description",
+      "quote": "`examples/quickstart.py` for the minimal flow",
+      "locator": "issue body, Pointers bullet 1",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -671,116 +761,71 @@
       "claim": "TeleMem maintains isolated memory profiles per character",
       "kind": "issue",
       "url": "https://github.com/TeleAI-UAGI/telemem/issues/8",
-      "quote": "add a short two-character conversation, then search per character to show the isolated memory profiles",
-      "locator": "Task bullet 1",
+      "quote": "search per character to show the isolated memory profiles",
+      "locator": "Issue body, Task bullet 1",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "TeleMem achieved 86.33% QA accuracy on ZH-4O Chinese multi-character long-dialogue benchmark, 19% higher than Mem0 (70.20%).",
+      "claim": "Semantic retrieval operates at millisecond-level response times via FAISS",
       "kind": "blog",
       "url": "https://glama.ai/mcp/servers/TeleAI-UAGI/telemem",
-      "quote": "Significantly improved memory accuracy: Achieved 86.33% accuracy on the ZH-4O Chinese multi-character long-dialogue benchmark, 19% higher than Mem0.",
-      "locator": "Research Highlights",
+      "quote": "Doubled speed performance: Millisecond-level semantic retrieval enabled by efficient buffering and batch writing.",
+      "locator": "Research Highlights / bullet list",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "Evaluation used ZH-4O dataset with average 600 turns per conversation, covering daily interactions, plot progression, and evolving character relationships; metric is QA accuracy.",
+      "claim": "LLM-based semantic clustering deduplication merges similar memories; Mem0 uses only vector similarity filtering",
       "kind": "blog",
       "url": "https://glama.ai/mcp/servers/TeleAI-UAGI/telemem",
-      "quote": "Average dialogue length: 600 turns per conversation. Scenarios: daily interactions, plot progression, evolving character relationships. Memory capability was assessed via QA benchmarks",
-      "locator": "Experimental Results / Dataset",
+      "quote": "Deduplication mechanism: Mem0 \u2014 Vector similarity filtering / TeleMem \u2014 \u2705 LLM-based semantic clustering: merges similar memories via LLM",
+      "locator": "TeleMem vs Mem0: Core Advantages / table",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "Experimental LLM was Qwen3-8B with thinking mode disabled; embedding model was Qwen3-Embedding-8B.",
+      "claim": "Bulk delete (delete_all_memories) requires an explicit scope and never defaults to a default user, as a safety measure",
       "kind": "blog",
       "url": "https://glama.ai/mcp/servers/TeleAI-UAGI/telemem",
-      "quote": "LLM: Qwen3-8B (thinking mode disabled). Embedding model: Qwen3-Embedding-8B",
-      "locator": "Experimental Results / Experimental Configuration",
+      "quote": "Destructive bulk deletion always requires an explicit scope.",
+      "locator": "MCP Server / server description paragraph",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "Write performance claimed 2\u20133\u00d7 faster than Mem0 due to batch flush and concurrency.",
+      "claim": "memory_type='procedural_memory' routes through mem0's procedural pipeline rather than the default conversational pipeline",
       "kind": "blog",
       "url": "https://glama.ai/mcp/servers/TeleAI-UAGI/telemem",
-      "quote": "Batch flush + concurrency: 2\u20133\u00d7 faster writes",
-      "locator": "TeleMem vs Mem0: Core Advantages / comparison table",
+      "quote": "memory_type: Pass \"procedural_memory\" to create procedural memories via mem0's pipeline; omit for conversational memories",
+      "locator": "Core Functions / Add Memory (add) / Parameter Description",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "TeleMem is the only open-source memory layer that automatically builds isolated, per-character memory profiles, built for role-play, companion AI, NPCs, and multi-persona assistants.",
+      "claim": "v1.8.0 fixed character-memory extraction and fully honored infer=False / prompt / memory_type; added offline contract test suite",
       "kind": "blog",
       "url": "https://glama.ai/mcp/servers/TeleAI-UAGI/telemem",
-      "quote": "Character memory done right \u2014 the only open-source memory layer that automatically builds isolated, per-character memory profiles, built for role-play, companion AI, NPCs, and multi-persona assistants.",
-      "locator": "Why TeleMem?",
+      "quote": "TeleMem v1.8.0 \u2014 the \"claims = contracts\" release: character-memory extraction fix, infer=False / prompt / memory_type now fully honored, offline contract test suite, telemetry disabled by default",
+      "locator": "Latest Updates / 2026-07-11",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "add() with infer=True extracts salient facts via LLM before storing; infer=False stores raw content verbatim with no LLM call.",
+      "claim": "LongMemEval harness with built-in baselines added in v1.7.1 for evaluation",
       "kind": "blog",
       "url": "https://glama.ai/mcp/servers/TeleAI-UAGI/telemem",
-      "quote": "infer: Extract salient facts with the LLM before storing (TeleMem's default pipeline). Set false to store the raw text as-is.",
-      "locator": "Available Tools / add_memory / Parameters",
-      "confidence": "high",
-      "label": "inferred"
-    },
-    {
-      "claim": "search_memories fuses related memories into one consolidated text passage and always includes shared event memories.",
-      "kind": "blog",
-      "url": "https://glama.ai/mcp/servers/TeleAI-UAGI/telemem",
-      "quote": "Returns the matching memories as one consolidated text passage (TeleMem fuses related memories). Shared event memories (pseudo-user \"events\") are searched automatically.",
-      "locator": "Available Tools / search_memories / description",
-      "confidence": "high",
-      "label": "inferred"
-    },
-    {
-      "claim": "delete_all_memories requires explicit scope; the default user is never assumed to prevent accidental deletion.",
-      "kind": "blog",
-      "url": "https://glama.ai/mcp/servers/TeleAI-UAGI/telemem",
-      "quote": "Destructive: requires an explicit user_id, agent_id, or run_id \u2014 the default user is never assumed.",
-      "locator": "Available Tools / delete_all_memories / description",
-      "confidence": "high",
-      "label": "inferred"
-    },
-    {
-      "claim": "memory_history tool records ADD/UPDATE/DELETE events per memory, enabling auditability and debugging.",
-      "kind": "blog",
-      "url": "https://glama.ai/mcp/servers/TeleAI-UAGI/telemem",
-      "quote": "memory_history: View the full change history (ADD/UPDATE/DELETE events) for a specific memory, enabling auditability and debugging.",
-      "locator": "What can you do with this server?",
-      "confidence": "high",
-      "label": "inferred"
-    },
-    {
-      "claim": "MCP server built on official MCP Python SDK v2 (spec 2026-07-28); all 8 tools declare titles, behavior annotations, and structured output while remaining compatible with older MCP clients.",
-      "kind": "blog",
-      "url": "https://glama.ai/mcp/servers/TeleAI-UAGI/telemem",
-      "quote": "Built on the official MCP Python SDK v2, the server implements the current MCP specification (2026-07-28) while remaining compatible with older clients; every tool declares titles, behavior annotations (read-only/destructive hints), and structured output.",
-      "locator": "MCP Server",
-      "confidence": "high",
-      "label": "inferred"
-    },
-    {
-      "claim": "TeleMem provides long-term memory for AI agents",
-      "kind": "blog",
-      "url": "https://www.piwheels.org/project/telemem/",
-      "quote": "Long-term & multimodal memory for AI agents",
-      "locator": "page title / package description",
+      "quote": "Also new: evaluation principles and a LongMemEval harness with built-in baselines.",
+      "locator": "Latest Updates / 2026-06-12",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "Retrieval uses vector similarity via FAISS",
+      "claim": "Fully local operation supported: runs end-to-end on user hardware with Qwen + FAISS, no cloud required",
       "kind": "blog",
-      "url": "https://www.piwheels.org/project/telemem/",
-      "quote": "faiss-cpu",
-      "locator": "Dependencies list",
+      "url": "https://glama.ai/mcp/servers/TeleAI-UAGI/telemem",
+      "quote": "Fully local by default \u2014 runs end-to-end on your hardware (Qwen + FAISS); no cloud service, no paid tier, no data leaving your machine.",
+      "locator": "Why TeleMem? / bullet list",
       "confidence": "medium",
       "label": "inferred"
     }
@@ -823,7 +868,7 @@
       "quality": "high"
     },
     {
-      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mm_utils/memory_utils.py",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mm_utils/build_database.py",
       "kind": "code",
       "accessed_at": "2026-09-15",
       "quality": "high"
@@ -865,6 +910,12 @@
       "quality": "high"
     },
     {
+      "url": "https://teleai-uagi.github.io/telemem/evaluation/",
+      "kind": "docs",
+      "accessed_at": "2026-09-15",
+      "quality": "high"
+    },
+    {
       "url": "https://github.com/TeleAI-UAGI/telemem/issues/1",
       "kind": "issue",
       "accessed_at": "2026-09-15",
@@ -899,12 +950,6 @@
       "kind": "blog",
       "accessed_at": "2026-09-15",
       "quality": "medium"
-    },
-    {
-      "url": "https://www.piwheels.org/project/telemem/",
-      "kind": "blog",
-      "accessed_at": "2026-09-15",
-      "quality": "medium"
     }
   ],
   "consensus": [],
@@ -913,108 +958,133 @@
   "refuse": [],
   "unknowns": [
     {
-      "text": "The page describes memory_history as an MCP tool but does not document what it returns or whether it exposes a full operation log vs. a curated change history for a given memory entry.",
+      "text": "Conflict/supersession policy when add() receives information that contradicts an existing stored memory is not described; the page mentions LLM semantic merging for similar memories but does not specify behavior for contradictory facts.",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/README.md",
       "kind": "code"
     },
     {
-      "text": "Forget / explicit deletion from the FAISS+JSON store is available via MCP (delete_memory, delete_all_memories) but the README does not describe how deletion propagates to the FAISS index vs. the JSON metadata, or whether a hide-at-retrieve soft-delete option exists.",
+      "text": "Retrieve policy \u2014 whether search is always called before every turn or is left to the caller to invoke adaptively \u2014 is not specified; the framework integration note says 'search() before answering' but this is usage guidance, not an enforced policy.",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/README.md",
       "kind": "code"
     },
     {
-      "text": "Conflict / supersession policy when add() produces a new fact that contradicts an existing stored memory is not described beyond 'LLM semantic clustering merges similar memories'; the page does not explain how contradictions are resolved vs. merged.",
-      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/README.md",
+      "text": "TeleMemory (from .mem0) and TeleMemoryConfig (from .configs) are the product's core overrides, but their implementations \u2014 including what they persist, how they retrieve or update memories, whether they add a distinct write path or forget mechanism, and what isolation model they use \u2014 are not visible on this page.",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/__init__.py",
       "kind": "code"
     },
     {
-      "text": "The flush mechanism from buffer to vector store (exact write/update/delete logic, conflict resolution beyond similarity thresholding) is not described in this config file; as a canonical config for a memory system it should specify these behaviors.",
+      "text": "Write path details (how extracted memories are structured, updated, or deleted in the vector store) are not described in this config file.",
       "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/configs.py",
       "kind": "code"
     },
     {
-      "text": "The page describes the MCP tool surface but does not document conflict or supersession behavior: what happens when add_memory is called with information that contradicts an existing stored memory (merge, overwrite, or append).",
+      "text": "Conflict/supersession policy on add: the code calls memory.add() but does not describe what happens when a newly stored fact contradicts an existing memory (merge, replace, or coexist).",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mcp/server.py",
+      "kind": "code"
+    },
+    {
+      "text": "No conflict or supersession logic is present: if a caption changes, there is no merge strategy \u2014 the file-exists check simply skips rebuilding.",
+      "url": "https://github.com/TeleAI-UAGI/telemem/blob/9e9daf34ab7b225acea2d7264528793eb2df440c/telemem/mm_utils/build_database.py",
+      "kind": "code"
+    },
+    {
+      "text": "Conflict/supersession policy: this is a canonical API doc covering write operations but does not describe what happens when add_memory or update_memory conflicts with an existing memory on the same fact",
       "url": "https://teleai-uagi.github.io/telemem/MCP/",
       "kind": "docs"
     },
     {
-      "text": "The retrieve policy for search_memories is not specified beyond semantic search: no detail on when the model is instructed to stay silent, threshold filtering, or adaptive retrieval behavior.",
+      "text": "Retrieve policy: the page does not describe when or whether memories are retrieved automatically into the prompt vs requiring an explicit search_memories call",
       "url": "https://teleai-uagi.github.io/telemem/MCP/",
       "kind": "docs"
     },
     {
-      "text": "Forget behavior (delete from store vs hide at retrieve vs omit in generation) is not described for TeleMem's own layer; only inherited mem0 method names are listed without semantics.",
+      "text": "The retrieve policy for when to stay silent (adaptive retrieval, injecting nothing if no relevant memory exists) is not described; only threshold and limit parameters are given.",
       "url": "https://teleai-uagi.github.io/telemem/api/",
       "kind": "docs"
     },
     {
-      "text": "Retrieve policy for when to stay silent (adaptive retrieval, relevance gating before injection into prompt) is not described; page only covers the search() API parameters.",
-      "url": "https://teleai-uagi.github.io/telemem/api/",
-      "kind": "docs"
-    },
-    {
-      "text": "Forget / delete behavior: this is a top-level architecture page but does not describe any delete-from-store or hide-at-retrieve mechanism.",
-      "url": "https://teleai-uagi.github.io/telemem/",
-      "kind": "docs"
-    },
-    {
-      "text": "Retrieve policy: the page shows vector search + rerank is always invoked on query but does not describe adaptive retrieval, silence conditions, or how many results are injected into the prompt.",
-      "url": "https://teleai-uagi.github.io/telemem/",
-      "kind": "docs"
-    },
-    {
-      "text": "Log vs memory distinction: no description of whether full conversation transcripts are stored separately from curated facts/summaries.",
-      "url": "https://teleai-uagi.github.io/telemem/",
-      "kind": "docs"
-    },
-    {
-      "text": "No description of forget/delete path for stored video memory (frames, captions, or vector DB entries)",
-      "url": "https://teleai-uagi.github.io/telemem/video/",
-      "kind": "docs"
-    },
-    {
-      "text": "No description of isolation model: whether video memory is scoped per user, session, agent, or shared",
-      "url": "https://teleai-uagi.github.io/telemem/video/",
-      "kind": "docs"
-    },
-    {
-      "text": "No description of conflict or supersession behavior when the same video is re-added or captions change",
-      "url": "https://teleai-uagi.github.io/telemem/video/",
-      "kind": "docs"
-    },
-    {
-      "text": "The page is an issue asking whether a technical report exists and when it will be released, implying no architectural or API documentation is yet publicly available. Core memory behaviors (persist, retrieve, forget, conflict/supersession) are entirely undescribed.",
-      "url": "https://github.com/TeleAI-UAGI/telemem/issues/1",
-      "kind": "issue"
-    },
-    {
-      "text": "The evaluation charter page (https://teleai-uagi.github.io/telemem/evaluation/) is referenced as the canonical source for evaluation and reporting rules but its contents are not reproduced here; persist, retrieve, forget, and conflict behaviors may be specified there.",
+      "text": "This is a canonical evaluation/architecture page but does not describe the store write path: what is extracted, how facts are updated, how conflicts are resolved, or how deletion/forgetting works.",
       "url": "https://teleai-uagi.github.io/telemem/evaluation/",
       "kind": "docs"
     },
     {
-      "text": "No information on forget/delete behavior, conflict resolution, or isolation (per-user, per-session, per-agent) is present on this page despite it referencing the core add/search API.",
-      "url": "https://github.com/TeleAI-UAGI/telemem/issues/6",
+      "text": "The page does not describe retrieve policy: whether retrieval is always-on, adaptive, or conditional on query type.",
+      "url": "https://teleai-uagi.github.io/telemem/evaluation/",
+      "kind": "docs"
+    },
+    {
+      "text": "The page does not clarify whether TeleMem stores a full transcript log, curated facts/summaries, or both.",
+      "url": "https://teleai-uagi.github.io/telemem/evaluation/",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of the write path: how memories are extracted from raw messages (extraction model, prompt, rules), whether existing memories are updated or superseded on conflict, or how duplicates are handled.",
+      "url": "https://teleai-uagi.github.io/telemem/quickstart/",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of forget/delete: whether stored memories can be deleted from the store, hidden at retrieval, or omitted at generation.",
+      "url": "https://teleai-uagi.github.io/telemem/quickstart/",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of retrieve policy: whether search() is always called or is adaptive, and what controls how many results are injected into context.",
+      "url": "https://teleai-uagi.github.io/telemem/quickstart/",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete: this is a canonical docs page for video memory and does not describe any mechanism to delete stored frames, captions, or vector DB entries.",
+      "url": "https://teleai-uagi.github.io/telemem/video/",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict / supersession: no description of what happens when add_mm() is called again for the same or overlapping video content beyond stage-output caching.",
+      "url": "https://teleai-uagi.github.io/telemem/video/",
+      "kind": "docs"
+    },
+    {
+      "text": "Isolation: no description of per-user, per-session, per-agent, or per-character scoping of video memory.",
+      "url": "https://teleai-uagi.github.io/telemem/video/",
+      "kind": "docs"
+    },
+    {
+      "text": "The page is the canonical repository issue tracker for TeleMem and contains no description of persist, retrieve, forget, or conflict mechanisms",
+      "url": "https://github.com/TeleAI-UAGI/telemem/issues/1",
       "kind": "issue"
     },
     {
-      "text": "Forget / delete path: this canonical issue for the memory API mentions add and search but says nothing about deleting or superseding stored facts.",
+      "text": "The evaluation charter at https://teleai-uagi.github.io/telemem/evaluation/ is referenced as defining persist, retrieve, and reporting behavior but its contents are not reproduced on this page.",
+      "url": "https://teleai-uagi.github.io/telemem/evaluation/",
+      "kind": "docs"
+    },
+    {
+      "text": "Write path details (update, delete, conflict/supersession) are not described anywhere visible in this canonical repo issue.",
       "url": "https://github.com/TeleAI-UAGI/telemem/issues/7",
       "kind": "issue"
     },
     {
-      "text": "Retrieve policy: the page does not specify whether memories are always injected into every turn or retrieved adaptively (e.g., only when relevant above a threshold). The search() API offers a threshold parameter but the scaffold's retrieval policy for automatic injection is not described.",
+      "text": "Forget / deletion mechanism is not mentioned despite this being an architecture-level integration discussion.",
+      "url": "https://github.com/TeleAI-UAGI/telemem/issues/7",
+      "kind": "issue"
+    },
+    {
+      "text": "Retrieve policy (always retrieve vs adaptive) and any silence/suppression logic are not described.",
+      "url": "https://github.com/TeleAI-UAGI/telemem/issues/7",
+      "kind": "issue"
+    },
+    {
+      "text": "Isolation model (per user, session, agent, or character) is not stated.",
+      "url": "https://github.com/TeleAI-UAGI/telemem/issues/7",
+      "kind": "issue"
+    },
+    {
+      "text": "Conflict/supersession policy: the page describes LLM-based semantic clustering and merge but does not specify how conflicting facts (e.g., a user's name changed) are resolved or which version wins",
       "url": "https://glama.ai/mcp/servers/TeleAI-UAGI/telemem",
       "kind": "docs"
     },
     {
-      "text": "Forget/deletion behavior from the memory store is not described",
-      "url": "https://www.piwheels.org/project/telemem/",
-      "kind": "docs"
-    },
-    {
-      "text": "Retrieve policy (always retrieve vs adaptive) is not described",
-      "url": "https://www.piwheels.org/project/telemem/",
+      "text": "Retrieve policy for generation scaffold: the page describes how memories are stored and retrieved but does not specify how or whether retrieved memories are injected into the model's context (the scaffold/instruction layer)",
+      "url": "https://glama.ai/mcp/servers/TeleAI-UAGI/telemem",
       "kind": "docs"
     }
   ]
