@@ -107,6 +107,21 @@ def is_documented_capability_unknown(text: str) -> bool:
 
 LOW_QUALITY_UNKNOWN_HOSTS = ("piwheels.org",)
 
+MODERATION_LEDGER_RE = re.compile(
+    r"\bmoderat(?:ion|or)|\bmonitor\b|\bflagged\b|\bflagging\b|false positive",
+    re.I,
+)
+CONTEXT_ONLY_MEMORY_RE = re.compile(
+    r"no persistent store|only look back so many tokens|"
+    r"context window with no persistent|standard llm limitations apply",
+    re.I,
+)
+DOCS_SUPERSEDES_UNKNOWN_RE = re.compile(
+    r"journal entries are stored|how journal entries are stored|indexed, or retrieved|"
+    r"per-kin \(character-isolated\)|whether memory is per-kin",
+    re.I,
+)
+
 
 def filter_unknown_items(items: list[dict[str, object]]) -> list[dict[str, object]]:
     kept: list[dict[str, object]] = []
@@ -191,7 +206,63 @@ def is_peripheral_mechanism(text: str) -> bool:
         return True
     if "start a new chat" in blob and "cohere" in blob:
         return True
+    if "five-tier memory architecture" in blob or "five tier memory architecture" in blob:
+        return True
     return False
+
+
+def should_drop_ledger_row(row: dict[str, object], *, has_official_docs: bool) -> bool:
+    claim = str(row.get("claim") or "")
+    kind = str(row.get("kind") or "")
+    url = str(row.get("url") or "")
+    if MODERATION_LEDGER_RE.search(claim) and "memory" not in normalize_claim(claim):
+        return True
+    if not has_official_docs:
+        return False
+    if kind != "blog":
+        return False
+    if CONTEXT_ONLY_MEMORY_RE.search(claim):
+        return True
+    if "storychat.app" in url and CONTEXT_ONLY_MEMORY_RE.search(claim):
+        return True
+    return False
+
+
+def filter_ledger_rows(
+    rows: list[dict[str, object]],
+    *,
+    has_official_docs: bool,
+) -> list[dict[str, object]]:
+    return [row for row in rows if not should_drop_ledger_row(row, has_official_docs=has_official_docs)]
+
+
+def unknown_superseded_by_docs(text: str, *, has_official_docs: bool) -> bool:
+    if not has_official_docs:
+        return False
+    return bool(DOCS_SUPERSEDES_UNKNOWN_RE.search(text))
+
+
+def source_url_key(url: str) -> str:
+    return url.rstrip("/").lower()
+
+
+def align_unknown_to_source_kind(
+    item: dict[str, object],
+    sources_by_url: dict[str, dict[str, object]],
+) -> dict[str, object]:
+    url = str(item.get("url") or "").strip()
+    if not url:
+        return item
+    src = sources_by_url.get(url)
+    if src is None:
+        for key, row in sources_by_url.items():
+            if source_url_key(key) == source_url_key(url):
+                src = row
+                break
+    if src is not None and src.get("kind"):
+        item = dict(item)
+        item["kind"] = src["kind"]
+    return item
 
 
 def filter_summary_items(
@@ -297,6 +368,8 @@ def fold_pages(
     extracts: list[dict[str, object]],
     manifest: dict[str, object],
     log: PipelineLogger | None = None,
+    *,
+    extracted_page_ids: set[str] | None = None,
 ) -> dict[str, object]:
     identity = {
         "id": str(manifest.get("id") or ""),
@@ -322,6 +395,9 @@ def fold_pages(
 
     for page in manifest.get("pages") or []:
         if not isinstance(page, dict):
+            continue
+        page_id = str(page.get("id") or "")
+        if extracted_page_ids is not None and page_id and page_id not in extracted_page_ids:
             continue
         url = canonical_github_product_url(
             str(page.get("url") or "").strip(),
@@ -388,6 +464,8 @@ def fold_pages(
     unknowns = filter_unknown_items(unknowns)
 
     ledger = list(ledger_by_key.values())
+    has_official_docs = any(str(row.get("kind") or "") == "docs" for row in ledger)
+    ledger = filter_ledger_rows(ledger, has_official_docs=has_official_docs)
     audit = empty_audit(identity)
     audit["ledger"] = ledger
     product_id = str(identity.get("id") or manifest.get("id") or "")
@@ -412,6 +490,9 @@ def fold_pages(
     for item in unknowns:
         text = str(item.get("text") or "")
         url = str(item.get("url") or "")
+        if unknown_superseded_by_docs(text, has_official_docs=has_official_docs):
+            continue
+        item = align_unknown_to_source_kind(item, sources_by_url)
         key = f"{url}::{normalize_claim(text)}"
         if not text or not url or key in seen_unknown:
             continue
@@ -455,6 +536,26 @@ def fold_pages(
     return audit
 
 
+def extract_page_ids_ok(cache: Path) -> set[str]:
+    extract_root = cache / "extract"
+    if not extract_root.exists():
+        return set()
+    ok: set[str] = set()
+    for page_dir in extract_root.iterdir():
+        if not page_dir.is_dir():
+            continue
+        meta_path = page_dir / "meta.json"
+        extract_path = page_dir / "extract.json"
+        if not extract_path.exists():
+            continue
+        if meta_path.exists():
+            meta = load_json(meta_path)
+            if meta.get("skipped"):
+                continue
+        ok.add(page_dir.name)
+    return ok
+
+
 def load_extracts(cache: Path, manifest: dict[str, object]) -> list[dict[str, object]]:
     extract_root = cache / "extract"
     if not extract_root.exists():
@@ -465,9 +566,15 @@ def load_extracts(cache: Path, manifest: dict[str, object]) -> list[dict[str, ob
             pages_by_id[str(page["id"])] = page
     extracts: list[dict[str, object]] = []
     for path in sorted(extract_root.glob("*/extract.json")):
-        page = pages_by_id.get(path.parent.name)
+        page_id = path.parent.name
+        page = pages_by_id.get(page_id)
         if page is None:
             continue
+        meta_path = path.parent / "meta.json"
+        if meta_path.exists():
+            meta = load_json(meta_path)
+            if meta.get("skipped"):
+                continue
         extract = load_json(path)
         page_url = str(page.get("url") or "")
         page_kind = str(page.get("kind") or "docs")
@@ -479,8 +586,7 @@ def load_extracts(cache: Path, manifest: dict[str, object]) -> list[dict[str, ob
                     continue
                 if not item.get("url") and page_url:
                     item["url"] = page_url
-                if not item.get("kind"):
-                    item["kind"] = page_kind
+                item["kind"] = page_kind
                 stamped.append(item)
             extract["unknowns"] = stamped
         extracts.append(extract)
@@ -494,9 +600,15 @@ def fold(slug: str) -> dict[str, object]:
         raise SystemExit(f"missing manifest: {manifest_path}")
     manifest = load_json(manifest_path)
     extracts = load_extracts(cache, manifest)
+    extracted_page_ids = extract_page_ids_ok(cache)
     with PipelineLogger("fold", source=slug, extracts=len(extracts)) as log:
         log.info("fold_started", extract_files=len(extracts), manifest=str(manifest_path))
-        candidate = fold_pages(extracts, manifest, log=log)
+        candidate = fold_pages(
+            extracts,
+            manifest,
+            log=log,
+            extracted_page_ids=extracted_page_ids,
+        )
         out = cache / "candidate.json"
         out.write_text(json.dumps(candidate, indent=2), encoding="utf-8")
         log.action(

@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import random
 import re
+import shutil
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -29,7 +31,10 @@ Converter = Literal[
     "clean_html",
     "markdown_new",
     "arctic_shift",
+    "playwright",
 ]
+
+SPA_PROSE_HOSTS = frozenset({"kindroid.ai"})
 
 _REDDIT_COMMENTS_RE = re.compile(
     r"https?://(?:www\.|old\.|np\.|new\.)?reddit\.com/r/[^/]+/comments/([0-9a-z]+)",
@@ -205,6 +210,67 @@ def _thin_html(page: FetchedText) -> bool:
     return page.converter == "clean_html" and bool(quality_score(page.text)["is_low_quality"])
 
 
+def spa_prose_host(url: str) -> bool:
+    host = urlparse(url).netloc.lower().removeprefix("www.")
+    return host in SPA_PROSE_HOSTS or host.endswith(".kindroid.ai")
+
+
+def playwright_chromium_executable() -> str | None:
+    system = shutil.which("chromium") or shutil.which("google-chrome-stable")
+    if system:
+        return system
+    root = Path(os.environ.get("PLAYWRIGHT_BROWSERS_PATH", Path.home() / ".cache/ms-playwright"))
+    if not root.is_dir():
+        return None
+    headless = sorted(
+        root.glob("chromium_headless_shell-*/chrome-headless-shell-linux64/chrome-headless-shell"),
+        reverse=True,
+    )
+    if headless:
+        return str(headless[0])
+    full = sorted(root.glob("chromium-*/chrome-linux/chrome"), reverse=True)
+    if full:
+        return str(full[0])
+    return None
+
+
+def fetch_spa_prose(url: str, *, wait_ms: int = 8000) -> FetchedText | None:
+    """Headless render for client-only doc sites. Requires playwright + chromium."""
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        emit_console("httputil", url, "info", "fetch_spa_skip", reason="playwright_missing")
+        return None
+    emit_console("httputil", url, "info", "fetch_spa_start")
+    text = ""
+    try:
+        with sync_playwright() as playwright:
+            launch_kwargs: dict[str, object] = {
+                "headless": True,
+                "args": ["--disable-dev-shm-usage"],
+            }
+            executable = playwright_chromium_executable()
+            if executable:
+                launch_kwargs["executable_path"] = executable
+            browser = playwright.chromium.launch(**launch_kwargs)
+            try:
+                page = browser.new_page()
+                page.goto(url, wait_until="domcontentloaded", timeout=120_000)
+                page.wait_for_timeout(wait_ms)
+                selector = ".v2-public-shell_root, main"
+                text = page.locator(selector).first.inner_text(timeout=60_000)
+            finally:
+                browser.close()
+    except Exception as exc:
+        emit_console("httputil", url, "warn", "fetch_spa_failed", error=type(exc).__name__)
+        return None
+    if quality_score(text)["is_low_quality"]:
+        emit_console("httputil", url, "warn", "fetch_spa_thin", chars=len(text))
+        return None
+    emit_console("httputil", url, "info", "fetch_spa_ok", chars=len(text))
+    return FetchedText(url=url, text=text, converter="playwright")
+
+
 def reddit_post_id(url: str) -> str | None:
     """Post id from a reddit.com/comments or redd.it URL. None for profiles and indexes."""
     for pattern in (_REDDIT_COMMENTS_RE, _REDDIT_SHORT_RE):
@@ -374,6 +440,10 @@ def fetch_prose(client: httpx.Client, url: str) -> FetchedText | None:
             chars=len(md),
         )
         return FetchedText(url=requested, text=md, converter="markdown_new")
+    if spa_prose_host(requested):
+        spa = fetch_spa_prose(requested)
+        if spa is not None:
+            return spa
     emit_console(
         "httputil",
         requested,

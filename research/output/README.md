@@ -38,4 +38,13 @@ just synthesize
 just test-pipeline
 ```
 
+Client-rendered help centers (e.g. `kindroid.ai`) need Playwright before harvest:
+
+```bash
+uv sync --project research/pipeline --group spa
+uv run --project research/pipeline playwright install chromium
+```
+
+On NixOS, system `chromium` in `PATH` is used when the Playwright-bundled browser cannot start.
+
 See [`by-product/PROTOCOL.md`](by-product/PROTOCOL.md).

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from companmem_pipeline.fold import (
     dedupe_near_duplicate_summaries,
+    filter_ledger_rows,
     filter_summary_items,
     filter_unknown_items,
     fold_pages,
@@ -10,6 +11,8 @@ from companmem_pipeline.fold import (
     is_peripheral_mechanism,
     is_self_referential_summary,
     mentions_add_search_loop,
+    should_drop_ledger_row,
+    unknown_superseded_by_docs,
 )
 from companmem_pipeline.lint import lint_audit
 
@@ -387,6 +390,57 @@ def test_filter_summary_items_drops_self_referential_rows() -> None:
     kept = filter_summary_items(items, "microsoft-graphrag", "Microsoft GraphRAG")
     assert len(kept) == 1
     assert "hierarchy levels" in kept[0]["text"]
+
+
+def test_should_drop_ledger_row_moderation_and_context_only() -> None:
+    moderation = {
+        "claim": "Kindroid has a background moderation AI that monitors chats",
+        "kind": "community",
+        "url": "https://www.reddit.com/r/example/",
+        "quote": "monitor",
+    }
+    assert should_drop_ledger_row(moderation, has_official_docs=False)
+    blog_ctx = {
+        "claim": "Kindroid memory is backed by LLM context window with no persistent store beyond it",
+        "kind": "blog",
+        "url": "https://blog.storychat.app/example",
+        "quote": "tokens",
+    }
+    assert not should_drop_ledger_row(blog_ctx, has_official_docs=False)
+    assert should_drop_ledger_row(blog_ctx, has_official_docs=True)
+    docs_row = {
+        "claim": "Long-term memory is infinite",
+        "kind": "docs",
+        "url": "https://kindroid.ai/v2/docs/memory/",
+        "quote": "infinite",
+    }
+    assert not should_drop_ledger_row(docs_row, has_official_docs=True)
+
+
+def test_unknown_superseded_by_docs() -> None:
+    text = "No description on this page of how journal entries are stored, indexed, or retrieved"
+    assert not unknown_superseded_by_docs(text, has_official_docs=False)
+    assert unknown_superseded_by_docs(text, has_official_docs=True)
+
+
+def test_filter_ledger_rows_drops_moderation() -> None:
+    rows = [
+        {
+            "claim": "Flagging appeared sensitive enough to trigger on an AI-guessed age alone",
+            "kind": "community",
+            "url": "https://www.reddit.com/r/x/",
+            "quote": "flagged",
+        },
+        {
+            "claim": "Journal cap of three entries per message",
+            "kind": "docs",
+            "url": "https://kindroid.ai/v2/docs/memory/",
+            "quote": "only 3",
+        },
+    ]
+    kept = filter_ledger_rows(rows, has_official_docs=True)
+    assert len(kept) == 1
+    assert kept[0]["kind"] == "docs"
 
 
 def test_is_peripheral_mechanism() -> None:
