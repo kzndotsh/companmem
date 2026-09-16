@@ -122,6 +122,10 @@ LOCKED_LESSON_UNKNOWN_RE = re.compile(
     r"locked lesson|not visible without authentication",
     re.I,
 )
+LEGACY_CIPHER_MCP_UNKNOWN_RE = re.compile(
+    r"mcp mode|mcp tool|@byterover/cipher|cipher package",
+    re.I,
+)
 COMPETITOR_COMPARE_HOSTS = (
     "graphlit.com",
     "agentmarketcap.ai",
@@ -181,6 +185,9 @@ def filter_unknown_items(items: list[dict[str, object]]) -> list[dict[str, objec
             continue
         if LOCKED_LESSON_UNKNOWN_RE.search(text):
             continue
+        if "/issues/" in url and LEGACY_CIPHER_MCP_UNKNOWN_RE.search(text):
+            if "qdrant" in text.lower() or "claude.json" in text.lower():
+                continue
         kept.append(item)
     return kept
 
@@ -390,6 +397,8 @@ def unknown_superseded_by_ledger(
         "unclear whether",
         "exposes no",
         "no delete",
+        "unaddressed",
+        "not explained",
     )
     delete_gap = any(
         token in blob
@@ -402,16 +411,50 @@ def unknown_superseded_by_ledger(
         token in blob for token in ("conflict", "supersession", "contradict", "overwritten")
     )
     isolation_gap = "isolation" in blob
+    store_shape_gap = any(
+        phrase in blob
+        for phrase in (
+            "internal structure",
+            "what is stored",
+            "what is persisted",
+            "transcript log",
+            "curated facts",
+            "topic-keyed",
+            "memory base",
+        )
+    )
+    write_path_gap = any(
+        phrase in blob
+        for phrase in (
+            "write path",
+            "how facts are extracted",
+            "retrieval into context",
+            "curation of a memory",
+            "how retrieval into context",
+        )
+    )
     capability_gap = any(
         token in blob
         for token in ("forget", "delete", "retrieve", "conflict", "supersession", "merge")
     )
     if not any(marker in blob for marker in absence_markers):
-        if not (delete_gap or retrieve_gap or conflict_gap or isolation_gap):
+        if not (
+            delete_gap
+            or retrieve_gap
+            or conflict_gap
+            or isolation_gap
+            or store_shape_gap
+            or write_path_gap
+        ):
             return False
-        if not capability_gap and not isolation_gap:
+        if not capability_gap and not isolation_gap and not store_shape_gap and not write_path_gap:
             return False
-    elif not capability_gap and not isolation_gap:
+    elif (
+        not capability_gap
+        and not isolation_gap
+        and not store_shape_gap
+        and not write_path_gap
+    ):
         return False
     for row in ledger:
         if str(row.get("kind") or "") not in ("code", "docs"):
@@ -449,7 +492,33 @@ def unknown_superseded_by_ledger(
         ):
             return True
         if isolation_gap and any(
-            token in claim for token in ("bank", "isolat", "scoped", "per-user", "bank_id")
+            token in claim
+            for token in (
+                "bank",
+                "isolat",
+                "scoped",
+                "per-user",
+                "bank_id",
+                "space",
+                "per-project",
+                "bind",
+            )
+        ):
+            return True
+        if (store_shape_gap or write_path_gap) and any(
+            token in claim
+            for token in (
+                "context tree",
+                "curated",
+                "bv-topic",
+                "contextdata",
+                "knowledge tree",
+                "curate",
+                "record",
+                "query",
+                "not a raw",
+                "markdown-writer",
+            )
         ):
             return True
         if "forget" in blob and ("delete" in claim or "forget" in claim):

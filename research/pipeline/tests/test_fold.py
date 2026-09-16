@@ -577,6 +577,31 @@ def test_should_drop_ledger_row_competitor_compare_host() -> None:
     assert should_drop_ledger_row(row, has_official_docs=True)
 
 
+def test_unknown_superseded_by_ledger_store_shape_when_context_tree_documented() -> None:
+    ledger = [
+        {
+            "claim": "Memory is organized as a context tree within a space, not a flat transcript log",
+            "kind": "docs",
+            "url": "https://docs.byterover.dev/v4/overview.md",
+        }
+    ]
+    text = (
+        "The page does not describe the internal structure of what is stored — "
+        "whether spaces hold full transcript logs or curated facts"
+    )
+    assert unknown_superseded_by_ledger(text, ledger)
+
+
+def test_filter_unknown_items_drops_legacy_cipher_mcp_issue_unknown() -> None:
+    items = [
+        {
+            "text": "The write path for MCP mode is not explained — Qdrant via claude.json",
+            "url": "https://github.com/campfirein/byterover-cli/issues/263",
+        }
+    ]
+    assert filter_unknown_items(items) == []
+
+
 def test_filter_unknown_items_drops_bestaiweb_compare_host() -> None:
     items = [
         {
