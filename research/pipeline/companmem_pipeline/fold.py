@@ -7,7 +7,11 @@ import json
 import re
 from pathlib import Path
 
-from companmem_pipeline.harvest import canonical_github_product_url, product_ids
+from companmem_pipeline.harvest import (
+    canonical_github_product_url,
+    normalize_url,
+    product_ids,
+)
 from companmem_pipeline.log import PipelineLogger
 from companmem_pipeline.paths import product_cache
 
@@ -396,6 +400,39 @@ def cited_summaries(
     return dedupe_near_duplicate_summaries(out)
 
 
+def dedupe_ledger_near_duplicates(
+    rows: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    """Drop ledger rows on the same URL when claims overlap (e.g. duplicate extracts)."""
+    kept: list[dict[str, object]] = []
+    for row in rows:
+        url = normalize_url(str(row.get("url") or ""))
+        claim = normalize_claim(str(row.get("claim") or ""))
+        if not url or not claim:
+            kept.append(row)
+            continue
+        merged = False
+        for index, existing in enumerate(kept):
+            existing_url = normalize_url(str(existing.get("url") or ""))
+            existing_claim = normalize_claim(str(existing.get("claim") or ""))
+            if url != existing_url:
+                continue
+            same_claim = (
+                claim == existing_claim
+                or claim in existing_claim
+                or existing_claim in claim
+                or (len(claim) >= 48 and claim[:48] == existing_claim[:48])
+            )
+            if same_claim:
+                if quote_len(row) > quote_len(existing):
+                    kept[index] = row
+                merged = True
+                break
+        if not merged:
+            kept.append(row)
+    return kept
+
+
 def dedupe_unknowns_by_text(items: list[dict[str, object]]) -> list[dict[str, object]]:
     """Keep one row per unknown stem across URLs."""
     kept: list[dict[str, object]] = []
@@ -537,6 +574,7 @@ def fold_pages(
     ledger = list(ledger_by_key.values())
     has_official_docs = any(str(row.get("kind") or "") == "docs" for row in ledger)
     ledger = filter_ledger_rows(ledger, has_official_docs=has_official_docs)
+    ledger = dedupe_ledger_near_duplicates(ledger)
     audit = empty_audit(identity)
     audit["ledger"] = ledger
     product_id = str(identity.get("id") or manifest.get("id") or "")

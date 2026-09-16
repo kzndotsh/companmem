@@ -173,6 +173,33 @@ def test_allowed_source_url_nomi_wiki() -> None:
     assert allowed_source_url("https://wiki.nomi.ai/Mind_Map_2.0", product, repo_meta)
 
 
+def test_open_doc_url_key_strips_md_suffix() -> None:
+    from companmem_pipeline.harvest import open_doc_url_key
+
+    seed = "https://help.replika.com/hc/en-us/articles/4411154990605-Is-the-chat-history-infinite"
+    fetched = "https://help.replika.com/hc/en-us/articles/4411154990605-Is-the-chat-history-infinite.md"
+    assert open_doc_url_key(seed) == open_doc_url_key(fetched)
+
+
+def test_allowed_source_url_replika_help_open_docs() -> None:
+    product = {
+        "id": "replika",
+        "name": "Replika",
+        "repo": None,
+        "docs": "https://help.replika.com/hc/en-us/articles/37208679176077-How-does-Replika-s-memory-work",
+        "open_docs": [
+            "https://help.replika.com/hc/en-us/articles/37208679176077-How-does-Replika-s-memory-work",
+            "https://help.replika.com/hc/en-us/articles/4411154990605-Is-the-chat-history-infinite",
+        ],
+    }
+    repo_meta: dict[str, object] = {}
+    assert allowed_source_url(
+        "https://help.replika.com/hc/en-us/articles/4411154990605-Is-the-chat-history-infinite",
+        product,
+        repo_meta,
+    )
+
+
 def test_allowed_source_url_characterai_blog_open_docs() -> None:
     product = {
         "id": "characterai",

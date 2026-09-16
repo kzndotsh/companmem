@@ -366,6 +366,14 @@ def normalize_url(url: str) -> str:
     return re.sub(r"[#?].*$", "", url).rstrip("/")
 
 
+def open_doc_url_key(url: str) -> str:
+    """Match seed open_docs to fetched URLs that gain a .md suffix."""
+    key = normalize_url(url)
+    if key.endswith(".md"):
+        key = key[:-3]
+    return key
+
+
 def page_slug(url: str) -> str:
     parsed = urlparse(url)
     path = parsed.path.strip("/").replace("/", "_")[:80] or "index"
@@ -1929,8 +1937,8 @@ def allowed_source_url(
             return True
         open_docs = product.get("open_docs")
         if isinstance(open_docs, list):
-            listed = {normalize_url(str(item)) for item in open_docs if isinstance(item, str)}
-            if normalize_url(url) in listed:
+            listed = {open_doc_url_key(str(item)) for item in open_docs if isinstance(item, str)}
+            if open_doc_url_key(url) in listed:
                 return True
         return path_under_docs_prefix(path, prefix)
     if host.startswith("docs.") or host.startswith("help."):

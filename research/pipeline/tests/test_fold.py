@@ -408,6 +408,26 @@ def test_is_weak_wiki_index_ledger() -> None:
     )
 
 
+def test_dedupe_ledger_near_duplicates_same_url() -> None:
+    from companmem_pipeline.fold import dedupe_ledger_near_duplicates
+
+    rows = [
+        {
+            "claim": "Memory is layered: a user-visible Memory tab plus a deeper automatic system.",
+            "url": "https://help.replika.com/hc/en-us/articles/1",
+            "quote": "short",
+        },
+        {
+            "claim": "Memory is layered: a user-visible Memory tab plus a deeper automatic system derived from chat.",
+            "url": "https://help.replika.com/hc/en-us/articles/1",
+            "quote": "longer quote here",
+        },
+    ]
+    out = dedupe_ledger_near_duplicates(rows)
+    assert len(out) == 1
+    assert out[0]["quote"] == "longer quote here"
+
+
 def test_build_contested_rows_memory_edit() -> None:
     ledger = [
         {"quote": "The memories are out of your hands", "claim": "x"},
