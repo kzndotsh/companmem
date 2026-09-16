@@ -15,6 +15,7 @@ from companmem_pipeline.fold import (
     mentions_add_search_loop,
     should_drop_ledger_row,
     unknown_superseded_by_docs,
+    unknown_superseded_by_ledger,
 )
 from companmem_pipeline.lint import lint_audit
 
@@ -552,3 +553,37 @@ def test_fold_drops_uncited_mechanisms() -> None:
     assert audit["mechanisms"] == []
     assert audit["claimed_purpose"] == []
     assert len(audit["ledger"]) == 1
+
+
+def test_should_drop_ledger_row_comparison_benchmark_blog_path() -> None:
+    row = {
+        "claim": "LangMem scored X",
+        "kind": "blog",
+        "url": "https://mem0.ai/blog/benchmarked-openai-memory-vs-langmem",
+        "quote": "benchmark",
+        "locator": "blog",
+    }
+    assert should_drop_ledger_row(row, has_official_docs=True)
+
+
+def test_should_drop_ledger_row_competitor_compare_host() -> None:
+    row = {
+        "claim": "LangMem is self-hosted",
+        "kind": "blog",
+        "url": "https://www.graphlit.com/vs/langmem",
+        "quote": "self-hosted",
+        "locator": "compare",
+    }
+    assert should_drop_ledger_row(row, has_official_docs=True)
+
+
+def test_unknown_superseded_by_ledger_forget_when_code_documents_delete() -> None:
+    ledger = [
+        {
+            "claim": "Forget is implemented via store.adelete on removed_ids",
+            "kind": "code",
+            "url": "https://github.com/example/repo/blob/sha/file.py",
+        }
+    ]
+    text = "Forget / delete path: this README does not describe how memories are deleted"
+    assert unknown_superseded_by_ledger(text, ledger)

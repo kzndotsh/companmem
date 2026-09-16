@@ -1,0 +1,1441 @@
+{
+  "identity": {
+    "id": "langmem",
+    "name": "LangMem",
+    "repo": "https://github.com/langchain-ai/langmem",
+    "docs": "https://langchain-ai.github.io/langmem/concepts/conceptual_guide/",
+    "license": "MIT",
+    "version_or_commit": "9d033b47d9ce53e37e92c92241b0496c0278932e",
+    "observed_at": "2026-09-16"
+  },
+  "claimed_purpose": [
+    {
+      "text": "LangChain SDK for agent long-term memory on LangGraph's Store: LLM-driven extraction/consolidation, semantic/episodic/procedural patterns, hot-path tools plus background managers, optional prompt optimization—not a hosted companion product."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Store: MemoryItem documents in a namespaced BaseStore (Postgres/in-memory); curated {kind, content} writes via create_memory_store_manager or agent manage/search tools—not a raw chat log."
+    },
+    {
+      "text": "Write: extraction passes existing memories so the model can insert, update, or delete (RemoveDoc → adelete); background_quickstart + ReflectionExecutor defer consolidation; episodic guide stores vector-indexed episodes after turns."
+    },
+    {
+      "text": "Retrieve: semantic search (query_limit), optional episodic block in system prompt, procedural text in prompt; hot-path quickstart uses agent-decided tool calls unless you add scaffolding."
+    },
+    {
+      "text": "Isolation: namespace tuples (e.g. langgraph_user_id); checkpointer thread_id for session state vs cross-thread store; InMemoryStore is non-durable across restarts."
+    },
+    {
+      "text": "Ops: Postgres/integration issues (#42, #154, #114) and tool strict-mode bugs remain field risks; graph_rag prototype removed from seed open_code (demo only)."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "LangMem natively integrates with LangGraph's Long-term Memory Store, available by default in all LangGraph Platform deployments.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/README.md",
+      "quote": "Native integration with LangGraph's Long-term Memory Store, available by default in all LangGraph Platform deployments",
+      "locator": "README.md ## Key features",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "create_manage_memory_tool gives the agent (not the system) control over what gets stored, distinguishing curated memory writes from a raw message log.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/README.md",
+      "quote": "The memory tools (create_manage_memory_tool and create_search_memory_tool) let you control what gets stored.",
+      "locator": "README.md ## Creating an Agent, code note 3 under store setup",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic search is used for retrieval; create_search_memory_tool searches for memories with similar content to the query.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/README.md",
+      "quote": "the LLM can invoke create_search_memory_tool to search for memories with similar content",
+      "locator": "README.md ## Creating an Agent, code note 2 under 'Then use the agent'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LangMem also supports prompt refinement as a mechanism for optimizing agent behavior over time.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/README.md",
+      "quote": "optimize agent behavior through prompt refinement",
+      "locator": "README.md intro paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LangMem exposes distinct write-path and read-path primitives: create_memory_manager and create_memory_store_manager for writing/updating, create_memory_searcher and create_search_memory_tool for retrieval",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/__init__.py",
+      "quote": "create_manage_memory_tool, create_memory_manager, create_memory_store_manager, create_search_memory_tool, create_memory_searcher",
+      "locator": "src/langmem/__init__.py, __all__ list",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is stored as curated {kind, content} records in LangGraph BaseStore, not as a raw message transcript.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/knowledge/extraction.py",
+      "quote": "final_puts.append(\n                    {\n                        \"namespace\": namespace,\n                        \"key\": sid,\n                        \"value\": {\"kind\": kind, \"content\": content},\n                    }\n                )",
+      "locator": "MemoryStoreManager.ainvoke, final_puts loop (else branch)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Insert, update, and delete are all supported write operations; each is individually togglable via enable_inserts, enable_updates, enable_deletes flags.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/knowledge/extraction.py",
+      "quote": "enable_inserts: bool = True,\n        enable_updates: bool = True,\n        enable_deletes: bool = False,",
+      "locator": "MemoryManager.__init__ parameters",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve is adaptive: up to query_limit (default 5) semantically similar memories are fetched from the store before each enrichment invocation.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/knowledge/extraction.py",
+      "quote": "query_limit (int, optional): Maximum number of relevant memories to retrieve for each conversation. Higher limits provide more context but may slow down processing. Defaults to 5.",
+      "locator": "create_memory_store_manager docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per-user by default, scoped by a namespace tuple containing langgraph_user_id.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/knowledge/extraction.py",
+      "quote": "namespace: tuple[str, ...] = (\"memories\", \"{langgraph_user_id}\"),",
+      "locator": "create_memory_store_manager function signature",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The memory extractor distinguishes semantic, procedural, and episodic memory types; the LLM is instructed to identify facts, relationships, preferences, and reasoning procedures.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/knowledge/extraction.py",
+      "quote": "You are a long-term memory manager maintaining a core store of semantic, procedural, and episodic memory. These memories power a life-long learning agent's core predictive model.",
+      "locator": "_MEMORY_INSTRUCTIONS constant",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict resolution: existing memories are passed as context to the extraction LLM, which is instructed to update outdated or contradicted entries rather than append duplicates.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/knowledge/extraction.py",
+      "quote": "If an existing memory is incorrect or outdated, update it based on the new information.",
+      "locator": "MemoryManager._prepare_messages, user content string",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget (delete) is implemented as store.adelete called on memories whose IDs appear in removed_ids after the LLM emits a RemoveDoc tool call.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/knowledge/extraction.py",
+      "quote": "*(store.adelete(ns, key) for (ns, key) in final_deletes),",
+      "locator": "MemoryStoreManager.ainvoke, asyncio.gather call",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Thread summarization (create_thread_extractor) produces a title+summary struct from a conversation; this is a separate scaffold from the per-fact memory write path.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/knowledge/extraction.py",
+      "quote": "Creates a conversation thread summarizer using schema-based extraction. This function creates an asynchronous callable that takes conversation messages and produces a structured summary based on the provided schema.",
+      "locator": "create_thread_extractor docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Without a query_model, retrieval uses dilated temporal windows over the message list as search queries rather than LLM-generated queries.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/knowledge/extraction.py",
+      "quote": "queries = utils.get_dialated_windows(\n                    input[\"messages\"], self.query_limit // 4\n                )",
+      "locator": "MemoryStoreManager.ainvoke, else branch of query_gen check",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LangMem persists curated memory items (not full message logs) to a BaseStore under a namespaced UUID key.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/knowledge/tools.py",
+      "quote": "store.put(\n            namespace,\n            key=str(id),\n            value={\"content\": _ensure_json_serializable(content)},\n        )",
+      "locator": "manage_memory function body",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per namespace, which is a runtime-resolved template allowing per-user, per-agent, or per-character partitioning via configurable placeholders such as langgraph_user_id.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/knowledge/tools.py",
+      "quote": "# Example: Per-user memory storage\n        config = {\"configurable\": {\"langgraph_user_id\": \"user-123\"}}\n        # Results in namespace: (\"memories\", \"user-123\")",
+      "locator": "create_manage_memory_tool docstring, Namespace Configuration note",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy is on-demand (model calls search_memory tool with a query); there is no always-retrieve injection described in this file beyond the example prompt scaffold.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/knowledge/tools.py",
+      "quote": "Create a tool for searching memories stored in a LangGraph BaseStore.\n\n    This function creates a tool that allows AI assistants to search through previously stored\n    memories using semantic or exact matching.",
+      "locator": "create_search_memory_tool docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The write scaffold instructs the model to treat outdated memories as a supersession trigger, initiating an update action on the identified stale memory.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/knowledge/tools.py",
+      "quote": "4. Identify that an existing MEMORY is incorrect or outdated.",
+      "locator": "create_manage_memory_tool, instructions default value",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MemoryItem is a curated store entry (key/value/namespace/timestamps), not a raw message log \u2014 distinguishing memory writes from conversation transcript",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/reflection.py",
+      "quote": "Items are used to store cross-thread memories.",
+      "locator": "MemoryItem docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path is decoupled and asynchronous: reflection runs after the turn, optionally delayed, via a background worker queue",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/reflection.py",
+      "quote": "after_seconds: int = 0",
+      "locator": "PendingTask NamedTuple / submit signatures",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict/supersession on the write path: submitting a new reflection for an already-pending thread cancels the prior pending task before queuing the new one",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/reflection.py",
+      "quote": "existing.cancel_event.set()\nexisting.future.cancel()",
+      "locator": "LocalReflectionExecutor.submit, pending task cancellation block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is enforced by namespace tuple, scoping stored memories per user, thread, or other domain identifier",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/reflection.py",
+      "quote": "self.namespace = namespace if isinstance(namespace, tuple) else (namespace,)",
+      "locator": "RemoteReflectionExecutor.__init__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve is query + filter + namespace search returning scored items; policy (when to retrieve) is not defined in this file",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/reflection.py",
+      "quote": "def search(self, query: Optional[str] = None, *, filter: dict[str, Any] | None = None, limit: int = 10, offset: int = 0, namespace: str | tuple[str, ...] | None = None) -> list[MemoryItem]",
+      "locator": "Executor Protocol / LocalReflectionExecutor.search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "RunningSummary is the persisted memory object, carrying the summary text, all previously summarized message IDs, and the last summarized message ID.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/short_term/summarization.py",
+      "quote": "summary: str\n    \"\"\"Latest summary of the messages, updated every time the summarization is performed.\"\"\"\n\n    summarized_message_ids: set[str]\n    \"\"\"The IDs of all of the messages that have been previously summarized.\"\"\"\n\n    last_summarized_message_id: str | None\n    \"\"\"The ID of the last message that was summarized.\"\"\"",
+      "locator": "RunningSummary dataclass",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The memory write updates (extends) an existing summary rather than replacing it when a running summary is present.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/short_term/summarization.py",
+      "quote": "\"This is summary of the conversation so far: {existing_summary}\\n\\nExtend this summary by taking into account the new messages above:\"",
+      "locator": "DEFAULT_EXISTING_SUMMARY_PROMPT definition",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The scaffold injected into each turn is: optional original system message + summary-as-system-message + remaining unsummarized messages; the full log is not passed.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/short_term/summarization.py",
+      "quote": "(\"system\", \"Summary of the conversation so far: {summary}\"),\n        (\"placeholder\", \"{messages}\")",
+      "locator": "DEFAULT_FINAL_SUMMARY_PROMPT definition",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forgetting (log replacement) is done by emitting RemoveMessage(REMOVE_ALL_MESSAGES) when SummarizationNode is configured to overwrite the main message key.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/short_term/summarization.py",
+      "quote": "state_update[self.output_messages_key] = [\n                    RemoveMessage(REMOVE_ALL_MESSAGES)\n                ] + state_update[self.output_messages_key]",
+      "locator": "SummarizationNode._prepare_state_update",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session isolation is thread-scoped via LangGraph's checkpointer; the example uses InMemorySaver with thread_id.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/short_term/summarization.py",
+      "quote": "checkpointer = InMemorySaver()\n        ...\n        config = {\"configurable\": {\"thread_id\": \"1\"}}",
+      "locator": "summarize_messages docstring, Example section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "This module implements short-term (within-session) memory compression only; there is no long-term cross-session store in this file.",
+      "kind": "code",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/short_term/summarization.py",
+      "quote": "from langmem.short_term import summarize_messages, RunningSummary",
+      "locator": "summarize_messages docstring, Example import",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LangMem's background mode extracts curated facts from conversations rather than storing full transcripts \u2014 store items are discrete Memory objects with a content string, not raw message logs.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/background_quickstart/",
+      "quote": "value={\"kind\": \"Memory\", \"content\": {\"content\": \"User likes dogs as pets\"}}",
+      "locator": "Background Quickstart Guide > Basic Usage > store.search output",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Namespace-based isolation is the mechanism for scoping memories per user, agent, or other dimension; dynamic namespace configuration is a documented feature.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/background_quickstart/",
+      "quote": "The namespace parameter lets you isolate memories that are stored and retrieved. In this example, we store memories in a global \"memories\" path, but you could instead use template variables to scope to a user-specific path based on configuration. See how to dynamically configure namespaces for more information.",
+      "locator": "Background Quickstart Guide > Basic Usage > footnote (2)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistence across sessions requires swapping InMemoryStore for a persistent backend; the default in-memory store does not survive restarts.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/background_quickstart/",
+      "quote": "Use a persistent store like AsyncPostgresStore instead of InMemoryStore to persist data between restarts.",
+      "locator": "Background Quickstart Guide > Basic Usage > footnote (1)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path is triggered by invoking the memory manager with the conversation messages; the manager handles extraction and storage internally on each call.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/background_quickstart/",
+      "quote": "We are using the memory manager to process the conversation every time a new message arrives.",
+      "locator": "Background Quickstart Guide > Basic Usage > footnote (3)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LangMem's core memory operation pattern: accept conversation + current state, prompt LLM to expand or consolidate, return updated state.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/concepts/conceptual_guide/",
+      "quote": "At its core, each memory operation in LangMem follows the same pattern: Accept conversation(s) and current memory state, Prompt an LLM to determine how to expand or consolidate the memory state, Respond with the updated memory state",
+      "locator": "Long-term Memory in LLM Applications",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Over-extraction reduces retrieval precision; under-extraction reduces recall. LangMem's enrichment process tries to balance both.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/concepts/conceptual_guide/",
+      "quote": "If the system over-extracts, this could lead to reduced precision of memories when your agent needs to search the store. If it under-extracts, this could lead to low recall.",
+      "locator": "Semantic Memory: Facts and Knowledge \u2014 Collection",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Profiles update in place (no insert); enable_inserts=False with a schema enforces single-document profile semantics.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/concepts/conceptual_guide/",
+      "quote": "When new information arrives, it updates the existing document rather than creating a new one.",
+      "locator": "Semantic Memory: Facts and Knowledge \u2014 Profiles",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per namespace, which can be scoped to org, user, application, or any hierarchical combination; user-level isolation is achieved via {user_id} template in namespace tuple.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/concepts/conceptual_guide/",
+      "quote": "namespace = (\"acme_corp\", \"{user_id}\", \"code_assistant\")",
+      "locator": "Storage System \u2014 Memory Namespaces",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Storage layer is optional; core API primitives have no storage dependency and can be used standalone.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/concepts/conceptual_guide/",
+      "quote": "Remember that LangMem's core functionality is built around that don't require any specific storage layer. The storage features described here are part of LangMem's higher-level integration with LangGraph, useful when you want built-in persistence.",
+      "locator": "Storage System \u2014 Storage is optional callout",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Background formation explicitly avoids impacting response latency by running after the conversation or after inactivity.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/concepts/conceptual_guide/",
+      "quote": "finding patterns and extracting insights without slowing down the immediate interaction or adding complexity to the agent's tool choice decisions. This approach is perfect for ensuring higher recall of extracted information.",
+      "locator": "Writing memories \u2014 Subconscious Formation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Procedural memory (prompt optimization) uses trajectory + optional user_score feedback to update prompt rules.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/concepts/conceptual_guide/",
+      "quote": "optimizer.invoke({\"trajectories\": [(trajectory, {\"user_score\": 0})], \"prompt\": prompt})",
+      "locator": "Procedural Memory: System Instructions \u2014 code example",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "create_memory_store_manager extracts memories from conversations and persists them to a store under a given namespace.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/delayed_processing/",
+      "quote": "Create memory manager to extract memories from conversations \u2026 memory_manager = create_memory_store_manager(\"anthropic:claude-3-5-sonnet-latest\", namespace=(\"memories\",),)",
+      "locator": "Delayed Background Memory Processing \u2014 code block, comment (1)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "ReflectionExecutor debounces writes to the memory store by cancelling pending processing tasks when new messages arrive and rescheduling with accumulated messages.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/delayed_processing/",
+      "quote": "If new messages arrive before then: 1. Cancel pending processing task 2. Reschedule with new messages included",
+      "locator": "Delayed Background Memory Processing \u2014 code block, inline comments",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Processing every message immediately causes redundant work, incomplete context, and unnecessary token consumption \u2014 motivating deferred processing.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/delayed_processing/",
+      "quote": "Processing memories on every message has drawbacks: Redundant work when messages arrive in quick succession. Incomplete context when processing mid-conversation. Unnecessary token consumption.",
+      "locator": "Delayed Background Memory Processing \u2014 Problem section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Debouncing ensures the memory store receives complete conversation context rather than mid-conversation fragments.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/delayed_processing/",
+      "quote": "This debouncing ensures you process complete conversation context instead of fragments.",
+      "locator": "Delayed Background Memory Processing \u2014 paragraph after ReflectionExecutor bullet list",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "In serverless environments, local ReflectionExecutor state does not survive between invocations; LangGraph Platform's remote executor is the recommended alternative.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/delayed_processing/",
+      "quote": "Local threads terminate between serverless function invocations. Use the LangGraph Platform's remote executor instead.",
+      "locator": "Delayed Background Memory Processing \u2014 Serverless Deployments callout",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LangMem supports extracting episodic memories without any persistent store, returning in-memory ExtractedMemory objects.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/extract_episodic_memories/",
+      "quote": "Below is an example of how to use LangMem to extract episodic memories without storage.",
+      "locator": "Without storage, introductory sentence",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LangMem's write path for episodic memory uses insertion (enable_inserts=True); update and delete paths are not described on this page.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/extract_episodic_memories/",
+      "quote": "enable_inserts=True,",
+      "locator": "Without storage and With storage, manager construction",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "This page describes a retrieve-then-prompt pattern: retrieved episodes are formatted into the system message before the LLM call.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/extract_episodic_memories/",
+      "quote": "# Step 2: Build system message with relevant experience\nsystem_message = \"You are a helpful assistant.\"\nif similar:\n    system_message += \"\\n\\n### EPISODIC MEMORY:\"",
+      "locator": "With storage, code block, Step 2",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval policy is similarity-based with an explicit limit parameter, not always-retrieve-all.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/extract_episodic_memories/",
+      "quote": "similar = store.search(\n    (\"memories\", \"episodes\"),\n    query=messages[-1][\"content\"],\n    limit=1,\n)",
+      "locator": "With storage, code block, Step 1",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Episodes are stored after the LLM response is generated, creating a post-turn write pattern.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/extract_episodic_memories/",
+      "quote": "# Step 4: Store this interaction if successful\nmanager.invoke({\"messages\": messages})",
+      "locator": "With storage, code block, Step 4",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The Episode schema instructs the model to write from the agent's first-person perspective using hindsight, shaping what is extracted and stored.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/extract_episodic_memories/",
+      "quote": "Write the episode from the perspective of the agent within it. Use the benefit of hindsight to record the memory, saving the agent's key internal thought process so it can learn over time.",
+      "locator": "Without storage, Episode class docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Episodic memory is scoped by namespace tuple, enabling isolation by memory type or other dimensions.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/extract_episodic_memories/",
+      "quote": "namespace=(\"memories\", \"episodes\"),",
+      "locator": "With storage, create_memory_store_manager call",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "create_memory_store_manager handles the read (search) side as well as upserts and deletes; create_memory_manager is store-agnostic and returns results for caller to handle.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/extract_semantic_memories/",
+      "quote": "create_memory_manager: (this examples) You control storage and updates\ncreate_memory_store_manager: Handles the memory search, upserts, and deletes directly in whichever BaseStore is configured for the graph context",
+      "locator": "Without storage \u2014 annotation block after create_memory_manager",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Supersession on conflict: outdated memory receives a RemoveDoc and a new corrected memory is inserted in the same update pass.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/extract_semantic_memories/",
+      "quote": "Since we have enabled \"deletes\", the manager will return RemoveDoc objects to indicate that the memory should be removed, and a new memory will be created in its place.",
+      "locator": "Without storage \u2014 paragraph before conversation2 block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is namespace-scoped; namespaces differentiate per-user, per-team, and global stores.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/extract_semantic_memories/",
+      "quote": "Namespace patterns control memory isolation:\n# User-specific memories\n(\"chat\", \"user_123\", \"triples\")\n# Team-shared knowledge\n(\"chat\", \"team_x\", \"triples\")\n# Global memories\n(\"chat\", \"global\", \"triples\")",
+      "locator": "With storage \u2014 annotation block after namespace parameter",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic memories store curated facts (not full transcripts); the page explicitly contrasts informative vs. context-free memories.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/extract_semantic_memories/",
+      "quote": "Without context, memories can be ambiguous when retrieved later:\n{ \"content\": \"User said yes\" } # No context; unhelpful",
+      "locator": "Without storage \u2014 annotation block on Triple schema",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The agent-based pattern retrieves existing memories before each extraction pass to inform conflict resolution and updates.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/extract_semantic_memories/",
+      "quote": "memories = store.search(\n    (\"memories\",),\n    query=state[\"messages\"][-1].content,\n)",
+      "locator": "Using a Memory Manager Agent \u2014 prompt function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic memories are intended for cross-session persistence; InMemoryStore loses data on restart and AsyncPostgresStore is recommended for production.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/extract_semantic_memories/",
+      "quote": "For production deployments, use a persistent store like AsyncPostgresStore. InMemoryStore works fine for development but doesn't persist data between restarts.",
+      "locator": "With storage \u2014 annotation block after InMemoryStore instantiation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LangMem exposes a manage-memory tool and a search-memory tool backed by a LangGraph store for agent memory persistence.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/memory_tools/",
+      "quote": "LangMem provides tools that let your agent store and search memories in a LangGraph store.",
+      "locator": "How to Use Memory Tools, introduction",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is implemented via namespace tuples; the user_id (or team/agent/project identifier) is the isolation key resolved at runtime.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/memory_tools/",
+      "quote": "The {user_id} placeholder lets memory tools access LangGraph's BaseStore namespace, with both tools sharing the same namespace for consistency.",
+      "locator": "Basic Usage, annotation below agent creation block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cross-agent shared memory is possible by giving multiple agents a search tool scoped to a common parent namespace while each agent writes to its own child namespace.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/memory_tools/",
+      "quote": "agent_a_tools = [\n    # Write to agent-specific namespace\n    create_manage_memory_tool(namespace=(\"memories\", \"team_a\", \"agent_a\")),\n    # Read from shared team namespace\n    create_search_memory_tool(namespace=(\"memories\", \"team_a\")),\n]",
+      "locator": "Shared Storage, code block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "InMemoryStore is not persistent across restarts; production use requires a durable backend such as AsyncPostgresStore.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/guides/memory_tools/",
+      "quote": "For production deployments, use a persistent store like AsyncPostgresStore. InMemoryStore works fine for development but doesn't persist data between restarts.",
+      "locator": "Basic Usage, callout after InMemoryStore instantiation",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Agent explicitly calls manage_memory tool to create, update, and delete memories by ID in the hot path.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/hot_path_quickstart/",
+      "quote": "The agent can call \"manage_memory\" to create, update, and delete memories by ID",
+      "locator": "Agent section, code comment (3)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is query-based (last user message as query) against a namespace in the store, injected into the system prompt each turn.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/hot_path_quickstart/",
+      "quote": "memories = store.search(\n(\"memories\",),\nquery=state[\"messages\"][-1].content,\n)",
+      "locator": "Agent section, prompt() function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The store (long-term, cross-thread) is architecturally distinct from the checkpointer (short-term, per-thread conversation history).",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/hot_path_quickstart/",
+      "quote": "The store lets you store any information according to preferred hierarchy. The checkpointer tracks state (including the conversation history) within each \"thread\" for durable execution. They can address overlapping concerns, but the store is more flexible and well-suited for long-term, cross-thread memory.",
+      "locator": "Agent section, note (4)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Namespace isolation supports per-user, per-assistant, per-organization, or combined scoping patterns; variables in namespaces resolved from RunnableConfig at runtime.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/hot_path_quickstart/",
+      "quote": "If you provide a bracketed namespace variable (like \"{user_id}\"), LangMem will replace it with the value from the configurable field in the RunnableConfig at runtime.",
+      "locator": "Agent section, note (6)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Default namespace in the quickstart is shared across all users; per-user isolation requires explicit namespace configuration.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/hot_path_quickstart/",
+      "quote": "Here, we save all memories to the (\"memories\",) namespace, meaning no matter which user interacts with the agent, all memories would be shared in the same directory.",
+      "locator": "Agent section, namespace table preamble",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Background (non-hot-path) memory extraction exists as an alternative mode described in a separate guide.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/hot_path_quickstart/",
+      "quote": "In the background: memories are \"subconsciously\" extracted automatically from conversations (see Background Quickstart).",
+      "locator": "Hot Path Quickstart Guide, bullet list at top",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LangMem can insert, update, or delete memories based on conversation content; all three operations are independently configurable",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/reference/memory/",
+      "quote": "enable_inserts (bool, default: True) \u2013 Whether to allow creating new memory entries. When False, the manager will only update existing memories. Defaults to True.",
+      "locator": "create_memory_manager \u2013 Parameters: enable_inserts",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Deletes are off by default; memories are not automatically forgotten unless enable_deletes=True is set",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/reference/memory/",
+      "quote": "enable_deletes (bool, default: False) \u2013 Whether to allow deleting existing memories that are outdated or contradicted by new information. Defaults to False.",
+      "locator": "create_memory_manager \u2013 Parameters: enable_deletes",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict / supersession is handled via upsert: when existing memories are passed in, the manager updates rather than duplicates",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/reference/memory/",
+      "quote": "The manager will upsert; working with the existing memory instead of always creating a new one",
+      "locator": "create_memory_manager \u2013 Examples: Working with existing memories",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per user by default using a namespace keyed on langgraph_user_id",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/reference/memory/",
+      "quote": "namespace (tuple[str, ...], default: ('memories', '{langgraph_user_id}')) \u2013 Storage namespace structure for organizing memories. Supports templated values like \"{langgraph_user_id}\" which are populated from the runtime context.",
+      "locator": "create_memory_store_manager \u2013 Parameters: namespace",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve is capped at 5 items by default and is similarity-search-based (embedding the new messages)",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/reference/memory/",
+      "quote": "query_limit (int, default: 5) \u2013 Maximum number of relevant memories to retrieve for each conversation. Higher limits provide more context but may slow down processing. Defaults to 5.",
+      "locator": "create_memory_store_manager \u2013 Parameters: query_limit",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "An optional query_model can generate an optimized search query before hitting the store, replacing direct embedding of raw messages",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/reference/memory/",
+      "quote": "query_model (Optional[Union[str, BaseChatModel]], default: None) \u2013 Optional separate model for memory search queries. Using a smaller, faster model here can improve performance.",
+      "locator": "create_memory_store_manager \u2013 Parameters: query_model",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Background enrichment via ReflectionExecutor decouples the write path from the response path and supports debouncing",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/reference/memory/",
+      "quote": "Adding a delay lets you debounce and deduplicate reflection work whenever the user is actively engaging with the agent.",
+      "locator": "create_memory_store_manager \u2013 Examples: Running reflections in the background, ReflectionExecutor submit call comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A default seed memory can be pre-loaded into the store for new users, stored under the key 'default'",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/reference/memory/",
+      "quote": "The resulting memory will be found in the \"default\" key of the store in the configured namespace.",
+      "locator": "create_memory_store_manager \u2013 Parameters: default",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieved memories are injected as a prompt block; the product retrieves then prompts, not a native context mechanism",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/reference/memory/",
+      "quote": "system = \"You are a helpful assistant.\\n\\n ## Memories from the user:\" f\"\\n<memories>\\n{memories}\\n</memories>\"",
+      "locator": "create_memory_store_manager \u2013 Examples: basic inline agent code sample",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The store maintains a versioned history of all memory changes",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/reference/memory/",
+      "quote": "maintains a versioned history of all changes",
+      "locator": "create_memory_store_manager \u2013 function description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LangMem persists memories across sessions in a LangGraph BaseStore, scoped to namespaces that encode user identity.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/reference/tools/",
+      "quote": "This function creates a tool that allows AI assistants to create, update, and delete persistent memories that carry over between conversations. The tool helps maintain context and user preferences across sessions.",
+      "locator": "create_manage_memory_tool \u2013 description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path exposes create, update, and delete on individual memory items; conflict/supersession is handled by update on an existing memory ID.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/reference/tools/",
+      "quote": "action: Literal['create', 'update', 'delete'] = 'create'",
+      "locator": "create_manage_memory_tool \u2013 tool signature",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The scaffold instructs the model to update a memory when it identifies an existing memory is incorrect or outdated, implementing supersession.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/reference/tools/",
+      "quote": "4. Identify that an existing MEMORY is incorrect or outdated.",
+      "locator": "create_manage_memory_tool \u2013 Parameters: instructions",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-user isolation is enforced through namespace placeholders resolved from runtime configurable values.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/reference/tools/",
+      "quote": "config = {\"configurable\": {\"langgraph_user_id\": \"user-123\"}}\n# Results in namespace: (\"memories\", \"user-123\")",
+      "locator": "create_manage_memory_tool \u2013 Namespace Configuration",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval into context is not automatic; it requires an explicit store.search() call in the prompt function or an explicit invocation of create_search_memory_tool by the agent.",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/reference/tools/",
+      "quote": "memories = get_store().search(\n    (\"memories\", config[\"configurable\"][\"langgraph_user_id\"]),\n)\nsystem_prompt = f\"\"\"You are a helpful assistant.\n<memories>\n{memories}\n</memories>\"\"\"",
+      "locator": "create_manage_memory_tool \u2013 Examples (create_react_agent usage)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Search supports semantic matching when the store is configured with an embedding model (dims + embed).",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/reference/tools/",
+      "quote": "store = InMemoryStore(\n    index={\n        \"dims\": 1536,\n        \"embed\": \"openai:text-embedding-3-small\",\n    }\n)",
+      "locator": "create_manage_memory_tool \u2013 Examples",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory schema can be a plain string or a structured Pydantic model, supporting typed fact storage (user profiles, preferences).",
+      "kind": "docs",
+      "url": "https://langchain-ai.github.io/langmem/reference/tools/",
+      "quote": "schema (Type, default: str) \u2013 \u2026 class UserProfile(BaseModel):\n    name: str\n    age: int | None = None\n    recent_memories: list[str] = []\n    preferences: dict | None = None",
+      "locator": "create_manage_memory_tool \u2013 Parameters: schema and custom schema example",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "create_memory_manager fails with a 'not strict' error when passed a BaseChatModel instance, but works when passed a string model identifier.",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/106",
+      "quote": "`EpisodicMemory` is not strict. Only `strict` function tools can be auto-parsed",
+      "locator": "Actual Behavior / Steps to Reproduce, code block 2",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The function signature for create_memory_manager accepts both string and BaseChatModel: model: str | BaseChatModel",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/106",
+      "quote": "create_memory_manager accepts both string and BaseChatModel via: \n   model: str | BaseChatModel",
+      "locator": "Root Cause Analysis, bullet 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Users who need models not supported by init_chat_model (e.g. Cerebras) are blocked from using pre-instantiated BaseChatModel instances as a workaround, exposing a continuity-relevant gap in model compatibility.",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/106",
+      "quote": "This issue particularly affects users wanting to use models not supported by init_chat_model (like Cerebras), as they cannot fall back to pre-instantiated BaseChatModel instances.",
+      "locator": "Additional Context",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LangMem exposes a manage_memory tool that invokes put and search on a backing store",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/40",
+      "quote": "Error: AttributeError(\"'PineconeVectorStore' object has no attribute 'put'\")",
+      "locator": "issue body, code block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The memory manager has full control over the value field, making it unsuitable for injecting non-memory operational metadata.",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/67",
+      "quote": "the LangMem design is to have the entire `value` field exposed and controlled by memory manager. This does not make `value` field a good fit to store ops purpose metadata, which may distract the memory manager and deteriorate the quality of the core \"long-term memory\".",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LangMem's summarization truncation can silently drop ToolMessages that correspond to parallel tool calls in an AIMessage, breaking downstream graph execution",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/112",
+      "quote": "LangMem's memory-summarizer, however, may truncate the conversation inside _preprocess_memory_messages. During this truncation it can silently drop some (or all) of the required ToolMessages after the AIMessage. The current code does not detect or correct such a partial removal, so the downstream graph receives an AIMessage with an incomplete set of ToolMessages and the run fails.",
+      "locator": "issue body, Description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The fix attempt adds post-hoc appending of matching ToolMessages when the summarization boundary falls on an AIMessage with tool calls, but the issue reports this does not cover all parallel-tool-call failure cases",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/112",
+      "quote": "# Add any matching tool messages from our dictionary\n        for tool_call in tool_calls:\n            if tool_call[\"id\"] in tool_call_id_to_tool_message:\n                tool_message = tool_call_id_to_tool_message[tool_call[\"id\"]]\n                n_tokens_to_summarize += token_counter([tool_message])\n                messages_to_summarize.append(tool_message)",
+      "locator": "src/langmem/short_term/summarization.py lines 160-214",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "create_manage_memory_tool accepts a namespace parameter for scoping memory per user.",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/113",
+      "quote": "manage_memory_tool = tools.create_manage_memory_tool(namespace=(\"memories\", \"{user_id}\"))",
+      "locator": "issue body, code block 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The manage_memory tool schema does not mark all properties as required, making it incompatible with OpenAI strict mode out of the box.",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/113",
+      "quote": "Invalid schema for function 'manage_memory': In context=(), 'required' is required to be supplied and to be an array including every key in properties. Missing 'content'.",
+      "locator": "issue body, error message in code block 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The reporter requests a parameter on create_manage_memory_tool to opt into strict-mode-compatible schema generation.",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/113",
+      "quote": "Can we have a parameter when creating the tool to be compatible with the strict mode?",
+      "locator": "issue body, closing question",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LangMem's manage_memory tool fails at runtime when the configured store does not implement the expected put interface, indicating put is a required part of the write path",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/40",
+      "quote": "LangMem currently throws an AttributeError when attempting to use Pinecone DB as a backend for memory operations.",
+      "locator": "issue body, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The embedding function is never called during agent operation, indicating the retrieve path is not being exercised at all",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/114",
+      "quote": "if I modify `embed_it` to something like: [...] The print statement never gets printed.",
+      "locator": "issue body, paragraph 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LangMem version 0.0.29 exhibits this retrieval failure with InMemoryStore and a custom embed function",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/114",
+      "quote": "python=3.12.3\nlangmem=0.0.29\nlanggraph=0.6.4",
+      "locator": "issue body, version block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "create_memory_manager accepts an existing memories list, enabling update/conflict resolution against prior stored facts.",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/133",
+      "quote": "\"existing\": [\n            ExtractedMemory(id='e8ef6ca4-0159-4844-8c22-32cdbf87f260', content=Memory(content='User likes to receive notifications in the morning.')),\n            ExtractedMemory(id='2e469b7d-58bd-4575-9049-a395633cf20d', content=Memory(content='User has a preference for dark mode in all their apps.'))\n        ]",
+      "locator": "issue body, code sample",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The memory extraction graph can loop beyond its recursion limit (25 steps) without converging, indicating a potential infinite-loop failure mode in the write/update path.",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/133",
+      "quote": "Recursion limit of 25 reached without hitting a stop condition. You can increase the limit by setting the `recursion_limit` config key.",
+      "locator": "issue body, traceback",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReflectionExecutor failed to invoke the memory graph despite successful background run completion \u2014 the graph ran but memory processing was silently skipped, not triggered",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/14",
+      "quote": "Memory graph is not being invoked (no traces in LangSmith)\nNo errors are being raised",
+      "locator": "Issue body, Actual Behavior",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "The background run itself succeeded (LangGraph API logged 'Background run succeeded') but the memory graph was never reached, indicating a continuity failure in the reflection dispatch path",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/14",
+      "quote": "langgraph-api-1       | Submitting messages for delayed processing\n...\"event\":\"Background run succeeded\"",
+      "locator": "Issue body, Docker Logs",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "There is no documented complete flow for reflection between graphs for delayed processing, and no debugging guidelines for reflection failures",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/14",
+      "quote": "Clear documentation on the complete flow for reflection between graphs to enable delayed processing\nExamples of working reflection setups\nDebugging guidelines for reflection issues\nClarification on the required configuration and setup steps",
+      "locator": "Issue body, Request",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "A serialization error in LangMem's tool layer may be blocking the write path: the manage-memory tool fails to serialize to JSON via model_dump.",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/154",
+      "quote": "Failed to use model_dump to serialize <class 'langmem.knowledge.tools._ToolWithRequired'> to JSON: PydanticSerializationError(Unable to serialize unknown type: <class 'pydantic._internal._model_construction.ModelMetaclass'>)",
+      "locator": "issue body, log output",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LangMem exposes a manage-memory tool (create/update/delete) and a search-memory tool, both namespaced, intended to be bound to an LLM as callable tools.",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/17",
+      "quote": "tools=[\n    # Agent can create/update/delete memories\n    create_manage_memory_tool(namespace=(\"memories\",)),\n    create_search_memory_tool(namespace=(\"memories\",)),\n]",
+      "locator": "issue body, code snippet",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "create_manage_memory_tool fails when passed to llm.bind_tools because it is not converted to OpenAI tool format.",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/17",
+      "quote": "simple bind_tools fails with the create_manage_memory_tool as it needs to be converted to open ai format",
+      "locator": "issue body, title/description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memories are not being updated or deleted when using create_manage_memory_tool with PostgresStore; old data persists despite update/delete actions being permitted",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/42",
+      "quote": "I'm trying to update the semantic memory of the users using the create_manage_memory_tool but its not deleting or updating the data, instead its keeping the data same as before",
+      "locator": "issue body, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A fact about a user (employer) stored in memory is not superseded when a contradicting fact is provided in a later turn",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/42",
+      "quote": "Yashwanth moved to Qualcomm ... where does yashwanth work?",
+      "locator": "issue body, code block (response6/response7)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The read-then-update path (cross-session memory update) is broken when using Postgres: retrieved content arrives as a plain dict rather than a Pydantic model, causing an AttributeError before the update completes.",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/55",
+      "quote": "AttributeError: 'dict' object has no attribute '__repr_name__'",
+      "locator": "traceback, trustcall/_base.py line 923",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The store schema uses a 'kind' discriminator alongside 'content' to identify memory type on retrieval; deserialization back to the typed Pydantic model is expected but not happening for Postgres.",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/55",
+      "quote": "{\"kind\": \"Triple\", \"content\": {\"object\": \"the New York, USA office\", ...}}",
+      "locator": "issue body, code block 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The background reflection worker uses concurrent.futures and can enter a CANCELLED state, causing InvalidStateError when the future result is set after cancellation.",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/70",
+      "quote": "concurrent.futures._base.InvalidStateError: CANCELLED: <Future at 0x7f27ed9dbed0 state=cancelled>",
+      "locator": "issue body, error traceback",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LangMem's memory state tracks existing keyed memory entries alongside conversation messages, supporting update/merge workflows",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/81",
+      "quote": "class MemoryState(MessagesState):\n    existing: typing.NotRequired[list[tuple[str, BaseModel]]]\n    max_steps: int  # Default of 1",
+      "locator": "langmem/knowledge/extraction.py:58-60, shown in traceback",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LangMem provides both a memory manager and a memory store manager as distinct components, suggesting separation between memory logic and the backing store",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/81",
+      "quote": "create_memory_manager,\n    create_memory_searcher,\n    create_memory_store_manager,",
+      "locator": "langmem/knowledge/__init__.py:24-26, shown in traceback",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LangMem is incompatible with Python 3.10 due to use of typing.NotRequired, which was only added in Python 3.11",
+      "kind": "issue",
+      "url": "https://github.com/langchain-ai/langmem/issues/81",
+      "quote": "AttributeError: module 'typing' has no attribute 'NotRequired'",
+      "locator": "traceback, final line",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LangMem SDK helps agents learn and improve through long-term memory via extraction, prompt optimization, and memory maintenance.",
+      "kind": "blog",
+      "url": "https://www.langchain.com/blog/langmem-sdk-launch",
+      "quote": "a library that helps your agents learn and improve through long-term memory. It provides tooling to extract information from conversations, optimize agent behavior through prompt updates, and maintain long-term memory about behaviors, facts, and events.",
+      "locator": "Introduction paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Namespaces provide memory isolation per user, session, app route, team, or globally, with user_id as the common isolation key.",
+      "kind": "blog",
+      "url": "https://www.langchain.com/blog/langmem-sdk-launch",
+      "quote": "In LangMem, all memories are given a namespace . The most common namespaces would include a use_id in order to prevent cross-over of user memories. In general, memories can be scoped to particular app routes, to individual users, shared across teams, or the agent could learn core procedures across all users.",
+      "locator": "Section: On memory and adaptive agents \u2014 memory privacy paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Semantic memory write path supports insert and conflict-aware update: passing existing memories alongside new conversation allows the manager to update rather than duplicate.",
+      "kind": "blog",
+      "url": "https://www.langchain.com/blog/langmem-sdk-launch",
+      "quote": "update = manager.invoke({\"messages\": conversation2, \"existing\": memories})",
+      "locator": "Section: Semantic memory: facts \u2014 code example",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Procedural memory is persisted as prompt text, not in a vector store or database record; the optimizer returns an improved prompt string.",
+      "kind": "blog",
+      "url": "https://www.langchain.com/blog/langmem-sdk-launch",
+      "quote": "In LangMem, we focus on saving learned procedures as updated instructions in the agent's prompt.",
+      "locator": "Section: Procedural memory: evolving behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Core procedural memory is always retrieved into the prompt (data-independent); semantic and episodic memories are retrieved adaptively based on similarity or context.",
+      "kind": "blog",
+      "url": "https://www.langchain.com/blog/langmem-sdk-launch",
+      "quote": "Some memories (core procedural memory) may be data-independent - they are always present in the prompt. Some are data-dependent and may be recalled based on semantic similarity. Others may be recalled based on a combination of application context, similarity, time, etc.",
+      "locator": "Section: On memory and adaptive agents \u2014 recall conditions paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Episodic memory is acknowledged as a memory type but has no implemented utilities in LangMem at launch.",
+      "kind": "blog",
+      "url": "https://www.langchain.com/blog/langmem-sdk-launch",
+      "quote": "LangMem doesn't yet support opinionated utilities for episodic memory.",
+      "locator": "Section: Episodic memory: events and experiences",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is gained through interaction rather than offline ingestion, distinguishing LangMem semantic memory from standard RAG.",
+      "kind": "blog",
+      "url": "https://www.langchain.com/blog/langmem-sdk-launch",
+      "quote": "One is the way the information is gained: through interaction rather than offline data ingestion.",
+      "locator": "Section: Semantic memory: facts \u2014 RAG comparison paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/__init__.py",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/short_term/summarization.py",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/knowledge/extraction.py",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/knowledge/tools.py",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/reflection.py",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://langchain-ai.github.io/langmem/concepts/conceptual_guide/",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://langchain-ai.github.io/langmem/hot_path_quickstart/",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://langchain-ai.github.io/langmem/background_quickstart/",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://langchain-ai.github.io/langmem/guides/memory_tools/",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://langchain-ai.github.io/langmem/guides/extract_semantic_memories/",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://langchain-ai.github.io/langmem/guides/extract_episodic_memories/",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://langchain-ai.github.io/langmem/guides/delayed_processing/",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://langchain-ai.github.io/langmem/reference/memory/",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://langchain-ai.github.io/langmem/reference/tools/",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/issues/81",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/issues/67",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/issues/14",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/issues/154",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/issues/55",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/issues/133",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/issues/42",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/issues/114",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/issues/17",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/issues/40",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/issues/70",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/issues/112",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/issues/113",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/langchain-ai/langmem/issues/106",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.langchain.com/blog/langmem-sdk-launch",
+      "kind": "blog",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [
+    {
+      "text": "Docs and blog claim consistency via passing existing memories into extractors; issues #42 and #154 report Postgres memories not updating/deleting and unclear persistence\u2014treat production store behavior as contested until verified on your backend."
+    },
+    {
+      "text": "README says agents 'know when to search'; conceptual guide lists retrieval modes but not a fixed always-on policy\u2014continuity depends on tool binding and host graph design."
+    },
+    {
+      "text": "Marketing frames semantic + episodic + procedural 'lifelong learning'; issue #41 asks whether types can be combined/adaptively selected\u2014productized typing vs integrator-defined schemas is unresolved in issues."
+    }
+  ],
+  "copy": [
+    {
+      "text": "Pattern worth studying: namespaced store + agent-controlled manage/search tools + LLM consolidation pass over prior memories (closer to Mem0/Letta than companion chat logs)."
+    }
+  ],
+  "refuse": [
+    {
+      "text": "Refuse assuming LangGraph Platform default store equals companion-grade memory without configuring namespace, reflection, and delete/update paths for your user model."
+    },
+    {
+      "text": "Refuse third-party comparison or benchmark posts (Graphlit, Mem0 benchmark roundups, agent marketcap/niteagent) as behavior specs; use github.io docs, launch blog, and pinned code."
+    },
+    {
+      "text": "Refuse src/langmem/graph_rag.py demo ingest as production architecture; it was dropped from open_code as commented prototype only."
+    }
+  ],
+  "unknowns": [
+    {
+      "text": "Retrieve policy: it is unclear whether memory search is always triggered or adaptive (agent-decided). The README says the agent 'knows when to search' but does not specify the policy or mechanism.",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Isolation scope: namespace parameter is shown but the README does not state whether namespaces map to users, sessions, agents, or characters.",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "No documentation on how vector indexing or embedding is configured within the extraction module itself; indexing behaviour is delegated to the BaseStore implementation and not described here.",
+      "url": "https://github.com/langchain-ai/langmem/blob/9d033b47d9ce53e37e92c92241b0496c0278932e/src/langmem/knowledge/extraction.py",
+      "kind": "code"
+    },
+    {
+      "text": "Forget / explicit delete API: the page states memories can be deleted/invalidated but does not document a delete call or forget interface in the core API section.",
+      "url": "https://langchain-ai.github.io/langmem/concepts/conceptual_guide/",
+      "kind": "docs"
+    },
+    {
+      "text": "The page does not describe the retrieval policy \u2014 when stored memories are selected back into the prompt and under what conditions the system stays silent.",
+      "url": "https://langchain-ai.github.io/langmem/guides/delayed_processing/",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict / supersession: no description of what happens when a newly extracted episode contradicts or duplicates an existing one.",
+      "url": "https://langchain-ai.github.io/langmem/guides/extract_episodic_memories/",
+      "kind": "docs"
+    },
+    {
+      "text": "Forget / delete behavior: the manage_memory tool is stated to support delete, but no detail on how deletion is triggered, what the delete API looks like, or whether deleted memories are hard-removed or soft-hidden from retrieval.",
+      "url": "https://langchain-ai.github.io/langmem/hot_path_quickstart/",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy: no description of when or whether retrieval is adaptive (always retrieve vs. only when relevant); the example always calls store.search() on every turn.",
+      "url": "https://langchain-ai.github.io/langmem/hot_path_quickstart/",
+      "kind": "docs"
+    },
+    {
+      "text": "No explicit API for hard-delete vs soft-hide at retrieve time: the page describes enable_deletes as removing memories but does not clarify whether deletion is a store-level purge or a retrieval filter.",
+      "url": "https://langchain-ai.github.io/langmem/reference/memory/",
+      "kind": "docs"
+    },
+    {
+      "text": "Versioned history is mentioned but no API for reading, rolling back, or expiring past versions is described on this page.",
+      "url": "https://langchain-ai.github.io/langmem/reference/memory/",
+      "kind": "docs"
+    },
+    {
+      "text": "The page does not describe how or whether the summary produced by _preprocess_memory_messages is persisted across sessions or only used within the current turn's context window",
+      "url": "https://github.com/langchain-ai/langmem/issues/112",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the issue is a bug in LangMem's tool wiring (store not passed through to tool internals) or a misconfiguration \u2014 the page reports the symptom but no resolution or maintainer response is visible in the extracted text",
+      "url": "https://github.com/langchain-ai/langmem/issues/114",
+      "kind": "issue"
+    },
+    {
+      "text": "It is unclear from this page whether LangMem exposes lower-level hooks (persist, retrieve, forget, conflict resolution) that would allow full custom store substitution.",
+      "url": "https://github.com/langchain-ai/langmem/issues/120",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not address any core memory behaviors (persist, retrieve, forget, conflict). It is a feature-request issue asking about TypeScript support, containing no memory-mechanism claims.",
+      "url": "https://github.com/langchain-ai/langmem/issues/121",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not explain why the extraction graph fails to hit a stop condition even with max_steps=1 set, leaving the interaction between max_steps and LangGraph's recursion_limit undefined.",
+      "url": "https://github.com/langchain-ai/langmem/issues/133",
+      "kind": "issue"
+    },
+    {
+      "text": "No documentation on how ReflectionExecutor resolves the named graph internally or what configuration is required for cross-graph dispatch to succeed",
+      "url": "https://github.com/langchain-ai/langmem/issues/14",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how memories are persisted to or retrieved from the store on this page; canonical tool API page that should describe persist/retrieve/forget behavior does not.",
+      "url": "https://github.com/langchain-ai/langmem/issues/17",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether LangMem supports combining semantic and episodic memory types, and whether the model can adaptively select which memory type to retrieve at runtime, is not answered on this page.",
+      "url": "https://github.com/langchain-ai/langmem/issues/41",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not show whether the failure is in the write path (extract/supersession logic), the PostgresStore adapter, or the model's tool-calling; the root cause and any resolution are absent",
+      "url": "https://github.com/langchain-ai/langmem/issues/42",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether LangMem memory storage can be used directly in LCEL chain flows outside of create_react_agent is asked but not answered on this page.",
+      "url": "https://github.com/langchain-ai/langmem/issues/62",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of forget/delete behavior or conflict/supersession logic on this page.",
+      "url": "https://github.com/langchain-ai/langmem/issues/67",
+      "kind": "issue"
+    }
+  ]
+}

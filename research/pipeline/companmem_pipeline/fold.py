@@ -110,6 +110,15 @@ def is_documented_capability_unknown(text: str) -> bool:
 
 
 LOW_QUALITY_UNKNOWN_HOSTS = ("piwheels.org",)
+COMPETITOR_COMPARE_HOSTS = (
+    "graphlit.com",
+    "agentmarketcap.ai",
+    "niteagent.com",
+)
+COMPARISON_BLOG_PATH_RE = re.compile(
+    r"vs[-_/]|benchmark|/comparison|stacked-up",
+    re.I,
+)
 
 MODERATION_LEDGER_RE = re.compile(
     r"\bmoderat(?:ion|or)|\bmonitor\b|\bflagged\b|\bflagging\b|false positive",
@@ -143,6 +152,8 @@ def filter_unknown_items(items: list[dict[str, object]]) -> list[dict[str, objec
         if is_documented_capability_unknown(text):
             continue
         if any(host in url for host in LOW_QUALITY_UNKNOWN_HOSTS):
+            continue
+        if any(host in url for host in COMPETITOR_COMPARE_HOSTS):
             continue
         kept.append(item)
     return kept
@@ -286,6 +297,10 @@ def should_drop_ledger_row(row: dict[str, object], *, has_official_docs: bool) -
     claim = str(row.get("claim") or "")
     kind = str(row.get("kind") or "")
     url = str(row.get("url") or "")
+    if any(host in url.lower() for host in COMPETITOR_COMPARE_HOSTS):
+        return True
+    if kind == "blog" and COMPARISON_BLOG_PATH_RE.search(url):
+        return True
     if is_weak_wiki_index_ledger(row):
         return True
     if LEDGER_ABSENCE_CLAIM_RE.search(claim):
@@ -315,6 +330,31 @@ def unknown_superseded_by_docs(text: str, *, has_official_docs: bool) -> bool:
     if not has_official_docs:
         return False
     return bool(DOCS_SUPERSEDES_UNKNOWN_RE.search(text))
+
+
+def unknown_superseded_by_ledger(
+    text: str,
+    ledger: list[dict[str, object]],
+) -> bool:
+    """Drop page-local 'not described' unknowns when code/docs ledger already documents the capability."""
+    blob = normalize_claim(text)
+    if "not describe" not in blob and "does not describe" not in blob:
+        return False
+    if not any(token in blob for token in ("forget", "delete", "retrieve", "conflict", "supersession")):
+        return False
+    for row in ledger:
+        if str(row.get("kind") or "") not in ("code", "docs"):
+            continue
+        claim = normalize_claim(str(row.get("claim") or ""))
+        if "forget" in blob and ("delete" in claim or "forget" in claim):
+            return True
+        if "retrieve" in blob and "retrieve" in claim:
+            return True
+        if ("conflict" in blob or "supersession" in blob) and (
+            "conflict" in claim or "supersession" in claim or "contradict" in claim
+        ):
+            return True
+    return False
 
 
 def source_url_key(url: str) -> str:
@@ -600,6 +640,8 @@ def fold_pages(
         text = str(item.get("text") or "")
         url = str(item.get("url") or "")
         if unknown_superseded_by_docs(text, has_official_docs=has_official_docs):
+            continue
+        if unknown_superseded_by_ledger(text, ledger):
             continue
         item = align_unknown_to_source_kind(item, sources_by_url)
         key = f"{url}::{normalize_claim(text)}"
