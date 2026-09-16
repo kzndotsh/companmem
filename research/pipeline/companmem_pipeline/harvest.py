@@ -1925,6 +1925,13 @@ def allowed_source_url(
     docs = product.get("docs")
     docs_host = host_of(str(docs)) if isinstance(docs, str) else ""
     if host == docs_host:
+        if docs_host.startswith("blog."):
+            return True
+        open_docs = product.get("open_docs")
+        if isinstance(open_docs, list):
+            listed = {normalize_url(str(item)) for item in open_docs if isinstance(item, str)}
+            if normalize_url(url) in listed:
+                return True
         return path_under_docs_prefix(path, prefix)
     if host.startswith("docs.") or host.startswith("help."):
         return True

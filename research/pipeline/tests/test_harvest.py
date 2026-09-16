@@ -173,6 +173,23 @@ def test_allowed_source_url_nomi_wiki() -> None:
     assert allowed_source_url("https://wiki.nomi.ai/Mind_Map_2.0", product, repo_meta)
 
 
+def test_allowed_source_url_characterai_blog_open_docs() -> None:
+    product = {
+        "id": "characterai",
+        "name": "Character.AI",
+        "repo": None,
+        "docs": "https://blog.character.ai/memory/",
+        "open_docs": [
+            "https://blog.character.ai/memory/",
+            "https://blog.character.ai/pipsqueak2-and-more/",
+        ],
+    }
+    repo_meta: dict[str, object] = {}
+    assert allowed_source_url(
+        "https://blog.character.ai/pipsqueak2-and-more/", product, repo_meta
+    )
+
+
 def test_allowed_source_url_github_wiki_raw() -> None:
     product = {
         "id": "risuai",

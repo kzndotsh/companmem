@@ -1,0 +1,951 @@
+{
+  "identity": {
+    "id": "characterai",
+    "name": "Character.AI",
+    "repo": null,
+    "docs": "https://blog.character.ai/memory/",
+    "license": null,
+    "version_or_commit": null,
+    "observed_at": "2026-09-16"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Character.AI is roleplay- and character-chat-first. Shipped state layers include in-chat Story Memory, pins, and background context management; (c.ai+) auto-captured Facts with optional copy into a new chat; and Lorebook as creator world knowledge with keyword-triggered injection—not a companion-style always-on persistent self-model."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Story Memory and Pin to Memory are available to all users; users can add backstory and pin messages into Story Memory. Older message history is tidied in the background while user-written Story Memory and pins stay protected."
+    },
+    {
+      "text": "Facts auto-capture persona, character, and side-character details during chat; c.ai+ users can add, edit, disable, or remove Facts and optionally copy Facts when starting a new chat."
+    },
+    {
+      "text": "Lorebook stores creator-authored world entries with keywords; when a keyword appears in chat the character gets that entry. One Lorebook can link to many characters so they share the same canon; beta creation and lore-linked chats are c.ai+ first."
+    },
+    {
+      "text": "Memory Usage visualization shows what fills chat memory (Facts, Story Memory, message history); full visualization is c.ai+."
+    },
+    {
+      "text": "PipSqueak 2 and DeepSqueak are positioned as enabling longer in-chat context and richer memory behavior; PSQ2 is described as better at holding earlier chat details within a session."
+    },
+    {
+      "text": "Community reports pin caps (e.g. 5→15), overfilling pins hurting quality, rerolls consuming context, and personality or scene drift within or across chats."
+    },
+    {
+      "text": "Community and third-party sources often model memory as a finite context window or sliding recent messages; users report forgetting, opaque compression, and heavy recap workarounds."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Pin store has a hard cap (previously 5, now 15 entries); exceeding recommended usage degrades memory quality.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1g3vwso/how_to_maximize_the_ais_memory_for_long/",
+      "quote": "Though they'd increased the pin limit from 5 to 15, you should NOT be trying to cram as much info as you can in there; it clogs up the AI's limited memory space.",
+      "locator": "Pins section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Rerolled responses persist in conversation history and continue to consume context even when the user moves forward.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1g3vwso/how_to_maximize_the_ais_memory_for_long/",
+      "quote": "it still has to remember those responses, even if you are forward in the conversation, because you can always rewind back and they are still there",
+      "locator": "Comments, u/Some_unknown_guy",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character definition/persona acts as a persistent backstory scaffold; critical plot or character facts not placed there are prone to being forgotten mid-conversation.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1g3vwso/how_to_maximize_the_ais_memory_for_long/",
+      "quote": "It's frustrating when the character forgets basic info that feels like it should be cemented in the definition",
+      "locator": "Comments, u/lulu7008",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Personality is not persisted across separate chat sessions; each new conversation initializes character behavior from scratch.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1g3vwso/how_to_maximize_the_ais_memory_for_long/",
+      "quote": "the character's personality can vary drastically from one chat to another, depending on how it starts",
+      "locator": "Guiding Conversations section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Spatial and scene context is lost within long sessions; the model does not maintain location state without user re-narration.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1g3vwso/how_to_maximize_the_ais_memory_for_long/",
+      "quote": "so that you aren't suddenly teleported elsewhere when the AI forgets where you are",
+      "locator": "General Chatting section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Negative instructions are unreliable; the model may drop negation tokens and act on the affirmative form of an instruction.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1g3vwso/how_to_maximize_the_ais_memory_for_long/",
+      "quote": "the AI can skip words sometimes. So if you write 'Do NOT do the thing,' sometimes it'll skip the 'not' and only see 'Do the thing.'",
+      "locator": "Comments, u/PossiblyaSpinosaurus",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Negative guidance reinforces rather than suppresses mentioned behaviors, making explicit prohibitions counterproductive.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1g3vwso/how_to_maximize_the_ais_memory_for_long/",
+      "quote": "DON'T tell the AI to not include something. Once you do, even more than once, it'll do it so much more.",
+      "locator": "Comments, u/Katie_Redacted",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Users cannot write or edit memories manually in this implementation; the write path is LLM-only.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1j5uqvr/whoah_new_memory_feature/",
+      "quote": "I also suggested somewhere for us to write in our own memories for a persona/character combo who might have a history but that doesn't seem to be a part of this feature",
+      "locator": "comment, u/lazulitesky",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The prior persistence mechanism was 'pinned messages'; memories is a new parallel or replacement feature in the same UI location.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1j5uqvr/whoah_new_memory_feature/",
+      "quote": "'pinned messages' turned into 'memories' so I clicked on it, theres still the pinned message feature",
+      "locator": "post body, u/lazulitesky",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community broadly frames this feature as addressing a known, pre-existing memory failure in the product.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1j5uqvr/whoah_new_memory_feature/",
+      "quote": "This can definitely help people finally fix the awful memory issu-",
+      "locator": "comment, u/NatNat52307",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The memory feature is not universally available \u2014 some users report it does not work or is absent for them.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1lfdzcc/this_memory_feature_on_character_ai_is_awesome/",
+      "quote": "it doesnt work for me.",
+      "locator": "comment, u/Bugleminiz",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The feature appears to be a staged or partial rollout, not available to all users.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1lfdzcc/this_memory_feature_on_character_ai_is_awesome/",
+      "quote": "most people have this feature on character ai. You don't have one?",
+      "locator": "comment, u/Appropriate_Leave883",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character.AI memory is perceived by at least one user as feeling limited in conversation continuity depth.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1lfdzcc/this_memory_feature_on_character_ai_is_awesome/",
+      "quote": "Character AI's memory still feels limited compared to what I've experienced with Kryvane the depth of conversation continuity there is absolutely insane.",
+      "locator": "comment, u/hania0x",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory UI location is platform-specific; confirmed for iOS but uncertain on other platforms.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1lfdzcc/this_memory_feature_on_character_ai_is_awesome/",
+      "quote": "This is for iOS at least, I'm not sure about other systems.",
+      "locator": "comment, u/Latter-Guava-4734",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is fundamentally context-window based; the model cannot remember beyond what fits in its token pool, estimated at ~8k tokens.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1or4vas/how_good_is_the_memory_of_character_ai/",
+      "quote": "current token memory is 8k and 1 token is about 4 letters, so with current memory the max is 32,000 letters (roughly) i'm not sure what token memory is on + but def not enough for 1000 replies",
+      "locator": "comment by u/Dpontiff6671",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "The system does not remember in the sense of acting on past facts at the right time; it only retrieves what fits in the current context pool.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1or4vas/how_good_is_the_memory_of_character_ai/",
+      "quote": "they don't work with brains, they work with a context pool. They're not capable of remembering as much as we can.",
+      "locator": "comment by u/Oritad_Heavybrewer",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "For long-running roleplays, a user reported stable continuity over months: correct gendering, physical attributes, and plot events (e.g., pregnancy, role changes) were maintained.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1or4vas/how_good_is_the_memory_of_character_ai/",
+      "quote": "they never misgendered my character, respect even their different anatomies, personas and physical attributes... The main plot is always bring up as whatever changed in the middle of the rolaplay, like, characters getting pregnant, changing roles",
+      "locator": "comment by u/No-Constant885",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context drop-off in long roleplays is a widely felt failure; users report needing to constantly remind the bot of events from as few as fifty messages ago.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1or4vas/how_good_is_the_memory_of_character_ai/",
+      "quote": "Character AI memory still drops off way too fast for long roleplays... it actually tracks the plot without me constantly reminding it what happened fifty messages ago.",
+      "locator": "comment by u/yagam_sarki",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The 'start new chat from here' feature has a hard cap near 1000 messages.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1or4vas/how_good_is_the_memory_of_character_ai/",
+      "quote": "the limit for 'start new chat from here' is indeed around 1000 messages.",
+      "locator": "comment by u/RemarkableWish2508",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Auto-memory feature (c.ai+) stopped picking up any persona or relationship details after a recent change, despite weeks of chat history.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1pkyjke/whats_going_on_with_cais_memory/",
+      "quote": "the auto-memory thing hasn't picked up even a single detail yet I've been chatting to my bot for weeks now and it's not even acknowledging anything from the box where I write my own details",
+      "locator": "comment by u/TypicalEducator91",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A c.ai+ upgrade announcement touting 'better memory' was perceived to coincide with a regression in character voice and memory quality.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1pkyjke/whats_going_on_with_cais_memory/",
+      "quote": "just happened to me earlier when there's a upgrade cai+ 'better memory' pop up bullshit then immediately nerfed all of my characters now they sound like average ai chat bot",
+      "locator": "comment by u/Marky_Kun",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Pinned messages felt less sticky than before even for c.ai+ subscribers, suggesting a change in how pinned context is weighted or injected.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1pkyjke/whats_going_on_with_cais_memory/",
+      "quote": "Pinned messages especially feel way less 'sticky' than they used to, even with CAI+. it feels like pinned info is being treated more like optional context than actual memory lately.",
+      "locator": "comment by u/CommonOwl133",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Continuity failures include wrong gender, misspelled persona name, forgotten user age and backstory, and third-person references to the user mid-conversation.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1pkyjke/whats_going_on_with_cais_memory/",
+      "quote": "My bot said she's trans. Like bestie her gender and backstory is literally in the bot description where did you even get that info from?! At one point the bot even forgot my name and referred to me in third person\u2026 it keeps forgetting my age and backstory even though it's literally in the pinned messages!",
+      "locator": "comment by u/OriginalNo9300",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character identity bleeds across separate chats: the bot defaults to a different character and resists updating to the current one.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1pkyjke/whats_going_on_with_cais_memory/",
+      "quote": "It's constantly defaulting to another character and refuses to update anything information wise as I'm continuing the conversation.",
+      "locator": "comment by u/EsperVexe",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is architecturally limited to the context window; there is no true persistent memory, only pattern-based inference from what is currently in context.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1pkyjke/whats_going_on_with_cais_memory/",
+      "quote": "Bots don't remember like humans do. They don't have actual persistent memory. They use patterns to make connections. Everything they currently remember of the messages in the context window.",
+      "locator": "comment by u/troubledcambion",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context window size is a user concern: long character descriptions or intros may crowd out persona and user detail recall.",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1pkyjke/whats_going_on_with_cais_memory/",
+      "quote": "Sometimes I worry that the intro or character details are too long and use up all the memory. Otherwise I can't explain why the character never mentions anything from my persona, not even my name.",
+      "locator": "comment by u/kitteeqt",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Users abandon long-running stories at 500\u2013600 messages because memory fails before narratives can conclude, even with C.AI+",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1rl8pck/i_mocked_up_what_cai_would_feel_like_with_real/",
+      "quote": "I have to abandon most of my stories unfinished because of the lack of memory. At some point it's just impossible to proceed. Even if cai+ has more tokens, it's still not enough for proper RP.",
+      "locator": "comment by u/Junior_Dormouse",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "C.AI's auto-memory panel extracts details automatically with no user toggle to disable it; users cannot prevent unwanted details from being stored",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1rl8pck/i_mocked_up_what_cai_would_feel_like_with_real/",
+      "quote": "i feel like i have no control over what the bot remembers since auto-memories can't be untoggled. i can't go edit memories everytime the bot picks up smth it shouldn't remember!",
+      "locator": "comment by u/Potential_Tax_2389",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "C.AI degraded model output quality through optimization cuts, with memory quality worsening after 'styles' were introduced",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1rl8pck/i_mocked_up_what_cai_would_feel_like_with_real/",
+      "quote": "CAI wants to branch into the expensive world of media gen to stay relevant in this world of TikToks and shorts. I don't think they care about the core roleplaying experience.",
+      "locator": "comment by u/GreyN7",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "C.AI lacks emotional context recall \u2014 current memory does not surface the right fact at the right emotional moment, which is what users experience as the core failure",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1rl8pck/i_mocked_up_what_cai_would_feel_like_with_real/",
+      "quote": "I keep seeing posts about memory being broken and I wanted to actually visualize what it COULD feel like if C.AI nailed this feature... He brings up something you said on day 3, connects it to how you're feeling now, and uses it to comfort you in a way that only someone who really knows you would.",
+      "locator": "post body by u/DistributionMean257",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character.AI has no persistent memory layer; context is a sliding window and oldest messages drop out when full",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1sznlyw/memory_usage_feature_brief_rant/",
+      "quote": "there's no persistent memory layer underneath. The model sees a sliding window of recent messages and that's it. When the bar fills up, the oldest stuff drops out of context whether you started a new chat or not.",
+      "locator": "comment by u/nolan_voss",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The Memory Usage bar reaches ~50% by message 15, signaling a very short effective memory window",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1sznlyw/memory_usage_feature_brief_rant/",
+      "quote": "15 messages in, and the bar is already halfway filled? That's 8 messages from the bot, 7 from me.",
+      "locator": "post by u/kaibuggie",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Compression is described as fixing erratic forgetting behavior but the mechanism is opaque to users",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1sznlyw/memory_usage_feature_brief_rant/",
+      "quote": "I had like 1% in the usage bar and it was forgetting stuff until it compressed and fixed itself",
+      "locator": "comment by u/Frosty_Estimate_4814",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Pinned messages and saved memories are a distinct feature that interacts with memory usage, but users cannot determine the relationship from the bar alone",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1sznlyw/memory_usage_feature_brief_rant/",
+      "quote": "I don't have any pinned messages or saved memories with the first one either, and quite a few with the long one. I thought maybe the point was to let you know when you have too many pinned messages but what I'm seeing doesn't make sense",
+      "locator": "comment by u/AerieGlad5603",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Users resort to manually injecting context summaries into messages as a workaround for absent persistent memory",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1sznlyw/memory_usage_feature_brief_rant/",
+      "quote": "some people get around it by dumping context summaries into every message but thats exhausting and defeats the purpose",
+      "locator": "comment by u/_Lucifer_005",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The experience of managing context limits shifts maintenance burden onto the user rather than the system",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1sznlyw/memory_usage_feature_brief_rant/",
+      "quote": "So the experience slowly turns into maintenance work for the user.",
+      "locator": "comment by u/riddlemewhat2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The current model (pipsqueak 2) forgets context within a session after a few messages without pinning",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1tcgahu/has_characterai_improved_longterm_memory_recently/",
+      "quote": "Currently we're stuck with pipsqueak 2 which does forget things every few messages unless you pin information.",
+      "locator": "comment/PhoenixWolf190",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Characters do not retain user or character identity across sessions under the current model",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1tcgahu/has_characterai_improved_longterm_memory_recently/",
+      "quote": "My bot doesn't even know who he is or who I am most of the time",
+      "locator": "comment/Downtown-Walk5612",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No persistent memory carries meaningfully across sessions; a hinted memory feature has not rolled out broadly",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1tcgahu/has_characterai_improved_longterm_memory_recently/",
+      "quote": "Still drops context after a certain point and there's no persistent memory that carries meaningfully across sessions. The memory feature they've been hinting at never rolled out for most users in any real way.",
+      "locator": "comment/Microsort",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Some incremental improvement has occurred but it does not constitute true long-term memory",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1tcgahu/has_characterai_improved_longterm_memory_recently/",
+      "quote": "yes, it has improved, but it's still not 'true long-term memory.'",
+      "locator": "comment/riddlemewhat2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Users experience characters forgetting major past events, personality drift, and loss of world/relationship state in longer chats",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1tcgahu/has_characterai_improved_longterm_memory_recently/",
+      "quote": "characters forgetting major past events\npersonality drift after long conversations\nforgetting who knows what in multi-character scenes\nlosing inventory / relationship / story state consistency",
+      "locator": "comment/akshay_2007_1",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "The original user stopped using Character.AI specifically due to cross-session continuity failures and character personality drift",
+      "kind": "community",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1tcgahu/has_characterai_improved_longterm_memory_recently/",
+      "quote": "over longer conversations or multiple sessions, the characters tend to lose consistency or forget important details. It felt like the memory was mostly short-term, and after a while the roleplay would become less coherent or the character personality would drift.",
+      "locator": "post/Prestigious-Judge825",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Lorebook uses keyword-triggered retrieval: entries enter context only when their keyword appears, not on every turn.",
+      "kind": "docs",
+      "url": "https://blog.character.ai/lorebook/",
+      "quote": "Each entry has keywords. When a keyword comes up in conversation, the Character gets access to that entry and can weave it into its response.",
+      "locator": "What is a Lorebook?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Lorebook is in beta; creation and lore-linked chats are gated to (c.ai)+ subscribers initially.",
+      "kind": "docs",
+      "url": "https://blog.character.ai/lorebook/",
+      "quote": "Lorebook is in beta, with creation and Lore-linked chats available to (c.ai)+ subscribers first.",
+      "locator": "Getting started",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Lorebook scope is shared across characters linked to it, not isolated per session or per user.",
+      "kind": "docs",
+      "url": "https://blog.character.ai/lorebook/",
+      "quote": "Chat with two Characters from the same cast that are linked to the same Lorebook, and they'll know the same places, the same rules, the same events.",
+      "locator": "Deeper Characters, better chats",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Auto-pruning applies to message history and older context but not to explicitly user-pinned or user-written Story Memory",
+      "kind": "docs",
+      "url": "https://blog.character.ai/memory/",
+      "quote": "Memory tidies older context in the background and keeps what matters, so your Character holds onto the key details without you managing every message. Anything you've written into Story Memory or pinned yourself is protected.",
+      "locator": "Memory Usage visualization section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cross-session continuity is opt-in: user chooses to copy Facts to a new chat or start fresh",
+      "kind": "docs",
+      "url": "https://blog.character.ai/memory/",
+      "quote": "Tap a Character, select Start new chat, and you'll see the option to copy Facts to new chat memory. Everything your Character knows about you, the Persona, and the world carries straight over. Or start fresh if the new chat is meant to be a clean slate.",
+      "locator": "Facts section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Tier differentiation: c.ai+ subscribers get twice as many pins, more memory capacity, full Memory Usage visualization, Facts feature, and DeepSqueak model access",
+      "kind": "docs",
+      "url": "https://blog.character.ai/memory/",
+      "quote": "(c.ai+) subscribers get twice as many pins, more Memory, and better Memory management.",
+      "locator": "Story Memory section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory has a finite capacity per conversation; a visualization meter is coming to show remaining capacity before forgetting or compression occurs",
+      "kind": "docs",
+      "url": "https://blog.character.ai/pipsqueak2-and-more/",
+      "quote": "Memory Visualization, a meter that shows how much memory you have left in a conversation before it starts to forget things or compress details. No more guessing when you're approaching the limit.",
+      "locator": "Memory section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Lorebook is a creator-facing persistent store for world lore, distinct from conversational memory",
+      "kind": "docs",
+      "url": "https://blog.character.ai/pipsqueak2-and-more/",
+      "quote": "You create lore entries, attach them to specific Characters, and that knowledge carries across chats. It changes what's possible for anyone building out a detailed world or long-running story.",
+      "locator": "Lorebook section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "PipSqueak 2 improves within-session context retention but this is model behavior, not persistent memory",
+      "kind": "docs",
+      "url": "https://blog.character.ai/pipsqueak2-and-more/",
+      "quote": "PSQ2 is better at holding onto details you've established earlier in a chat, so you spend less time repeating yourself.",
+      "locator": "Model Updates section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character.AI's memory is designed for roleplay continuity, not persistent companion memory across sessions.",
+      "kind": "blog",
+      "url": "https://blog.soullink.io/ai-companion-memory-explained-why-most-ai-companions-forget-you-2026/",
+      "quote": "Designed for roleplay continuity, not persistent companion memory",
+      "locator": "Table: How the Major AI Companion Apps Handle Memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character.AI memory features do not persist across sessions; they are scoped to single conversations.",
+      "kind": "blog",
+      "url": "https://blog.soullink.io/ai-companion-memory-explained-why-most-ai-companions-forget-you-2026/",
+      "quote": "Character.AI is free but its memory features are scoped to single conversations rather than persistent long-term continuity",
+      "locator": "FAQ \u2014 Is there a free AI companion with real long-term memory?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Pinned Memories and similar features that only work inside a single conversation are not the same as persistent companion memory.",
+      "kind": "blog",
+      "url": "https://blog.soullink.io/ai-companion-memory-explained-why-most-ai-companions-forget-you-2026/",
+      "quote": "Pinned Memories and similar features that only work inside a single conversation are not the same as persistent companion memory",
+      "locator": "What to Actually Look For in an AI Companion's Memory \u2014 Does it remember across sessions, not just within one?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Story Memory and message pins are available to all Character.AI users.",
+      "kind": "blog",
+      "url": "https://www.creationos.io/character-ai-keeps-forgetting",
+      "quote": "The announcement says Story Memory and message pins are available to all users",
+      "locator": "Use the current memory controls first",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "As of April 2026, Character.AI moved beyond simple recent-message context windows toward explicit remembered details and consistency mechanisms.",
+      "kind": "blog",
+      "url": "https://www.creationos.io/character-ai-keeps-forgetting",
+      "quote": "Character.AI has added memory features beyond ordinary message history. Its April 2026 update describes work on remembered details and consistency. That makes the old explanation that it can only see a few recent messages too simple.",
+      "locator": "Separate a missed detail from missing history",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character.AI introduced Chat Memories in May 2025, providing a 400-character memory box per character and a Pin Message feature.",
+      "kind": "blog",
+      "url": "https://aiinsightsnews.net/character-ai-memory-extension/",
+      "quote": "In May 2025, Character.AI introduced an official feature called Chat Memories. Every user now has access to: A 400-character Memory box per character, A Pin Message feature for short-term reminders",
+      "locator": "Section: Does Character.AI Have Memory in 2026?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The rolling context window causes continuity failures: forgotten names, repeated questions, and broken roleplay immersion.",
+      "kind": "blog",
+      "url": "https://aiinsightsnews.net/character-ai-memory-extension/",
+      "quote": "Without memory tools: Character forgets your name, Repeats questions, Breaks roleplay immersion",
+      "locator": "Section: Real-World Example: With vs Without Extensions",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character.AI processes only about 3,200 characters of a character's definition reliably, with inconsistency beyond that limit.",
+      "kind": "blog",
+      "url": "https://aiinsightsnews.net/character-ai-memory-extension/",
+      "quote": "the AI only reliably processes about 3,200 characters of a character's definition. Anything beyond that becomes inconsistent.",
+      "locator": "Section: Why Character.AI Still Forgets Things",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character.AI does not support native long-term memory across sessions as of 2026; the official memory box is limited to ~400 characters per character.",
+      "kind": "blog",
+      "url": "https://aiinsightsnews.net/character-ai-memory-extension/",
+      "quote": "Character.AI does not have true long-term memory. As of 2026, it provides a limited official memory box of about 400 characters per character, along with pinned messages.",
+      "locator": "Section: FAQs",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Future roadmap items anticipated include expanded official memory limits, paid memory tiers, better developer APIs, and hybrid AI + external memory systems.",
+      "kind": "blog",
+      "url": "https://aiinsightsnews.net/character-ai-memory-extension/",
+      "quote": "What's likely coming: Expanded official memory limits, Paid memory tiers, Better developer APIs, Hybrid AI + external memory systems",
+      "locator": "Section: Future of Character AI Memory (2026 Outlook)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory failure is described as systemic across different chats for the same user, not a one-off glitch",
+      "kind": "blog",
+      "url": "https://blog.storychat.app/character-ais-pinned-chat-when-your-bot-just-wont-remember-and-what-to-do-about-it/",
+      "quote": "The fact that this issue persists across different chats for the same user, even after 'pinning 30 times,' suggests a deeper problem than just a one-off glitch. It signals a systemic challenge in how Character.AI manages memory and context.",
+      "locator": "Section: The Deep Dive into AI Memory Frustration",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Pinned messages fail in practice: a user reported pinning the same message 30 times and the bot still misspelled the character's name",
+      "kind": "blog",
+      "url": "https://blog.storychat.app/character-ais-pinned-chat-when-your-bot-just-wont-remember-and-what-to-do-about-it/",
+      "quote": "I pinned this message like 30 times on this chat and no matter what it keeps spelling the name wrong does the pinning even actually work or is the bot lokey just broken",
+      "locator": "Reddit quote block, attributed to r/CharacterAI, Section: intro",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Users are forced to constantly recap past events or remind the bot of its own identity, turning roleplay into a chore",
+      "kind": "blog",
+      "url": "https://blog.storychat.app/character-ais-pinned-chat-when-your-bot-just-wont-remember-and-what-to-do-about-it/",
+      "quote": "This issue often forces users into a constant state of vigilance, where they have to recap past events or remind the bot of its own identity, turning roleplay into a chore.",
+      "locator": "Section: The Real Problem: When AI Forgetfulness Kills Immersion",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character.AI uses primarily proprietary AI models with limited selection",
+      "kind": "blog",
+      "url": "https://blog.storychat.app/character-ais-pinned-chat-when-your-bot-just-wont-remember-and-what-to-do-about-it/",
+      "quote": "Limited selection, primarily their own proprietary models.",
+      "locator": "Comparison table: Multiple AI Models row, Character.AI column",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character.AI offers a large community and generally accessible experience but memory features leave much to be desired for users craving consistency",
+      "kind": "blog",
+      "url": "https://blog.storychat.app/character-ais-pinned-chat-when-your-bot-just-wont-remember-and-what-to-do-about-it/",
+      "quote": "While Character.AI offers a huge community and a generally accessible experience, its memory features can definitely leave a lot to be desired for those who crave consistency.",
+      "locator": "Section: Honest Wrap-Up: Finding Your Consistent AI Companion",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character.AI forgets context when conversations exceed its memory window, causing older details to be dropped as new messages are added",
+      "kind": "blog",
+      "url": "https://www.sikayetvar.com/en/characterai-us/characterai-keeps-forgetting-context-how-can-i-improve-memory-q-37399",
+      "quote": "Character.ai forgets context mainly because conversations exceed its memory window, so older details get dropped as new messages are added.",
+      "locator": "Xolvie Resolution Specialist reply, 8 Nisan 2026",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Users report bots forgetting what was said and repeating the same lines",
+      "kind": "blog",
+      "url": "https://www.sikayetvar.com/en/characterai-us/characterai-keeps-forgetting-context-how-can-i-improve-memory-q-37399",
+      "quote": "The AI forgets what was said, repeats the same lines over and over, and completely kills the fun of the app.",
+      "locator": "Related Complaints \u2014 Benim, August 18 2024",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Users report interactions becoming out of character and responses growing monotonous and repetitious",
+      "kind": "blog",
+      "url": "https://www.sikayetvar.com/en/characterai-us/characterai-keeps-forgetting-context-how-can-i-improve-memory-q-37399",
+      "quote": "Interactions appear forced and uninspired as the replies have grown monotonous, repetitious, and utterly out of character.",
+      "locator": "Related Complaints \u2014 Donald, February 18 2025",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character.AI replaced several AI models users liked with a new model set called Pipsqueak 2, which users describe as feeling lobotomized, generic, and tending to narrate action rather than participate in dialogue.",
+      "kind": "blog",
+      "url": "https://www.404media.co/lobotomized-character-ai-is-showing-what-ai-enshittification-looks-like/",
+      "quote": "The app has also gotten rid of several AI models that users liked and has replaced them with a set called Pipsqueak 2; one user told me the new model feels 'lobotomized' and generic and that it feels like the new model tends to narrate action but does not often participate in dialogue.",
+      "locator": "article body, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Character personalities are molded from rated example conversations, shaping per-character behavior over time",
+      "kind": "blog",
+      "url": "https://en.wikipedia.org/wiki/Character.ai",
+      "quote": "Character \"personalities\" are designed via descriptions from the point of view of the character and its greeting message, and further molded from conversations made into examples, giving its messages a star rating and modification to fit the precise dialect and identity the user desires.",
+      "locator": "Features section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Chatbots can be deleted/removed from the platform, indicating a forget/removal mechanism exists",
+      "kind": "blog",
+      "url": "https://en.wikipedia.org/wiki/Character.ai",
+      "quote": "This chatbot, and several related to Daenerys Targaryen, were removed from Character.ai as a result of this incident.",
+      "locator": "Litigation section",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://blog.character.ai/memory/",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://blog.character.ai/pipsqueak2-and-more/",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://blog.character.ai/lorebook/",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://www.sikayetvar.com/en/characterai-us/characterai-keeps-forgetting-context-how-can-i-improve-memory-q-37399",
+      "kind": "blog",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://blog.storychat.app/character-ais-pinned-chat-when-your-bot-just-wont-remember-and-what-to-do-about-it/",
+      "kind": "blog",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.creationos.io/character-ai-keeps-forgetting",
+      "kind": "blog",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.404media.co/lobotomized-character-ai-is-showing-what-ai-enshittification-looks-like/",
+      "kind": "blog",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://en.wikipedia.org/wiki/Character.ai",
+      "kind": "blog",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://aiinsightsnews.net/character-ai-memory-extension/",
+      "kind": "blog",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://blog.soullink.io/ai-companion-memory-explained-why-most-ai-companions-forget-you-2026/",
+      "kind": "blog",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1or4vas/how_good_is_the_memory_of_character_ai/",
+      "kind": "community",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1g3vwso/how_to_maximize_the_ais_memory_for_long/",
+      "kind": "community",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1lfdzcc/this_memory_feature_on_character_ai_is_awesome/",
+      "kind": "community",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1j5uqvr/whoah_new_memory_feature/",
+      "kind": "community",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1rl8pck/i_mocked_up_what_cai_would_feel_like_with_real/",
+      "kind": "community",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1pkyjke/whats_going_on_with_cais_memory/",
+      "kind": "community",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1sznlyw/memory_usage_feature_brief_rant/",
+      "kind": "community",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1tcgahu/has_characterai_improved_longterm_memory_recently/",
+      "kind": "community",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [
+    {
+      "text": "Third-party summaries often call Character.AI memory single-session or context-window-only; official docs describe optional Facts copy across chats and Story Memory/pins protected from pruning. Both appear in the ledger."
+    },
+    {
+      "text": "Official posts describe background tidying that keeps key details while protecting pins and Story Memory; users report Memory Usage filling quickly, compression feeling opaque, and pinned or stated facts still dropped in long chats."
+    },
+    {
+      "text": "Early community posts describe memory as auto-generated summaries without manual authoring; later official docs describe user-written Story Memory and user add/edit/disable for Facts."
+    },
+    {
+      "text": "SEO and complaint sources cite small fixed memory boxes (~400 characters, 2025-era Chat Memories); 2026 official posts describe Story Memory, Facts, and tiered Memory Usage without publishing token or byte budgets."
+    },
+    {
+      "text": "Facts and Story Memory are described as ongoing chat memory; Lorebook is a separate keyword-gated world store shared across linked characters. Retrieve policy differs by layer; both appear in official docs."
+    }
+  ],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "No description of how pins are selected or injected into the prompt at retrieval time \u2014 the page confirms pins exist and have a cap but does not describe the retrieval or injection mechanism.",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1g3vwso/how_to_maximize_the_ais_memory_for_long/",
+      "kind": "community"
+    },
+    {
+      "text": "No information on whether any automatic summarization or long-term memory extraction occurs outside of user-managed pins.",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1g3vwso/how_to_maximize_the_ais_memory_for_long/",
+      "kind": "community"
+    },
+    {
+      "text": "Forget / delete behavior: no description of whether memories can be deleted by users or expire, beyond the survey-era suggestion that free users could delete AI-generated ones.",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1j5uqvr/whoah_new_memory_feature/",
+      "kind": "community"
+    },
+    {
+      "text": "Conflict and supersession: no description of how contradictory memories are handled if the LLM generates summaries that conflict across sessions.",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1j5uqvr/whoah_new_memory_feature/",
+      "kind": "community"
+    },
+    {
+      "text": "Auto-Memory is mentioned as a C.AI+ feature but this page gives no description of how it works \u2014 what is persisted, how facts are selected, whether users can view or delete stored memories.",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1or4vas/how_good_is_the_memory_of_character_ai/",
+      "kind": "community"
+    },
+    {
+      "text": "No official documentation or product statement on this page explains how auto-memory selects, stores, updates, or deletes facts \u2014 the write path and forget mechanisms are entirely absent.",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1pkyjke/whats_going_on_with_cais_memory/",
+      "kind": "community"
+    },
+    {
+      "text": "No description on this page of how C.AI's auto-memory write path works \u2014 what is extracted, how conflicts or supersessions between old and new memories are resolved, or whether memories can be deleted by the user",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1rl8pck/i_mocked_up_what_cai_would_feel_like_with_real/",
+      "kind": "community"
+    },
+    {
+      "text": "Isolation model is unclear from this page \u2014 whether stored memories are scoped per character, per user-character pair, per chat session, or globally across all of a user's chats",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1rl8pck/i_mocked_up_what_cai_would_feel_like_with_real/",
+      "kind": "community"
+    },
+    {
+      "text": "No documentation on what 'core memories' are, how they are selected or persisted through compression, or whether they survive across sessions",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1sznlyw/memory_usage_feature_brief_rant/",
+      "kind": "community"
+    },
+    {
+      "text": "No explanation of what determines the Memory Usage bar percentage \u2014 the bar behaves inconsistently across chats and the page does not clarify the calculation",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1sznlyw/memory_usage_feature_brief_rant/",
+      "kind": "community"
+    },
+    {
+      "text": "The announced lorebook feature has no documented release date, scope, or mechanism described on this page",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1tcgahu/has_characterai_improved_longterm_memory_recently/",
+      "kind": "community"
+    },
+    {
+      "text": "The 'memory feature they've been hinting at' is referenced but never described in terms of what it persists, how it retrieves, or how it handles conflicts",
+      "url": "https://www.reddit.com/r/CharacterAI/comments/1tcgahu/has_characterai_improved_longterm_memory_recently/",
+      "kind": "community"
+    },
+    {
+      "text": "No description of how keyword matching works (exact string, fuzzy, embedding similarity) \u2014 this is a canonical retrieval doc and the matching mechanism is unspecified.",
+      "url": "https://blog.character.ai/lorebook/",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of forget or delete: whether entries can be removed from the store and what effect that has on ongoing chats.",
+      "url": "https://blog.character.ai/lorebook/",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of conflict or supersession: what happens when multiple entries match the same keyword, or when lore contradicts conversation context.",
+      "url": "https://blog.character.ai/lorebook/",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of conversational memory (events that happen in chat): whether Character.AI records or surfaces those separately from Lorebook lore.",
+      "url": "https://blog.character.ai/lorebook/",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy is not described: the page does not explain how or when stored Facts and Story Memory are selected into the active context window (always injected, adaptive, or threshold-based).",
+      "url": "https://blog.character.ai/memory/",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession behavior is not described: no mention of what happens when a newly auto-captured Fact contradicts an existing one.",
+      "url": "https://blog.character.ai/memory/",
+      "kind": "docs"
+    },
+    {
+      "text": "Isolation scope for Memory is not stated: whether memories are per-user, per-character, per-persona, or per-conversation is not specified",
+      "url": "https://blog.character.ai/pipsqueak2-and-more/",
+      "kind": "docs"
+    },
+    {
+      "text": "The page references Character.AI's 21 May 2026 memory announcement and April 2026 update as sources for mechanism details but does not reproduce or link those documents; the write path (how facts are extracted, updated, or deleted internally) and the forget mechanism are not described.",
+      "url": "https://www.creationos.io/character-ai-keeps-forgetting",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of how the 400-character memory box is retrieved into context (always-on injection, retrieval policy, or conditional selection) is given on this page.",
+      "url": "https://aiinsightsnews.net/character-ai-memory-extension/",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of the write path for official memory (how facts are extracted, updated, or deleted from the memory box) is present on this page.",
+      "url": "https://aiinsightsnews.net/character-ai-memory-extension/",
+      "kind": "blog"
+    },
+    {
+      "text": "The page describes Character.AI's pinned message as the sole memory mechanism but does not explain whether pinned content is stored server-side as a persistent record or only injected client-side at context assembly time, leaving the write/storage path undefined.",
+      "url": "https://blog.storychat.app/character-ais-pinned-chat-when-your-bot-just-wont-remember-and-what-to-do-about-it/",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of a delete or forget path: the page does not state whether users can remove pinned messages or whether old pins are superseded or accumulated.",
+      "url": "https://blog.storychat.app/character-ais-pinned-chat-when-your-bot-just-wont-remember-and-what-to-do-about-it/",
+      "kind": "blog"
+    },
+    {
+      "text": "No canonical information about Character.AI's actual memory architecture, persist/retrieve/forget mechanisms, or store isolation is present on this page; the page is a community complaint board and third-party resolution advice, not a product doc",
+      "url": "https://www.sikayetvar.com/en/characterai-us/characterai-keeps-forgetting-context-how-can-i-improve-memory-q-37399",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of how per-session or per-user conversation history is stored, retrieved, or persisted across sessions",
+      "url": "https://en.wikipedia.org/wiki/Character.ai",
+      "kind": "blog"
+    }
+  ]
+}
