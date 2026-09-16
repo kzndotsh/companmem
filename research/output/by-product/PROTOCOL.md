@@ -102,14 +102,13 @@ Every id in [`../../pipeline/seed.json`](../../pipeline/seed.json) is in scope. 
 | characterai | Character.AI | none | census | Closed. Docs/blogs/search only |
 | replika | Replika | none | census | Closed. Docs/blogs/search only |
 | mcp-memory | MCP official knowledge-graph memory | census | census | |
-| mcp-mem0-community | coleam00/mcp-mem0 | https://github.com/coleam00/mcp-mem0 | census | |
 | langmem | LangMem | census | census | |
 | memobase | Memobase | census | census | |
 | hindsight | Hindsight | census | census | |
 | byterover | ByteRover | census | census | |
 | claude-mem | claude-mem | https://github.com/thedotmack/claude-mem | census | Negative control (`adjacent-coding-agent`) |
 
-`st-worldinfo`, `st-vectors`, `st-summarize` → `covered_by: sillytavern`. `honcho-sillytavern` → `covered_by: honcho`. `mem0-mcp` → `archived`. `memorybank`, `generative-agents` → `academic_paper` (arxiv + demo repo; not product harvest). See [`excluded.json`](excluded.json). `by-paper/` stays reserved until a paper protocol exists.
+`st-worldinfo`, `st-vectors`, `st-summarize` → `covered_by: sillytavern`. `honcho-sillytavern` → `covered_by: honcho`. `mem0-mcp` → `archived`. `mcp-mem0-community` (coleam00/mcp-mem0) → `covered_by: mem0`. `memorybank`, `generative-agents` → `academic_paper` (arxiv + demo repo; not product harvest). See [`excluded.json`](excluded.json). `by-paper/` stays reserved until a paper protocol exists.
 
 ## Snowball appendix
 

@@ -102,8 +102,8 @@ def test_letta_seed_skips_legacy_memory_blocks() -> None:
 def test_blog_seed_skips_github_forge() -> None:
     urls = blog_seed_urls(
         {
-            "repo": "https://github.com/coleam00/mcp-mem0",
-            "docs": "https://github.com/coleam00/mcp-mem0/blob/main/README.md",
+            "repo": "https://github.com/modelcontextprotocol/servers",
+            "docs": "https://github.com/modelcontextprotocol/servers/blob/main/src/memory/README.md",
             "census_sources": [],
             "skip_url_prefixes": [],
         }
@@ -274,7 +274,7 @@ def test_allowed_source_url_first_party_only() -> None:
     assert not allowed_source_url("https://discord.com/invite/honcho", product, repo_meta)
     assert not allowed_source_url("https://app.honcho.dev/login", product, repo_meta)
     assert not allowed_source_url(
-        "https://github.com/coleam00/mcp-mem0/blob/main/README.md",
+        "https://github.com/langchain-ai/langmem/blob/main/README.md",
         product,
         repo_meta,
     )
