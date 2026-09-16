@@ -1,0 +1,910 @@
+{
+  "identity": {
+    "id": "mcp-memory",
+    "name": "MCP official knowledge-graph memory",
+    "repo": "https://github.com/modelcontextprotocol/servers",
+    "docs": "https://github.com/modelcontextprotocol/servers/blob/main/src/memory/README.md",
+    "license": "MIT",
+    "version_or_commit": "d73f99efbfd40c3aa1b61e88728b3d49fb52608f",
+    "observed_at": "2026-09-16"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Official MCP reference server (@modelcontextprotocol/server-memory): persist a local knowledge graph (entities, atomic observations, typed relations) in JSONL and expose CRUD/search tools over stdio so a host model can remember project and user context across sessions."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Store: curated graph in MEMORY_FILE_PATH (default memory.jsonl); observations are one fact per line, not a raw chat transcript."
+    },
+    {
+      "text": "Retrieve: MCP tools (read_graph, search_nodes, open_nodes); README ships a system prompt that tells the model to open with \"Remembering...\" and pull relevant graph context at session start—selection is model-driven, not server-ranked."
+    },
+    {
+      "text": "Write: create_entities (skips duplicate names), create_relations, add_observations; delete_entities (cascade relations), delete_observations, delete_relations; no supersession or merge for conflicting facts."
+    },
+    {
+      "text": "Durability: in-process mutation queue plus temp-file rename on save; isolation is effectively one file per deployment/path, not multi-tenant."
+    },
+    {
+      "text": "Operational risks from issues: packaged server ignoring MEMORY_FILE_PATH; multi-process writers on one file losing updates; very large graphs making full read_graph costly; tool/schema bugs breaking writes."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Store is a local JSONL file; curated entities/relations, not a message log",
+      "kind": "code",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/README.md",
+      "quote": "MEMORY_FILE_PATH: Path to the memory storage JSONL file (default: memory.jsonl in the server directory)",
+      "locator": "NPX with custom setting",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Observations are atomic, curated facts \u2014 not transcript lines",
+      "kind": "code",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/README.md",
+      "quote": "Should be atomic (one fact per observation)",
+      "locator": "Core Concepts > Observations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget at entity level deletes entity and all associated relations (cascading)",
+      "kind": "code",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/README.md",
+      "quote": "Cascading deletion of associated relations",
+      "locator": "API > Tools > delete_entities",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget at observation level removes individual facts without deleting the entity",
+      "kind": "code",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/README.md",
+      "quote": "delete_observations \u2026 Remove specific observations from entities",
+      "locator": "API > Tools > delete_observations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy is model-driven: system prompt instructs always-retrieve at session start",
+      "kind": "code",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/README.md",
+      "quote": "Always begin your chat by saying only \"Remembering...\" and retrieve all relevant information from your knowledge graph",
+      "locator": "System Prompt",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "No conflict/supersession mechanism described; duplicate entities are silently ignored on create",
+      "kind": "code",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/README.md",
+      "quote": "Ignores entities with existing names",
+      "locator": "API > Tools > create_entities",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph is persisted to a JSONL file with one entity or relation record per line",
+      "kind": "code",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/index.ts",
+      "quote": "const lines = data.split(\"\\n\").filter(line => line.trim() !== \"\");",
+      "locator": "file:index.ts, KnowledgeGraphManager.loadGraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Atomic write via temp-file + rename prevents partial-write corruption on crash or power loss",
+      "kind": "code",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/index.ts",
+      "quote": "rename(2) is atomic on POSIX filesystems: readers see either the complete old file or the complete new one, never a partial state.",
+      "locator": "file:index.ts, KnowledgeGraphManager.saveGraph, comment block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Concurrent mutation safety via serialised promise queue; issue #1819 documents the lost-update bug this fixes",
+      "kind": "code",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/index.ts",
+      "quote": "Serializes all read-modify-write graph mutations behind a single queue. Without this, concurrent tool calls (e.g. multiple mutations dispatched from one LLM turn) each independently load the graph, mutate their own copy, and write it back \u2014 so whichever write lands last silently overwrites the other's changes, and interleaved writes to the same file can corrupt it outright. See #1819.",
+      "locator": "file:index.ts, KnowledgeGraphManager.mutationQueue comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "createEntities is non-destructive: duplicate-named entities are silently skipped, not overwritten",
+      "kind": "code",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/index.ts",
+      "quote": "const newEntities = entities.filter((e, index) =>\n        !graph.entities.some(existingEntity => existingEntity.name === e.name) &&\n        !entities.slice(0, index).some(earlier => earlier.name === e.name)\n      );",
+      "locator": "file:index.ts, KnowledgeGraphManager.createEntities",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "addObservations deduplicates: only observation strings not already present on the entity are appended",
+      "kind": "code",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/index.ts",
+      "quote": "const newObservations = o.contents.filter(content => !entity.observations.includes(content));",
+      "locator": "file:index.ts, KnowledgeGraphManager.addObservations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "deleteEntities cascades: deleting an entity also deletes all relations referencing it as from or to",
+      "kind": "code",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/index.ts",
+      "quote": "graph.relations = graph.relations.filter(r => !entityNames.includes(r.from) && !entityNames.includes(r.to));",
+      "locator": "file:index.ts, KnowledgeGraphManager.deleteEntities",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "searchNodes uses case-insensitive substring match; no semantic/embedding retrieval",
+      "kind": "code",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/index.ts",
+      "quote": "// Very basic search function\n  async searchNodes(query: string): Promise<KnowledgeGraph>",
+      "locator": "file:index.ts, KnowledgeGraphManager.searchNodes, comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No per-user or per-session isolation at the data layer; a single file holds all graph data",
+      "kind": "code",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/index.ts",
+      "quote": "export const defaultMemoryPath = path.join(path.dirname(fileURLToPath(import.meta.url)), 'memory.jsonl');",
+      "locator": "file:index.ts, defaultMemoryPath",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory retrieval is not automatic or adaptive; the LLM or client must explicitly call read_graph, search_nodes, or open_nodes",
+      "kind": "code",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/index.ts",
+      "quote": "description: \"Search for nodes in the knowledge graph based on a query\"",
+      "locator": "file:index.ts, search_nodes tool registration",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "openNodes previously required both relation endpoints to be in the requested set, silently dropping outbound relations; changed to require only one endpoint",
+      "kind": "code",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/index.ts",
+      "quote": "// Previously this required BOTH endpoints, which meant relations from a\n    // requested node to an unrequested node were silently dropped \u2014 making it\n    // impossible to discover a node's connections without reading the full graph.",
+      "locator": "file:index.ts, KnowledgeGraphManager.openNodes, comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Product is a knowledge-graph-backed persistent memory server published on npm as @modelcontextprotocol/server-memory.",
+      "kind": "docs",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/main/src/memory/README.md",
+      "quote": "A basic implementation of persistent memory using a local knowledge graph. This lets Claude remember information about the user across chats. Published on npm as @modelcontextprotocol/server-memory.",
+      "locator": "Knowledge Graph Memory Server (top-level description)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistent store is a JSONL file; path is configurable via MEMORY_FILE_PATH environment variable.",
+      "kind": "docs",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/main/src/memory/README.md",
+      "quote": "MEMORY_FILE_PATH: Path to the memory storage JSONL file (default: memory.jsonl in the server directory)",
+      "locator": "NPX with custom setting / environment variables",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Store structure is a typed, directed knowledge graph: entities with observations as atomic string facts, plus active-voice directed relations.",
+      "kind": "docs",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/main/src/memory/README.md",
+      "quote": "Entities are the primary nodes in the knowledge graph. Each entity has: A unique name (identifier), An entity type \u2026 A list of observations \u2026 Relations define directed connections between entities. They are always stored in active voice",
+      "locator": "Core Concepts / Entities and Relations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path supports create, append-observation, and three independent delete operations (entity with cascade, observation, relation).",
+      "kind": "docs",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/main/src/memory/README.md",
+      "quote": "Cascading deletion of associated relations \u2026 Remove specific observations from entities \u2026 Remove specific relations from the graph",
+      "locator": "API / Tools / delete_entities, delete_observations, delete_relations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy in the example scaffold is always-retrieve: the model is told to fetch the full graph at the start of every chat.",
+      "kind": "docs",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/main/src/memory/README.md",
+      "quote": "Always begin your chat by saying only \"Remembering...\" and retrieve all relevant information from your knowledge graph",
+      "locator": "System Prompt / Memory Retrieval",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The scaffold (system prompt) governs what to remember and when to write; the page notes that changing the prompt changes frequency and types of memories created.",
+      "kind": "docs",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/main/src/memory/README.md",
+      "quote": "The prompt for utilizing memory depends on the use case. Changing the prompt will help the model determine the frequency and types of memories created.",
+      "locator": "System Prompt (introductory note)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "License is MIT.",
+      "kind": "docs",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/main/src/memory/README.md",
+      "quote": "This MCP server is licensed under the MIT License.",
+      "locator": "License",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory store is a single file named memory.json, written to disk at a configurable or hardcoded path.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/1018",
+      "quote": "the memory file is still created at the default location, not the path specified in the environment variable",
+      "locator": "Actual Behavior",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "npm package 0.6.2 ignores MEMORY_FILE_PATH env var due to a compilation bug; 0.6.3 in the repo fixes it.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/1018",
+      "quote": "The published version of `@modelcontextprotocol/server-memory` (0.6.2) on npm does not respect the `MEMORY_FILE_PATH` environment variable. The repository source code correctly handles environment variables, but the compiled version published to npm uses a hardcoded path for the memory file.",
+      "locator": "Description",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The memory file path defaults to a location inside the package's own directory (__dirname).",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/1018",
+      "quote": "path.join(__dirname, 'memory.json')",
+      "locator": "Logs / compiled index.js in distributed package",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "All tool calls fail with a JSON parsing error at position 175, affecting read_graph, search_nodes, open_nodes, and create_entities on Windows with version 2025.11.25.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3173",
+      "quote": "All Memory MCP tools fail with the same JSON parsing error: Unexpected non-whitespace character after JSON at position 175 (line 1 column 176). This occurs even for simple read operations like read_graph, search_nodes, and open_nodes.",
+      "locator": "Describe the bug section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The server starts and the MCP connection is established (tools are recognized) before the JSON error occurs, so the failure is in response serialization, not connection setup.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3173",
+      "quote": "The server starts correctly (no startup errors)\nThe MCP connection is established (tools are recognized)",
+      "locator": "Additional context section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The user expected multiple entities to be stored in and retrieved from a valid JSON array structure.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/1481",
+      "quote": "I expect multiple entities to go into and be pulled from a valid JSON Array",
+      "locator": "Expected behavior section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The MEMORY_FILE_PATH configuration is invalid when the memory server is used via Roo Cline in VSCode",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/1600",
+      "quote": "MEMORY_FILE_PATH configuration is invalid when Roo Cline uses Memory MCP in VsCode",
+      "locator": "issue body, first line",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Two processes sharing a memory file silently discard each other's entire session's writes due to last-rename-wins on saveGraph",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/4797",
+      "quote": "Two server processes sharing one MEMORY_FILE_PATH still discard each other's writes, silently. The queue is per-instance (private mutationQueue), and saveGraph writes a temp file and renames it over the target \u2014 which guarantees the file is never corrupt, and equally guarantees that the last rename replaces the other process's work wholesale.",
+      "locator": "Describe the bug",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Silent failure mode: no terminal error is printed but memory state is incomplete, making the failure invisible to the user and agent.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/2030",
+      "quote": "Unfortunately, there are no explicit errors printed to the terminal in some cases \u2013 but behavior can be confirmed through: Incomplete or missing results from memory updates.",
+      "locator": "Logs",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "npm latest (2026.8.31) does not yet include the single-process fix from #4555, meaning the single-process race is still present for npm installers",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/4797",
+      "quote": "@modelcontextprotocol/server-memory@2026.8.31 (current npm latest, published 2026-08-31) does not yet contain #4555, so the single-process race is still present for anyone installing from npm today.",
+      "locator": "Additional context",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory store is a flat file (memory.json) in JSON Lines format; large stores reach 80k+ tokens and degrade retrieval efficiency",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/2415",
+      "quote": "Large memory files (80k+ tokens) result in expensive queries",
+      "locator": "Problem Statement",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The store holds typed entities with observations; content categories include directives, project status, and file locations",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/2415",
+      "quote": "Identifies content patterns and categories (Directives, project status, file locations, etc.)",
+      "locator": "Content Analysis Engine",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No automatic conflict resolution or supersession mechanism is mentioned; backward compatibility with existing structure is a hard requirement",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/2415",
+      "quote": "Maintain full backward compatibility with existing memory.json format",
+      "locator": "Compatibility Requirements",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "create_entities requires observations as a mandatory field \u2014 entity creation and observation attachment cannot be separated",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/2689",
+      "quote": "`create_entities` failed with a validation error (`'observations' is a required property`), proving this approach was incorrect",
+      "locator": "Bug Report description, Attempt 3: Separating Creation and Observation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "JSON parsing error at position 102 prevents all write operations (create_entities, create_relations, add_observations) from saving any data, rendering memory persistence completely broken in this environment",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/2689",
+      "quote": "The tool consistently returns the following error: `{\"error\": \"MCP error -32603: Unexpected non-whitespace character after JSON at position 102 (line 1 column 103)\"}`",
+      "locator": "Bug Report description, Actual Behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The failure is not input-content-dependent; even single-entity atomic calls fail identically, pointing to a systemic parsing bug rather than a data or user error",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/2689",
+      "quote": "Every single call failed with the exact same JSON parsing error... The tool appears to be fundamentally unable to parse the list of dictionaries passed to it",
+      "locator": "Bug Report description, Attempt 5 and Conclusion",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The memory server package is @modelcontextprotocol/server-memory running on Node 24.x.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3086",
+      "quote": "Memory server: `@modelcontextprotocol/server-memory`",
+      "locator": "Environment",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The memory graph can reach an inconsistent state when entity creation calls partially succeed or fail due to unhandled errors.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3086",
+      "quote": "The memory creation calls can partially succeed or fail \u2014 leading to inconsistent memory graph state.",
+      "locator": "Observed",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The server does not validate entityType on create_entities and does not return clear errors for missing or wrong values.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3086",
+      "quote": "Validate the `entityType` upon /create_entities call and return clear, descriptive errors. If `entityType` is not provided, return a validation error rather than attempting to infer a file read.",
+      "locator": "Suggested fixes \u2014 Server-side validation",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The server stores entities and relations; an audit of created entities and relations was exported as JSON for inspection.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3086",
+      "quote": "`.context/mem_import_2025-11-28.json` \u2014 audit of entities & relations created while testing.",
+      "locator": "Attachments (from local analysis)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A client wrapper may fall back to reading local filesystem paths when the memory server is offline, rather than returning a connection error \u2014 a write-path reliability gap.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3086",
+      "quote": "The client should not attempt to fallback to local filesystem reads when the memory server is offline; instead, return a connection error.",
+      "locator": "Expected",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory store is a JSON file on disk, path controlled by MEMORY_FILE_PATH env var",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3278",
+      "quote": "\"MEMORY_FILE_PATH\": \"C:\\\\Users\\\\julio\\\\.gemini\\\\antigravity\\\\mcp_memory.json\"",
+      "locator": "Configuration",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Server communicates over stdio",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3278",
+      "quote": "Knowledge Graph MCP Server running on stdio",
+      "locator": "Diagnosis Performed / Server Runs Correctly Manually",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "read_graph is a tool exposed by the server for reading the knowledge graph",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3278",
+      "quote": "Attempt to use any MCP tool (e.g., `mcp_conversations_read_graph`)",
+      "locator": "Steps to Reproduce",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory store is a file on disk; its location is controlled by the MEMORY_FILE_PATH environment variable, defaulting to a path relative to the script directory.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3315",
+      "quote": "The MEMORY_FILE_PATH environment variable accepts relative paths that are resolved relative to the script directory.",
+      "locator": "Details > Medium: Potential path traversal in custom memory file path",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The file path is resolved at dist/index.js line 16 using path.join and path.dirname of the script's own URL.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3315",
+      "quote": ": path.join(path.dirname(fileURLToPath(import.meta.url)), process.env.MEMORY_FILE_PATH);",
+      "locator": "Details > Medium: Potential path traversal in custom memory file path > Affected Code, dist/index.js:16",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The package emits verbose error messages to stderr, which is described as by-design behavior.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3315",
+      "quote": "INFO_LEAK_001: Verbose error messages to stderr (dist/index.js:31) - marked as by-design",
+      "locator": "Findings Summary > Low Severity (by-design)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The server exposes 9 tools covering entity/relation/observation lifecycle with zero annotations in v0.6.3.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3400",
+      "quote": "This server currently provides zero annotations on all 9 tools.",
+      "locator": "Context section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "delete_entities cascades to relations, making it the highest-risk tool on the server.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3400",
+      "quote": "Permanently deletes entities AND cascades to all associated relations. This is the highest-risk tool on this server.",
+      "locator": "Rationale for each \u2014 delete_entities",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No delete operation provides undo or recovery; deletions are permanent.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3400",
+      "quote": "Permanently removes specific observations. No undo, no trash.",
+      "locator": "Rationale for each \u2014 delete_observations",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The graph persists data across sessions, accumulating user preferences, conversation history, and project details.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3400",
+      "quote": "The knowledge graph may accumulate sensitive data across sessions (user preferences, conversation history, project details).",
+      "locator": "Why this matters \u2014 read_graph + network server bullet",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "An agent processing untrusted input could be instructed to delete graph contents, and without destructiveHint the delete is indistinguishable from a read to annotation-aware clients.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3400",
+      "quote": "An agent processing untrusted input (email, chat, web content) could be instructed to 'clean up the knowledge graph.' destructiveHint: true enables any MCP client that respects the spec to add a confirmation step before permanent deletion. Without it, the delete is indistinguishable from a read to annotation-aware clients.",
+      "locator": "Why this matters \u2014 delete_entities triggered by prompt injection bullet",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "create_entities is non-idempotent and will produce duplicate entities if called more than once with the same input.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3400",
+      "quote": "Not idempotent (calling create twice produces duplicate entities).",
+      "locator": "Rationale for each \u2014 create_entities / create_relations / add_observations",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory server scored 92/100 in automated security audit with 1 unconstrained string parameter (search query)",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3537",
+      "quote": "Memory | 92/100 | 1 (search query)",
+      "locator": "Findings table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The memory server's tool definitions pass Zod schema objects directly to outputSchema, violating the MCP spec which requires plain JSON Schema objects",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3622",
+      "quote": "The memory server's tool definitions use Zod schema objects directly in outputSchema, which violates the MCP specification and causes serialization failures when tools/list endpoint attempts to convert schemas to JSON.",
+      "locator": "issue body, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The serialization bug surfaces as _zod property errors in JSON-RPC responses from the tools/list endpoint",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3622",
+      "quote": "When the tools/list endpoint serializes these schemas to JSON-RPC responses, Zod objects fail to serialize, resulting in _zod property errors.",
+      "locator": "issue body, 'Root Cause' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The bug works around when using Claude Desktop's bundled SDK but fails with the npm SDK, indicating inconsistent behavior across runtimes",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3622",
+      "quote": "Works with Claude Desktop's bundled SDK (which may have a workaround), but fails with the npm SDK version",
+      "locator": "issue body, 'Impact' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "server-memory defaults its outputSchema generation to JSON Schema draft-07 dialect instead of 2020-12, via zod-to-json-schema's default target",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/4772",
+      "quote": "The reference server-memory package defaults its outputSchema generation to JSON Schema draft-07 dialect instead of 2020-12 (via zod-to-json-schema's default target), which trips the same class of validator for versions \u2265 the release that added outputSchema.",
+      "locator": "Separately noted (different, unrelated bug)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "At 0 ms dispatch gap between two concurrent processes, only 10 of 20 entities survive (one process's entire contribution lost); at 50 ms gap all 20 survive",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/4797",
+      "quote": "gap between dispatches | kept\n0 ms | 10 / 20\n10 ms | 19 / 20\n50 ms and above | 20 / 20",
+      "locator": "Measurements",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "NPX temporary directories may be cleaned up, meaning all stored memory data could be silently lost between sessions \u2014 a continuity failure caused by the storage path bug.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/692",
+      "quote": "This is concerning because NPX temporary directories may be cleaned up, potentially losing all memory data.",
+      "locator": "Additional Information section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The MEMORY_FILE_PATH environment variable is the intended mechanism to control where memory.json is written, but it was not being recognised in the reported configuration.",
+      "kind": "issue",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/692",
+      "quote": "Despite setting the MEMORY_FILE_PATH environment variable, the memory.json file is still being created in the NPX temporary directory",
+      "locator": "Actual Behavior section",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/index.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/blob/main/src/memory/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/issues/1018",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/issues/692",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/issues/1481",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/issues/1600",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3537",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3173",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3315",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/issues/2415",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3400",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/issues/2689",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/issues/4797",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/issues/2030",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/issues/4772",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3622",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3278",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3086",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [
+    {
+      "text": "README documents create_entities ignoring existing entity names; user reports and issues describe duplicate entities, failed adds, or JSON parse failures—treat idempotency and write reliability as contested in the field."
+    },
+    {
+      "text": "Docs and Docker examples assume MEMORY_FILE_PATH controls the store; issues report the published npm package not honoring env-based paths (wrong default file location)."
+    },
+    {
+      "text": "Per-process write mutex prevents corruption within one server instance; issue #4797 reports two processes on the same path silently discarding each other's writes—multi-client safety is not guaranteed."
+    },
+    {
+      "text": "Bundled system prompt prescribes always retrieve at chat start; hosts that omit or override that prompt may behave as on-demand tool use only—continuity is co-owned by client integration, not enforced by the server."
+    }
+  ],
+  "copy": [
+    {
+      "text": "Agent/workspace memory primitive for MCP hosts (coding assistants), not a consumer companion product; human-like continuity depends on the client model following the README system prompt and calling tools consistently."
+    }
+  ],
+  "refuse": [
+    {
+      "text": "Do not treat issue #3400's 'create twice produces duplicate entities' as canonical behavior; README and index.ts skip duplicate entity names—use code/docs for idempotency, issues only for client/runtime failures."
+    },
+    {
+      "text": "Refuse unbounded read_graph on every turn at large graph sizes (issue #2415); companion-style continuity needs selective retrieve, not dumping 80k+ tokens of graph JSON."
+    },
+    {
+      "text": "Refuse multi-client write sharing on one MEMORY_FILE_PATH without external locking; per-process queue does not coordinate across processes (#4797)."
+    }
+  ],
+  "unknowns": [
+    {
+      "text": "Conflict/supersession: the API docs describe no mechanism to update or overwrite an existing observation \u2014 only add or delete. How stale facts are corrected is not specified.",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Retrieve policy detail: search_nodes matching algorithm (exact, substring, embedding, etc.) is not described in this doc.",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "No conflict/supersession policy for entities with the same name but different entityType or observations: createEntities silently skips the duplicate rather than merging or flagging the conflict",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/d73f99efbfd40c3aa1b61e88728b3d49fb52608f/src/memory/index.ts",
+      "kind": "code"
+    },
+    {
+      "text": "Conflict / supersession: the API docs describe create (ignore duplicate) and add_observations (append), but do not describe any mechanism for updating or superseding an existing observation that is factually stale \u2014 this is a gap in a canonical API doc.",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/main/src/memory/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy for search_nodes and open_nodes: the docs define the tools but the system prompt only shows always-full-graph retrieval; no adaptive or conditional retrieval policy is documented.",
+      "url": "https://github.com/modelcontextprotocol/servers/blob/main/src/memory/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The page does not describe the schema or structure of memory.json (e.g. knowledge-graph nodes/edges format), which is a core architecture detail for a canonical memory server.",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/1018",
+      "kind": "issue"
+    },
+    {
+      "text": "Retrieve policy: the page does not describe how entities are selected from the file into a conversation turn, despite this being a canonical memory server issue report.",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/1481",
+      "kind": "issue"
+    },
+    {
+      "text": "Forget/delete path: no mention of how entities are removed or superseded from the store.",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/1481",
+      "kind": "issue"
+    },
+    {
+      "text": "The issue references a screenshot but provides no further detail about failure mode, error message, or steps to reproduce; the persist/retrieve behavior and whether stored memories are lost or simply unreachable is not described.",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/1600",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe the retrieve policy, write/update/delete path, forget behavior, or isolation model despite this being an issue against the canonical server repository.",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/1846",
+      "kind": "issue"
+    },
+    {
+      "text": "Write path for conflict/supersession: the page does not describe how the store handles duplicate or contradicting entities",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/2415",
+      "kind": "issue"
+    },
+    {
+      "text": "Forget/delete mechanism: no description of how entities are removed or hidden from retrieval",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/2415",
+      "kind": "issue"
+    },
+    {
+      "text": "Isolation model: no mention of per-user, per-session, or per-agent scoping of the memory store",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/2415",
+      "kind": "issue"
+    },
+    {
+      "text": "Retrieve policy: no information on how or when stored entities/relations are selected back into context",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/2689",
+      "kind": "issue"
+    },
+    {
+      "text": "Forget/delete: no mention of how entities or relations are removed from the knowledge graph store",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/2689",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe the retrieval policy: when or how stored entities/observations are selected back into a conversation turn.",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3086",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe delete or forget behavior: whether entities or observations can be removed from the store and how conflicts or supersession are handled.",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3086",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how memory.jsonl is selected or scoped \u2014 whether isolation is per user, per session, per agent, or global.",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3144",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of the retrieve policy \u2014 whether read_graph is called on every turn or adaptively.",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3144",
+      "kind": "issue"
+    },
+    {
+      "text": "Retrieve policy: the page does not describe when or how the server selects entities into context (always-retrieve vs. adaptive).",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3173",
+      "kind": "issue"
+    },
+    {
+      "text": "Forget / delete path: no mention of how entities are removed or superseded from the JSONL store.",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3173",
+      "kind": "issue"
+    },
+    {
+      "text": "No information on write path (extract, update, delete, conflict handling) for the knowledge graph store",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3278",
+      "kind": "issue"
+    },
+    {
+      "text": "No information on retrieve policy (always retrieve vs adaptive) or how facts are selected into the turn",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3278",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe what data structure or schema is persisted in the memory file (knowledge-graph nodes/edges, raw transcript, curated facts, etc.), nor the read/retrieve path, update, delete, conflict handling, or isolation model.",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3315",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how or when the model is instructed to read or write the graph (scaffold/system-prompt layer) \u2014 absent from this issue despite the server being a canonical memory architecture.",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3400",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of retrieve policy: whether read_graph/search_nodes are called on every turn, adaptively, or only on explicit agent request.",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3400",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of conflict or supersession behavior when create_entities is called with an entity name that already exists.",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/3400",
+      "kind": "issue"
+    },
+    {
+      "text": "Page is a schema-validation bug report and does not describe any memory persistence, retrieval, update, forget, or isolation behavior of server-memory.",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/4772",
+      "kind": "issue"
+    },
+    {
+      "text": "No documentation or API description on this page for how entities are selected or retrieved into a turn (retrieve policy, scoring, or filtering)",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/4797",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of forget/delete behavior or conflict/supersession semantics in the knowledge graph store",
+      "url": "https://github.com/modelcontextprotocol/servers/issues/4797",
+      "kind": "issue"
+    }
+  ]
+}
