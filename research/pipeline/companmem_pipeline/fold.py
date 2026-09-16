@@ -114,6 +114,13 @@ COMPETITOR_COMPARE_HOSTS = (
     "graphlit.com",
     "agentmarketcap.ai",
     "niteagent.com",
+    "memobase.ai",
+    "i-programmer.info",
+    "aimemory.pro",
+)
+THIRD_PARTY_BLOG_HOSTS_WHEN_DOCS = (
+    "dev.to",
+    "blog.continua.ai",
 )
 COMPARISON_BLOG_PATH_RE = re.compile(
     r"vs[-_/]|benchmark|/comparison|stacked-up",
@@ -301,6 +308,12 @@ def should_drop_ledger_row(row: dict[str, object], *, has_official_docs: bool) -
         return True
     if kind == "blog" and COMPARISON_BLOG_PATH_RE.search(url):
         return True
+    if has_official_docs and kind == "blog":
+        lowered = url.lower()
+        if any(host in lowered for host in THIRD_PARTY_BLOG_HOSTS_WHEN_DOCS):
+            return True
+        if "huggingface.co" in lowered:
+            return True
     if is_weak_wiki_index_ledger(row):
         return True
     if LEDGER_ABSENCE_CLAIM_RE.search(claim):
@@ -338,9 +351,20 @@ def unknown_superseded_by_ledger(
 ) -> bool:
     """Drop page-local 'not described' unknowns when code/docs ledger already documents the capability."""
     blob = normalize_claim(text)
-    if "not describe" not in blob and "does not describe" not in blob:
+    absence_markers = (
+        "not describe",
+        "does not describe",
+        "not covered",
+        "absent from",
+        "no description of",
+        "is not described",
+    )
+    if not any(marker in blob for marker in absence_markers):
         return False
-    if not any(token in blob for token in ("forget", "delete", "retrieve", "conflict", "supersession")):
+    if not any(
+        token in blob
+        for token in ("forget", "delete", "retrieve", "conflict", "supersession", "merge")
+    ):
         return False
     for row in ledger:
         if str(row.get("kind") or "") not in ("code", "docs"):
@@ -350,8 +374,13 @@ def unknown_superseded_by_ledger(
             return True
         if "retrieve" in blob and "retrieve" in claim:
             return True
-        if ("conflict" in blob or "supersession" in blob) and (
-            "conflict" in claim or "supersession" in claim or "contradict" in claim
+        if ("conflict" in blob or "supersession" in blob or "merge" in blob) and (
+            "conflict" in claim
+            or "supersession" in claim
+            or "contradict" in claim
+            or "merge" in claim
+            or "llm-driven" in claim
+            or "side-by-side" in claim
         ):
             return True
     return False

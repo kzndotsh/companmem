@@ -1,0 +1,1467 @@
+{
+  "identity": {
+    "id": "memobase",
+    "name": "Memobase",
+    "repo": "https://github.com/memodb-io/memobase",
+    "docs": "https://docs.memobase.io/llms.txt",
+    "license": "Apache-2.0",
+    "version_or_commit": "358c16bbc6d687937d79bc2f984a11c3be8da901",
+    "observed_at": "2026-09-16"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Open-source user-memory backend (memodb-io/memobase): ingest chat blobs, extract/update structured user profiles (topic/subtopic slots) plus events/gists, and serve turn-ready context for LLM apps\u2014profile-first rather than full transcript replay."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Store: User Profile (structured slots) and User Events / event gists (timeline with mention vs happen time); raw GeneralBlob chat can be dropped after flush per config\u2014curated memory vs message log."
+    },
+    {
+      "text": "Write: buffer until size/idle/manual flush \u2192 LLM extraction/merge (merge.py); async_insert path; issues #143/#109 contest dedup and retention reliability."
+    },
+    {
+      "text": "Retrieve: context API packs profile + events under token budgets (profile_event_ratio); profile_filter/search and semantic event search; scaffold suppresses unprompted recall unless the query is relevant."
+    },
+    {
+      "text": "Forget: hard delete APIs for profile rows and user events; no soft-hide path documented in harvested controllers."
+    },
+    {
+      "text": "Isolation: scoped by user_id + project_id; roleplay proactive topics + HN community signal companion-adjacent use, but product remains a decoupled API layer."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Persisted memory is a structured user profile (topic/sub_topic/content) learned from chat blobs, not the raw transcript",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/readme.md",
+      "quote": "u.profile() will return structured profiles that are learned from this user, including topic, sub_topic and content.",
+      "locator": "readme.md, Step 4: Get your Memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Raw chat blobs are deleted from store after processing by default \u2014 log is not retained as memory",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/readme.md",
+      "quote": "By default, Memobase will remove the blobs once they're processed. This means that apart from the relevant memory, your data will not be stored with Memobase.",
+      "locator": "readme.md, Step 3: Insert Data",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A separate event timeline is persisted alongside the user profile for temporal queries",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/readme.md",
+      "quote": "Memobase has more than user profiles, it also records user event. User event is essential to answer time-related question.",
+      "locator": "readme.md, Core Features \u2014 Time-aware Memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path is asynchronous by default; flush is batch-triggered off the hot path",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/readme.md",
+      "quote": "In Memobase, we don't memoize users in hot path. We use buffer zones for the recent inserted blobs. When the buffer zone becomes too large (e.g., 1024 tokens) or remains idle for an extended period (e.g., 1 hour), Memobase will flush the entire buffer into memory.",
+      "locator": "readme.md, Why need a flush? callout",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval scaffold instructs model to stay silent on memories unless the user query is relevant",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/readme.md",
+      "quote": "Unless the user has relevant queries, do not actively mention those memories in the conversation.",
+      "locator": "readme.md, Step 5 context output sample",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per user via user ID; no session or agent scoping described on this page",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/readme.md",
+      "quote": "uid = client.add_user({\"any_key\": \"any_value\"})",
+      "locator": "readme.md, Step 2: Manage Users",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "context API applies token budget and topic preference \u2014 selective retrieval into prompt, not full dump",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/readme.md",
+      "quote": "print(u.context(max_token_size=500, prefer_topics=[\"basic_info\"]))",
+      "locator": "readme.md, Step 5: Integrate memory into your prompt",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LOCOMO benchmark SOTA claim after adding fine-grained event gist in v0.0.37",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/readme.md",
+      "quote": "we added fine-grained event gist, enabling the detailed search on users' timeline. Re-ran the LOCOMO benchmark and we're SOTA!",
+      "locator": "readme.md, Recent Updates, version 0.0.37",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memobase is a user memory system for LLM applications, exposing a REST API built on FastAPI.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/api.py",
+      "quote": "APIs for Memobase, a user memory system for LLM Apps",
+      "locator": "custom_openapi() / openapi_schema summary",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Raw conversational or input data is stored as typed blobs per user and can be inserted, retrieved by ID, listed by type, or deleted \u2014 forming the log layer.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/api.py",
+      "quote": "router.post(\"/blobs/insert/{user_id}\", tags=[\"blob\"])\nrouter.get(\"/blobs/{user_id}/{blob_id}\", tags=[\"blob\"])\nrouter.delete(\"/blobs/{user_id}/{blob_id}\", tags=[\"blob\"])\nrouter.get(\"/users/blobs/{user_id}/{blob_type}\", tags=[\"user\"])",
+      "locator": "blob and user blob route registrations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Profiles form the curated memory layer with full CRUD (create, read, update, delete, import) per user and profile ID \u2014 distinct from the raw blob log.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/api.py",
+      "quote": "router.get(\"/users/profile/{user_id}\")\nrouter.post(\"/users/profile/{user_id}\")\nrouter.put(\"/users/profile/{user_id}/{profile_id}\")\nrouter.delete(\"/users/profile/{user_id}/{profile_id}\")",
+      "locator": "profile route registrations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Events are a persisted episodic store with retrieval, update, delete, and semantic search, distinct from both blobs and profiles.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/api.py",
+      "quote": "router.get(\"/users/event/{user_id}\")\nrouter.put(\"/users/event/{user_id}/{event_id}\")\nrouter.delete(\"/users/event/{user_id}/{event_id}\")\nrouter.get(\"/users/event/search/{user_id}\")",
+      "locator": "event route registrations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Event gists are a summarized layer over raw events with their own search endpoint, suggesting multi-tier episodic memory (raw event + distilled gist).",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/api.py",
+      "quote": "router.get(\"/users/event_gist/search/{user_id}\", tags=[\"event_gist\"])(api_layer.event.search_user_event_gists)",
+      "locator": "event_gist route registration",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A typed buffer per user stages raw input before it is flushed into the persistent memory store; the flush is an explicit operation.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/api.py",
+      "quote": "router.post(\"/users/buffer/{user_id}/{buffer_type}\", tags=[\"buffer\"])(api_layer.buffer.flush_buffer)\nrouter.get(\"/users/buffer/capacity/{user_id}/{buffer_type}\", tags=[\"buffer\"])(api_layer.buffer.get_processing_buffer_ids)",
+      "locator": "buffer route registrations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A dedicated context endpoint assembles memory into a turn-ready scaffold, separating retrieval/injection from raw storage.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/api.py",
+      "quote": "router.get(\"/users/context/{user_id}\", tags=[\"context\"])(api_layer.context.get_user_context)",
+      "locator": "context route registration",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "All memory stores are isolated per user_id; no cross-user retrieval path exists in this routing layer.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/api.py",
+      "quote": "router.post(\"/blobs/insert/{user_id}\")\nrouter.get(\"/users/profile/{user_id}\")\nrouter.get(\"/users/event/{user_id}\")",
+      "locator": "all route path patterns",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Project-level profile config is configurable, suggesting extraction rules or memory schema can be tuned per project deployment.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/api.py",
+      "quote": "router.post(\"/project/profile_config\", tags=[\"project\"])(api_layer.project.update_project_profile_config)",
+      "locator": "project profile_config route registrations",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A roleplay proactive-topics endpoint suggests memory supports companion use cases where the model can initiate recall based on stored user context.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/api.py",
+      "quote": "router.post(\"/users/roleplay/proactive/{user_id}\", tags=[\"roleplay\"])(api_layer.roleplay.infer_proactive_topics)",
+      "locator": "roleplay route registration",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Both embedding and LLM components are validated at startup, confirming vector search and language model are both part of the memory processing pipeline.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/api.py",
+      "quote": "await check_embedding_sanity()\nawait llm_sanity_check()",
+      "locator": "lifespan() startup",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Chat blobs are staged in a BufferZone (message log) and optionally deleted after memory extraction, separating raw transcript from curated memory.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/buffer.py",
+      "quote": "if blob_type == BlobType.chat and not CONFIG.persistent_chat_blobs:\n                    session.query(GeneralBlob).filter(\n                        GeneralBlob.id.in_(blob_ids),\n                        GeneralBlob.project_id == project_id,\n                    ).delete(synchronize_session=False)",
+      "locator": "flush_buffer_by_ids",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory writes are triggered by a token-size threshold on the buffer, not on every message insertion.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/buffer.py",
+      "quote": "buffer_token_size > CONFIG.max_chat_blob_buffer_token_size",
+      "locator": "detect_buffer_full_or_not",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is enforced at both user_id and project_id granularity.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/buffer.py",
+      "quote": "filter_by(\n                user_id=user_id,\n                blob_type=str(blob_type),\n                project_id=project_id,\n                status=BufferStatus.idle,\n            )",
+      "locator": "get_buffer_capacity",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memobase maintains two separate persistent stores per user: structured profile facts (topic/subtopic keyed) and event gists (summarised past events), rather than a raw message log.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/context.py",
+      "quote": "f\"{p.attributes.get('topic')}::{p.attributes.get('sub_topic')}: {p.content}\"",
+      "locator": "get_user_profiles_data, profile_section assembly",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is adaptive: profiles are filtered by relevance to the current chat turn, and event gists are similarity-searched when event embedding is enabled, rather than always returning everything.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/context.py",
+      "quote": "if chats and CONFIG.enable_event_embedding:\n        search_query = pack_latest_chat(chats)\n        p = await search_user_event_gists(..., similarity_threshold=event_similarity_threshold, ...)",
+      "locator": "get_user_event_gists_data",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory context is token-budget-managed: a profile_event_ratio splits the total budget between profile facts and event gists, with truncation applied to each before injection.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/context.py",
+      "quote": "assert 0 < profile_event_ratio <= 1, \"profile_event_ratio must be between 0 and 1\"\n    max_profile_token_size = int(max_token_size * profile_event_ratio)",
+      "locator": "get_user_context, token budget calculation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per user and per project via user_id and project_id scoping on every retrieval call.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/context.py",
+      "quote": "p = await get_user_profiles(user_id, project_id)",
+      "locator": "get_user_profiles_data",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The scaffold (context prompt) is language-aware and caller-overridable; it receives profile_section and event_section as named slots.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/context.py",
+      "quote": "def customize_context_prompt_func(\n    context_prompt: str, profile_section: str, event_section: str\n) -> str:\n    return context_prompt.format(\n        profile_section=profile_section, event_section=event_section\n    )",
+      "locator": "customize_context_prompt_func",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "UserEventGist is a separate curated-memory layer: bullet-point summaries parsed from event_tip are stored as individual rows with their own embeddings linked to the parent event.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/event.py",
+      "quote": "event_gists = validated_event.event_tip.split(\"\\n\")\n        event_gists = [l.strip() for l in event_gists if l.strip().startswith(\"-\")]\n        ...\n        UserEventGist(\n                    user_id=user_id,\n                    project_id=project_id,\n                    event_id=user_event.id,\n                    gist_data=event_gist_data[\"gist_data\"],\n                    embedding=event_gist_data[\"embedding\"],\n                )",
+      "locator": "append_user_event",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is time-windowed (default 21 days) and recency-ordered with a topk cap, then optionally truncated by encoded token count before being passed upstream.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/event.py",
+      "quote": ".filter(\n                UserEvent.created_at > (func.now() - timedelta(days=time_range_in_days))\n            )\n        )\n        user_events = query.order_by(UserEvent.created_at.desc()).limit(topk).all()",
+      "locator": "get_user_events",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is a hard database delete scoped to (user_id, project_id, event_id); no soft-delete mechanism is present in this file.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/event.py",
+      "quote": "session.delete(user_event)\n        session.commit()",
+      "locator": "delete_user_event",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic search applies a cosine-similarity threshold (default 0.2) and the same time-range filter, returning similarity scores alongside event records.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/event.py",
+      "quote": ".where(\n            (1 - UserEvent.embedding.cosine_distance(query_embedding))\n            > similarity_threshold\n        )\n        .order_by(desc(\"similarity\"))",
+      "locator": "search_user_events",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path for a profile slot is LLM-driven: an existing stored value and an incoming candidate are passed to a merge prompt at temperature 0.2, and the LLM decides UPDATE, APPEND, or ABORT.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/modal/chat/merge.py",
+      "quote": "r = await llm_complete(\n        project_id,\n        PROMPTS[USE_LANGUAGE][\"merge\"].get_input(\n            KEY[0],\n            KEY[1],\n            runtime_profile.content if runtime_profile else None,\n            profile_content,\n            update_instruction=define_sub_topic.update_description,\n            topic_description=define_sub_topic.description,\n        ),\n        system_prompt=PROMPTS[USE_LANGUAGE][\"merge\"].get_prompt(),\n        temperature=0.2,",
+      "locator": "merge.py: handle_profile_merge_or_valid",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Stored profiles are keyed by (topic, sub_topic) pairs; the merge logic looks up the existing profile by this compound key before deciding whether to add or update.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/modal/chat/merge.py",
+      "quote": "RUNTIME_MAPS = {\n        (p.attributes[ContanstTable.topic], p.attributes[ContanstTable.sub_topic]): p\n        for p in profiles\n    }",
+      "locator": "merge.py: merge_or_valid_new_memos",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "ABORT action on an existing profile does not delete it; the delete path is commented out, meaning conflicting or redundant facts are silently discarded rather than removing the stored profile.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/modal/chat/merge.py",
+      "quote": "elif update_response[\"action\"] == \"ABORT\":\n        ...\n            # session_merge_validate_results[\"delete\"].append(runtime_profile.id)",
+      "locator": "merge.py: handle_profile_merge_or_valid, ABORT branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memobase persists user memory as discrete UserProfile rows (content + topic/sub_topic attributes) in a relational database, not as a full conversation transcript.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/profile.py",
+      "quote": "db_profiles = [\n            UserProfile(\n                user_id=user_id, project_id=project_id, content=content, attributes=attr\n            )\n            for content, attr in zip(profiles, attributes)\n        ]",
+      "locator": "add_user_profiles",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A Redis cache with a configurable TTL sits in front of the DB for profile reads; writes invalidate the cache key immediately.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/profile.py",
+      "quote": "await redis_client.set(\n            f\"user_profiles::{project_id}::{user_id}\",\n            return_profiles.model_dump_json(),\n            ex=CONFIG.cache_user_profiles_ttl,\n        )",
+      "locator": "get_user_profiles",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is a hard delete: profile rows are physically removed from the DB and the cache key is invalidated.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/profile.py",
+      "quote": "session.delete(db_profile)\n        session.commit()\n    await refresh_user_profile_cache(user_id, project_id)",
+      "locator": "delete_user_profile",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is caller-controlled: prefer_topics, only_topics, max_subtopic_size, topic_limits, topk, and max_token_size are all optional parameters passed by the caller, not always-on automatic selection.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/profile.py",
+      "quote": "async def truncate_profiles(\n    profiles: UserProfilesData,\n    prefer_topics: list[str] = None,\n    topk: int = None,\n    max_token_size: int = None,\n    only_topics: list[str] = None,\n    max_subtopic_size: int = None,\n    topic_limits: dict[str, int] = None,\n) -> Promise[UserProfilesData]:",
+      "locator": "truncate_profiles",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Bulk atomic write path supports add + update + delete in one transaction with rollback on error, allowing the extraction layer to supersede existing profiles in a single operation.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/profile.py",
+      "quote": "# 1. add new profiles\n            ...# 2. update existing profiles\n            ...# 3. delete profiles\n            session.query(UserProfile).filter(\n                UserProfile.id.in_(delete_profile_ids),\n                UserProfile.user_id == user_id,\n                UserProfile.project_id == project_id,\n            ).delete(synchronize_session=False)\n            session.commit()",
+      "locator": "add_update_delete_user_profiles",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Agents do not automatically use memory without being explicitly prompted \u2014 automatic injection is a known gap.",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=47237920",
+      "quote": "Agents don't automatically use it all the time without being prodded",
+      "locator": "chsitter top-level Show HN comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Most chat clients do not allow the MCP server to automatically inject its own system prompt, requiring the user to manually prompt the AI to write to Memobase.",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=47237920",
+      "quote": "most chat clients do not allow the MCP server to automatically inject it's own system prompt which means you have to specifically prompt your AI to write to memobase",
+      "locator": "chsitter reply to Nicky_Montana",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Multiple injection approaches (MCP server description as prompt, MCP sampling, OpenAPI spec for ChatGPT) failed; only explicit system-prompt configuration by the user worked.",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=47237920",
+      "quote": "I tried to have the mcp server description be an injected prompt to add these instructions to the system prompt but that doesn't seem to work, I tried adding sampling to the MCP server which supposedly should be able to plug into messages without luck, tried to optimise for chatGPT with an OpenAPI spec etc. The only way I found that I can get those clients to use my memory layer is by doing what you describe - which is not necessarily the most user friendly/one-click setup I desire",
+      "locator": "chsitter reply in flagged thread",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "MCP resource trick for injection is hit-and-miss because not all clients properly support resources yet.",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=47237920",
+      "quote": "Tried the resource trick - it's also quite hit and miss. Not all clients properly support resources yet.",
+      "locator": "chsitter reply in flagged thread (final exchange)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "If compaction misses a detail, the agent can be prompted to go back to a specific past session and extract it \u2014 storage of more data over less is preferred because storage is cheap.",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=47237920",
+      "quote": "if compaction misses details, you can prompt your agent to go back to that session you had about X last week and extract that detail",
+      "locator": "chsitter reply to gdad",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Claude Code HTTP hooks integration partially solves automatic injection: SessionStart, TaskCompleted, SessionEnd hooks handle memory lifecycle without manual system prompt configuration.",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=47237920",
+      "quote": "we shipped the Claude Code HTTP hooks integration. The injection problem I mentioned earlier, of memory not loading automatically without system prompt config is now partially solved for Claude Code.",
+      "locator": "chsitter update comment, two days later",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memobase is a user memory system for LLM Apps",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/api-reference/buffer/flush.md",
+      "quote": "APIs for Memobase, a user memory system for LLM Apps",
+      "locator": "openapi.info.summary",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path stages blobs in a buffer before committing to long-term storage via an explicit flush operation",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/api-reference/buffer/flush.md",
+      "quote": "Flush unprocessed blobs into Memory. This endpoint ensures all pending memory operations are processed and committed to long-term storage.",
+      "locator": "Flush Buffer description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Processing a flush produces discrete profile-level mutations: add, update, and delete \u2014 indicating a curated fact/profile store rather than a raw log",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/api-reference/buffer/flush.md",
+      "quote": "add_profiles: List of added profiles' ids; update_profiles: List of updated profiles' ids; delete_profiles: List of deleted profiles' ids",
+      "locator": "components.schemas.ChatModalResponse",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per user (user_id path parameter required) and per blob type (buffer_type path parameter required)",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/api-reference/buffer/flush.md",
+      "quote": "name: user_id \u2026 The ID of the user; name: buffer_type \u2026 The type of buffer to flush",
+      "locator": "paths./api/v1/users/buffer/{user_id}/{buffer_type}.post.parameters",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Blob types span chat, summary, doc, image, code, and transcript \u2014 suggesting memory can be built from multiple modalities beyond chat turns",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/api-reference/buffer/flush.md",
+      "quote": "enum: [chat, summary, doc, image, code, transcript]",
+      "locator": "components.schemas.BlobType",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Insert is the write path for adding conversation data (ChatBlob) to a named user's store",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/async_insert.md",
+      "quote": "blob = ChatBlob(messages=[{\"role\": \"user\", \"content\": \"Hi, I'm here again\"},{\"role\": \"assistant\", \"content\": \"Hi, Gus! How can I help you?\"}])\nblob_id = user.insert(blob)",
+      "locator": "Asynchronous Operations / SDK Examples / Python",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Flush is a distinct step from insert, suggesting a buffer sits between raw insert and durable store",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/async_insert.md",
+      "quote": "When you perform an asynchronous insert or flush, the data is queued for processing",
+      "locator": "Asynchronous Operations / prose",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memobase persists two distinct memory types: structured key-value profile attributes and free-form user events.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/context.md",
+      "quote": "User Profile: Key-value attributes describing the user (e.g., name, location, preferences). User Events: Significant occurrences and interactions from the user's history.",
+      "locator": "# Retrieving the Memory Prompt",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieved context includes a scaffold instruction directing the model to stay silent on memories unless the user query is relevant.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/context.md",
+      "quote": "Unless the user has relevant queries, do not actively mention these memories in the conversation.",
+      "locator": "Basic Usage / Output example",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic search over events is triggered when recent chat messages are passed to context(), enabling relevance-ranked rather than recency-ranked retrieval.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/context.md",
+      "quote": "Memobase will perform a semantic search to prioritize the most relevant historical events, rather than simply returning the most recent ones.",
+      "locator": "### Context-Aware Retrieval",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflicting or superseded profile values (e.g., two different names) appear side-by-side in events rather than being resolved or deduplicated at retrieve time.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/context.md",
+      "quote": "User stated their name is Gus. User previously mentioned being called John.",
+      "locator": "### Context-Aware Retrieval / Output example",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "max_tokens cap applies only to profile and event content, not to the surrounding template, so the final injected string may exceed the declared limit.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/context.md",
+      "quote": "The max_tokens limit applies to the profile and event content, not the final formatted string. If you use a large custom prompt template, the final output may still exceed the limit.",
+      "locator": "### Controlling Context Size / Note",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per user: a user object is obtained by ID and all memory reads and writes are scoped to that user.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/context.md",
+      "quote": "client.get_user(client.add_user(profile={\"name\": \"Gus\"}))",
+      "locator": "Basic Usage / Python code example",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memobase creates a chronological record of user experiences from chat interactions.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/event/event.md",
+      "quote": "Memobase automatically tracks key events and memories from user interactions, creating a chronological record of their experiences.",
+      "locator": "Event Fundamentals (opening paragraph)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Profile Delta is a required field on every event, recording which profile slots were created or updated \u2014 linking the event log to the persistent user profile store.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/event/event.md",
+      "quote": "Profile Delta (Required): The specific profile slots that were created or updated during this event.",
+      "locator": "Event Structure, bullet: Profile Delta",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Event summaries are optional, not always generated; tagging is also optional.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/event/event.md",
+      "quote": "Event Summary (Optional): A concise summary of the user's recent interaction. ... Event Tags (Optional): Semantic tags that categorize the event",
+      "locator": "Event Structure, bullets: Event Summary and Event Tags",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Events are scoped per user and retrievable via the user.event() method after inserting a ChatBlob.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/event/event.md",
+      "quote": "# Retrieve the user's events\nprint(user.event())",
+      "locator": "Event Fundamentals (code block, comment)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Events are stored persistently per user as a chronological sequence of experiences enriched with tags.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/event/event_search.md",
+      "quote": "User events in Memobase are stored as a sequence of experiences, each enriched with tags. By default, events are retrieved in chronological order",
+      "locator": "## Searching Events",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "event_gist is a sub-unit of a user_event, representing a single fact, schedule, or reminder, enabling fine-grained semantic retrieval without surrounding context.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/event/event_search.md",
+      "quote": "`event_gist` is a fraction of `user_event` that only contains one fact, schedule, or reminder of user. So if you want to search particular things of user, without the context of other infos, you can use `search_event_gist` to conduct a search",
+      "locator": "## Semantic Search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "search_event retrieval is multi-signal: it matches topic semantics, auto-applied event tags, and profile slot updates together.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/event/event_search.md",
+      "quote": "This query will return events where the user discussed their emotions, events that were automatically tagged with an `emotion` tag, or events that updated profile slots related to emotion.",
+      "locator": "## Search Packed Events with Tags",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memobase is a user profile backend for LLM applications enabling persistent tracking of user attributes across time.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/profile/profile.md",
+      "quote": "Memobase serves as a user profile backend for LLM applications, enabling them to track and update specific user attributes over time.",
+      "locator": "Profile Fundamentals, opening paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is stored as structured profile slots (topics/sub-topics), not as raw transcript logs.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/profile/profile.md",
+      "quote": "Memobase comes with a default schema of profile slots, such as: basic_info (name, gender), education (school, major)",
+      "locator": "Understanding Profile Slots",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Writes are buffered; buffer_flush_interval (default 3600 seconds) controls how often buffered chat blobs are processed into profile updates.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/profile/profile.md",
+      "quote": "max_chat_blob_buffer_token_size: 1024\nbuffer_flush_interval: 3600",
+      "locator": "Locating the config.yaml File, code block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Profile filtering at retrieval time controls how much and which parts of the persistent user profile are injected into the prompt context.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/profile/profile_filter.md",
+      "quote": "it is good practice to control the final size of the context you inject into your prompts. Memobase provides several parameters to help you filter profiles at retrieval time.",
+      "locator": "intro paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Rule-based filtering supports token-size capping and topic-level inclusion/prioritization at retrieval time.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/profile/profile_filter.md",
+      "quote": "max_token_size: Sets the maximum token size for the entire profile context. prefer_topics: Ranks specified topics higher, making them more likely to be included in the final output. only_topics: Includes only the specified topics, filtering out all others.",
+      "locator": "## Rule-Based Filtering",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Context-aware retrieval uses LLM reasoning over chat messages to select relevant profile attributes, not just vector similarity.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/profile/profile_filter.md",
+      "quote": "This is more advanced than a simple embedding-based search. Memobase uses the LLM to reason about which profile attributes would be most helpful for generating the next response.",
+      "locator": "## Context-Aware Filtering",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memobase stores user profile as structured, categorized facts (not a raw transcript log) that can be selectively retrieved",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/profile/profile_search.md",
+      "quote": "it identifies key features that would help answer the question, such as: `basic_info::location` ... `interests::food` ... `health::allergies`",
+      "locator": "## How Profile Search Works",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "This page describes only the retrieve path; write, update, delete, and conflict behavior are not covered here",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/profile/profile_search.md",
+      "quote": "Memobase provides a powerful, context-aware search method to filter out irrelevant memories and retrieve only what's needed for the current turn of the conversation.",
+      "locator": "Introduction paragraph",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Profile isolation is per user",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/features/profile/profile_search.md",
+      "quote": "Assume 'user' is an initialized MemoBaseUser object",
+      "locator": "## How Profile Search Works, Python code example",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memobase is a long-term user memory backend for AI",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/introduction.md",
+      "quote": "It's a fast, scalable, long-term user memory backend for your AI, helping you build applications that remember and understand their users.",
+      "locator": "# What is Memobase?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memobase is a long-term memory backend built around user profiles.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/llms.txt",
+      "quote": "First User Profile-based Long-term Memory Backend",
+      "locator": "page header",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Profiles are the primary persistent store, with slots that are configurable and validated, supporting add/update/delete write operations.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/llms.txt",
+      "quote": "Configuring Profile Slots ... Profile Validation and Strictness ... Add User Profile ... Update User Profile ... Delete User Profile",
+      "locator": "Docs section link list; API Reference / profiles section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Events are a second store type representing curated summaries of past conversations, with customizable summary content and tag-based organization.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/llms.txt",
+      "quote": "Event Fundamentals ... Customizing Event Summaries ... Using Event Tags",
+      "locator": "Docs section, link list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write path is asynchronous: raw chat data enters a buffer as blobs and is flushed into structured memory.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/llms.txt",
+      "quote": "Flush Buffer: Flush unprocessed blobs into Memory ... Asynchronous Operations",
+      "locator": "API Reference / buffer section; Docs section, link list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget/delete is supported for profiles, events, blobs, and whole users.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/llms.txt",
+      "quote": "Delete User Profile ... Delete User Event ... Delete Blob ... Delete User",
+      "locator": "API Reference / profiles, events, blobs, users sections",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is per user within a project scope.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/llms.txt",
+      "quote": "Get Project Users: Get the users of a project in different orders ... Create User ... Delete User",
+      "locator": "API Reference / project and users sections",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval is selective: profiles can be filtered, profiles and events can be searched semantically and by tags, rather than always retrieving everything.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/llms.txt",
+      "quote": "Filtering Profiles at Retrieval ... Context-Aware Profile Search ... Searching Events ... Search Events By Tags",
+      "locator": "Docs section, link list; API Reference / events section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A scaffold layer assembles retrieved memory into a ready-to-use prompt context for the current turn.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/llms.txt",
+      "quote": "Retrieving the Memory Prompt ... Get User Personalized Context",
+      "locator": "Docs section, link list; API Reference / prompt section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "An experimental proactive topics feature enables interest detection and surfacing personalized topics, going beyond passive retrieval.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/llms.txt",
+      "quote": "Proactive Topics: Provide interest detection and personalized topics",
+      "locator": "API Reference / experimental section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memobase extracts memories from raw chat blobs and stores them per user rather than storing a full transcript log.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/quickstart.md",
+      "quote": "This is where the magic happens. Memobase extracts and stores memories for each user.",
+      "locator": "Step 5: Memory Operations",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write path uses a buffered flush step; processing is not immediate on insert but deferred until buffer thresholds or manual trigger.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/quickstart.md",
+      "quote": "User data is held in a buffer. If the buffer gets too large or remains idle, it gets processed. You can also trigger this manually.",
+      "locator": "Step 5: Memory Operations > flush",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieved memory is structured as curated facts (User Background) and dated events (Latest Events), not a raw conversation log.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/quickstart.md",
+      "quote": "## User Background:\n- basic_info:name: Gus\n- basic_info:location: San Francisco\n...\n\n## Latest Events:\n- Gus went to the gym [mentioned on 2024-01-02]\n- Gus had a coffee with his friend [mentioned on 2024-01-01]",
+      "locator": "Step 5: Memory Operations > context API > Output",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per user; user IDs gate all insert, flush, and context operations.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/quickstart.md",
+      "quote": "curl -X POST \"$YOUR_PROJECT_URL/api/v1/blobs/insert/{uid}\"",
+      "locator": "Step 4: Insert Message > Insert Data (e.g. Chats) > cURL",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Backend is open-source and self-hostable via Docker Compose.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/quickstart.md",
+      "quote": "We offer an open-source solution with a Docker backend to launch your own instance. You can use docker-compose to launch the backend in one command.",
+      "locator": "Memobase Backend",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memobase intermittently fails to update an existing profile fact when the user states a new value, even with explicit instruction",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/109",
+      "quote": "Update attempt: \"Now my favorite color is red.\" \u2192 MemoBase often fails to update.\nExplicit command: \"Remember, my favorite color is now red.\" \u2192 Still works only intermittently.",
+      "locator": "Steps to Reproduce",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The issue reproduces on a self-hosted Docker deployment integrated with Dify",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/109",
+      "quote": "Self-hosted Dify + MemoBase (Docker)",
+      "locator": "Environment",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The failure persists regardless of whether persistent_chat_blobs is true or false",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/109",
+      "quote": "Tried different models: gpt4 mini and settings: persistent_chat_blobs: true, false",
+      "locator": "What I've Tried",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A reranker model applied after event search is proposed to improve retrieval accuracy, but support is not confirmed as implemented",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/121",
+      "quote": "I think that when we search for user events, we should use the reranker model in the end. This can improve the retrieval accuracy.",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Queries containing special characters such as '#' and '&' in user message content cause a JSON parse failure (unterminated string) on the server side during context retrieval.",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/125",
+      "quote": "error: ServerError: Invalid JSON: Unterminated string starting at: line 1 column 30 (char 29)",
+      "locator": "issue body, error output",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memobase memory write path uses a flush() method that synchronously POSTs to a backend server; this is where timeout failures occur with gpt-5/gpt-5-mini but not Gemini-2.0-flash, suggesting the flush triggers LLM calls whose latency exceeds the HTTP read timeout",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/130",
+      "quote": "u.flush(sync=True)\n  File \"/home/admin/anaconda3/envs/memobase/lib/python3.11/site-packages/memobase/core/entry.py\", line 168, in flush\n    self.project_client.client.post(",
+      "locator": "memobase_add.py:70 and memobase/core/entry.py:168 (stack trace)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory ingestion is parallelized per speaker using threads (add_memories_for_speaker)",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/130",
+      "quote": "Exception in thread Thread-10 (add_memories_for_speaker)",
+      "locator": "issue body, stack trace header",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The timeout occurs during the LLM response phase of memory processing, not during data storage, and the difference between gpt-5/gpt-5-mini vs Gemini-2.0-flash points to LLM response latency as the root cause",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/130",
+      "quote": "Why does using the gpt-5 and gpt-5-mini models result in a large number of timeouts, while Gemini-2.0-flash can run normally?",
+      "locator": "issue title",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "search_event fails with KeyError 'events' when the server response does not include an 'events' key, indicating a mismatch between client expectation and server response shape at the search endpoint.",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/137",
+      "quote": "return [UserEventData.model_validate(e) for e in r.data[\"events\"]]\nKeyError: 'events'",
+      "locator": "Traceback > entry.py:297",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "search_event_gist succeeds on the same data where search_event fails, confirming the event data itself is stored correctly and the bug is isolated to the search_event retrieval path.",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/137",
+      "quote": "search event gist: OK\n...\nonly search event fails.",
+      "locator": "Additional Info > search event gist / closing note",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Profile facts carry dual timestamps: when the fact was mentioned in conversation and when the referenced event occurs, enabling time-aware retrieval via time_range_in_days.",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/137",
+      "quote": "starting a new data role on October 21, 2025 [mention 2025/09/30, start job in 2025/10/21]",
+      "locator": "Additional Info > get context output > User Current Profile",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Past events are tagged with a category label (info or schedule), suggesting the store distinguishes static biographical facts from time-bound planned events.",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/137",
+      "quote": "- User's alias is Alex. // info\n- Alex plans to roast coffee on Saturday mornings. [mention 2025/09/30, roast coffee in 2025/10/07] // schedule",
+      "locator": "Additional Info > get context output > Past Events",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memobase stores user profile memory as structured records with topic/sub_topic taxonomy and timestamps.",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/143",
+      "quote": "\"sub_topic\": \"name\", \"topic\": \"basic_info\", \"created_at\": \"2025-11-04T03:05:29.140016Z\", \"updated_at\": \"2025-11-13T05:07:59.808925Z\"",
+      "locator": "issue body, code block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The user questions whether Memobase has any automatic mechanism to judge and avoid storing identical data \u2014 implying no such mechanism is visible in the deployed version.",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/143",
+      "quote": "Does Memobase have an automatic mechanism to judge information and avoid storing identical data in the database?",
+      "locator": "issue body, final sentence",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memobase persists memory in a SQL-backed store with a hardcoded schema.",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/154",
+      "quote": "Support a user\u2011configurable SQL schema, allowing users to define their own tables and relationships for memory storage, rather than relying on a single generalistic hardcoded schema.",
+      "locator": "Issue #154 > Describe the solution you'd like",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The merge process includes an UPDATE operation that may overwrite a previous profile slot without versioning or tombstoning.",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/164",
+      "quote": "When the merge process chooses UPDATE, does it replace the previous slot text without retaining a version or tombstone? Is there another history mechanism we missed?",
+      "locator": "issue body, question 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Profile slots originate from a GeneralBlob input type; the relationship between a stored profile slot and its source blob may not be retained.",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/164",
+      "quote": "Can a retrieved profile slot be traced to the exact GeneralBlob or source input that produced it? Where is that relationship stored?",
+      "locator": "issue body, question 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No confirmed structured distinction exists in the store between a fact directly asserted by a user and one inferred from conversation; this absence may affect merge correctness and continuity.",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/164",
+      "quote": "Is there structured authority metadata distinguishing a direct user assertion from an inferred profile fact, and does it affect merging?",
+      "locator": "issue body, question 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Temporal validity of stored facts may be limited to dates embedded in memo text rather than structured validity windows, risking stale or mistimed recall.",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/164",
+      "quote": "Does Memobase model real-world validity beyond dates embedded in memo text?",
+      "locator": "issue body, question 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memobase organizes memory using a topic/subtopic schema; whether it enforces type constraints or rejects structurally invalid writes is unconfirmed.",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/164",
+      "quote": "Is the topic/subtopic schema intended only to organize profile information, or can it reject invalid typed relationships during writes?",
+      "locator": "issue body, question 5",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Event recall endpoint uses dense vector (pgvector cosine) only; exact-keyword matches for domain names, file names, and code tokens score low semantically and are missed",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/165",
+      "quote": "In our deployment this misses exact-keyword matches: domain names, file names (`GOALS.md`), parameter names and code tokens often score low semantically even when they are the exact term the user is asking about.",
+      "locator": "Background",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memobase separates gist-level and event-level objects, with distinct id spaces, implying a two-tier memory architecture",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/165",
+      "quote": "gist ids and event ids are different id spaces",
+      "locator": "Suggestion, item 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The LLM not 'remembering' across turns is a continuity failure reported by a user; the server logs show the buffer was empty at flush time, meaning no facts were extracted and stored",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/35",
+      "quote": "the llm does not \"remember\" am I doing something wrong?",
+      "locator": "issue body, closing question",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memobase server version 0.0.16 was running during the reported failure",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/35",
+      "quote": "Start Memobase Server 0.0.16 \ud83d\uddbc\ufe0f",
+      "locator": "docker-compose log, api.py:45",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is not injected unless a user_id is provided; without it the call is stateless",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/35",
+      "quote": "Comment this line and this call will just like a normal OpenAI ChatCompletion",
+      "locator": "issue body, code comment",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memobase uses a global OpenAI client instantiated once at startup, used only when flushing the memory buffer.",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/58",
+      "quote": "you (rightly) instantiate a global openai client once and use it only when flushing the memory buffer",
+      "locator": "issue body, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Chat blobs have a buffer that is flushed on an interval; persistence of raw chat blobs is optional and off by default",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/86",
+      "quote": "persistent_chat_blobs=False, buffer_flush_interval=3600, max_chat_blob_buffer_token_size=1024, max_chat_blob_buffer_process_token_size=16384",
+      "locator": "memobase-server-api startup log, env.py:179 config dump",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The server process crashed with exit code 139 (segfault) after successful startup log output; the crash is not a memory-continuity failure but a runtime crash",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/86",
+      "quote": "memobase-server-api exited with code 139",
+      "locator": "docker-compose up output, final line",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The Latest Events section suffers from a deduplication failure: the same basic facts (name, age, occupation) are written as separate event entries across multiple sessions or extraction passes rather than being merged, causing the profile context to grow redundantly long \u2014 which is the explicit subject of this issue ('context same profile too long').",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/96",
+      "quote": "- User's name is \u5f20\u4e09. [mention 2025/07/01]\n- User is 25 years old. [mention 2025/07/01, happen at 2025/07/01]\n- User's job is a programmer. [mention 2025/07/01]\n\n- User's name is \u5f20\u4e09. [mention 2025/07/01]\n- User is 25 years old. [mention 2025/07/01, happen at 2025/07/01]\n- User's occupation is a programmer. [mention 2025/07/01]",
+      "locator": "issue #96 title and Latest Events section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "User Background and Latest Events represent two distinct memory layers: a structured profile (slot-typed, deduplicated facts) and a raw event log (timestamped per-event entries). The issue suggests the event log does not apply supersession or conflict resolution against the profile layer, allowing duplicate facts to accumulate.",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/96",
+      "quote": "## User Background:\n- basic_info::name: \u5f20\u4e09 [mention 2025-07-01]\n## Latest Events:\n- User's name is \u5f20\u4e09. [mention 2025/07/01]",
+      "locator": "issue #96 body, User Background and Latest Events sections",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The memory scaffold instructs the model to treat retrieved memories as conditional context \u2014 relevant only when the user query warrants it \u2014 indicating a retrieve-always but speak-conditionally policy.",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/memobase/issues/96",
+      "quote": "Unless the user has relevant queries, do not actively mention those memories in the conversation.",
+      "locator": "issue #96 body, Memory block preamble",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Product is under active development with early-adopter design partner program",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/introduction",
+      "quote": "Memobase is under active development, and we are looking for early adopters to become our design partners.",
+      "locator": "## Multi-Lingual Support",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write path is: insert chat blob \u2192 buffer \u2192 flush (manual or automatic) \u2192 memory extraction and storage.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/quickstart",
+      "quote": "User data is held in a buffer. If the buffer gets too large or remains idle, it gets processed. You can also trigger this manually.",
+      "locator": "Step 5: Memory Operations, flush",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory output distinguishes between persistent user profile facts (User Background) and timestamped recent events (Latest Events), not a raw transcript log.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/quickstart",
+      "quote": "## User Background:\n- basic_info:name: Gus\n- basic_info:location: San Francisco\n...\n\n## Latest Events:\n- Gus went to the gym [mentioned on 2024-01-02]",
+      "locator": "Step 5: Memory Operations, context API output",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per user via uid; all store and retrieve operations are scoped to a specific user identifier.",
+      "kind": "docs",
+      "url": "https://docs.memobase.io/quickstart",
+      "quote": "curl -X POST \"$YOUR_PROJECT_URL/api/v1/blobs/insert/{uid}\"",
+      "locator": "Step 4: Insert Message, cURL example",
+      "confidence": "medium",
+      "label": "measured"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/readme.md",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/api.py",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/profile.py",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/buffer.py",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/event.py",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/context.py",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/memobase_server/controllers/modal/chat/merge.py",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.memobase.io/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.memobase.io/introduction.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.memobase.io/quickstart.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.memobase.io/features/context.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.memobase.io/features/profile/profile.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.memobase.io/features/profile/profile_filter.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.memobase.io/features/profile/profile_search.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.memobase.io/features/event/event.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.memobase.io/features/event/event_search.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.memobase.io/features/async_insert.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.memobase.io/api-reference/buffer/flush.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/issues/35",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/issues/109",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/issues/137",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/issues/143",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/issues/58",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/issues/130",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/issues/125",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/issues/96",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/issues/165",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/issues/164",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/issues/154",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/issues/121",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memodb-io/memobase/issues/86",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://docs.memobase.io/quickstart",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.memobase.io/introduction",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://news.ycombinator.com/item?id=47237920",
+      "kind": "community",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [
+    {
+      "text": "Docs/code describe LLM merge for profile updates and separate event log without dedup; issue #96/#143 and field reports (#109) contest whether duplicates, growth caps, and retention behave as operators expect."
+    },
+    {
+      "text": "Marketing/dev.to stress cost savings from smaller context windows; companion continuity quality (what surfaces when, conflict resolution) is less benchmarked than infra metrics in harvested material."
+    },
+    {
+      "text": "memobase.ai/docs (search hit) is not docs.memobase.io\u2014treat unofficial domains as untrusted; official surface is memodb-io GitHub + docs.memobase.io."
+    }
+  ],
+  "copy": [
+    {
+      "text": "Useful pattern for companions: explicit user profile schema + episodic event timeline + context assembly with 'do not over-recall' scaffold\u2014closer to structured Replika Memory tab than RAG-over-full-chat."
+    }
+  ],
+  "refuse": [
+    {
+      "text": "Refuse memobase.ai and third-party roundup posts (dev.to, i-programmer) as architecture specs; use docs.memobase.io and pinned server code."
+    },
+    {
+      "text": "Refuse treating Latest Events repetition as 'the model remembers once'\u2014ledger notes events are not deduplicated by default."
+    },
+    {
+      "text": "Refuse Hugging Face LoCoMo eval artifact trees as product behavior; vendor harness scores are not companion continuity evidence."
+    }
+  ],
+  "unknowns": [
+    {
+      "text": "The flush_buffer endpoint triggers processing from the buffer into persistent stores, but the extraction, deduplication, conflict resolution, and supersession logic that runs during that flush is not visible in this routing file.",
+      "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/api.py",
+      "kind": "code"
+    },
+    {
+      "text": "Whether reranker support was planned or implemented is not answered on this page",
+      "url": "https://github.com/memodb-io/memobase/issues/121",
+      "kind": "issue"
+    },
+    {
+      "text": "It is not stated whether special characters in the chat content are escaped before serialization, or whether this is a known bug with a fix or workaround.",
+      "url": "https://github.com/memodb-io/memobase/issues/125",
+      "kind": "issue"
+    },
+    {
+      "text": "The flush/write path likely involves an LLM extraction step before persisting memories, but the page does not show the server-side logic or what the POST endpoint does with the LLM call",
+      "url": "https://github.com/memodb-io/memobase/issues/130",
+      "kind": "issue"
+    },
+    {
+      "text": "The server-side handler for /users/event/search/ does not document what response shape it returns when no events match or on error, which is the root cause of the KeyError but is not explained on this page.",
+      "url": "https://github.com/memodb-io/memobase/issues/137",
+      "kind": "issue"
+    },
+    {
+      "text": "No response from maintainers is present in the extracted text, so whether a deduplication/supersession strategy exists or is planned remains unanswered.",
+      "url": "https://github.com/memodb-io/memobase/issues/143",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether UPDATE in the merge path overwrites without versioning or tombstoning \u2014 no answer given on this page.",
+      "url": "https://github.com/memodb-io/memobase/issues/164",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether provenance (source GeneralBlob) is stored alongside a profile slot, enabling traceability of retrieved facts.",
+      "url": "https://github.com/memodb-io/memobase/issues/164",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether authority metadata (asserted vs inferred) exists in the schema and influences merge conflict resolution.",
+      "url": "https://github.com/memodb-io/memobase/issues/164",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether real-world temporal validity (beyond inline date strings in memo text) is modeled, affecting recall correctness over time.",
+      "url": "https://github.com/memodb-io/memobase/issues/164",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the topic/subtopic schema performs type validation or silently accepts invalid typed relationships on write.",
+      "url": "https://github.com/memodb-io/memobase/issues/164",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not explain why 'No chat buffer to flush' was logged despite a prior POST to the buffer endpoint \u2014 the conflict between a successful buffer POST and an empty flush is unresolved on this page",
+      "url": "https://github.com/memodb-io/memobase/issues/35",
+      "kind": "issue"
+    },
+    {
+      "text": "The page does not describe how or whether the Latest Events log is pruned, summarized, or capped to prevent unbounded growth \u2014 the core gap this issue raises but does not resolve.",
+      "url": "https://github.com/memodb-io/memobase/issues/96",
+      "kind": "issue"
+    },
+    {
+      "text": "No conflict or supersession logic is described: it is not stated how a new value for basic_info::name or basic_info::age replaces an old one in the User Background store.",
+      "url": "https://github.com/memodb-io/memobase/issues/96",
+      "kind": "issue"
+    },
+    {
+      "text": "The page asks about the difference between the two benchmark projects but provides no answer; the distinction between Memobase's own LoCoMo harness and the standalone memory-benchmark repo is unresolved on this page",
+      "url": "https://github.com/memodb-io/memobase/issues/97",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether Memobase supports multimodal memory (e.g., interpreting and persisting information from images) is asked but not answered on this page.",
+      "url": "https://github.com/memodb-io/memobase/issues/98",
+      "kind": "issue"
+    }
+  ]
+}

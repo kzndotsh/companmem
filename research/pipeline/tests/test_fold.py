@@ -577,6 +577,30 @@ def test_should_drop_ledger_row_competitor_compare_host() -> None:
     assert should_drop_ledger_row(row, has_official_docs=True)
 
 
+def test_should_drop_ledger_row_devto_when_official_docs() -> None:
+    row = {
+        "claim": "Memobase uses profiles",
+        "kind": "blog",
+        "url": "https://dev.to/author/memobase-post",
+        "quote": "profiles",
+        "locator": "blog",
+    }
+    assert should_drop_ledger_row(row, has_official_docs=True)
+    assert not should_drop_ledger_row(row, has_official_docs=False)
+
+
+def test_unknown_superseded_by_ledger_merge_when_merge_py_documented() -> None:
+    ledger = [
+        {
+            "claim": "Profile slot write path is LLM-driven merge of existing and incoming text",
+            "kind": "code",
+            "url": "https://github.com/memodb-io/memobase/blob/sha/merge.py",
+        }
+    ]
+    text = "Conflict / supersession: no description of how contradictory profile updates are resolved"
+    assert unknown_superseded_by_ledger(text, ledger)
+
+
 def test_unknown_superseded_by_ledger_forget_when_code_documents_delete() -> None:
     ledger = [
         {
