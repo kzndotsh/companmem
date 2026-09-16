@@ -109,7 +109,19 @@ def is_documented_capability_unknown(text: str) -> bool:
     )
 
 
-LOW_QUALITY_UNKNOWN_HOSTS = ("piwheels.org",)
+LOW_QUALITY_UNKNOWN_HOSTS = (
+    "piwheels.org",
+    "glukhov.org",
+    "learn.hindsight.vectorize.io",
+)
+META_COMMUNITY_UNKNOWN_RE = re.compile(
+    r"no community discussion|despite this being a community thread|could surface such signals",
+    re.I,
+)
+LOCKED_LESSON_UNKNOWN_RE = re.compile(
+    r"locked lesson|not visible without authentication",
+    re.I,
+)
 COMPETITOR_COMPARE_HOSTS = (
     "graphlit.com",
     "agentmarketcap.ai",
@@ -117,10 +129,12 @@ COMPETITOR_COMPARE_HOSTS = (
     "memobase.ai",
     "i-programmer.info",
     "aimemory.pro",
+    "benchmarks.hindsight.vectorize.io",
 )
 THIRD_PARTY_BLOG_HOSTS_WHEN_DOCS = (
     "dev.to",
     "blog.continua.ai",
+    "glukhov.org",
 )
 COMPARISON_BLOG_PATH_RE = re.compile(
     r"vs[-_/]|benchmark|/comparison|stacked-up",
@@ -161,6 +175,10 @@ def filter_unknown_items(items: list[dict[str, object]]) -> list[dict[str, objec
         if any(host in url for host in LOW_QUALITY_UNKNOWN_HOSTS):
             continue
         if any(host in url for host in COMPETITOR_COMPARE_HOSTS):
+            continue
+        if META_COMMUNITY_UNKNOWN_RE.search(text):
+            continue
+        if LOCKED_LESSON_UNKNOWN_RE.search(text):
             continue
         kept.append(item)
     return kept
@@ -314,6 +332,14 @@ def should_drop_ledger_row(row: dict[str, object], *, has_official_docs: bool) -
             return True
         if "huggingface.co" in lowered:
             return True
+        if "vectorize.io/articles/" in lowered:
+            return True
+        if "/blog/tags/" in lowered:
+            return True
+        if lowered.rstrip("/").endswith("/blog"):
+            return True
+        if "learn.hindsight.vectorize.io" in lowered:
+            return True
     if is_weak_wiki_index_ledger(row):
         return True
     if LEDGER_ABSENCE_CLAIM_RE.search(claim):
@@ -354,22 +380,77 @@ def unknown_superseded_by_ledger(
     absence_markers = (
         "not describe",
         "does not describe",
+        "not documented",
+        "does not document",
         "not covered",
         "absent from",
         "no description of",
         "is not described",
+        "unclear whether",
+        "exposes no",
+        "no delete",
     )
-    if not any(marker in blob for marker in absence_markers):
-        return False
-    if not any(
+    delete_gap = any(
+        token in blob
+        for token in ("forget", "delete", "removed from", "clear_memories")
+    )
+    retrieve_gap = "retrieve policy" in blob or (
+        "retrieve" in blob and ("adaptive" in blob or "always" in blob)
+    )
+    conflict_gap = any(
+        token in blob for token in ("conflict", "supersession", "contradict", "overwritten")
+    )
+    isolation_gap = "isolation" in blob
+    capability_gap = any(
         token in blob
         for token in ("forget", "delete", "retrieve", "conflict", "supersession", "merge")
-    ):
+    )
+    if not any(marker in blob for marker in absence_markers):
+        if not (delete_gap or retrieve_gap or conflict_gap or isolation_gap):
+            return False
+        if not capability_gap and not isolation_gap:
+            return False
+    elif not capability_gap and not isolation_gap:
         return False
     for row in ledger:
         if str(row.get("kind") or "") not in ("code", "docs"):
             continue
         claim = normalize_claim(str(row.get("claim") or ""))
+        if delete_gap and any(
+            token in claim
+            for token in (
+                "delete",
+                "deleting",
+                "deleted",
+                "forget",
+                "removed",
+                "invalidate",
+                "clear_memories",
+            )
+        ):
+            return True
+        if retrieve_gap and any(
+            token in claim
+            for token in ("adaptive", "token budget", "token limit", "trimmed", "rerank")
+        ):
+            return True
+        if conflict_gap and any(
+            token in claim
+            for token in (
+                "conflict",
+                "supersession",
+                "contradict",
+                "merge",
+                "refined rather than overwritten",
+                "deduplicated",
+                "observation",
+            )
+        ):
+            return True
+        if isolation_gap and any(
+            token in claim for token in ("bank", "isolat", "scoped", "per-user", "bank_id")
+        ):
+            return True
         if "forget" in blob and ("delete" in claim or "forget" in claim):
             return True
         if "retrieve" in blob and "retrieve" in claim:

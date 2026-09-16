@@ -1,0 +1,1873 @@
+{
+  "identity": {
+    "id": "hindsight",
+    "name": "Hindsight",
+    "repo": "https://github.com/vectorize-io/hindsight",
+    "docs": "https://hindsight.vectorize.io/llms.txt",
+    "license": "MIT",
+    "version_or_commit": "bde55237f53bf55aacd048b01e29d7dc23b83a85",
+    "observed_at": "2026-09-16"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Vectorize Hindsight: open-source agent-memory service (retain / recall / reflect) that extracts structured facts, entities, and relationships into per-bank PostgreSQL stores\u2014aimed at long-horizon agents and assistants, not a hosted companion SKU."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Store: memory banks isolate users/agents; persisted facts/observations, documents/chunks, entities/links, and bank profiles (disposition/mission); SQL/Postgres backend with optional embedded local mode."
+    },
+    {
+      "text": "Write: retain ingests content (batch/async, tags, document_id upsert/replace); LLM extraction + consolidation pipeline (observations from source facts); supersession via create+delete; issues #4368/#4417 flag dedup and append/replace edge cases."
+    },
+    {
+      "text": "Retrieve: multi-stage recall (semantic, BM25, temporal, graph, rerank\u2014stages disableable per bank); reflect agent loop for synthesis/opinions; auto-recall hooks can inject before turns; scan is export-only, not recall."
+    },
+    {
+      "text": "Forget: document delete and memory PATCH invalidate/restore APIs (memories doc); bank wipe/clear_memories; update_mode replace on re-retain\u2014bank-scoped hard deletes, no retrieve-time hide documented."
+    },
+    {
+      "text": "Isolation & integrations: bank_id (+ tags strict matching); MCP/OpenClaw/coding-agent patterns in docs; Memory Defense can redact/block before store/recall (#4323 field risk); multimodal retain still open (#1801)."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Retain operation persists curated facts \u2014 not a raw transcript log \u2014 by extracting entities, relationships, and temporal data via LLM then normalizing into canonical indexes",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/README.md",
+      "quote": "Behind the scenes, retain uses an LLM to extract key facts, temporal data, entities, and relationships. It passes these through a normalization process to transform extracted data into canonical entities, time series, and search indexes along with metadata.",
+      "locator": "Core Concepts > The Three Operations > Retain",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is curated facts/observations, not a full transcript log; retained facts are consolidated in the background into deduplicated observations with proof counts",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/README.md",
+      "quote": "Retained facts don't stay a flat pile. In the background, Hindsight consolidates related facts into observations \u2014 deduplicated beliefs the bank has built up over time. Each observation keeps its supporting evidence with exact quotes and a proof count, and is refined rather than overwritten when new evidence arrives",
+      "locator": "Core Concepts > Observations",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall is adaptive: four strategies run in parallel and results are ranked and trimmed to fit a token budget, not blindly dumped into context",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/README.md",
+      "quote": "The individual results are merged, ordered by relevance using reciprocal rank fusion and a cross-encoder reranking model, then trimmed as needed to fit within the token limit.",
+      "locator": "Core Concepts > The Three Operations > Recall",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Mental models act as a scaffold layer: pre-computed standing answers stored as database rows, injected at agent boot without triggering retrieval or LLM calls",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/README.md",
+      "quote": "Reading one is a database read \u2014 no retrieval, no LLM call \u2014 so an agent can boot with a page of settled knowledge instead of rediscovering it every session.",
+      "locator": "Core Concepts > Mental Models & Knowledge Pages",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory Defense provides a per-bank forget/block mechanism at write time: PII and secrets are redacted or blocked before reaching storage",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/README.md",
+      "quote": "An opt-in, per-bank policy that scans every retain for secrets and PII against 45 patterns and either redacts the match ([REDACTED:github_token]) or blocks the item before it reaches storage.",
+      "locator": "Core Concepts > Memory Banks",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LongMemEval benchmark state-of-the-art performance as of January 2026, independently reproduced by Virginia Tech Sanghani Center and The Washington Post",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/README.md",
+      "quote": "It has achieved state-of-the-art performance on the LongMemEval benchmark \u2026 The benchmark performance data for Hindsight has been independently reproduced by research collaborators at the Virginia Tech Sanghani Center for Artificial Intelligence and Data Analytics and The Washington Post.",
+      "locator": "Memory Performance & Accuracy",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The canonical causal-link type written by retain is 'caused_by'; legacy types 'causes', 'enables', 'prevents' are read-only for backward compatibility.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/causal_links.py",
+      "quote": "CANONICAL_CAUSAL_LINK_TYPE = \"caused_by\"\nLEGACY_CAUSAL_LINK_TYPE_NAMES = (\"causes\", \"enables\", \"prevents\")",
+      "locator": "module-level constants, causal_links.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Invalidation of a memory unit deletes its causal edges via FK cascade; the edge descriptors are archived in a JSONB column on invalidated_memory_units so a revert can restore them.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/causal_links.py",
+      "quote": "Invalidation moves a fact out of ``memory_units``, so the FK cascade deletes its ``memory_links`` rows \u2014 and nothing could recreate a causal edge, which is extraction output rather than derived data. The descriptor is what the archive row stores so revert can rematerialize the edge (#2864).",
+      "locator": "CausalLinkDescriptor docstring, causal_links.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Causal links carry a numeric weight, defaulting to 1.0.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/causal_links.py",
+      "quote": "DEFAULT_CAUSAL_LINK_WEIGHT = 1.0",
+      "locator": "module-level constant, causal_links.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Observations are stored in memory_units table with fact_type='observation', proof_count, source_memory_ids array, and JSONB history",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/consolidation/consolidator.py",
+      "quote": "Observations are stored in memory_units with fact_type='observation' and include: - proof_count: Number of supporting memories - source_memory_ids: Array of memory UUIDs that contribute to this observation - history: JSONB tracking changes over time",
+      "locator": "module docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Source facts and observations are distinct memory types; unconsolidated source facts (experience, world) are fetched, processed, then stamped consolidated_at in the same transaction as their derived observations",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/consolidation/consolidator.py",
+      "quote": "The facts this response consumed are marked consolidated in the SAME transaction as the observations that now carry them.",
+      "locator": "_process_memory_batch, apply section comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy: recall is anchored on raw fact text, retrieves only observations (not source facts), uses embedding + BM25 with round-robin interleave fusion, filtered to the same tag scope via all_strict",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/consolidation/consolidator.py",
+      "quote": "Round-robin interleave fusion (no cross-encoder): consolidation is looking for an existing near-identical observation to merge into. Both the cross-encoder ... and RRF ... were measured to bury that twin; interleave guarantees each retrieval arm's top hits a slot",
+      "locator": "_find_related_observations, recall_async call comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget (delete) path: DELETE removes the memory_units row and all observation_history rows for that observation; triggered by LLM DELETE action for superseded or contradicted observations",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/consolidation/consolidator.py",
+      "quote": "Delete a superseded or contradicted observation. ... DELETE FROM {fq_table('memory_units')} WHERE id = $1 AND bank_id = $2 AND fact_type = 'observation' ... DELETE FROM {fq_table('observation_history')} WHERE bank_id = $1 AND observation_id = $2",
+      "locator": "_execute_delete_action",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic dedup: on CREATE and UPDATE, the new observation is probed against existing observations by cosine similarity; above consolidation_dedup_threshold an LLM adjudicates merge or keep; merge folds sources and deletes the duplicate row",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/consolidation/consolidator.py",
+      "quote": "Semantic dedup: when enabled, an observation that is >= the threshold cosine to a DIFFERENT existing observation is reconciled by a focused 1-by-1 LLM merge (anchored on the observation text, not the source fact). It runs on both CREATE (a near-dup emitted despite the twin being in context \u2014 weak-model failure mode) and UPDATE (a rewrite+re-embed that drifts an existing observation into a twin \u2014 the create-time guard can't see this).",
+      "locator": "_process_memory_batch, dedup_enabled comment block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Observation history is stored per-update in observation_history table as a JSONB pre-update snapshot, trimmed to a configurable max_entries per observation",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/consolidation/consolidator.py",
+      "quote": "Insert one pre-update snapshot into observation_history, then delete the oldest rows beyond max_entries for this observation. The snapshot is stored as a single JSONB content blob (per-row, so it stays small).",
+      "locator": "_append_observation_history docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per bank_id and per tag scope; memories with different observation_scopes modes never share an LLM batch; recall uses all_strict tag matching",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/consolidation/consolidator.py",
+      "quote": "SECURITY: Filters by tags using all_strict matching to prevent cross-tenant/cross-user information leakage. Observations are only consolidated within the same tag scope.",
+      "locator": "_find_related_observations docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-scope observation caps: when the cap is reached the prompt instructs the LLM to only UPDATE or DELETE; schema-level maxItems on creates list is also set when supported by the provider",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/consolidation/consolidator.py",
+      "quote": "OBSERVATION LIMIT REACHED ({max_observations_per_scope}/{max_observations_per_scope}). Only UPDATE or DELETE existing observations. Do NOT create new ones \u2014 merge new knowledge into existing observations via UPDATE.",
+      "locator": "_consolidate_batch_with_llm, observation_capacity_note construction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Failed consolidation stamps source facts with consolidation_failed_at; this excludes them from the pending-consolidation predicate and is only cleared by explicit bank-wide reset",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/consolidation/consolidator.py",
+      "quote": "that flag is the exclusion predicate for pending consolidation and is cleared only by an explicit bank-wide reset, so a *transient* quota exhaustion permanently orphaned those facts.",
+      "locator": "_classify_batch_failure docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Tags are inherited by observations from source facts algorithmically, not by the LLM; on UPDATE, source tags are unioned into the existing observation's tags",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/consolidation/consolidator.py",
+      "quote": "Tags are inherited from the source facts (determined algorithmically, not by LLM) to maintain visibility scope. ... SECURITY: Merge source fact's tags into existing observation tags so all contributors can see it",
+      "locator": "_apply_create_action docstring; _apply_update_action inline comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hindsight persists data in a relational database (PostgreSQL or Oracle) via an abstract backend interface with connection pooling.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/db/base.py",
+      "quote": "Defines the interfaces that all database backends (PostgreSQL, Oracle, etc.) must implement. Business logic depends only on these interfaces.",
+      "locator": "module docstring, base.py",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The store supports BM25/tsvector full-text search as a retrieval capability.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/db/base.py",
+      "quote": "Has BM25 / tsvector full-text search.",
+      "locator": "DatabaseBackend.supports_bm25 docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The store supports partial indexes, relevant to filtered retrieval over persisted rows.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/db/base.py",
+      "quote": "Can CREATE INDEX \u2026 WHERE <predicate>.",
+      "locator": "DatabaseBackend.supports_partial_indexes docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The store supports delete and update operations (rows-affected normalization is explicitly part of the base interface).",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/db/base.py",
+      "quote": "Execute a DML statement and return the number of rows it affected. Normalizes the dialect-specific execute result into a plain int so callers never hand-parse an \"UPDATE <n>\" / \"DELETE <n>\" command tag in business logic",
+      "locator": "DatabaseConnection.execute_rows_affected docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "An async worker/poller runs against the same database backend, suggesting background jobs operate on persisted data (e.g. extraction, indexing).",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/db/base.py",
+      "quote": "WorkerPoller is backend-agnostic (uses DatabaseBackend.acquire()). All current backends (PostgreSQL, Oracle) support it.",
+      "locator": "DatabaseBackend.supports_worker_poller docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "retain_batch_async is the synchronous write path; it persists a batch of content items (with optional event_date, context, metadata, document_id, tags) into a named memory bank.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/interface.py",
+      "quote": "Retain a batch of memory items.\n\n        Args:\n            bank_id: The memory bank ID.\n            contents: List of content dicts with 'content', optional 'event_date',\n                     'context', 'metadata', 'document_id', and per-item 'tags'.",
+      "locator": "retain_batch_async docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "recall_async retrieves curated memories by semantic query, with token-budget tiers (LOW, MID, HIGH), temporal context, fact_type filtering, and optional entity and raw-chunk layers.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/interface.py",
+      "quote": "budget: Search budget (LOW, MID, HIGH).\n            ...\n            fact_type: Filter by fact types.\n            question_date: Context date for temporal relevance.\n            include_entities: Include entity observations.\n            ...\n            include_chunks: Include raw chunks.",
+      "locator": "recall_async docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "reflect_async is a second retrieval mode that retrieves context then generates a response, optionally conforming to a caller-supplied JSON Schema.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/interface.py",
+      "quote": "Reflect on a query and generate a thoughtful response.\n        ...\n            response_schema: Optional JSON Schema for structured output.",
+      "locator": "reflect_async docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "delete_bank supports scoped deletion: by fact_type only, or full deletion including the bank profile row, allowing memories to be erased while preserving the bank shell.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/interface.py",
+      "quote": "fact_type: If specified, only delete memories of this type.\n            delete_bank_profile: If True, also delete the bank profile row itself.\n                If False, only delete memories/entities/documents but preserve the bank.",
+      "locator": "delete_bank docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per bank_id; all operations are scoped to a bank, and banks are independently listable, configurable, and deletable.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/interface.py",
+      "quote": "bank_id: The memory bank ID.",
+      "locator": "All core method signatures",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Consolidation is a distinct async process tracked separately from writes; freshness API exposes last_consolidated_at vs last_memory_write_at and pending/failed counts.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/interface.py",
+      "quote": "last_memory_write_at is the newest write\n            across the bank's memories \u2014 a mental model refreshed at or after it\n            cannot be stale, whatever its scope.",
+      "locator": "get_bank_freshness docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Bank profile persists a 'disposition' (trait dict with int values) and a 'mission' text field; mission supports both full replacement and incremental merge.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/interface.py",
+      "quote": "Bank profile dict with bank_id, name, disposition, and mission",
+      "locator": "get_bank_profile docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Four retrieval arms exist: semantic (dense vector), BM25 (full-text), graph, and temporal; they return unfused candidates and RRF/rerank happens downstream.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/memories/base.py",
+      "quote": "Returns ``{fact_type: RecallArms(semantic, bm25, graph, temporal)}`` of ``RetrievalResult``: the four per-arm candidate lists, unfused (RRF/rerank happen downstream, unchanged).",
+      "locator": "MemoriesExtension.recall_unified docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are typed (fact_type); types include at minimum 'observation', 'world', and 'experience'. Observations are LLM-consolidated summaries of source facts.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/memories/base.py",
+      "quote": "``pending`` / ``failed`` count the world/experience facts not yet folded into an observation, and those the LLM gave up on.",
+      "locator": "MemoriesExtension.consolidation_freshness docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "updated_at watermark enables incremental export, cache invalidation, and mental-model staleness detection; consolidation scheduler writes exempt themselves from stamping updated_at.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/memories/base.py",
+      "quote": "a write that changes what the memory *is* \u2014 text, context, dates, fact_type, tags, metadata, embedding, an observation's sources \u2014 stamps ``updated_at``, so a consumer chasing ``WHERE updated_at > watermark`` sees the change.",
+      "locator": "META_UPDATED_AT constant comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per bank (bank_id); bank storage is created idempotently and can be dropped entirely.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/memories/base.py",
+      "quote": "async def ensure_bank_storage(self, bank_id: str) -> None: \"\"\"Ensure per-bank storage exists. Idempotent.\"\"\"",
+      "locator": "MemoriesExtension.ensure_bank_storage",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Scan (scan_memories) is explicitly for browsing and export, not retrieval; it walks the full corpus and is cost O(corpus).",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/memories/base.py",
+      "quote": "A full walk by construction \u2014 cost grows with the corpus \u2014 so this is for browsing and export, never for retrieval.",
+      "locator": "MemoriesExtension.scan_memories docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Concurrent write conflicts are modeled: StoreWriteConflict (stale read-modify-write, must re-read) vs StoreWriteUnavailable (bank mid-migration, retry after 30s).",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/memories/base.py",
+      "quote": "A conditional write lost its race: the state it was based on moved before it committed... Distinct from :class:`StoreWriteUnavailable`: that one means \"not now, try again shortly\" and the same write will succeed unchanged.",
+      "locator": "StoreWriteConflict class docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delta re-ingest: replace_chunk_ids scopes replacement to named changed/removed chunks; replace_keep_chunk_ids names survivors as an alternative when changed set is larger.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/memories/base.py",
+      "quote": "``replace_chunk_ids`` narrows the replace to named chunks of the document \u2014 the DELTA case, where every chunk not named keeps its facts.",
+      "locator": "MemoriesExtension.retain docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Recency decay is configurable (linear or halflife) with parameters recency_decay_linear_window_days and recency_decay_halflife_days, applied during ranking.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/memories/base.py",
+      "quote": "recency_decay_function: str = \"linear\"\n    recency_decay_linear_window_days: float = 365.0\n    recency_decay_halflife_days: float = 90.0",
+      "locator": "FullRecallRequest dataclass fields",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "prefer_observations drops raw source facts from results when a returned observation was consolidated from them, backfilling freed slots.",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/memories/base.py",
+      "quote": "Drop raw facts that a returned observation was consolidated from, and backfill the freed slots. No-op unless both observations and a raw type were requested.",
+      "locator": "FullRecallRequest.prefer_observations field comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Facts carry both vector embeddings and a BM25 text_signals field for hybrid retrieval",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/memories/pg/writes.py",
+      "quote": "# Build text_signals: entity names + date tokens for enriched BM25 indexing\n        signal_parts = []\n        if fact.entities:\n            signal_parts.extend(e.name for e in fact.entities)",
+      "locator": "insert_facts",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Observations are a consolidated layer derived from source facts (experience, world types); they can be deleted and source facts requeued for re-consolidation independently",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/memories/pg/writes.py",
+      "quote": "Only the observation rows: requeuing the surviving sources (clearing `consolidated_at`) and resetting the bank's consolidation timestamp belong to the caller, which owns the bank row.",
+      "locator": "delete_observations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Editing a fact resets consolidation (consolidated_at = NULL) and drops derived links, forcing graph re-maintenance",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/memories/pg/writes.py",
+      "quote": "SET text = $3, context = $4, fact_type = $5, occurred_start = $6, occurred_end = $7,\n            event_date = $8, consolidated_at = NULL, consolidation_failed_at = NULL,\n            edited_at = now(), updated_at = now()",
+      "locator": "apply_edit",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Embedding and search_vector are excluded from the archive to prevent dimension/type mismatch on model or backend change; embedding is set by the caller after restore",
+      "kind": "code",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/memories/pg/writes.py",
+      "quote": "making a model or text-backend switch structurally unable to trip a type/dimension mismatch (#2209, #2503); each is recomputed on revert.",
+      "locator": "_ARCHIVE_OMITTED comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory units have three fact types: world, experience, observation; and two states: valid, invalidated.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/api/memories",
+      "quote": "The response includes each unit's fact_type ( world | experience | observation ), state ( valid | invalidated ), metadata, entities, occurred dates",
+      "locator": "List memory units",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Invalidation is a soft-delete: the row moves to a separate archive table, so recall and consolidation exclude it without needing a filter.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/api/memories",
+      "quote": "Behind the scenes, invalidating moves the row out of the active memory_units table into a separate archive, so recall and consolidation never need a 'skip invalidated' filter \u2014 the rows simply aren't there.",
+      "locator": "Invalidate a memory (reversible)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Editing a fact triggers async re-embedding, drops derived observations/links, and re-runs consolidation and the knowledge graph.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/api/memories",
+      "quote": "Hindsight re-embeds the fact, drops the observations and links derived from the old version, and re-consolidates, so downstream knowledge reflects the correction. \u2026 The PATCH returns as soon as the change is committed; the graph/observation rebuild happens asynchronously right after.",
+      "locator": "Edit a memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Observations cannot be directly curated; PATCHing one returns 400. They regenerate from underlying source facts.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/api/memories",
+      "quote": "Only raw world and experience facts can be curated. Observations are derived \u2014 they regenerate from their sources, so you curate the underlying facts, not the observation. A PATCH on an observation returns 400.",
+      "locator": "Curation: editing, invalidating & pruning \u2014 When to reach for what",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is at the bank level; endpoints are all scoped to a bank_id.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/api/memories",
+      "quote": "GET /v1/default/banks/{bank}/memories/list \u2026 GET /v1/default/banks/{bank}/memories/{id}",
+      "locator": "Endpoints table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Reprocessing a document resets curation of the facts it produced, because the document is the authoritative source.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/api/memories",
+      "quote": "reprocessing a document resets curation of the facts it produced (extraction runs fresh from the original text)",
+      "locator": "Documents are the source of truth (callout)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Derived observations carry a refresh history showing how they evolved as new source facts arrived.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/api/memories",
+      "quote": "For a derived observation, the history endpoint returns how it was refreshed over time as new source facts arrived",
+      "locator": "Fetch a single memory unit",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retain persists curated facts and entity relationships (knowledge graph), not a raw conversation log.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/api/quickstart",
+      "quote": "Content is processed, facts are extracted, entities are identified and linked in a knowledge graph",
+      "locator": "What's Happening, table row: Retain",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall uses four parallel strategies \u2014 semantic, keyword, graph, and temporal \u2014 to select memories into the turn.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/api/quickstart",
+      "quote": "Four search strategies (semantic, keyword, graph, temporal) run in parallel to find relevant memories",
+      "locator": "What's Happening, table row: Recall",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Reflect is a scaffold step: retrieved memories are injected and a disposition-aware response is generated, separating retrieval from generation.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/api/quickstart",
+      "quote": "Retrieved memories are used to generate a disposition-aware response",
+      "locator": "What's Happening, table row: Reflect",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory banks are the isolation boundary; disposition and mission are configured at the bank level.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/api/quickstart",
+      "quote": "Memory Banks \u2014 Configure disposition and mission",
+      "locator": "Next Steps, bullet: Memory Banks",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "retain() is the write path: LLM extracts structured facts (experience vs world), builds entity/temporal/semantic/causal graph, stores into an isolated memory bank",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms-full.txt",
+      "quote": "When you call `retain()`, Hindsight transforms conversations and documents into structured, searchable memories that preserve meaning and context.",
+      "locator": "File: developer/retain.md, section: What Retain Does",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Facts are classified as 'experience' (agent's first-person history) or 'world' (facts about others); speaker context in retain steers this classification",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms-full.txt",
+      "quote": "Every fact is classified by **whose perspective it captures** \u2014 the bank's own agent acting, observing, or interacting \u2014 its first-person history \u2026 or facts about other people, places, things, and events",
+      "locator": "File: developer/retain.md, section: Two Types of Facts",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Observation consolidation runs asynchronously after retain, synthesizing patterns from new facts into the bank's knowledge base",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms-full.txt",
+      "quote": "Observations are consolidated automatically in the background after `retain()` operations complete. This consolidation process synthesizes patterns from new facts into the bank's knowledge base.",
+      "locator": "File: developer/retain.md, section: Two Types of Facts (note)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "recall() uses four parallel retrieval strategies (TEMPR: semantic, BM25, graph, temporal), fused via RRF, reranked by cross-encoder, truncated to token budget",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms-full.txt",
+      "quote": "When you call `recall()`, Hindsight uses multiple search strategies in parallel to find the most relevant memories \u2026 Q[Query] --> S[Semantic] \u2026 --> RRF[RRF Fusion] \u2026 --> CE[Cross-Encoder] \u2026 --> R[Results]",
+      "locator": "File: developer/retrieval.md, introduction and diagram",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Token budget governs result selection, not top-k count; results are packed by score until max_tokens is exhausted",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms-full.txt",
+      "quote": "Hindsight is built for AI agents, not humans. Traditional search systems return \"top-k\" results, but agents don't think in terms of result counts\u2014they think in tokens. \u2026 Top-ranked memories selected first. Stops when token budget is exhausted.",
+      "locator": "File: developer/retrieval.md, section: Token Budget Management",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Temporal retrieval is relevance-first within a time window and spreads selections across time-buckets to avoid density clustering",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms-full.txt",
+      "quote": "Within the window it selects candidates by **semantic relevance to the query** \u2014 not by recency \u2014 so the most relevant in-window memory is never dropped just because other memories happen to be more recent. It then **spreads the selection across the window's range**",
+      "locator": "File: developer/retrieval.md, section: Temporal Search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Two temporal dimensions per memory: event occurrence time and ingestion time; both are used for different query types",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms-full.txt",
+      "quote": "Hindsight tracks **two temporal dimensions**: \u2026 When It Happened \u2026 When You Learned It \u2026 Without this distinction, old information would either be unsearchable by date or treated as irrelevant.",
+      "locator": "File: developer/retain.md, section: Understanding Time",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per bank_id; tags provide sub-bank visibility scoping for multi-user deployments",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms-full.txt",
+      "quote": "Tags enable visibility scoping\u2014useful when one memory bank serves multiple users but each should only see relevant memories.",
+      "locator": "File: developer/retain.md, section: Tagging Memories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity resolution uses fuzzy name matching with co-occurrence and temporal proximity; over-merging can occur on large banks; strictness controlled via ENTITY_TRGM_SIMILARITY_THRESHOLD and related vars",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms-full.txt",
+      "quote": "The same entity mentioned different ways gets unified through **fuzzy name matching**, reinforced by co-occurrence and temporal proximity \u2026 on a bank with a lot of history, a short new name that resembles an existing entity \u2026 can be absorbed into it instead of becoming its own entity.",
+      "locator": "File: developer/retain.md, section: Entity Resolution; File: developer/configuration.md, Database Connection Pool",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget-by-exclusion: a retain mission that matches nothing produces zero memories; the document is stored but unreachable by recall/reflect until reprocessed with a wider mission",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms-full.txt",
+      "quote": "content that produces no facts produces no memories at all. The document itself is still stored, but `recall` and `reflect` search memories, so a document with zero memories cannot be found by either.",
+      "locator": "File: developer/retain.md, section: When a mission excludes everything in a document",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Raw source text (chunks) can be retrieved alongside distilled facts via include_chunks=True; this is the log layer vs the curated-memory layer",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms-full.txt",
+      "quote": "Chunks return the raw text that generated each memory\u2014useful when the distilled fact loses important nuance",
+      "locator": "File: developer/retrieval.md, section: Expanding Context: Chunks",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Recency scoring decays linearly over 365 days (configurable to exponential); temporal proximity boost active only on time-referenced queries; proof-count boost rewards observations backed by more evidence",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms-full.txt",
+      "quote": "recency = clamp(1.0 - days_ago / 365, 0.1, 1.0) \u2026 Only active when the query contains a time reference \u2026 For observation-type memories, rewards those backed by more evidence using a logarithmic curve",
+      "locator": "File: developer/retrieval.md, section: Stage 3: Combined Scoring (Boosts)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall pipeline stages (BM25, graph, temporal, reranking) are individually disableable per bank via configuration; semantic search always runs as baseline",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms-full.txt",
+      "quote": "Turning all four off reduces recall to a single vector query, which is the lowest-latency configuration there is.",
+      "locator": "File: developer/configuration.md, section: Recall pipeline stages",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory Defense blocks prompt injection on the write path; partial blocks processed, full blocks return 422",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms-full.txt",
+      "quote": "When Memory Defense is enabled on the target bank and **every** item in the batch is blocked by policy, the request returns 422 with a violation list \u2026 Partial-block batches return 200 with the un-blocked items processed",
+      "locator": "File: developer/retain.md, section: Memory Defense and Source Provenance",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hindsight is an agent memory system providing persistent, structured memory across sessions",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms.txt",
+      "quote": "Hindsight is an agent memory system that gives AI agents persistent, structured memory across sessions.",
+      "locator": "opening description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retain automatically extracts facts, entities, and relationships on store",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms.txt",
+      "quote": "Retain: Store memories (extracts facts, entities, relationships automatically)",
+      "locator": "Core Operations",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Opinion facts carry confidence scores, distinguishing them from world and experience facts",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms.txt",
+      "quote": "Opinion facts: Beliefs with confidence scores",
+      "locator": "Key Concepts > Memory Types",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conflict/supersession is handled by upsert on document_id: same ID replaces the prior version",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms.txt",
+      "quote": "Retaining with the same `document_id` replaces the previous version (upsert), keeping memory consistent as conversations evolve.",
+      "locator": "Key Concepts > Document ID for Evolving Conversations",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is isolated at the bank level, with one bank recommended per user or agent",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/llms.txt",
+      "quote": "Each bank is an isolated memory store. One bank per user/agent.",
+      "locator": "Key Concepts > Memory Banks",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "retain() is the write/store path for persisting a memory item to a bank",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/sdks/python",
+      "quote": "client.retain(bank_id=\"my-bank\", content=\"Alice works at Google as a software engineer\")",
+      "locator": "Core Operations > Retain (Store Memory)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "recall() is the retrieve path, returning typed memory results filtered by query, type, budget, and token limit",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/sdks/python",
+      "quote": "results = client.recall(\n    bank_id=\"my-bank\",\n    query=\"What does Alice do?\",\n    types=[\"world\", \"observation\"],\n    max_tokens=4096,\n    budget=\"high\",\n)",
+      "locator": "Core Operations > Recall (Search)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "reflect() is a distinct generation step separate from recall, producing a synthesized textual answer from bank memory",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/sdks/python",
+      "quote": "answer = client.reflect(bank_id=\"my-bank\", query=\"What should I know about Alice?\", budget=\"low\", context=\"preparing for a meeting\")\nprint(answer.text)  # Generated response",
+      "locator": "Core Operations > Reflect (Generate Response)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Banks carry a mission (scaffold instruction) and disposition values that shape how the memory system behaves",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/sdks/python",
+      "quote": "mission=\"You're a helpful AI assistant - keep track of user preferences and conversation history.\",\ndisposition={\"skepticism\": 3, \"literalism\": 3, \"empathy\": 3,}",
+      "locator": "Bank Management > Create Bank",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Recall can return source chunks linked to retrieved memories, enabling inspection of the original text backing a memory",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/sdks/python",
+      "quote": "include_chunks=True,\nmax_chunk_tokens=500",
+      "locator": "Core Operations > Recall with Chunks",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Banks expose mental_models and directives as sub-resources, suggesting scaffold-level constructs beyond raw fact storage",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/sdks/python",
+      "quote": "models = client.mental_models.list(bank_id=\"test\")\ndirectives = client.directives.list(bank_id=\"test\")",
+      "locator": "Client Initialization",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Versioned API with feature flags; e.g. MCP endpoint availability is detectable at runtime",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/sdks/python",
+      "quote": "if not version.features.mcp:\n    raise RuntimeError(\"This server does not expose the MCP endpoint\")",
+      "locator": "Core Operations > Version and Feature Checks",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hindsight describes itself as 'Agent Memory That Works Like Human Memory', framing its persistent memory as analogous to human memory.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/1517",
+      "quote": "Hindsight: Agent Memory That Works Like Human Memory",
+      "locator": "Document header / introduction blockquote",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hindsight uses an LLM for memory extraction and summarization, not just retrieval, indicating a curated-memory (not raw log) approach.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/1517",
+      "quote": "Hindsight \u9700\u8981\u4e00\u4e2a LLM \u6765\u505a\u8bb0\u5fc6\u63d0\u53d6\u3001\u603b\u7ed3\u548c\u56de\u7b54\u751f\u6210",
+      "locator": "Section 3: \u914d\u7f6e LLM\uff08\u5bf9\u8bdd\u6a21\u578b\uff09",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is stored in named banks, implying per-agent or per-character isolation at the bank level.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/1517",
+      "quote": "http://127.0.0.1:8888/v1/default/banks/hermes/reflect",
+      "locator": "Section 7: \u9a8c\u8bc1\u670d\u52a1 \u2014 \u6d4b\u8bd5\u8bb0\u5fc6\u529f\u80fd",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Persistence uses an embedded PostgreSQL database, not an in-memory or file-based store.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/1517",
+      "quote": "pip install hindsight-api-slim[embedded-db]",
+      "locator": "Section 2: \u5b89\u88c5 Hindsight",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "v0.5.x had a Windows-specific bug (NotImplementedError: add_signal_handler) that was fixed in v0.6.0, indicating active platform compatibility work.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/1517",
+      "quote": "\u8fd9\u662f Hindsight v0.5.x \u7684\u5df2\u77e5 bug\uff0cv0.6.0 \u5df2\u4fee\u590d",
+      "locator": "Section 9: \u5e38\u89c1\u95ee\u9898\u6392\u67e5 \u2014 Q5",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory banks are the isolation boundary; agents sharing a bank share memory, agents with distinct banks are isolated.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/3890",
+      "quote": "We need some agents to share one memory bank (a group of agents collaborating on the same project knowledge), while other agents get their own isolated bank \u2014 all within the same gateway.",
+      "locator": "Use Case",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Reflect iterates forced tool calls (search_mental_models, search_observations, recall) then a final synthesis \u2014 this is the per-session retrieval and synthesis pipeline",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/3865",
+      "quote": "forced_sequence / LLMToolChoice.named(search_mental_models | search_observations | recall), then _forced_final_synthesis via build_final_system_prompt with no tools.",
+      "locator": "Where / hindsight-api-slim/hindsight_api/engine/reflect/agent.py",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Each Reflect iteration accumulates history; prompt mutations prevent cache reuse, causing each iteration to re-prefill the entire accumulated context (up to ~48k tokens)",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/3865",
+      "quote": "Forced iterations of ~2.5k / 2.7k / 13.5k / 35.5k tokens, each a full prefill; synthesis ~48k tokens with lcp = 3.",
+      "locator": "Measured shape",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Delta refresh failure where all parsed operations reference unknown section IDs causes the mental model to go stale without recovery, leaving persisted document unchanged but unupdated.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4206",
+      "quote": "Every operation is skipped, the refresh records `delta_ops_all_skipped`, and the worker retries the same window three times before leaving the model stale.",
+      "locator": "Summary",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hindsight's current visualization is a 2D Constellation View oriented around semantic and entity topology, not time.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/3878",
+      "quote": "The current 2D view represents semantic and entity relationships well, but time cannot be explored as a distinct spatial dimension. In a large memory bank, this makes the evolution of the graph over time harder to see.",
+      "locator": "Problem Statement",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memories in Hindsight have temporal metadata (emergence/change timestamps) that the system tracks but does not currently surface as a spatial dimension.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/3878",
+      "quote": "see when memories, entities, clusters, and relationships emerged or changed",
+      "locator": "How This Feature Would Help",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Using channel topology (dropping 'agent' from dynamicBankGranularity) as a workaround for grouping couples memory isolation to channel structure and produces derived rather than explicit bank IDs.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/3890",
+      "quote": "It works, but couples isolation to channel topology and yields derived bank ids instead of explicit names like ps-technology.",
+      "locator": "Alternatives Considered",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenAPI spec audit (2026-09-06) confirmed none of RetainRequest, MemoryItem, Body_file_retain, BankConfigUpdate contain fact_type or any allow/deny field.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4174",
+      "quote": "Verified against the published OpenAPI spec (downloaded 2026-09-06): none of RetainRequest, MemoryItem, Body_file_retain, BankConfigUpdate contain fact_type or any allow/deny field",
+      "locator": "## Summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Live production incident confirmed that facts with a mission-declared-INVALID fact_type were stored and persisted until manually corrected.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4174",
+      "quote": "a bank with a hardened retain mission declaring a fact_type INVALID still accumulated facts with exactly that type... the type was also visible at the read/update surfaces only after the fact",
+      "locator": "## Why this matters",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The failure recurred across multiple mental models over several days, indicating a systematic continuity gap rather than a transient error.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4206",
+      "quote": "The same failure class occurred repeatedly across multiple mental models over several days, rather than as a one-off transient error.",
+      "locator": "Observed behavior",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "An unconditional narrow-window overwrite is explicitly ruled out as unsafe; full re-synthesis as the automatic default is also considered undesirable, pointing to a gap in bounded recovery paths.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4206",
+      "quote": "An unconditional narrow-window overwrite would not be safe. A full re-synthesis may also be undesirable as the automatic default; the key request is bounded recovery that preserves both the prior document and the unintegrated observation window.",
+      "locator": "Expected behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Switching a model from delta to full mode and forcing a refresh is a verified workaround that restores a non-stale state.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4206",
+      "quote": "Changing the affected models from `mode: delta` to `mode: full` and explicitly refreshing them completed with `content_written` and `is_stale: false`. This is operationally effective but gives up delta mode's byte-preservation and cost benefits.",
+      "locator": "Workaround verified",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Four retrieval strategies (semantic, keyword, graph, temporal) fused via RRF constitute the recall mechanism",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4214",
+      "quote": "the four retrieval strategies each contribute \u2014 semantic, keyword, graph, temporal \u2014 and RRF fuses them in the documented order",
+      "locator": "## 01\u201309 \u00b7 Retain and Recall, item 02",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "max_tokens enforces rank-ordered truncation; a known greedy-break bug regressed this behaviour",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4214",
+      "quote": "max_tokens truncates by rank and never returns nothing when something matched (regression home of the greedy-break bug)",
+      "locator": "## 01\u201309 \u00b7 Retain and Recall, item 03",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Temporal ranking uses occurred_start/end rather than ingestion time, enabling past-dated facts to sort correctly",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4214",
+      "quote": "occurred_start/end vs mentioned_at \u2014 a fact about 2019 retained today is temporally ranked as 2019, not today",
+      "locator": "## 01\u201309 \u00b7 Retain and Recall, item 07",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "update_mode=replace is a known composition-bug area: replacement must fully remove prior facts",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4214",
+      "quote": "update_mode=replace \u2014 re-retaining replaces facts, and a pure deletion actually removes them",
+      "locator": "## 10\u201319 \u00b7 Documents and lifecycle, item 11",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Document deletion scopes to the target bank only; cross-bank bleed was a shipped composition bug",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4214",
+      "quote": "delete a document \u2014 its facts, links and chunks go, and only in the target bank",
+      "locator": "## 10\u201319 \u00b7 Documents and lifecycle, item 13",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Contradictory evidence is handled by supersession (create+delete) rather than allowing two coexisting claims",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4214",
+      "quote": "contradictory evidence supersedes: create + delete, not two coexisting claims",
+      "locator": "## 20\u201329 \u00b7 Observations and consolidation, item 23",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Deleting a memory cascades to invalidate observations that cited it as evidence",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4214",
+      "quote": "deleting a memory invalidates the observations it was evidence for",
+      "locator": "## 20\u201329 \u00b7 Observations and consolidation, item 25",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retracted facts are removed from knowledge pages and mental models (unsaid)",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4214",
+      "quote": "retracted facts are unsaid from pages and models",
+      "locator": "## 30\u201339 \u00b7 Mental models and knowledge pages, item 37",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Bank isolation is a known composition-bug area: same document_id in two banks must not bleed across read, count, update, delete",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4214",
+      "quote": "two banks holding the same document_id never see each other's rows \u2014 read, count, update and delete",
+      "locator": "## 80\u201389 \u00b7 Isolation and security, item 80",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Entity resolution must merge aliases but not conflate distinct people \u2014 a shipped composition-bug area",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4214",
+      "quote": "entity resolution merges genuine aliases and does not merge distinct people",
+      "locator": "## 70\u201379 \u00b7 Entities and the graph, item 71",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory-defense (injection rejection) is absent from this build and out of scope for API-only testing",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4214",
+      "quote": "memory defense is a server extension, absent from this build, so there is nothing for an API-only suite to drive",
+      "locator": "## 80\u201389 \u00b7 Isolation and security, item 82",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Consolidation batches by scope key and two runs for one bank serialise \u2014 a shipped composition bug",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4214",
+      "quote": "consolidation batches by scope key, and two runs for one bank serialise",
+      "locator": "## 20\u201329 \u00b7 Observations and consolidation, item 28",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Reflect zero-tool-call path fails loudly rather than returning a placeholder \u2014 a shipped composition bug",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4214",
+      "quote": "zero tool calls / no answer fails loudly instead of returning a placeholder",
+      "locator": "## 40\u201349 \u00b7 Reflect, item 41",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "submit_async_consolidation in memory_engine.py does not pass dedupe_by_bank_includes_processing=True, unlike other operation types in the same file that explicitly pass True.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4368",
+      "quote": "`MemoryEngine.submit_async_consolidation` (`hindsight-api-slim/hindsight_api/engine/memory_engine.py`) calls `_submit_async_operation(..., dedupe_by_bank=dedupe)` without passing `dedupe_by_bank_includes_processing=True`. That parameter defaults to `False`, unlike other operation types in the same file that explicitly pass `True` (e.g. lines ~21382, ~21521).",
+      "locator": "Root cause",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "update_mode='append' on a session-scoped document via the batch_retain path causes the document to be replaced by only the last retained window; all previously accumulated text, chunks, and extracted facts are destroyed.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4417",
+      "quote": "the fallback then stores only the incoming window instead of the prepended (existing + new) body. Each retain therefore replaces the session document with its most recent window, destroying the previously stored document text and the facts extracted from earlier windows.",
+      "locator": "Bug Description",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The bug corrupts the factual content of retained memory: score fields, timestamps, and task IDs stored in the memory store carry redaction markers instead of real values",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4323",
+      "quote": "retained documents contain markers such as `0.[REDACTED:credit_card]` in search-score fields. Timestamp and port-list content also contains these markers. Original retention requests were checked to confirm score values were ordinary decimal scores.",
+      "locator": "Actual Behavior",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The retain extraction mode and custom instructions are configurable per bank via PATCH on the bank config endpoint.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4280",
+      "quote": "PATCH /v1/default/banks/{bank_id}/config",
+      "locator": "Suggested fix, item 3, code block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Models under ~10B active parameters are particularly susceptible to the few-shot copying failure; the suggested mitigations are an explicit guard, example rotation, custom mode, or a larger retain model.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4280",
+      "quote": "models under ~10B active parameters need the guard, `retain_extraction_mode: \"custom\"` (which drops the examples), or a larger retain model.",
+      "locator": "Suggested fix, item 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The upstream main branch at commit 48b62ee08170b464f4c42b6f133b7cb798a59b21 carries the identical memory_defense.py, so the false-positive redaction affects the current codebase",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4323",
+      "quote": "Also checked upstream `main` at `48b62ee08170b464f4c42b6f133b7cb798a59b21`: the entire `memory_defense.py` file is byte-for-byte identical to the deployed file used for this reproduction.",
+      "locator": "Version",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "PR #3577 proposed bank-card checksum validation for the credit-card pattern but was closed without merging, leaving the no-checksum regex as the current implementation",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4323",
+      "quote": "PR #3577 proposed international PII detection and some bank-card checksum validation but was closed without merging.",
+      "locator": "Relevant Implementation and Related Work",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A single DELETE /v1/default/banks/{bank_id}/memories call with a JSON body of ids silently ignores the body and deletes the entire bank's memory contents, returning 200 success.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4337",
+      "quote": "A JSON body is **silently ignored**, so a client that sends a body full of ids \u2014 the natural reading of a collection-level DELETE \u2014 gets `200 {\"success\": true}` and loses the **entire bank** (every fact type, all documents, all links).",
+      "locator": "## What happened",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The OpenAPI schema advertises no request body for clear_bank_memories, making the silent-ignore behavior undiscoverable from the schema alone.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4337",
+      "quote": "OpenAPI advertises no request body for this operation: `requestBody: ABSENT`... A client inspecting the schema cannot tell the body is *ignored* rather than *filtered*.",
+      "locator": "## Why the API shape invites it (three compounding signals)",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "With audit logging disabled (the default), a full bank wipe leaves no trace in the system.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4337",
+      "quote": "we had audit logging off, so the wipe left no trace whatsoever.",
+      "locator": "## Suggested fixes (any one would have prevented this)",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hindsight is self-hostable and uses Postgres with pgvector as its backing store.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4337",
+      "quote": "Environment: hindsight-api **0.9.2**, self-hosted, Postgres 18 + pgvector",
+      "locator": "Environment",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "hindsight-embed 0.9.2 is the latest release as of 2026-08-25; main branch also lacks the fix as of 2026-09-12",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4344",
+      "quote": "hindsight-embed 0.9.2, installed from PyPI; this is the latest release at the time of writing (v0.9.2, 2026-08-25). Also verified against `main` on 2026-09-12: `_run_probe()` there is identical apart from line offsets \u2014 still no `encoding=`, no `errors=`.",
+      "locator": "Version section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "On Windows with a non-UTF-8 console code page and UTF-8 mode enabled, _windows_listening_pids() silently returns [] \u2014 the daemon manager sees no listeners and cannot correctly manage daemon state",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4344",
+      "quote": "`_windows_listening_pids()` returns `[]` for every port. At measurement time this host had **19** TCP listeners (135, 139, 445, 5432, 8642, 27036, 28252, 49401, 49664-49668, ...); the manager saw none of them.",
+      "locator": "Actual Behavior section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Silent failure in daemon process detection can cause the daemon manager to refuse to stop a daemon it owns, because _process_command_line() returns None which is read as 'not one of our processes'",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4344",
+      "quote": "the caller reads None as 'not one of our processes' (see `_process_matches`), so the daemon manager refuses to stop a daemon it does in fact own.",
+      "locator": "Affected scope section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "This encoding bug is a recurrence of the same defect class as issues #3747/#3837, which previously fixed open() without encoding= in profile_manager.py and cli.py",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4344",
+      "quote": "This is the same defect class as #3747 / #3837, but in the `subprocess` text-mode path, which those fixes did not cover (they covered `open()` without `encoding=` in `profile_manager.py` and `cli.py`).",
+      "locator": "Bug Description section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The daemon manager's _run_probe is located in hindsight-embed/hindsight_embed/daemon_embed_manager.py; affected lines are 395/398/401 on main and 402/405/408 on v0.9.2",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4344",
+      "quote": "# hindsight-embed/hindsight_embed/daemon_embed_manager.py\n#   main  : def _run_probe (395), subprocess.run( (398), text=True (401)\n#   0.9.2 : def _run_probe (402), subprocess.run( (405), text=True (408)",
+      "locator": "Bug Description section, code comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Concurrent consolidation runs for the same bank can independently process the same unconsolidated fact rows and write duplicate observations with no error or lock conflict.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4368",
+      "quote": "Both A and B independently write an observation for the same fact set \u2192 duplicates, no error, no lock conflict.",
+      "locator": "Repro sequence",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The race condition causing duplicate observations predates version 0.10.0 and was not introduced as a new regression in that release.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4368",
+      "quote": "this mechanism appears to predate 0.10.0 \u2014 I didn't find anything in the `v0.9.2..v0.10.0` range touching dedup/claiming, so it's likely a pre-existing gap surfaced by a workload/timing shift (more concurrent retains, or scoped consolidation calls newly in use), not a new regression.",
+      "locator": "Note (Root cause section)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retain and reflect are distinct named operations with different scopes; retain performs fact extraction while reflect operates as a multi-turn agent",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4404",
+      "quote": "operation='retain' | retain_extract_facts | 196 \u2026 operation='reflect' | reflect_tool_call | 34",
+      "locator": "### 1. Same provider, same model - only reflect misses",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Reflect has a background variant (refresh_mental_model) used for page/mental model refreshes, distinct from interactive hindsight_reflect",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4404",
+      "quote": "background reflect (`refresh_mental_model`, which passes `answer_as_document=True`) where latency is invisible to a user. That variant recovers most of the benefit for page refreshes without slowing interactive `hindsight_reflect`.",
+      "locator": "## Proposed fix \u2014 Design notes",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hindsight tracks per-operation LLM token usage including cached_tokens in a llm_requests table with started_at timestamps",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4404",
+      "quote": "llm_requests.cached_tokens is always 0 for operation='reflect' \u2026 Hindsight's actual turn timing in a reflect run (from `llm_requests.started_at`)",
+      "locator": "## Summary / ### 3. The interval is the variable",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Tools narrowing per forced turn in reflect is a known prior issue (#3865) affecting ollama/lmstudio with Qwen-style templates, addressed in PR #4066",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4404",
+      "quote": "This is a different case from #3865, which affects `ollama`/`lmstudio` with tools-first (Qwen-style) templates. PR #4066 addressed that shape and only for those providers",
+      "locator": "## What I ruled out",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Reflect is the single most expensive operation on a per-run basis; one run on the reporter's bank is approximately 200K input tokens",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4404",
+      "quote": "On DeepSeek, `reflect` is the single most expensive operation \u2026 one reflect run is about 200K input tokens.",
+      "locator": "## Why this is worth fixing",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hindsight API version 0.10.0 is installable via pip as a native macOS binary.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4412",
+      "quote": "hindsight-api 0.10.0 installed via pip (native, not Docker), Python 3.12.13",
+      "locator": "Environment section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Under concurrent MPS reranking, Hindsight's process can abort mid-request, causing recall failures until the service restarts and reloads weights (multi-minute hang from client perspective).",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4412",
+      "quote": "the whole API dies mid-request. Under launchd KeepAlive the process restarts immediately, which from the client side looks like multi-minute hangs while the weights reload.",
+      "locator": "What happened section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Setting RERANKER_LOCAL_MAX_CONCURRENT=1 serializes reranker calls and eliminates the concurrent MPS crash, restoring stable recall.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4412",
+      "quote": "HINDSIGHT_API_RERANKER_LOCAL_MAX_CONCURRENT=1. No new assertions since (verified with 5 concurrent recalls plus continued production traffic).",
+      "locator": "Workaround section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Docker and Linux+CUDA deployments are unaffected by the MPS concurrency issue; it is macOS+MPS specific.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4412",
+      "quote": "Docker and Linux + CUDA deployments are unaffected (the docs state CUDA/XPU are unaffected by the MPS flags), so this is macOS + MPS specific.",
+      "locator": "Note at end of issue",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The delta-retain optimization's fallback path loses append semantics, persisting only the incoming tail rather than the combined (prepended) content.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4417",
+      "quote": "in the no-unchanged-chunks fallback, the body persisted is the incoming tail (`document_body_override`) rather than the prepend-combined content, so append semantics are lost exactly when the delta optimization bails.",
+      "locator": "Suspected location",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Facts (memory units) extracted from earlier retain windows are silently lost; only facts from the most recent window survive, with occurred dates only matching the last retain date.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4417",
+      "quote": "memory units on the doc: 193, occurred dates only `2026-09-15` (135) or undated (58) \u2014 zero facts from 2026-09-13/14, although the operations list shows completed retains on 13.09 (3\u00d7), 14.09 (4\u00d7, one failed) and 15.09 (11\u00d7)",
+      "locator": "Bug Description / Evidence",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Append mode works correctly on the simple single-item retain path; the regression is specific to the async batch_retain path with rolling windowed content.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4417",
+      "quote": "So append works for a simple single-item retain. The failing plugin path differs in that it repeatedly appends windowed items (4-turn windows with `context`/`metadata`/`window_turns`) through the async `batch_retain` path",
+      "locator": "Control experiment (append itself works)",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hindsight uses a Postgres backend and stores chunks, original_text, and memory units per document within named banks.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4417",
+      "quote": "hindsight-api 0.9.2 with `store_document_text: true` (docker compose, Postgres backend)",
+      "locator": "Steps to Reproduce",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A recall query against a bank of ~4,000 facts requesting 2,500 tokens returned 27 results totalling 49,853 characters; trimming to type+date+text yields 11,365 characters.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4434",
+      "quote": "We ran one query against a bank that holds about 4,000 facts and asked for 2,500 tokens. The server returned 27 results. | The current response, serialised as it is today | 49,853 | | The type, the date and the text of each result | 11,365 |",
+      "locator": "## What we measured",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Oversized recall responses cause a continuity failure: the agent cannot use memories inline and must perform an extra file-read step, breaking the expected recall flow.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4434",
+      "quote": "Claude Code refuses a tool result above its size limit and writes it to a file instead. The agent then has to read that file with another tool before it can use any memory. This is the error from an ordinary session:\nagent_knowledge_recall (MCP)(query: \"client portal design: ...\", max_tokens: 2500)\nError: result (54,141 characters) exceeds maximum allowed tokens.",
+      "locator": "## What happens",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Results carry optional detail fields (identifiers, scores) that some callers may still want; a proposed detail argument would make full payloads opt-in.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4434",
+      "quote": "Some callers may still want the identifiers and the scores. An optional argument, for example `detail=\"full\"`, would keep those available without making every call pay for them.",
+      "locator": "## A change that fixes it",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hindsight uses a dedicated extraction model role on the write path and separate embedding plus reranking models on the recall (read) path.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4455",
+      "quote": "~z-ai/glm-flash-latest for extraction; qwen/qwen3-embedding-8b for embeddings; voyage rerank-2.5-lite + cohere rerank-4-fast for reranking",
+      "locator": "LLM Provider",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Auto-recall is a client-side integration feature (via hindsight-openclaw) that automatically triggers recall on the user's behalf, and it fails silently with this misconfiguration.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4455",
+      "quote": "auto-recall error: recall failed: \"Query too long: 284 tokens exceeds maximum of 0. Please shorten your query.\"",
+      "locator": "Steps to Reproduce / Observed log output",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The misconfiguration effectively disables memory recall entirely, representing a continuity failure mode where the system silently stops remembering across sessions.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4455",
+      "quote": "This effectively disables memory recall entirely until the variable is set to a positive value.",
+      "locator": "Actual",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Required non-null fields in the retain schema cause local/smaller models to fabricate dates or owners from nearby context, which then persist as durable memory.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4457",
+      "quote": "a fabricated date/owner can become durable memory and be acted on later.",
+      "locator": "Bug description, paragraph 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Prompt-only mitigations are insufficient to prevent date hallucination under strict structured output; schema changes are required.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4457",
+      "quote": "Prompt-only mitigation was insufficient. Re-running the same corpus/model/seed after strengthening the extraction mission still produced the same fabricated date.",
+      "locator": "Minimal reproduction, paragraph 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The retain extractor's write path already treats when, who, and why as optional during storage conversion, so nulls are safe to store.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4457",
+      "quote": "The extraction parser already treats these values as optional in practice",
+      "locator": "Downstream compatibility, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "After making descriptive fields nullable, a full three-document test produced zero invented owners, dates, statuses, deadlines, or causal links.",
+      "kind": "issue",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4457",
+      "quote": "A full three-document test produced zero invented owners, dates, statuses, deadlines, or causal links.",
+      "locator": "Confirmed mitigation, results paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hindsight automatically handles fact extraction, semantic retrieval, contradiction/update handling, and entity graph building \u2014 distinguishing it from manual store patterns",
+      "kind": "blog",
+      "url": "https://hindsight.vectorize.io/blog/2026/03/24/langgraph-longterm-memory",
+      "quote": "you're responsible for: Deciding what to store (fact extraction) / Deciding what's relevant (semantic retrieval) / Handling contradictions and updates / Building knowledge graphs from raw conversations / Hindsight does all of this automatically.",
+      "locator": "Section: The problem",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is isolated per user via bank IDs; one graph definition serves all users with separate banks auto-created at runtime",
+      "kind": "blog",
+      "url": "https://hindsight.vectorize.io/blog/2026/03/24/langgraph-longterm-memory",
+      "quote": "One graph definition serves all users. Memory banks are created automatically and kept fully isolated.",
+      "locator": "Section: Per-user memory in one line",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retained memories persist across sessions (new threads) so the agent recalls prior context without user repetition",
+      "kind": "blog",
+      "url": "https://hindsight.vectorize.io/blog/2026/03/24/langgraph-longterm-memory",
+      "quote": "Session 2: new thread, same user \u2014 agent remembers ... Agent recalls SQLAlchemy 2.0, asyncpg, and the pool exhaustion context without the user having to repeat themselves.",
+      "locator": "Section: Complete working example",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hindsight distills conversations into structured knowledge rather than storing raw transcripts",
+      "kind": "blog",
+      "url": "https://hindsight.vectorize.io/blog/2026/03/24/langgraph-longterm-memory",
+      "quote": "Hindsight distills conversations into structured knowledge it can retrieve precisely when relevant.",
+      "locator": "Section: What to build with this",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Product is available as both self-hosted and cloud (Hindsight Cloud) deployments",
+      "kind": "blog",
+      "url": "https://hindsight.vectorize.io/blog/2026/03/24/langgraph-longterm-memory",
+      "quote": "Works with both self-hosted Hindsight and Hindsight Cloud.",
+      "locator": "Section: Getting started",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hindsight injects relevant memories into the agent's context before every reply (retrieve path).",
+      "kind": "blog",
+      "url": "https://hindsight.vectorize.io/blog/2026/06/01/hermes-hindsight-windows-setup",
+      "quote": "every conversation starts with relevant memories injected into Hermes's context",
+      "locator": "What You Get on Windows \u2014 Auto-recall and auto-retain",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write pipeline performs extraction from conversation context, not verbatim transcript storage.",
+      "kind": "blog",
+      "url": "https://hindsight.vectorize.io/blog/2026/06/01/hermes-hindsight-windows-setup",
+      "quote": "The write pipeline extracts it from your conversations \u2014 the questions you ask, the decisions you make, the context you share along the way.",
+      "locator": "What Hermes Remembers",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cross-platform memory sharing is implemented via a shared memory bank; the plugin hooks every turn on every platform.",
+      "kind": "blog",
+      "url": "https://hindsight.vectorize.io/blog/2026/06/01/hermes-hindsight-windows-setup",
+      "quote": "The plugin hooks every turn on every platform \u2014 whatever you say in one channel becomes recallable from any other.",
+      "locator": "Talking to Hermes Across Platforms",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Local Embedded mode uses an embedded PostgreSQL distribution (pg0) as the backing store.",
+      "kind": "blog",
+      "url": "https://hindsight.vectorize.io/blog/2026/06/01/hermes-hindsight-windows-setup",
+      "quote": "Local Embedded ships with pg0 (an embedded Postgres distribution); first boot unpacks the binaries and runs initdb",
+      "locator": "What You Get on Windows",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Native Windows support for embedded mode was added in Hindsight v0.5.5.",
+      "kind": "blog",
+      "url": "https://hindsight.vectorize.io/blog/2026/06/01/hermes-hindsight-windows-setup",
+      "quote": "The Hindsight v0.5.5 release added native Windows support for embedded mode , and every subsequent release has been verified on Windows.",
+      "locator": "Which Mode Should You Pick?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hindsight stores structured memory across distinct networks for facts, experiences, observations, and opinions rather than raw logs",
+      "kind": "blog",
+      "url": "https://vectorize.io/blog/introducing-hindsight-agent-memory-that-works-like-human-memory",
+      "quote": "Memory is organized into distinct networks for facts, experiences, observations, and opinions \u2014 separating evidence from inference.",
+      "locator": "What Makes Hindsight Different / Structured memory, not raw logs",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Recall is token-budget-aware, implying retrieval is selective rather than always injecting full history",
+      "kind": "blog",
+      "url": "https://vectorize.io/blog/introducing-hindsight-agent-memory-that-works-like-human-memory",
+      "quote": "Recall \u2014 retrieve the most relevant memories for a task, within a token budget",
+      "locator": "What Is Hindsight? / core operations list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is time-aware and entity-linked, enabling reasoning across multiple sessions",
+      "kind": "blog",
+      "url": "https://vectorize.io/blog/introducing-hindsight-agent-memory-that-works-like-human-memory",
+      "quote": "Memories are anchored in time and connected through entities and relationships, enabling multi-session and temporal reasoning.",
+      "locator": "What Makes Hindsight Different / Time- and entity-aware recall",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Beliefs (opinions) carry confidence scores and are updated as new information arrives, constituting a write/update path for memory",
+      "kind": "blog",
+      "url": "https://vectorize.io/blog/introducing-hindsight-agent-memory-that-works-like-human-memory",
+      "quote": "Agents can form opinions with confidence scores and update those beliefs as new information arrives.",
+      "locator": "What Makes Hindsight Different / Learning, not just recall",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hindsight achieves 91.4% on LongMemEval with Gemini-3 backbone, outperforming full-context and other memory systems; these are vendor-reported harness scores",
+      "kind": "blog",
+      "url": "https://vectorize.io/blog/introducing-hindsight-agent-memory-that-works-like-human-memory",
+      "quote": "Hindsight improves accuracy by +44.6 points over a full-context baseline, and outperforms other memory systems often using smaller or open source models.",
+      "locator": "State-of-the-Art Results",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hindsight is designed to be deployable in users' own infrastructure and integrate with existing agent frameworks",
+      "kind": "blog",
+      "url": "https://vectorize.io/blog/introducing-hindsight-agent-memory-that-works-like-human-memory",
+      "quote": "Hindsight is designed to integrate with existing agent frameworks and models, and to be deployable in your own infrastructure.",
+      "locator": "Open Source, Available Today",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retain is a named operation for fact extraction from conversation/input, submitted in bulk via provider batch APIs when available.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/models",
+      "quote": "Batch API \u2014 submits bulk retain extraction through the provider's asynchronous batch endpoint, typically at ~50% lower cost. Used automatically when available; otherwise calls run synchronously.",
+      "locator": "Provider Capabilities section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Reflect is a named operation implemented as a tool-calling loop with a synthesis step; it is distinct from retain.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/models",
+      "quote": "Reflect is a tool-calling loop, so on the openai (Completions) provider that forces the whole operation \u2014 including the final synthesis \u2014 to run with reasoning disabled.",
+      "locator": "OpenAI Responses API tip",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Mental model consolidation is a distinct LLM task within Hindsight's pipeline.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/models",
+      "quote": "Used for fact extraction, entity resolution, mental model consolidation, and answer synthesis.",
+      "locator": "LLM section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retain requires models supporting at least 65,000 output tokens for reliable fact extraction.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/models",
+      "quote": "they must support at least 65,000 output tokens to ensure reliable fact extraction.",
+      "locator": "Using Other Models section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A single retain call consumes approximately 64k tokens, making low-throughput free tiers unsuitable.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/models",
+      "quote": "Groq's free tier only allows 8,000 tokens per minute \u2014 far below what Hindsight needs for a single retain call (~64k).",
+      "locator": "Using Other Models section, Groq note",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The GitHub Copilot provider disables Copilot's cross-session memory store per call to prevent recursive self-retention.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/models",
+      "quote": "Each call then uses an isolated transient session with repository instructions, skills, Copilot memory, built-in tools, and the cross-session store disabled. This prevents the memory integration from recursively retaining its own extraction calls.",
+      "locator": "GitHub Copilot Setup section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Embedding dimensions are fixed at startup against the database schema; changing them after memories exist destroys stored data.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/models",
+      "quote": "Once memories are stored, you cannot change dimensions without losing data.",
+      "locator": "Embedding Dimensions note",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A model leaderboard benchmarks models across accuracy, speed, cost, and reliability for retain, reflect, and observation consolidation.",
+      "kind": "docs",
+      "url": "https://hindsight.vectorize.io/developer/models",
+      "quote": "The Model Leaderboard benchmarks models across accuracy, speed, cost, and reliability for retain, reflect, and observation consolidation so you can pick the right trade-off for your use case.",
+      "locator": "Benchmarks section",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/interface.py",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/causal_links.py",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/consolidation/consolidator.py",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/db/base.py",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/memories/base.py",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/memories/pg/writes.py",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://hindsight.vectorize.io/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://hindsight.vectorize.io/llms-full.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://hindsight.vectorize.io/developer/api/quickstart",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://hindsight.vectorize.io/developer/api/memories",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://hindsight.vectorize.io/sdks/python",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/issues/1517",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/issues/4323",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/issues/4280",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/issues/4206",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/issues/4368",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/issues/4417",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/issues/4412",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/issues/3890",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/issues/4434",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/issues/4344",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/issues/4404",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/issues/3865",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/issues/3878",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/issues/4174",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/issues/4337",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/issues/4214",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/issues/4457",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/vectorize-io/hindsight/issues/4455",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://hindsight.vectorize.io/developer/models",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://hindsight.vectorize.io/blog/2026/03/24/langgraph-longterm-memory",
+      "kind": "blog",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://hindsight.vectorize.io/blog/2026/06/01/hermes-hindsight-windows-setup",
+      "kind": "blog",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://vectorize.io/blog/introducing-hindsight-agent-memory-that-works-like-human-memory",
+      "kind": "blog",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [
+    {
+      "text": "Marketing/benchmarks site and ACL demo paper claim SOTA agent-memory scores; treat leaderboard copy as vendor evidence, not companion continuity proof."
+    },
+    {
+      "text": "OpenClaw/delta-retain issues (#4417, #4206) contest whether append vs replace semantics hold under integration fallbacks\u2014ops risk for long chats."
+    },
+    {
+      "text": "Reddit/HN community threads compare Hindsight vs Supermemory on latency and setup; anecdotal, not architecture spec."
+    }
+  ],
+  "copy": [
+    {
+      "text": "Retain \u2192 recall \u2192 reflect with bank isolation matches companion research needs for curated memory over transcript replay; document_id upsert pattern fits evolving sessions."
+    },
+    {
+      "text": "Per-bank profile + opinion facts with confidence are closer to 'remembering' than raw RAG, if reflect/recall injection is scaffolded to avoid mistimed recall."
+    }
+  ],
+  "refuse": [
+    {
+      "text": "Refuse vectorize.io comparison articles and benchmarks.hindsight.vectorize.io as product behavior specs; use hindsight.vectorize.io docs + pinned engine code."
+    },
+    {
+      "text": "Refuse third-party roundup blogs (glukhov.org, dev.to) for mechanism claims when first-party docs exist."
+    },
+    {
+      "text": "Refuse treating LoCoMo/benchmark blog posts as evidence that production companions will feel continuous\u2014harness scores \u2260 relationship memory."
+    }
+  ],
+  "unknowns": [
+    {
+      "text": "Scaffold / instruction layer \u2014 no code here shows what prompt instructions tell the model to do with retrieved facts (tone, recency weighting, when to stay silent)",
+      "url": "https://github.com/vectorize-io/hindsight/blob/bde55237f53bf55aacd048b01e29d7dc23b83a85/hindsight-api-slim/hindsight_api/engine/memories/pg/writes.py",
+      "kind": "code"
+    },
+    {
+      "text": "The page does not address whether multimodal data will be supported; no response or timeline is given by maintainers",
+      "url": "https://github.com/vectorize-io/hindsight/issues/1801",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how section IDs are generated or how they can become stale relative to the current document structure \u2014 a gap in the architecture doc for the delta write path.",
+      "url": "https://github.com/vectorize-io/hindsight/issues/4206",
+      "kind": "issue"
+    }
+  ]
+}

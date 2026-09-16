@@ -577,6 +577,28 @@ def test_should_drop_ledger_row_competitor_compare_host() -> None:
     assert should_drop_ledger_row(row, has_official_docs=True)
 
 
+def test_should_drop_ledger_row_hindsight_blog_index_when_official_docs() -> None:
+    row = {
+        "claim": "Hindsight blog lists posts",
+        "kind": "blog",
+        "url": "https://hindsight.vectorize.io/blog",
+        "quote": "blog",
+        "locator": "blog",
+    }
+    assert should_drop_ledger_row(row, has_official_docs=True)
+
+
+def test_should_drop_ledger_row_vectorize_compare_article_when_official_docs() -> None:
+    row = {
+        "claim": "Hindsight beats Supermemory",
+        "kind": "blog",
+        "url": "https://vectorize.io/articles/hindsight-vs-supermemory",
+        "quote": "vs",
+        "locator": "article",
+    }
+    assert should_drop_ledger_row(row, has_official_docs=True)
+
+
 def test_should_drop_ledger_row_devto_when_official_docs() -> None:
     row = {
         "claim": "Memobase uses profiles",
@@ -611,3 +633,37 @@ def test_unknown_superseded_by_ledger_forget_when_code_documents_delete() -> Non
     ]
     text = "Forget / delete path: this README does not describe how memories are deleted"
     assert unknown_superseded_by_ledger(text, ledger)
+
+
+def test_unknown_superseded_by_ledger_delete_document_when_documented() -> None:
+    ledger = [
+        {
+            "claim": "Deleting a document removes its facts, links, and chunks within the bank",
+            "kind": "code",
+            "url": "https://github.com/vectorize-io/hindsight/blob/sha/README.md",
+        }
+    ]
+    text = "Explicit delete-from-store API for individual memories is unclear whether facts can be deleted"
+    assert unknown_superseded_by_ledger(text, ledger)
+
+
+def test_unknown_superseded_by_ledger_isolation_when_bank_documented() -> None:
+    ledger = [
+        {
+            "claim": "Bank isolation is enforced: two banks never see each other's rows",
+            "kind": "code",
+            "url": "https://github.com/vectorize-io/hindsight/blob/sha/README.md",
+        }
+    ]
+    text = "Isolation model: no symbol indicates per-user, per-session, or per-agent scoping"
+    assert unknown_superseded_by_ledger(text, ledger)
+
+
+def test_filter_unknown_items_drops_meta_community_noise() -> None:
+    items = [
+        {
+            "text": "No community discussion of continuity failures despite this being a community thread",
+            "url": "https://news.ycombinator.com/item?id=1",
+        }
+    ]
+    assert filter_unknown_items(items) == []
