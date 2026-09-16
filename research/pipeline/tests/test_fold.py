@@ -577,6 +577,16 @@ def test_should_drop_ledger_row_competitor_compare_host() -> None:
     assert should_drop_ledger_row(row, has_official_docs=True)
 
 
+def test_filter_unknown_items_drops_bestaiweb_compare_host() -> None:
+    items = [
+        {
+            "text": "ByteRover wins LoCoMo",
+            "url": "https://www.bestaiweb.ai/byterover-mem0g-benchmark/",
+        }
+    ]
+    assert filter_unknown_items(items) == []
+
+
 def test_should_drop_ledger_row_hindsight_blog_index_when_official_docs() -> None:
     row = {
         "claim": "Hindsight blog lists posts",

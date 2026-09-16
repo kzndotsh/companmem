@@ -1,0 +1,1311 @@
+{
+  "identity": {
+    "id": "byterover",
+    "name": "ByteRover",
+    "repo": "https://github.com/campfirein/byterover-cli",
+    "docs": "https://docs.byterover.dev/llms.txt",
+    "license": "LICENSE",
+    "version_or_commit": "1052ac1a5dd0fde4da8693d4712064f7876c269c",
+    "observed_at": "2026-09-16"
+  },
+  "claimed_purpose": [
+    {
+      "text": "ByteRover V4 (campfirein/byterover-cli): Desktop + spaces + agent skill (bind/query/record/dream) for durable **project** memory\u2014LLM-curated context tree for coding agents, not a consumer companion product (successor branding to Cipher)."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Store: memories live in **spaces** (private/team/shared); curated **bv-topic** / context-tree nodes with importance, maturity, recency\u2014not a raw chat log; JSON blobs in BlobStorage (`memory-{id}`) plus git-like branch/commit/merge on the tree."
+    },
+    {
+      "text": "Write: **Record** + curate pipeline (system-prompt-driven); conflict stage can merge structural loss; Dream only **proposes** merge/link/prune/synthesize\u2014agent runs merge/prune/synthesize scripts after review (#757/#647 curation risks)."
+    },
+    {
+      "text": "Retrieve: **Query** before non-trivial work; optional auto-inject into turns; typed search over topic elements; pinned flag reserved for future hybrid retrieval."
+    },
+    {
+      "text": "Forget: **prune.mjs** / Dream prune mode and in-session selective pruning of tool output; array updates are additive by default\u2014explicit prune needed to drop stale topics."
+    },
+    {
+      "text": "Isolation: **Bind** ties repo folder \u2192 space; session-namespaced message storage; team **Editor** vs view-only roles gate writes; legacy Cipher/MCP+Qdrant issues (#263) are integration hazards."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "ByteRover CLI provides persistent, structured memory for AI coding agents via a curated context tree",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/README.md",
+      "quote": "ByteRover CLI (`brv`) gives AI coding agents persistent, structured memory. It lets developers curate project knowledge into a context tree, sync it to the cloud, and share it across tools and teammates.",
+      "locator": "Overview",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path for memory is the curate command, which stages knowledge pending human review before it is committed to the store",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/README.md",
+      "quote": "brv review pending   # List pending review operations\nbrv review approve   # Approve curate operations\nbrv review reject    # Reject curate operations",
+      "locator": "CLI Usage > Core Workflow",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per project, with each project owning its own .brv/ config and a dedicated agent process",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/README.md",
+      "quote": "`projectRoot`: the directory that owns `.brv/config.json` ... Maximum concurrent active projects (one agent process per project)",
+      "locator": "Worktrees and Knowledge Sources; CLI Usage > Settings",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The context tree supports git-like versioning (branch, commit, merge, reset), enabling rollback and conflict management on the memory store",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/README.md",
+      "quote": "Git-like version control for the context tree (branch, commit, merge, push/pull)",
+      "locator": "Key Features",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A task history log (distinct from the curated knowledge store) is retained per project up to a configurable cap of 1000 entries",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/README.md",
+      "quote": "`taskHistory.maxEntries` | 1000 | Number of task records `brv query-log view` retains per project",
+      "locator": "CLI Usage > Settings",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LongMemEval-S benchmark score of 92.8% overall accuracy (500 questions, 23,867 docs) reported by vendor",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/README.md",
+      "quote": "**LongMemEval-S** - 92.8% overall accuracy (500 questions, 23,867 docs).",
+      "locator": "Benchmark Results",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cloud sync adds cross-machine and cross-teammate persistence on top of the local-first store",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/README.md",
+      "quote": "Everything works locally by default - Cloud adds collaboration and persistence without changing your workflow.",
+      "locator": "ByteRover Cloud",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "ByteRover persists curated knowledge as structured ContextData (narrative, rawConcept, relations, snippets) written to files via a markdown-writer, not as a raw conversation log.",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/core/domain/knowledge/conflict-resolver.ts",
+      "quote": "import type {ContextData, Narrative, RawConcept} from '../../../../server/core/domain/knowledge/markdown-writer.js'",
+      "locator": "conflict-resolver.ts: import declarations",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path includes a conflict/supersession stage: before committing a proposed update, structural loss is detected and resolved by merging lost items back in.",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/core/domain/knowledge/conflict-resolver.ts",
+      "quote": "@param loss - Structural loss summary from detectStructuralLoss\n * @returns Resolved content with lost items merged back in",
+      "locator": "conflict-resolver.ts: JSDoc for resolveStructuralLoss",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The update strategy for arrays is additive (union merge), meaning items are never deleted from arrays during a normal curate update \u2014 only new items are appended.",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/core/domain/knowledge/conflict-resolver.ts",
+      "quote": "for (const item of proposed) {\n    const key = normalize(item)\n    if (!seen.has(key)) {\n      seen.add(key)\n      result.push(item)\n    }\n  }",
+      "locator": "conflict-resolver.ts: mergeArraysWithDedup function body",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is a curated store of discrete fact/content records, not a raw message log \u2014 each item has its own id, timestamps, tags, and source, and can be individually created or updated",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/core/domain/memory/types.ts",
+      "quote": "export interface Memory { content: string; createdAt: number; id: string; metadata?: ...; tags?: string[] | undefined; updatedAt: number; }",
+      "locator": "Memory interface, types.ts",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path supports both create (new record) and update (partial, with metadata merge and tag replacement) operations",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/core/domain/memory/types.ts",
+      "quote": "export interface CreateMemoryInput { ... } ... export interface UpdateMemoryInput { /** Updated content (optional) */ content?: string; /** Updated metadata (optional, merges with existing) */ metadata?: ...; /** Updated tags (optional, replaces existing) */ tags?: string[]; }",
+      "locator": "CreateMemoryInput and UpdateMemoryInput interfaces, types.ts",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy supports filtering by pinned, source, and tags with OR logic, plus pagination via limit/offset \u2014 not a simple full-log dump",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/core/domain/memory/types.ts",
+      "quote": "/** Filter by tags (OR logic - matches any of the provided tags) */\n  tags?: string[];",
+      "locator": "ListMemoriesOptions interface, types.ts",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Storage is file-system based, scoped under a per-agent directory (.byterover/cipher/memories), suggesting isolation at the agent/character level rather than per-user or per-session",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/core/domain/memory/types.ts",
+      "quote": "/** Directory where memories are stored (default: .byterover/cipher/memories) */\n  storageDir?: string;",
+      "locator": "MemoryConfig.storageDir, types.ts",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Pinned memories are called out as part of a planned future hybrid retrieval approach, not yet a fully implemented mechanism",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/core/domain/memory/types.ts",
+      "quote": "/** Whether this memory is pinned (for future hybrid approach) */\n        pinned?: boolean | undefined;",
+      "locator": "Memory.metadata.pinned, types.ts",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Messages and parts are stored separately at distinct key paths to enable granular streaming and pruning",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/core/domain/storage/message-storage-types.ts",
+      "quote": "Storage key structure: - [\"session\", sessionId] \u2192 SessionRecord - [\"message\", sessionId, messageId] \u2192 StoredMessage - [\"part\", messageId, partId] \u2192 StoredPart",
+      "locator": "file header comment, lines 11-14",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Compaction boundary messages carry an LLM-generated summary; history loading stops at the boundary, discarding older messages",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/core/domain/storage/message-storage-types.ts",
+      "quote": "When loading history, stop at the first compaction boundary. Messages before this point are summarized and not needed. ... Contains the LLM-generated summary of prior conversation.",
+      "locator": "StoredMessage.compactionBoundary and StoredMessage.compactionSummary, JSDoc comments",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Selective pruning clears tool output content in-place and records compactedAt timestamp; a placeholder string replaces the original content",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/core/domain/storage/message-storage-types.ts",
+      "quote": "If set, the original content has been cleared to save space, and a placeholder message should be shown instead. ... export const COMPACTED_TOOL_OUTPUT_PLACEHOLDER = '[Old tool result content cleared]'",
+      "locator": "StoredPart.compactedAt JSDoc; COMPACTED_TOOL_OUTPUT_PLACEHOLDER constant",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Recent user turns are protected from tool-output pruning; pruning is skipped entirely if token savings fall below a minimum threshold",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/core/domain/storage/message-storage-types.ts",
+      "quote": "Number of recent user turns to protect from pruning. Tool outputs in these turns will not be compacted. Default: 2 ... Minimum tokens that must be recoverable to perform pruning. If pruning would save less than this, skip it entirely. Default: 20000",
+      "locator": "PruneToolOutputsOptions.protectedTurns and PruneToolOutputsOptions.minimumTokens, JSDoc comments",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "History is session-isolated; all storage keys are namespaced by sessionId",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/core/domain/storage/message-storage-types.ts",
+      "quote": "[\"session\", sessionId] \u2192 SessionRecord - [\"message\", sessionId, messageId] \u2192 StoredMessage",
+      "locator": "file header comment, Storage key structure",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Large binary content exceeding 5KB is offloaded to blob storage; parts store a reference string resolved lazily at LLM-request format time",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/core/domain/storage/message-storage-types.ts",
+      "quote": "Large binary content (>5KB) can be stored in blob storage - When stored as blob, content contains \"@blob:{id}\" reference - Blob refs are resolved lazily at format-time via BlobReferenceResolver",
+      "locator": "StoredPart interface, JSDoc comment (Blob references section)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "This storage layer is a full message log (transcript), not a curated semantic memory store; there is no separate facts/events layer described in this file",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/core/domain/storage/message-storage-types.ts",
+      "quote": "Message role ... role: 'assistant' | 'system' | 'tool' | 'user'",
+      "locator": "StoredMessage.role field declaration",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are persisted as individual JSON blobs in BlobStorage under keys memory-{id}; the schema is a curated record (content, tags, metadata) not a conversation transcript",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/infra/memory/memory-manager.ts",
+      "quote": "Memories are stored as JSON blobs with key pattern: memory-{id}\n * - Attachments are stored as blobs with key pattern: memory-{id}-{suffix}\n * - All persistence operations use BlobStorage",
+      "locator": "MemoryManager class JSDoc / Storage",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The pinned metadata flag is described as enabling auto-loading, suggesting pinned memories are always retrieved into context rather than on demand",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/infra/memory/memory-manager.ts",
+      "quote": "pinned: z.boolean().optional().describe('Whether this memory is pinned for auto-loading')",
+      "locator": "MemoryMetadataSchema definition",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory source is triaged as agent, system, or user, implying isolation or filtering by who wrote the memory",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/infra/memory/memory-manager.ts",
+      "quote": "const MemorySourceSchema = z.enum(['agent', 'system', 'user']).describe('Source of the memory')",
+      "locator": "MemorySourceSchema definition",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete is a hard delete from BlobStorage (including attached blobs); no soft-delete or hide-at-retrieve path is present in this file",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/infra/memory/memory-manager.ts",
+      "quote": "// Delete the memory itself\n    try {\n      await this.deleteMemory(id)",
+      "locator": "MemoryManager.delete method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Update uses a shallow metadata merge (spread), meaning a partial metadata update will overwrite sibling keys not included in the patch",
+      "kind": "code",
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/infra/memory/memory-manager.ts",
+      "quote": "updated.metadata = {\n        ...existing.metadata,\n        ...validatedInput.metadata,\n      }",
+      "locator": "MemoryManager.update method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A space is the memory boundary; agents query and record inside the active space.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/desktop/space.md",
+      "quote": "Spaces are the memory boundary in ByteRover. Your agent queries and records memory inside the active space for the project.",
+      "locator": "Space (intro)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is enforced at the space level with three distinct visibility tiers: private, team, and shared-with-me.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/desktop/space.md",
+      "quote": "ByteRover Desktop organizes spaces into three levels. Shared with me is global\u2026 Private belongs to the selected team view. These are personal spaces under the selected team\u2026 Team space belongs to the selected team view.",
+      "locator": "Space levels",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write access to a space is gated by role; the Editor role allows an agent to record new context.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/desktop/space.md",
+      "quote": "Editor: Add contexts and view memory.",
+      "locator": "Share with specific people",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A view-only space puts the agent in a read-only retrieval mode with no write path.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/desktop/space.md",
+      "quote": "View-only spaces show a view-only marker. Your agent is read-only in those spaces too.",
+      "locator": "Manage a space",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "ByteRover V4 provides durable project memory for coding agents across sessions",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/overview.md",
+      "quote": "ByteRover V4 gives coding agents durable project memory through Desktop, spaces, teams, and the ByteRover skill.",
+      "locator": "Overview, opening callout",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is stored in 'spaces'; isolation is configurable as private, team-scoped, or shared",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/overview.md",
+      "quote": "Choose where memory lives. Use private spaces, team spaces, or spaces shared with you.",
+      "locator": "Core concepts, Spaces card",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The skill exposes at least query (retrieve) and record (write) as distinct operations",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/overview.md",
+      "quote": "Give the agent instructions for binding projects, querying memory, recording context, authenticating, and cleanup review.",
+      "locator": "Core concepts, Skill card",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A 'dream' command exists as a distinct skill operation, purpose not described on this page",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/overview.md",
+      "quote": "Learn when the agent should bind, query, record, dream, and authenticate.",
+      "locator": "Choose your path, Skill commands card",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is project-scoped: onboarding links a specific project to a space",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/overview.md",
+      "quote": "The agent checks the current project, links it to a space, and tells you when memory is ready.",
+      "locator": "Get started in minutes, Step 4: Onboard with ByteRover",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is per-project-folder via a local binding to a named space.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/bind.md",
+      "quote": "Binding stores a local project binding so future Query and Record calls resolve to that space from the project folder.",
+      "locator": "## Bind the project to a space",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The product distinguishes a retrieve operation (Query) from a persist operation (Record), suggesting a curated store rather than raw log retrieval.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/bind.md",
+      "quote": "Retrieve project memory before work starts. \u2026 Save durable project knowledge after work is complete.",
+      "locator": "## Next steps",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is organized as a 'context tree' within a space, implying structured storage rather than a flat transcript log.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/bind.md",
+      "quote": "Agent says no context tree exists \u2014 Open ByteRover Desktop and make sure the space has finished syncing, then retry.",
+      "locator": "## Common fixes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ByteRover memory is structured as named topics within spaces, not a flat transcript log.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/dream.md",
+      "quote": "Dream works on the space resolved from the current project folder.",
+      "locator": "## When to use Dream / Note",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write/delete path for memory requires explicit agent action via dedicated scripts (merge.mjs, prune.mjs, synthesize.mjs); Dream itself is read-only/proposal-only.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/dream.md",
+      "quote": "Dream does not edit memory. It only proposes cleanup candidates. Your agent should read the source topics, decide what is worth changing, then use the right follow-up skill command.",
+      "locator": "## Dream (opening description)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/delete is explicit and confirmed, not automatic; prune requires agent confirmation before removal.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/dream.md",
+      "quote": "Use `prune.mjs` to remove stale topics after confirming they are safe to delete.",
+      "locator": "## Act on a proposal",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dream should not be run on every task; proposals are only meaningful when enough saved memory exists to compare.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/dream.md",
+      "quote": "Do not run Dream on every task. The proposals are more useful when there is enough saved memory to compare.",
+      "locator": "## When to use Dream",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "ByteRover's memory store holds project decisions, patterns, and gotchas \u2014 curated facts, not a full transcript log.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/query.md",
+      "quote": "Retrieve relevant project memory before work starts. \u2026 align with existing project decisions, patterns, and gotchas.",
+      "locator": "page subtitle and intro paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieve policy is adaptive and agent-initiated: query before non-trivial work, not on every turn.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/query.md",
+      "quote": "Use the Query skill before non-trivial work so your agent can align with existing project decisions, patterns, and gotchas.",
+      "locator": "intro paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Space isolation exists at least at the project-folder level, with optional named spaces.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/query.md",
+      "quote": "Run Query from inside the project folder. If the project should use a named space, bind it first with Bind.",
+      "locator": "Note callout",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path is a deliberate post-work record step, not automatic capture; rationale is included.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/query.md",
+      "quote": "Record the auth token storage decision we just made, including why we rejected pasted tokens.",
+      "locator": "Record what is missing",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieve returns ranked results with a confidence signal (should_cite), implying selective surfacing rather than full dump.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/query.md",
+      "quote": "should_cite \u2014 Whether the result set is strong enough for the agent to cite.",
+      "locator": "Manual reference > table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict resolution is user-mediated: the agent explains divergence from recorded memory rather than auto-overwriting.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/query.md",
+      "quote": "If the recorded memory conflicts with the current task, ask the agent to explain the conflict before changing direction.",
+      "locator": "Review the answer",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A Dream skill exists for cleanup and consolidation of saved memory, implying a maintenance/forget-like path.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/query.md",
+      "quote": "Dream \u2014 Review cleanup and consolidation proposals for saved memory.",
+      "locator": "Next steps > Dream card",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "ByteRover persists knowledge into a space-scoped store at a topic path, survives session end, and is retrievable by future agent sessions.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/record.md",
+      "quote": "Use the Record skill after useful work so future agent sessions can inherit the decision, pattern, or gotcha instead of rediscovering it.",
+      "locator": "page subtitle / intro",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path supports both create and update operations on existing topic records.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/record.md",
+      "quote": "You can also ask the agent to update an existing memory",
+      "locator": "section: Ask your agent to record it",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Store is isolated per space (project scope); space binding determines which store receives the write.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/record.md",
+      "quote": "Recording saves knowledge into the active ByteRover space. \u2026 If the project should use a named space, bind it first with Bind.",
+      "locator": "intro paragraph and Note callout",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Structured records with typed elements (fact, decision, reason, rule, file) rank higher in retrieval than plain records.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/record.md",
+      "quote": "Structured records rank better because ByteRover can search facts, decisions, reasons, rules, and files separately.",
+      "locator": "section: Structured records",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is curated summaries/decisions, not a raw conversation log.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/record.md",
+      "quote": "Record knowledge that future sessions should reuse: architecture decisions and why they were made \u2026 Do not record facts that are already obvious from source code, generated files, or git history.",
+      "locator": "section: Decide what should be remembered",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A Dream skill exists for consolidation and cleanup of the memory store, implying a maintenance/forget-adjacent path.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/v4/skill/record.md",
+      "quote": "Dream: Review cleanup and consolidation proposals for saved memory.",
+      "locator": "section: Next steps",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory operations (persist, retrieve) are gated on a functioning OpenAI embedding pipeline; absence of a valid key breaks memory at startup.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/135",
+      "quote": "Cipher fails to start or operate properly if an OpenAI API key is not set or if its quota is exceeded",
+      "locator": "Issue body, 'The Problem' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "There is no documented configuration option (env, yml, CLI flag) to switch or disable the OpenAI embedding provider.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/135",
+      "quote": "Looking for flags or config options to disable OpenAI embeddings or switch embedding provider\u2014none found",
+      "locator": "Issue body, 'What I've Tried' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "cipher_extract_and_operate_memory is a named tool for memory extraction and operation",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/177",
+      "quote": "cipher_extract_and_operate_memory",
+      "locator": "Expected Tools (21 total)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Milvus vector store is used for persistent memory storage",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/177",
+      "quote": "\"VECTOR_STORE_TYPE\": \"milvus\", \"VECTOR_STORE_URL\": \"http://localhost:19531\"",
+      "locator": "MCP Configuration > .mcp.json > env",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A schema bug in cipher_evaluate_reasoning causes the entire 21-tool toolset to fail registration, blocking all memory and reasoning tools",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/177",
+      "quote": "array schema missing items ... This prevents all cipher functionality from being available in Claude Code, including memory search, storage, and reasoning capabilities.",
+      "locator": "Technical Analysis",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "ByteRover uses a vector storage backend layer as its persistence mechanism, with an established architecture pattern for multiple backend implementations",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/192",
+      "quote": "Add support for 6 additional vector storage backends following the existing architecture pattern at `src/core/vector_storage/backend/`.",
+      "locator": "issue body, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "StorageManager falls back to in-memory when primary database backend (attempted as PostgreSQL despite SQLite config) fails to connect",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/285",
+      "quote": "[StorageManager:Database] Primary backend failed, attempting fallback to in-memory\nInMemoryBackend connected\n[StorageManager:Database] Successfully connected to fallback backend\nSessionManager: Storage initialized with database backend: in-memory",
+      "locator": "Logs and Error Messages",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vector store persists knowledge memory embeddings using cosine similarity at 1536 dimensions",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/228",
+      "quote": "VECTOR_STORE_COLLECTION: \"knowledge_memory\"\nVECTOR_STORE_DIMENSION: \"1536\"\nVECTOR_STORE_DISTANCE: \"Cosine\"",
+      "locator": "Additional Context / cipher-app-config ConfigMap",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cipher is deployed via Docker/Kubernetes and served as an SSE MCP endpoint",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/228",
+      "quote": "node dist/src/app/index.cjs --mode api --port 3000 --host 0.0.0.0 --agent /app/memAgent/cipher.yml --mcp-transport-type sse",
+      "locator": "Additional Context / Deployment args",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "embeddingManager is a required named service within the agent; its absence is surfaced as a named error at runtime",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/243",
+      "quote": "No embeddingManager found in agent.services",
+      "locator": "Error Pattern 1 / Error Pattern 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory system has at least two distinct sub-systems: workspace memory and reflection memory, each independently toggleable",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/243",
+      "quote": "USE_WORKSPACE_MEMORY=false\nDISABLE_REFLECTION_MEMORY=true",
+      "locator": "Configuration Files Setup / .env file",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "StorageManager initializes and connects as a distinct component from the vector store",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/243",
+      "quote": "[StorageManager] Initialized with configuration\n[StorageManager] Storage system connected",
+      "locator": "Expected vs Actual Behavior / Expected Behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ByteRover has existing memory tools that the proposed cross-project system integrates with",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/249",
+      "quote": "Integration with existing memory tools for seamless operation",
+      "locator": "Describe the UX or technical implementation you have in mind",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Projects currently operate in isolation with no cross-project knowledge sharing",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/249",
+      "quote": "Currently, each project operates in isolation, leading to: Duplicate solutions for similar problems, Inconsistent implementation patterns across projects, Lost knowledge when team members switch projects",
+      "locator": "What problem or use case are you trying to solve?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Implementation is TypeScript-based and already complete per the issue author",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/249",
+      "quote": "Full TypeScript implementation with proper error handling",
+      "locator": "Additional context / Current Implementation",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory quality is represented with confidence scores",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/249",
+      "quote": "Master guides are generated with high confidence scores (>0.8)",
+      "locator": "Acceptance Criteria",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "ByteRover has a feature called 'Memory Store' that users can navigate to in order to view stored context",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/251",
+      "quote": "Go to 'Memory Store' ... not able to see my store context",
+      "locator": "Steps to Reproduce",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The product initializes a dual-collection vector storage system with separate knowledge and reflection collections",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/261",
+      "quote": "[VectorStoreFactory] Creating dual collection vector storage from environment\n20:58:14 INFO: DualCollectionVectorManager: Initialized with dual collections\n20:58:14 INFO: DualCollectionVectorManager: Knowledge collection connected\n20:58:14 INFO: DualCollectionVectorManager: Reflection collection connected",
+      "locator": "Actual Behavior / boot log",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Embeddings are configured via a cipher.yml file, with the embedding model specified there (ollama/mxbai-embed-large in this report)",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/261",
+      "quote": "embedding is configured in my cipher.yml to use ollama/mxbai-embed-large",
+      "locator": "Actual Behavior section, user description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The product integrates with PostgreSQL, Redis, and Neo4j as backend storage options for memory systems",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/261",
+      "quote": "enabled all memory systems and ollama LLM. Cipher, PostgreSQL, Redis, and Neo4j are currently in containers",
+      "locator": "Bug Description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MCP server mode fails to write data to Qdrant even though the model confirms the memory action \u2014 a continuity failure where the model reports successful storage but nothing is persisted.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/263",
+      "quote": "Claude confirms the memory action with this message: \"Great! I've added to Cipher's memory that your preferred language is French. The system will remember this preference for our future interactions.\" \u2014 Check Qdrant \u2192 no data is added.",
+      "locator": "Steps to Reproduce / Actual Behavior",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write path to the vector store works correctly via the UI but is broken in MCP mode, indicating mode-specific divergence in the persist path.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/263",
+      "quote": "all data is correctly added to the Qdrant database when using the UI. However, when I use the MCP server (Claude Code), the data is not stored in Qdrant.",
+      "locator": "Description",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cipher uses SQLite as a relational database store alongside the vector store.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/263",
+      "quote": "STORAGE_DATABASE_TYPE=sqlite\nSTORAGE_DATABASE_NAME=/home/sheldon/code/cipher/data/cipher.db",
+      "locator": ".env / Storage Configuration",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Distance metric and on-disk storage for the vector collection are configurable.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/263",
+      "quote": "VECTOR_STORE_DISTANCE=Cosine\nVECTOR_STORE_ON_DISK=false",
+      "locator": ".env / Vector Store Configuration",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Event persistence (logging) is a separate system from memory storage, with configurable filtering and a file-based persistence path.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/263",
+      "quote": "EVENT_PERSISTENCE_ENABLED=true\nEVENT_PERSISTENCE_PATH=./data/events",
+      "locator": ".env / CONFIGURATION FOR EVENT MANAGEMENT",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cipher (ByteRover) uses qdrant, postgres, and redis as its persistence backend",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/270",
+      "quote": "My deployed topology has Cipher connecting to qdrant-postgres-redis",
+      "locator": "issue body, first paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cipher (ByteRover) exposes memory over MCP via SSE and WebSocket transports on port 3001",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/270",
+      "quote": "[API Server] MCP SSE endpoints available at /mcp/sse and /mcp. [API Server] WebSocket server available at ws://0.0.0.0:3001/ws.",
+      "locator": "issue body, server startup log block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cipher (ByteRover) supports an 'aggregator' MCP server mode",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/270",
+      "quote": "\"MCP_SERVER_MODE\": \"aggregator\"",
+      "locator": "issue body, VSCode MCP client config block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cipher persists memory state to a SQLite database file whose location is controlled by STORAGE_DATABASE_PATH and STORAGE_DATABASE_NAME environment variables.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/279",
+      "quote": "Database should be created at /app/.cipher/database/cipher.db",
+      "locator": "Expected Behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ByteRover CLI describes itself as an AI-powered context memory tool with cloud sync",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/301",
+      "quote": "What started as Cipher has grown into a full-featured, interactive CLI for AI-powered context memory - with a React/Ink TUI, 20+ LLM providers, 24 built-in agent tools, cloud sync, MCP integration, and more.",
+      "locator": "Section: Why the rename",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Contradiction detection drives deletion: when a new message contradicts a stored fact, the old memory is deleted.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/39",
+      "quote": "Contradictory information triggers deletions",
+      "locator": "Section 7.3 Success Criteria",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write path implements ADD, UPDATE, DELETE, and NONE operations, with the logic located at a specific source file and line.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/39",
+      "quote": "Memory Operations: ADD, UPDATE, DELETE, NONE (via src/core/brain/tools/definitions/memory/extract_and_operate_memory.ts:416)",
+      "locator": "Section Codebase Architecture Overview, Key Components",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is at the session level, with sessions identified by sessionId in API mode and manageable via /session commands in CLI mode.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/39",
+      "quote": "/session new coding-session\n/session list\n/session switch coding-session\n/session current\n/session delete old-session",
+      "locator": "Section 3.3 Session Management",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The dual backend stores both a vector embedding and graph entities/relationships for the same input when both are enabled.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/39",
+      "quote": "Should store both vector embedding AND graph entities/relationships",
+      "locator": "Section 6.3 Dual Backend Validation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ByteRover CLI has memory capability",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/394",
+      "quote": "ByteRover CLI looks like a fit because it already has memory, review workflow, MCP, and multi-agent support.",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MCP integration is proposed to allow ByteRover to serve as a secondary/external memory carrier without occupying the primary memory provider slot.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/626",
+      "quote": "support ByteRover via MCP as an external/secondary memory carrier. This would allow users to attach ByteRover without relying on the single memory provider slot, making the integration more flexible",
+      "locator": "Proposed solution",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ByteRover performs concurrent curation of memory, issuing multiple model queries in parallel during the curation process.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/641",
+      "quote": "the byterover tries to process multiple query at same time. this might be causing heavy stalling problem for me.",
+      "locator": "Problem statement",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ByteRover persists curated facts into a local context tree at .brv/context-tree",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/647",
+      "quote": "Project type: local context tree under `.brv/context-tree`",
+      "locator": "Environment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Continuity failure (prompt example leakage): fabricated personal and project facts were written to the persistent store from unrelated source content, observed with gemini-3.1-flash-lite-preview on ByteRover CLI 3.12.0",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/647",
+      "quote": "A curation task whose source content was about Hermes / Fireworks model routing generated an `Andy Personal Profile` entry. The source content did not mention Andy, Portland, PST, tabs, PostgreSQL, or the ByteRover identity text.",
+      "locator": "What happened",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The curation scaffold is defined in dist/agent/resources/prompts/system-prompt.yml and includes realistic example facts that can leak into the write path under certain models",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/647",
+      "quote": "The installed ByteRover prompt contains realistic example facts in:\n```\ndist/agent/resources/prompts/system-prompt.yml\n```",
+      "locator": "Why I think it may be prompt example leakage",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No grounding check exists on the write path to verify extracted facts against the source payload; absence is the reported bug",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/647",
+      "quote": "brv curate should only store facts grounded in the provided source content. Prompt examples and system identity text should never be written to the user's context tree unless the user content explicitly contains them.",
+      "locator": "Expected behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ByteRover has distinct named tasks \u2014 query, search, curate, sync_turn, dream \u2014 each representing a different stage of the memory pipeline (retrieve, write, consolidate).",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/648",
+      "quote": "models:\n  tasks:\n    query:\n    search:\n    curate:\n    sync_turn:\n    dream:",
+      "locator": "Proposed config section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "query and search are read/retrieval-path tasks on the critical path of agent responses; curate and sync_turn are background write tasks; dream is offline consolidation.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/648",
+      "quote": "low perceived latency during normal chat\n- higher quality long-term memory organization",
+      "locator": "Why this matters section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Automatic turn sync runs in the background, implying conversation turns are persisted to memory without explicit user invocation.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/648",
+      "quote": "automatic conversation sync uses the configured `sync_turn` model.",
+      "locator": "Desired behavior section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The curate task is involved in writing/organizing memory and is sensitive to model quality \u2014 a weak model caused prompt examples to be incorrectly written into the context tree.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/648",
+      "quote": "a curator quality issue where a lighter model appeared to copy prompt examples into the context tree",
+      "locator": "Related issue section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "brv curate takes user-supplied text and runs an extraction + review pipeline to write entries into the project memory store (context-tree).",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/757",
+      "quote": "`brv curate \"<text>\"` should use the supplied text as the source content for extraction and review operations.",
+      "locator": "Section 5: Expected behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Content-substitution bug in CLI 3.16.1: supplied curation text was ignored and unrelated internal RLM/meta content was used instead for 5 of 6 test cases, constituting a continuity/wrong-knowledge failure.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/757",
+      "quote": "Supplied text was ignored/substituted for several targeted curation attempts. Review operations were generated for unrelated RLM/meta workflow files.",
+      "locator": "Section 6: Actual behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The store can reach an inconsistent state with orphan sidecars and persisted rejected bodies, requiring a defined recovery path that does not yet exist per the reporter.",
+      "kind": "issue",
+      "url": "https://github.com/campfirein/byterover-cli/issues/757",
+      "quote": "How should users recover orphan sidecars, missing body files, persisted rejected bodies, or reject-restored variants?",
+      "locator": "Section 10: Requested guidance/fix",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieve path: brv query runs before each LLM call and injects relevant memories as context \u2014 retrieve-then-prompt pattern confirmed.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/autonomous-agents/hermes",
+      "quote": "Before each LLM call, the provider runs `brv query` with the user's message and injects the results as additional context.",
+      "locator": "Features > Context Retrieval",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path: brv curate runs after each turn to extract and store knowledge; described as asynchronous with no latency impact.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/autonomous-agents/hermes",
+      "quote": "After each conversation turn, the provider runs `brv curate` in the background to extract and store valuable knowledge \u2014 architectural decisions, bug fixes, recurring patterns, and more. This happens asynchronously and does not add latency to responses.",
+      "locator": "Features > Automatic Curation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Pre-compression flush acts as an additional write trigger to preserve context before summarization compacts the conversation window.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/autonomous-agents/hermes",
+      "quote": "When the agent's context window approaches compression, the provider extracts and stores insights before the conversation history is summarized. Nothing valuable is lost when the context is compacted.",
+      "locator": "Features > Pre-Compression Flush",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Store is profile-scoped, suggesting isolation per agent profile rather than per session or per user explicitly.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/autonomous-agents/hermes",
+      "quote": "Context-tree directory: $HERMES_HOME/byterover/.brv (profile-scoped, created automatically on first use)",
+      "locator": "Hermes Agent Tools section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The store is described as a 'knowledge tree' containing curated facts, decisions, and patterns \u2014 not a raw transcript log.",
+      "kind": "docs",
+      "url": "https://docs.byterover.dev/autonomous-agents/hermes",
+      "quote": "Store a fact, decision, or pattern into the knowledge tree \u2014 automatically categorized and organized",
+      "locator": "Hermes Agent Tools table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "ByteRover reaches 96.1% overall accuracy on LoCoMo, +6.2 points over HonCho",
+      "kind": "blog",
+      "url": "https://memorypapers.org/papers/byterover-agent-native-memory-through-llm-curated-hierarchical-context",
+      "quote": "ByteRover reaches 96.1% overall accuracy versus 89.9% for HonCho.",
+      "locator": "RESULTS / BENCHMARK",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ByteRover achieves 92.8% overall accuracy on LongMemEval-S with p50 cold query latency of 1.6 s and no external infrastructure",
+      "kind": "blog",
+      "url": "https://memorypapers.org/papers/byterover-agent-native-memory-through-llm-curated-hierarchical-context",
+      "quote": "Cold query latency p50 1.6 s LongMemEval-S end to end without external infrastructure",
+      "locator": "RESULTS \u2014 By the Numbers",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context Tree entries carry importance scores in [0,100], maturity tiers from draft to core, and recency decay with \u03c4 = 30 days",
+      "kind": "blog",
+      "url": "https://memorypapers.org/papers/byterover-agent-native-memory-through-llm-curated-hierarchical-context",
+      "quote": "ByteRover introduces the Context Tree with importance scores in [0,100], maturity tiers from draft to core, and recency decay with \u03c4 = 30 days.",
+      "locator": "KEY CONTRIBUTIONS \u2014 02",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Most queries resolve at sub-100 ms without LLM calls via the tiered pipeline",
+      "kind": "blog",
+      "url": "https://memorypapers.org/papers/byterover-agent-native-memory-through-llm-curated-hierarchical-context",
+      "quote": "ByteRover designs a 5 tier retrieval pipeline that resolves most queries at sub 100 ms without LLM calls and signals out of domain queries explicitly.",
+      "locator": "KEY CONTRIBUTIONS \u2014 03",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/core/domain/memory/types.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/core/domain/knowledge/conflict-resolver.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/core/domain/storage/message-storage-types.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/blob/1052ac1a5dd0fde4da8693d4712064f7876c269c/src/agent/infra/memory/memory-manager.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.byterover.dev/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.byterover.dev/v4/overview.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.byterover.dev/v4/skill/bind.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.byterover.dev/v4/skill/query.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.byterover.dev/v4/skill/record.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.byterover.dev/v4/skill/dream.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.byterover.dev/v4/desktop/space.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/301",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/648",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/249",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/641",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/626",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/135",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/263",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/39",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/228",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/192",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/261",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/243",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/177",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/757",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/647",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/285",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/279",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/270",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/394",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/campfirein/byterover-cli/issues/251",
+      "kind": "issue",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    },
+    {
+      "url": "https://docs.byterover.dev/autonomous-agents/hermes",
+      "kind": "docs",
+      "accessed_at": "2026-09-16",
+      "quality": "high"
+    },
+    {
+      "url": "https://memorypapers.org/papers/byterover-agent-native-memory-through-llm-curated-hierarchical-context",
+      "kind": "blog",
+      "accessed_at": "2026-09-16",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [
+    {
+      "text": "Vendor benchmark posts (skipped in harvest) vs memorypapers.org paper in ledger\u2014treat leaderboard copy as marketing unless independently reproduced."
+    },
+    {
+      "text": "Curator reliability contested: issues #757 and #647 report unrelated or example facts written into the context tree\u2014continuity risk if retrieved blindly."
+    },
+    {
+      "text": "Cipher-era MCP/vector-store bugs (#263, #177) may not reflect V4 Desktop+skill path; field reports are mixed."
+    }
+  ],
+  "copy": [
+    {
+      "text": "Query \u2192 work \u2192 Record loop plus Dream cleanup fits long-horizon **repo** companions (coding agents), not emotional dyad memory\u2014reuse pattern for scaffolded project recall."
+    },
+    {
+      "text": "Space boundaries and team sharing mirror 'project + shared lore' isolation questions in companion research without claiming ByteRover optimizes relationship continuity."
+    }
+  ],
+  "refuse": [
+    {
+      "text": "Refuse byterover.dev benchmark blogs, mem0.ai benchmark roundups, and bestaiweb.ai comparison posts as architecture specs\u2014use docs.byterover.dev and pinned CLI code."
+    },
+    {
+      "text": "Refuse treating LongMemEval/LoCoMo marketing scores as evidence that coding memory equals human-like companion remembering."
+    },
+    {
+      "text": "Refuse legacy Cipher MCP/Qdrant issue threads as the sole V4 Desktop skill contract without checking current docs."
+    }
+  ],
+  "unknowns": [
+    {
+      "text": "The page does not describe the internal structure of what is stored \u2014 whether spaces hold full transcript logs, curated facts, summaries, or topic-keyed entries.",
+      "url": "https://docs.byterover.dev/v4/desktop/space.md",
+      "kind": "docs"
+    },
+    {
+      "text": "What SEARCH_MEMORY_TYPE options exist beyond 'both' and how each retrieval mode selects content into the turn is not described",
+      "url": "https://github.com/campfirein/byterover-cli/issues/243",
+      "kind": "issue"
+    },
+    {
+      "text": "The write path for MCP mode is not explained \u2014 it is unclear whether the MCP tool calls a different code path or whether the environment variables passed via claude.json are insufficient to reach Qdrant, and the issue does not include a maintainer response.",
+      "url": "https://github.com/campfirein/byterover-cli/issues/263",
+      "kind": "issue"
+    },
+    {
+      "text": "The page references curation of a memory base but does not describe what is persisted, how facts are extracted or updated, or how retrieval into context works. As a canonical issue on the CLI repo touching the core memory architecture area, these behaviors are unaddressed.",
+      "url": "https://github.com/campfirein/byterover-cli/issues/641",
+      "kind": "issue"
+    }
+  ]
+}

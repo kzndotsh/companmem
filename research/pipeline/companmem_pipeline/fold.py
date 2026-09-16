@@ -130,6 +130,7 @@ COMPETITOR_COMPARE_HOSTS = (
     "i-programmer.info",
     "aimemory.pro",
     "benchmarks.hindsight.vectorize.io",
+    "bestaiweb.ai",
 )
 THIRD_PARTY_BLOG_HOSTS_WHEN_DOCS = (
     "dev.to",
