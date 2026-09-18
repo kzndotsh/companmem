@@ -140,6 +140,11 @@ THIRD_PARTY_BLOG_HOSTS_WHEN_DOCS = (
     "dev.to",
     "blog.continua.ai",
     "glukhov.org",
+    "medium.com",
+    "datacamp.com",
+    "preuve.ai",
+    "agentpedia.codes",
+    "johnoct.com",
 )
 COMPARISON_BLOG_PATH_RE = re.compile(
     r"vs[-_/]|benchmark|/comparison|stacked-up",
@@ -421,6 +426,8 @@ def unknown_superseded_by_ledger(
             "curated facts",
             "topic-keyed",
             "memory base",
+            "observation capture",
+            "data model",
         )
     )
     write_path_gap = any(

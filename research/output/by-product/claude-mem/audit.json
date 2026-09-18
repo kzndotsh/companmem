@@ -1,0 +1,2093 @@
+{
+  "identity": {
+    "id": "claude-mem",
+    "name": "claude-mem",
+    "repo": "https://github.com/thedotmack/claude-mem",
+    "docs": "https://docs.claude-mem.ai/llms.txt",
+    "license": "Apache-2.0",
+    "version_or_commit": "40be934a846cca6d2038f1d9800428a4f4d5136f",
+    "observed_at": "2026-09-18"
+  },
+  "claimed_purpose": [
+    {
+      "text": "claude-mem (thedotmack/claude-mem): Claude Code / IDE hook plugin that compresses sessions into SQLite-backed observations and injects retrieved context across turns\u2014developer-session memory, not a consumer companion product."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Store: local SQLite (observations, summaries, sessions, FTS5); curated observation records with types/metadata\u2014not a full transcript replay; optional cloud sync / hosted MCP (cmem.ai Pro)."
+    },
+    {
+      "text": "Write: 5-stage hook lifecycle captures tool/user output \u2192 worker extracts observations (provider-configurable); private tags gate capture; folder CLAUDE.md sidecar context; issues #2793/#3848 flag unbounded prompt storage and cost."
+    },
+    {
+      "text": "Retrieve: MCP search tools (3-layer progressive disclosure); context generator / ObservationCompiler injects recent observations; file-read gate substitutes observation history for re-reads."
+    },
+    {
+      "text": "Forget: retention/eviction via quota guards (#4068); manual recovery for stuck observations; schema tables like pending_messages contested in issues\u2014no soft companion-style 'forget this feeling' API."
+    },
+    {
+      "text": "Isolation: per-project / memory_session_id scoping (#3608 plan); observer subprocess isolation (#3607); fail-open hook wrapper (#3605) vs fail-loud thresholds (#3834) trade continuity for safety."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Memory provider is selectable: hosted CMEM Pro, self-hosted via OpenRouter/Gemini key, or the Anthropic plan \u2014 indicating per-account isolation",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/README.md",
+      "quote": "After sign-in you pick your memory provider \u2014 the claude-mem observer, your own OpenRouter or Gemini key, or your Anthropic plan.",
+      "locator": "Quick Start section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The store is curated observations (decisions, bugfixes, security alerts, sensitive items) written as dated lines in a monthly markdown log \u2014 not a full message transcript",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/README.md",
+      "quote": "needle observations (`decision`, `bugfix`, `security_alert`, `sensitive`) are appended as dated `- YYYY-MM-DD [awareness] \u2026` lines into that bot's `memory/log/YYYY-MM.md`",
+      "locator": "Quick Start section \u2014 Awareness push pilot",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is adaptive / token-efficient via progressive disclosure: a 3-layer workflow avoids loading full observation text until IDs are filtered",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/README.md",
+      "quote": "Progressive Disclosure - Layered memory retrieval with token cost visibility",
+      "locator": "Quick Start \u2014 Key Features",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "SQLite (with FTS5) and Chroma vector database together form the persistent store backing retrieval",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/README.md",
+      "quote": "SQLite Database - Stores sessions, observations, summaries \u2026 Chroma Vector Database - Hybrid semantic + keyword search for intelligent context retrieval",
+      "locator": "How It Works section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The package ships under Apache License 2.0",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/README.md",
+      "quote": "Claude-Mem is licensed under the Apache License 2.0.",
+      "locator": "License section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is stored as curated typed items (observation, summary, prompt, manual), not as a raw conversation log.",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/core/schemas/memory-item.ts",
+      "quote": "export const MemoryItemKindSchema = z.enum(['observation', 'summary', 'prompt', 'manual']);",
+      "locator": "src/core/schemas/memory-item.ts:5",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is at the project level (projectId required) with optional session-level scoping (serverSessionId nullable).",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/core/schemas/memory-item.ts",
+      "quote": "projectId: z.string().min(1),\n  serverSessionId: z.string().min(1).nullable().default(null),",
+      "locator": "src/core/schemas/memory-item.ts:11-12",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Structured memory separates narrative prose from discrete facts and concepts arrays, and tracks file-level activity (filesRead, filesModified).",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/core/schemas/memory-item.ts",
+      "quote": "facts: z.array(z.string()).default([]),\n  concepts: z.array(z.string()).default([]),\n  filesRead: z.array(z.string()).default([]),\n  filesModified: z.array(z.string()).default([]),",
+      "locator": "src/core/schemas/memory-item.ts:20-23",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Source provenance is tracked separately from the memory item itself, recording how each memory was created (observation, session_summary, user_prompt, manual, import).",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/core/schemas/memory-item.ts",
+      "quote": "export const MemorySourceTypeSchema = z.enum(['observation', 'session_summary', 'user_prompt', 'manual', 'import']);",
+      "locator": "src/core/schemas/memory-item.ts:6",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory items have an updatedAtEpoch field, confirming that update (not only append) is part of the write path.",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/core/schemas/memory-item.ts",
+      "quote": "updatedAtEpoch: z.number().int().nonnegative()",
+      "locator": "src/core/schemas/memory-item.ts:26",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "claude-mem has a dedicated context-generation service that re-exports a ContextBuilder, implying a scaffold layer distinct from raw storage",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/services/context-generator.ts",
+      "quote": "export { generateContext, generateContextWithStats } from './context/ContextBuilder.js';",
+      "locator": "src/services/context-generator.ts:4",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A ContextInjectStats type suggests the product can report statistics about what memory was injected into a turn, enabling observability of the retrieve step",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/services/context-generator.ts",
+      "quote": "export type { ContextInjectStats } from './context/ContextBuilder.js';",
+      "locator": "src/services/context-generator.ts:5",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Separate ContextInput and ContextConfig types suggest the retrieve/scaffold step is configurable, not a fixed always-retrieve policy",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/services/context-generator.ts",
+      "quote": "export type { ContextInput, ContextConfig } from './context/types.js';",
+      "locator": "src/services/context-generator.ts:6",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Observations are curated memory records in SQLite with structured fields including type, title, subtitle, narrative, facts, concepts, files_read, files_modified, discovery_tokens, scoped by project and session.",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/services/context/ObservationCompiler.ts",
+      "quote": "o.id, o.memory_session_id, ... o.type, o.title, o.subtitle, o.narrative, o.facts, o.concepts, o.files_read, o.files_modified, o.discovery_tokens, o.created_at, o.created_at_epoch, o.project FROM observations o",
+      "locator": "queryObservationsMulti function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session summaries store structured end-of-session distillations (request, investigated, learned, completed, next_steps) as a distinct table from observations, representing curated memory rather than a raw log.",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/services/context/ObservationCompiler.ts",
+      "quote": "ss.request, ss.investigated, ss.learned, ss.completed, ss.next_steps, ss.created_at, ss.created_at_epoch, ss.project FROM session_summaries ss",
+      "locator": "querySummariesMulti function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy for prior-session last message is conditional: only fires when config.showLastMessage is true and a prior-session observation exists in the retrieved set.",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/services/context/ObservationCompiler.ts",
+      "quote": "if (!config.showLastMessage || observations.length === 0) { return { assistantMessage: '' }; } const priorSessionObs = observations.find(obs => obs.memory_session_id !== currentSessionId);",
+      "locator": "getPriorSessionMessages function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Project merge is supported: an observation can belong to its original project or have been merged into another project, and queries surface it under either identity.",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/services/context/ObservationCompiler.ts",
+      "quote": "WHERE (o.project IN (${projectPlaceholders}) OR o.merged_into_project IN (${projectPlaceholders}))",
+      "locator": "queryObservationsMulti / querySummariesMulti",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A past bug (issue #2401) caused the 'include last message' feature to silently no-op for any working directory path containing a dot, fixed by replacing both slashes and dots when encoding the transcript directory name.",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/services/context/ObservationCompiler.ts",
+      "quote": "Replacing only `/` left a literal `.` in the dir name, so \"Include last message\" silently no-opped for any cwd component containing a dot \u2014 Unix usernames like `john.doe`, dotted dirs, etc. (#2401).",
+      "locator": "cwdToDashed function, comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "claude-mem uses SQLite as its persistent memory store, writing curated memory items (not raw transcripts) with fields for facts, concepts, narrative, and file activity.",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/storage/sqlite/memory-items.ts",
+      "quote": "INSERT INTO memory_items (\n        id, project_id, server_session_id, legacy_observation_id, kind, type,\n        title, subtitle, text, narrative, facts, concepts, files_read,\n        files_modified, metadata, created_at_epoch, updated_at_epoch\n      )",
+      "locator": "MemoryItemsRepository.create",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated at the project level (project_id), with optional session-level scoping (server_session_id).",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/storage/sqlite/memory-items.ts",
+      "quote": "project_id: string;\n  server_session_id: string | null;",
+      "locator": "MemoryItemRow interface",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory items can be updated in place (supersession), preserving the same id while advancing the updated_at_epoch timestamp.",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/storage/sqlite/memory-items.ts",
+      "quote": "UPDATE memory_items\n      SET\n        ...updated_at_epoch = ?\n      WHERE id = ?",
+      "locator": "MemoryItemsRepository.update",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval for a project returns items ordered by recency (created_at_epoch DESC), capped at a configurable limit (default 100).",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/storage/sqlite/memory-items.ts",
+      "quote": "ORDER BY created_at_epoch DESC\n      LIMIT ?",
+      "locator": "MemoryItemsRepository.listByProject",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A full-text search path over memory items is scoped by project_id and returns results ordered by recency of last update (updated_at_epoch DESC), capped at 20 by default.",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/storage/sqlite/memory-items.ts",
+      "quote": "WHERE memory_items_fts.project_id = ?\n        AND memory_items_fts MATCH ?\n      ORDER BY memory_items.updated_at_epoch DESC\n      LIMIT ?",
+      "locator": "MemoryItemsRepository.search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No delete method is present in this file; the forget/delete path for memory items is not implemented here.",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/storage/sqlite/memory-items.ts",
+      "quote": "export class MemoryItemsRepository {",
+      "locator": "MemoryItemsRepository class",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is stored as typed, curated items (not raw transcript) with kinds: observation, summary, prompt, manual",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/storage/sqlite/schema.ts",
+      "quote": "kind TEXT NOT NULL CHECK(kind IN ('observation', 'summary', 'prompt', 'manual'))",
+      "locator": "memory_items table DDL, kind column",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Each memory item stores structured narrative, facts array, and concepts array alongside free-text fields",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/storage/sqlite/schema.ts",
+      "quote": "text TEXT,\n      narrative TEXT,\n      facts TEXT NOT NULL DEFAULT '[]',\n      concepts TEXT NOT NULL DEFAULT '[]',",
+      "locator": "memory_items table DDL",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory items are isolated at project scope via foreign key with cascade delete (project-level forget)",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/storage/sqlite/schema.ts",
+      "quote": "FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE",
+      "locator": "memory_items table DDL, ON DELETE CASCADE",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory items are additionally scoped to a server session (session-level isolation); session deletion nullifies the foreign key rather than deleting items",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/storage/sqlite/schema.ts",
+      "quote": "FOREIGN KEY(server_session_id) REFERENCES server_sessions(id) ON DELETE SET NULL",
+      "locator": "memory_items table DDL, server_session_id FK",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is supported via FTS5 full-text search with Porter stemming over title, subtitle, text, narrative, facts, concepts",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/storage/sqlite/schema.ts",
+      "quote": "CREATE VIRTUAL TABLE IF NOT EXISTS memory_items_fts USING fts5(\n      memory_item_id UNINDEXED,\n      project_id UNINDEXED,\n      title,\n      subtitle,\n      text,\n      narrative,\n      facts,\n      concepts,\n      tokenize='porter unicode61'\n    )",
+      "locator": "FTS5 virtual table DDL",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Update path for memory items replaces the FTS row (delete + insert), keeping the search index current",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/storage/sqlite/schema.ts",
+      "quote": "CREATE TRIGGER IF NOT EXISTS trg_memory_items_fts_update\n    AFTER UPDATE ON memory_items\n    BEGIN\n      DELETE FROM memory_items_fts WHERE memory_item_id = old.id;\n      INSERT INTO memory_items_fts ...",
+      "locator": "trg_memory_items_fts_update trigger DDL",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Deleting a memory item removes it from the FTS index, making it unsearchable (delete-based forget)",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/storage/sqlite/schema.ts",
+      "quote": "CREATE TRIGGER IF NOT EXISTS trg_memory_items_fts_delete\n    AFTER DELETE ON memory_items\n    BEGIN\n      DELETE FROM memory_items_fts WHERE memory_item_id = old.id;\n    END;",
+      "locator": "trg_memory_items_fts_delete trigger DDL",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Agent events are stored in a separate table as a log (not curated memory), keyed by event_type and payload",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/storage/sqlite/schema.ts",
+      "quote": "source_type TEXT NOT NULL CHECK(source_type IN ('hook', 'worker', 'provider', 'server', 'api')),\n      event_type TEXT NOT NULL,\n      payload TEXT NOT NULL DEFAULT '{}'",
+      "locator": "agent_events table DDL",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory provenance is tracked per item via memory_sources with source_type distinguishing observation, session_summary, user_prompt, manual, import",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/storage/sqlite/schema.ts",
+      "quote": "source_type TEXT NOT NULL CHECK(source_type IN ('observation', 'session_summary', 'user_prompt', 'manual', 'import'))",
+      "locator": "memory_sources table DDL, source_type column",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Sessions split content_session_id from memory_session_id, indicating content context and memory context can be tracked independently",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/storage/sqlite/schema.ts",
+      "quote": "content_session_id TEXT,\n      memory_session_id TEXT,",
+      "locator": "server_sessions table DDL",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistent store lives at ~/.claude-mem/claude-mem.db in SQLite WAL mode",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/database.md",
+      "quote": "Path: ~/.claude-mem/claude-mem.db ... The database uses SQLite's WAL (Write-Ahead Logging) mode for concurrent reads/writes.",
+      "locator": "## Database Location",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Observations are curated, typed, hierarchical extracts of tool executions \u2014 not raw transcript \u2014 with per-project and per-session isolation",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/database.md",
+      "quote": "Individual tool executions with hierarchical structure. ... project TEXT NOT NULL ... sdk_session_id TEXT NOT NULL",
+      "locator": "### 2. observations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session summaries are AI-generated, structured into discrete fields (request, investigated, learned, completed, next_steps, notes), multiple per session",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/database.md",
+      "quote": "AI-generated session summaries (multiple per session). ... request TEXT, investigated TEXT, learned TEXT, completed TEXT, next_steps TEXT, notes TEXT",
+      "locator": "### 3. session_summaries",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Full transcript log is separate from the database: JSONL files on disk are the spine; database tables are curated extracts",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/database.md",
+      "quote": "Not a transcript store: the JSONL transcripts on disk and the transcript watcher remain the spine for session history. This table is a by-reference index for tool bodies, nothing more.",
+      "locator": "### 5. tool_uses",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write idempotency: replayed hook or re-scan updates tool_uses row rather than duplicating; observation linkage is write-once",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/database.md",
+      "quote": "UNIQUE(content_session_id, tool_use_id) means a replayed PostToolUse (hook retry, transcript re-scan) updates the row instead of duplicating it. observation_id is linked after generation and is never overwritten once set.",
+      "locator": "### 5. tool_uses \u2014 Idempotency",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Prior v3.x model used compressed memory chunks (memories table); current model uses structured observations and summaries",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/database.md",
+      "quote": "memories: Legacy compressed memory chunks (v3.x)",
+      "locator": "### Legacy Tables",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "FTS5 injection protection added in v4.2.3 with 332 attack tests; queries escape double quotes",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/database.md",
+      "quote": "As of v4.2.3, all FTS5 queries are properly escaped to prevent SQL injection: Double quotes are escaped: query.replace(/\"/g, '\"\"') ... Comprehensive test suite with 332 injection attack tests",
+      "locator": "## Security",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve path exposes tool I/O via get_tool_uses MCP tool at progressive-disclosure layer 4",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/database.md",
+      "quote": "it is what the get_tool_uses MCP tool (progressive-disclosure layer 4) reads.",
+      "locator": "### 5. tool_uses \u2014 Why it exists",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Prior session context is retrieved by selecting the last 50 observations for the project and injected into Claude's prompt at SessionStart",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/hooks.md",
+      "quote": "Worker->>DB: SELECT * FROM observations WHERE project=X ORDER BY created_at DESC LIMIT 50 \u2026 Worker-->>ContextHook: Context markdown \u2026 ContextHook-->>IDE: hookSpecificOutput.additionalContext",
+      "locator": "Stage 1: SessionStart / Sequence Diagram",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Observations are AI-compressed by calling the Claude SDK agent before being stored; raw tool output is not stored verbatim",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/hooks.md",
+      "quote": "Agent->>Agent: Call Claude SDK to compress observation into structured format \u2026 Agent->>DB: Save compressed observation to sdk_sessions table",
+      "locator": "Stage 3: PostToolUse / Sequence Diagram",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A structured session summary (request, investigated, learned, completed, next_steps) is written to the database asynchronously at each Stop event",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/hooks.md",
+      "quote": "Agent->>Agent: Call Claude SDK with prompt: 'Summarize: request, investigated, learned, completed, next_steps' \u2026 Agent->>DB: INSERT INTO session_summaries { session_id, request, investigated, learned, completed, next_steps }",
+      "locator": "Stage 4: Stop / Sequence Diagram",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Privacy-tagged content is stripped before storage; a fully private prompt is silently skipped and never written to the database",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/hooks.md",
+      "quote": "alt Prompt fully private (empty after stripping) NewHook-->>IDE: Skip (don't save)",
+      "locator": "Stage 2: UserPromptSubmit / Sequence Diagram",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is scoped per project (basename of cwd); no cross-project retrieval is described",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/hooks.md",
+      "quote": "NewHook->>NewHook: Extract project = basename(cwd) \u2026 GET /api/context/inject?project={project}",
+      "locator": "Stage 2: UserPromptSubmit / Processing Steps; Stage 1: SessionStart / Processing",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Session records are insert-idempotent: the same session_id always maps to the same database row via INSERT OR IGNORE",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/hooks.md",
+      "quote": "INSERT OR IGNORE INTO sdk_sessions (claude_session_id, project, first_user_prompt) VALUES (?, ?, ?) RETURNING id;",
+      "locator": "Database Schema / Idempotency Pattern",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Session deletion cascades to all child memory records (prompts, observations, summaries)",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/hooks.md",
+      "quote": "Session deletions cascade to child tables",
+      "locator": "Database Schema / Foreign Key Cascade",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Persist: tool executions are captured as observations and stored in SQLite on every PostToolUse event",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/overview.md",
+      "quote": "PostToolUse (matcher *) \u2192 hook claude-code observation",
+      "locator": "Component Details, Plugin Hooks",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path compresses raw observations via AI (Claude Agent SDK or Gemini/OpenRouter) before storing summaries",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/overview.md",
+      "quote": "Worker service reads observations, processes via SDK \u2026 Processed summaries written back to database",
+      "locator": "Data Flow, Memory Pipeline, steps 3\u20134",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/cleanup: sessions are marked complete, not deleted; /clear skips cleanup to preserve ongoing context",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/overview.md",
+      "quote": "Marks session complete (graceful, not DELETE), ready for next session context. Skips on /clear to preserve ongoing",
+      "locator": "Session Lifecycle, step 6",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy: a configurable number of observations from previous sessions is injected at SessionStart; on-demand search is also available",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/overview.md",
+      "quote": "injects context from previous sessions (configurable observation count)",
+      "locator": "Session Lifecycle, step 1",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-user: database path and worker port are both scoped to the OS user",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/overview.md",
+      "quote": "Express.js HTTP server on a per-user port (default 37700 + (uid % 100)) \u2026 Location: ~/.claude-mem/claude-mem.db",
+      "locator": "Component Details, Worker Service; Component Details, Database Layer",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Log vs memory: raw prompts and tool executions (log) are stored separately from AI-compressed summaries/learnings (memory)",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/overview.md",
+      "quote": "saves raw user prompt for FTS5 \u2026 Extracts structured learnings via iterative AI processing",
+      "locator": "Session Lifecycle, steps 2 and 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "mem-search skill effectiveness reported as increasing from 67% to 100% after v5.5.0 rename and trigger improvements",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/overview.md",
+      "quote": "Effectiveness increased from 67% to 100% with enhanced triggers and comprehensive documentation",
+      "locator": "Component Details, mem-search Skill, Skill Enhancement (v5.5.0)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Just-in-time context is recommended for agents because it avoids context pollution and enables progressive disclosure",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/context-engineering.md",
+      "quote": "Avoids context pollution... Enables progressive disclosure... Mirrors human cognition (we don't memorize everything)",
+      "locator": "Context Retrieval Strategies > Just-In-Time Context (Recommended for Agents)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Structured note-taking constitutes persistent memory with minimal overhead and enables coherent multi-hour strategies",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/context-engineering.md",
+      "quote": "Persistent memory with minimal overhead... Enables multi-hour coherent strategies",
+      "locator": "Long-Horizon Tasks > 2. Structured Note-Taking (Agentic Memory)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context grows quadratically in attention cost, so model accuracy decreases as context length increases",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/context-engineering.md",
+      "quote": "Every token attends to every other token (n\u00b2 relationships)... As context length increases, model accuracy decreases",
+      "locator": "The Problem: Context Rot",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Maintaining coherence across extended interactions is a central unsolved challenge even as models improve",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/context-engineering.md",
+      "quote": "Even as models continue to improve, the challenge of maintaining coherence across extended interactions will remain central to building more effective agents.",
+      "locator": "Remember",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The page is based on Anthropic's September 2025 context engineering material, not original claude-mem research",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/context-engineering.md",
+      "quote": "Based on Anthropic's \"Effective context engineering for AI agents\" (September 2025)",
+      "locator": "Footer attribution",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Observations (tool executions) and summaries are the persisted unit, not full transcripts \u2014 curated facts model rather than raw log",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/introduction.md",
+      "quote": "Tool Executions \u2192 Capture observations (Read, Write, etc.) \u2026 Worker Processes \u2192 Extract learnings via Claude Agent SDK \u2026 Session Ends \u2192 Generate summary, ready for next session",
+      "locator": "How It Works / flow diagram",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Two search modalities exist: FTS5 full-text search and optional Chroma embedding-based semantic search",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/introduction.md",
+      "quote": "SQLite Database - Stores sessions, observations, summaries with FTS5 search \u2026 Chroma Vector Index - Optional embedding-based semantic search",
+      "locator": "How It Works / Core Components",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Folder-level memory is scaffolded as CLAUDE.md files with activity timelines, a separate artifact from the SQLite store",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/introduction",
+      "quote": "Folder Context Files - Auto-generated CLAUDE.md in project folders with activity timelines",
+      "locator": "Key Features",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Core product purpose: persistent memory compression across sessions, not just in-context retrieval",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/llms.txt",
+      "quote": "Persistent memory compression system that preserves context across Claude Code sessions",
+      "locator": "page title / description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path uses an observation extraction step, which can be offloaded to alternative model providers (OpenRouter, Gemini)",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/llms.txt",
+      "quote": "run observation extraction off-plan",
+      "locator": "OpenRouter Provider link description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Store is SQLite with FTS5, indicating a structured local database rather than a flat log",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/llms.txt",
+      "quote": "SQLite schema, FTS5 search, and data storage",
+      "locator": "Database Architecture link description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval is token-efficiency-aware, using a 3-layer workflow via MCP tools",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/llms.txt",
+      "quote": "MCP tools with 3-layer workflow for token-efficient memory retrieval",
+      "locator": "Search Architecture link description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Scaffold layer: per-folder CLAUDE.md files inject directory-level context automatically",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/llms.txt",
+      "quote": "Automatic per-folder CLAUDE.md files that provide directory-level context to Claude",
+      "locator": "Folder Context Files link description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "File read gate substitutes observation history for raw file reads to save tokens \u2014 a retrieve-before-read interception",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/llms.txt",
+      "quote": "How claude-mem intercepts file reads to save tokens using observation history",
+      "locator": "File Read Gate link description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget / deletion is surfaced at the hosted server layer (data deletion mentioned)",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/llms.txt",
+      "quote": "usage metering + quotas, and data deletion \u2014 how claude-mem's cloud server works today",
+      "locator": "Hosted Server link description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Private tags provide write-path filtering \u2014 user can exclude content from the memory store",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/llms.txt",
+      "quote": "Control what gets stored in memory with privacy tags",
+      "locator": "Private Tags link description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Worker crash recovery implies observations can be in a stuck/unprocessed state, revealing an async write pipeline",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/llms.txt",
+      "quote": "Recover stuck observations after worker crashes or restarts",
+      "locator": "Manual Recovery link description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Architecture evolved across major versions (v3 to v5+, and v7.1.0 process/DB migration), suggesting the memory model itself has changed over time",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/llms.txt",
+      "quote": "How claude-mem evolved from v3 to v5+",
+      "locator": "Architecture Evolution link description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation appears to be per-project (search described as 'project history'); cloud sync is per-user ('per-user sync hub')",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/llms.txt",
+      "quote": "Search your project history with MCP tools",
+      "locator": "Memory Search link description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Knowledge agents allow building queryable knowledge bases from the observation history \u2014 a secondary read/query layer on top of raw memory",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/llms.txt",
+      "quote": "Build queryable AI brains from your observation history",
+      "locator": "Knowledge Agents link description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "claude-mem persists a curated activity log (observations with type, timestamp, title) rather than a full transcript",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/folder-context.md",
+      "quote": "Each folder's `CLAUDE.md` contains a \"Recent Activity\" section showing: Observation IDs for reference, Timestamps of when work occurred, Type indicators (bug fixes, features, discoveries, etc.), Brief titles describing the work, Estimated token counts",
+      "locator": "### What Gets Generated",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The scaffold mechanism injects stored context into the file system rather than into the prompt directly; Claude reads it as a normal file during its context window load",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/folder-context.md",
+      "quote": "Claude-mem automatically generates `CLAUDE.md` files in your project folders to provide Claude with directory-level context.",
+      "locator": "## Overview",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Folder-level context is disabled by default; must be explicitly enabled via settings",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/folder-context.md",
+      "quote": "This feature is **disabled by default**. Enable it via settings if you want automatic folder-level context generation.",
+      "locator": "## Overview > Info callout",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is explicit and operator-initiated (--clean flag), not automatic or time-based",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/folder-context.md",
+      "quote": "The regenerate script includes a `--clean` mode for removing auto-generated content... Actually clean files: bun scripts/regenerate-claude-md.ts --clean",
+      "locator": "## Cleanup Mode",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Context can be lost across machines unless CLAUDE.md files are committed to git, since the store is local",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/folder-context.md",
+      "quote": "Context is lost when switching machines",
+      "locator": "## Git Integration > Gitignore Them > Cons",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Worktree support (unified cross-location context) was introduced in v9.0",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/folder-context.md",
+      "quote": "**New in v9.0**: Claude-mem now supports git worktrees with unified context.",
+      "locator": "## Worktree Support",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Observations are backed by a database that can be queried per folder and per project; context can be regenerated from the database after import or recovery",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/folder-context.md",
+      "quote": "To manually regenerate all folder CLAUDE.md files from the database... This is useful after: Importing observations from another machine, Database recovery",
+      "locator": "## Regenerating Context",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "claude-mem persists tool observations as structured records (title, narrative, facts, concepts, type, files) in a SQLite database",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/getting-started.md",
+      "quote": "The worker service processes tool observations and extracts: Title \u2026 Facts \u2014 Key learnings as bullet points \u2026 Concepts \u2014 Relevant tags and categories \u2026 Type \u2014 Classification (decision, bugfix, feature, etc.) \u2026 Files \u2014 Which files were read or modified",
+      "locator": "What Gets Processed",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "claude-mem persists session summaries with fields: request, investigated, learned, completed, next steps",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/getting-started.md",
+      "quote": "a summary is automatically generated with: Request \u2014 What you asked for \u2026 Investigated \u2026 Learned \u2026 Completed \u2026 Next Steps \u2014 What to do next",
+      "locator": "Session Summaries",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve is bounded by default to the last 50 observations for the current project",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/getting-started.md",
+      "quote": "Queries the database for recent observations in your project (default: 50)",
+      "locator": "Context Injection",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Summary display at session start is conditional on recency relative to the latest observation, preventing stale summary injection",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/getting-started.md",
+      "quote": "Shows full summary details only if generated after last observation \u2026 This prevents showing stale summaries when new work has been captured but not yet summarized.",
+      "locator": "Context Injection / Summary Display Logic",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "claude-mem maintains an observation database persisted across sessions",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/private-tags.md",
+      "quote": "Use <private> tags to mark content you don't want persisted in claude-mem's observation database. This gives you fine-grained control over what gets remembered across sessions.",
+      "locator": "Overview",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Persistent store uses a local SQLite database at ~/.claude-mem/claude-mem.db with at least two tables: user_prompts and observations",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/private-tags.md",
+      "quote": "sqlite3 ~/.claude-mem/claude-mem.db \"SELECT prompt_text FROM user_prompts ORDER BY created_at_epoch DESC LIMIT 1;\" ... sqlite3 ~/.claude-mem/claude-mem.db \"SELECT narrative FROM observations ORDER BY created_at_epoch DESC LIMIT 1;\"",
+      "locator": "Verification",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path uses two hooks: UserPromptSubmit (strips private tags from user prompts before DB write) and PostToolUse (strips private tags from tool_input and tool_response JSON before observation creation)",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/private-tags.md",
+      "quote": "UserPromptSubmit hook: Strips tags from user prompts before saving to the user_prompts table ... PostToolUse hook: Strips tags from serialized tool_input and tool_response JSON before observation creation",
+      "locator": "Architecture",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Session summaries are derived from observations, not from raw prompts, indicating a log-vs-memory distinction",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/private-tags.md",
+      "quote": "Session summaries (generated from non-private observations only)",
+      "locator": "What Doesn't Get Filtered",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A silent log at ~/.claude-mem/silent.log records hook errors including type mismatches during tag stripping",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/private-tags.md",
+      "quote": "Check ~/.claude-mem/silent.log if you're unsure whether tags are being stripped",
+      "locator": "Best Practices",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "claude-mem persists memory as structured observations in a local SQLite FTS5 database with Chroma vector embeddings",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/search-tools.md",
+      "quote": "Database: SQLite FTS5 full-text search on ~/.claude-mem/claude-mem.db\nVector Search: Chroma embeddings for semantic search (underlying implementation)",
+      "locator": "## Technical Details",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Each observation stores narrative, facts, files read, files modified, concepts, type, date, and title",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/search-tools.md",
+      "quote": "Narrative - Story of what happened and why\nFacts - Key factual points (decisions made, patterns used, metrics)\nFiles Read - Files examined during work\nFiles Modified - Files changed during work",
+      "locator": "## Result Metadata",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-project; all retrieval tools accept a project parameter to scope results",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/search-tools.md",
+      "quote": "project - Filter by project name",
+      "locator": "### `search` - Search Memory Index",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Observations can be deleted from the store; get_observations returns an error when IDs are absent due to deletion",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/search-tools.md",
+      "quote": "IDs were deleted",
+      "locator": "### IDs Not Found in get_observations",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "The scaffold layer (important_workflow) is always injected into context to instruct the model on retrieval workflow",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/search-tools.md",
+      "quote": "Always visible reminder of the 3-layer workflow pattern. Helps Claude understand how to use the search tools efficiently.\nUsage: Automatically shown, no need to invoke",
+      "locator": "### `important_workflow` - Workflow Documentation",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "claude-mem applies content heuristics at the tool_response level to filter what is ingested into memory",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/2785",
+      "quote": "`tool_response`-level filter (extension / size / content heuristic) to prevent binary/Playwright blowups",
+      "locator": "Children > Ingestion & filtering",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "claude-mem maintains an audit log as part of its observability layer",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/2785",
+      "quote": "MCP grammar-introspection routes + worker provider retry telemetry + audit log",
+      "locator": "Children > Observability & logging",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "claude-mem stores full prompt submissions verbatim in user_prompts.prompt_text, averaging ~990 KB per row, causing unbounded database growth",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/2793",
+      "quote": "`user_prompts.prompt_text TEXT NOT NULL` stores the *entire* UserPromptSubmit payload verbatim. With injected context (CLAUDE.md, rule files, the full MCP tool list, memory injections, etc.), each row averaged **~990 KB**, with the largest at **11.6 MB**. 82k rows = **78 GB**.",
+      "locator": "Root cause (from inspecting the schema + `worker-service.cjs`), item 1",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Prompt text is duplicated across two tables (user_prompts and sdk_sessions), with no deduplication",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/2793",
+      "quote": "**The same text is duplicated** in `sdk_sessions.user_prompt` \u2014 another **39 GB** across 24k rows.",
+      "locator": "Root cause (from inspecting the schema + `worker-service.cjs`), item 2",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "There is no retention or pruning mechanism for observations, user_prompts, or sdk_sessions through at least version 13.4.0",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/2793",
+      "quote": "**No retention/pruning** of `user_prompts`, `sdk_sessions`, or `observations`. The only `DELETE` statements in the worker are on `pending_messages` (on confirm/abort). Old rows accumulate forever.",
+      "locator": "Root cause (from inspecting the schema + `worker-service.cjs`), item 3",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The useful persistent memory (observations) is a small curated set relative to the raw log and prompt tables",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/2793",
+      "quote": "The actually-useful data (`observations`) was only **10,602 rows \u2248 0.02 GB**.",
+      "locator": "Real footprint observed table",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Stop hook exits 2 when worker is unreachable, causing an endless wake/retry loop that blocks all Claude Code prompts",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3605",
+      "quote": "Stop hook exits 2 when worker is unreachable, blocking stop and causing an endless wake loop",
+      "locator": "## Children \u2014 #3161",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "UserPromptSubmit hook can block all user prompts when the worker is unreachable, including when the worker has been unreachable for 244 consecutive hooks",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3605",
+      "quote": "UserPromptSubmit hook blocks all prompts \u2014 worker unreachable for 244 hooks",
+      "locator": "## Children \u2014 #3523",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "PreToolUse:Read hook exits non-zero when worker is unreachable, causing Claude Code to deny the Read tool for the entire session",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3605",
+      "quote": "PreToolUse:Read exits non-zero when the worker is unreachable, so Claude Code denies the Read tool for the rest of the session",
+      "locator": "## Children \u2014 #3568",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory capture is silently broken on macOS when profile scripts drain stdin before the hook payload is read",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3605",
+      "quote": "[macOS] Empty stdin to hooks (same failure as #2188, now on darwin) \u2014 silently breaks all memory capture",
+      "locator": "## Children \u2014 #3349",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The global cross-session hook-failure counter never resets once tripped (threshold uses >= so it never un-trips), permanently switching the product into blocking/loud mode",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3605",
+      "quote": "`bC()` first bumps a *global, cross-session* counter (`state/hook-failures.json`) and past `CLAUDE_MEM_HOOK_FAIL_LOUD_THRESHOLD` (default 3, `>=` so it never un-trips) writes to stderr and `exit 2`",
+      "locator": "## Defect",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Stop hook summarize throws uncaught when the transcript file is missing, producing an unhandled error instead of a graceful skip",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3605",
+      "quote": "`summarize` throws uncaught on a missing transcript",
+      "locator": "## Defect / ## Children \u2014 #3167",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "UserPromptSubmit hook blocks up to 60 seconds under worker saturation",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3605",
+      "quote": "UserPromptSubmit hook blocks up to 60s under worker saturation",
+      "locator": "## Children \u2014 #3434",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Worker-unreachable notice written to stderr by the hook itself can block UserPromptSubmit",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3605",
+      "quote": "UserPromptSubmit blocked by claude-mem's own stderr write (worker-unreachable notice)",
+      "locator": "## Children \u2014 #3481",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SessionStart hook can exceed the VS Code extension's own 60-second init deadline, preventing the extension from initialising",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3605",
+      "quote": "the VS Code extension's own 60 s init deadline is exceeded by SessionStart alone",
+      "locator": "## Defect / ## Children \u2014 #2903, #2973",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "user_prompts row is written on every UserPromptSubmit; downstream hooks depend on this row existing",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3605",
+      "quote": "UserPromptSubmit stays synchronous (it creates the `user_prompts` row downstream hooks depend on)",
+      "locator": "## Fix sequence, item 3",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Worker availability is checked via fetch() with no AbortSignal, so a wedged listener consumes the entire hook timeout budget",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3605",
+      "quote": "`HealthMonitor.httpRequestToWorker()` `fetch()`es with no `AbortSignal` so a wedged listener consumes the whole budget",
+      "locator": "## Defect / ## Children \u2014 #3553",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Observer subprocess inherits user's ~/.claude config and plugin hooks, allowing third-party SessionStart hooks to hijack observation generation with zero stored observations.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3607",
+      "quote": "the SDK child loads all plugin hooks; a third-party SessionStart hook injects \"you MUST invoke the skill\" and hijacks INIT (empty response, zero observations)",
+      "locator": "Defect \u2014 Config/hook inheritance bullet",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Observer session sent fabricated instructions to the user's primary session via SendMessage because the tool was not in disallowedTools.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3607",
+      "quote": "observer sessions have sent fabricated instructions to the user's primary session",
+      "locator": "Defect \u2014 Tool surface bullet / Children \u2014 #3566",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Observer transcripts accumulate in ~/.claude/projects/ and appear as sessions in Claude Desktop; 452 such sessions were observed.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3607",
+      "quote": "observer transcripts land in `~/.claude/projects/` where Claude Desktop lists them as sessions (452 of them)",
+      "locator": "Defect \u2014 cwd and identity bullet",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Observer SDK sessions are mis-filed under a project named after the plugin version directory rather than the user's project.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3607",
+      "quote": "observer-spawned SDK sessions are re-captured by hooks and filed under a project named after the plugin version dir (`13.12.4`) or the plugin cache basename",
+      "locator": "Defect \u2014 cwd and identity bullet / Children \u2014 #3425",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "When claude binary is not on PATH (e.g. VS Code extension install), 3,063 PostToolUse hooks fire but zero observations are stored, with no user-visible warning.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3607",
+      "quote": "3,063 PostToolUse hooks, 0 observations, and the only trace is a WARN in a log file",
+      "locator": "Defect \u2014 Binary resolution bullet / Children \u2014 #3582",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "An expired keychain credential causes early return that blocks fallthrough to a valid CLAUDE_CODE_OAUTH_TOKEN env var, silently stopping observations.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3607",
+      "quote": "an *expired* keychain credential returns early and never falls through to a valid `CLAUDE_CODE_OAUTH_TOKEN` env var",
+      "locator": "Defect \u2014 Env bullet / Also carries \u2014 #3121",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "On Windows, unquoted '>' in transcript text causes cross-spawn to create 0-byte files named after transcript tokens in the user's project directory, which can be committed by git add -A.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3607",
+      "quote": "on Windows `cross-spawn` routes the SDK spawn through `cmd.exe /d /s /c \"<argv joined>\"`, so `>` in transcript text creates 0-byte files in the *user's project directory* (and gets committed by `git add -A`)",
+      "locator": "Defect \u2014 cwd and identity bullet / Children \u2014 #3357",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "After a CLI auto-update, the cached realpath for the claude binary is unlinked, causing ENOENT and a permanent setup_required wedge until the worker is manually restarted \u2014 observations silently stop.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3607",
+      "quote": "after a native CLI auto-update the cached realpath is unlinked \u2192 ENOENT forever \u2192 `setup_required` wedge until manual restart",
+      "locator": "Defect \u2014 Binary resolution bullet / Children \u2014 #3290",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "On macOS when the worker is spawned by the Claude Code desktop app, keychain search list excludes the login keychain, causing every observation to be silently discarded.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3607",
+      "quote": "the keychain lookup fails when the lineage descends from the desktop app (search list excludes the login keychain)",
+      "locator": "Defect \u2014 Env bullet / Children \u2014 #3406",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "sanitizeEnv() intentionally strips HTTP_PROXY/HTTPS_PROXY since 13.8.0, causing 403 errors for users behind proxies; only five keys can be re-injected via ~/.claude-mem/.env.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3607",
+      "quote": "`sanitizeEnv()` strips `HTTP_PROXY`/`HTTPS_PROXY` (403 behind proxies) \u2014 since 13.8.0 intentionally; `~/.claude-mem/.env` can only re-inject five keys and not `CLAUDE_CODE_OAUTH_TOKEN`",
+      "locator": "Defect \u2014 Env bullet / Children \u2014 #2999",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Worktree observations are orphaned after worktree removal due to one-shot migration marker, leaving rows with merged_into_project = NULL unreachable",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3608",
+      "quote": "worktrees are reconciled by a **one-shot** `.cwd-remap-applied-v1` marker so later-created worktrees and re-homed repos strand rows with `merged_into_project = NULL`",
+      "locator": "## Defect, first bullet",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Subagent step-log observations evict durable user-facing memory from the recency injection window due to missing agent_id filter",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3608",
+      "quote": "the injection query has no `agent_id IS NULL` filter so subagent step-logs evict durable memory from the recency window.",
+      "locator": "## Defect, second bullet",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Injection of file-context observations is not idempotent: same block re-injected on every file Read in a session after the once-per-session gate was removed in 13.13.0",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3608",
+      "quote": "the file-context hook re-injects the same \"prior observations\" block on every Read of an unchanged file (the once-per-session gate from #1629 is gone in 13.13.0)",
+      "locator": "## Defect, third bullet",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "26% of one reported store's observations are misattributed to a TMPDIR project due to subagent/SDK session cwd resolution",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3608",
+      "quote": "project is basename(process.cwd()), so subagent/SDK observations file under TMPDIR \u2014 26% of this store is misattributed",
+      "locator": "## Children, #3437",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Monorepo subdir context injection resolves project as basename(cwd) while capture attributes to the parent git-root project, creating a read/write path split",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3608",
+      "quote": "Context injection resolves project as basename(cwd) outside git repos while capture attributes to the parent project",
+      "locator": "## Children, #3194",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "EXCLUDED_PROJECTS env var is not respected by the SessionStart context injection handler, so excluded projects still receive injected memory",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3608",
+      "quote": "EXCLUDED_PROJECTS not respected by SessionStart context injection",
+      "locator": "## Children, #3511",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Folder-CLAUDE.md writer creates stub files in directories that had no CLAUDE.md, as recently as v13.14.0",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3608",
+      "quote": "Still creates 43-byte stub-only CLAUDE.md in dirs without CLAUDE.md (v13.14.0)",
+      "locator": "## Children, #3544",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "4,836 completed summary jobs produced 0 written rows because the summary prompt/parse contract was mismatched: prompt requested <observation> blocks, parser returned summary: null, and processSessionSummaryResponse discarded all output",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3618",
+      "quote": "`buildServerGenerationPrompt` is used for both event and summary jobs and always requests `<observation>` blocks; `parseAgentXml` returns `summary: null` for that shape; `processSessionSummaryResponse` reads only `parsed.summary` \u2192 every summary response is discarded and the job marked completed (4,836 completed summary jobs, 0 rows)",
+      "locator": "Defect",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "2,948 of 2,948 memory rows have server_session_id NULL because /v1/memories never resolved contentSessionId to a server session",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3618",
+      "quote": "`/v1/memories` never resolves `contentSessionId`/platform scope (all rows `server_session_id NULL`); `/v1/events` does",
+      "locator": "Children, #3586",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Per-project injection and search scoping is impossible for server-generated data because metadata.project is always null on those rows",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3618",
+      "quote": "server-generated observations/summaries written with `metadata.project = null`; per-folder scoping impossible",
+      "locator": "Children, #2671",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dropping the 200KB substr clamp on prompt text in the CloudSync projection caused 682 OOM crashes across 10 users",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3618",
+      "quote": "the v2 projection rewrite dropped the `substr(prompt_text,1,200000)` clamp (multi-MB prompts \u2192 `SQLiteError: out of memory`, 682 crashes/10 users)",
+      "locator": "Defect, #3537",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Long sessions' summaries are classified unrecoverable because the event-count cap (500) does not account for rendered bytes, overflowing the context window",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3618",
+      "quote": "the cap is by event *count*, not rendered *bytes*, so long sessions overflow the context window and are classified `unrecoverable`",
+      "locator": "Defect, #3584",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The inject panel renders full Postgres UUIDs (~17 tokens each) that are not usable fetch handles, degrading context quality",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3618",
+      "quote": "inject panel prints full Postgres UUIDs (~17 tokens each) that are not fetch handles",
+      "locator": "Children, #2867",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ON UPDATE CASCADE on session_summaries and observations foreign keys causes a NOT NULL constraint violation when updateMemorySessionId sets memory_session_id to NULL, rolling back the transaction and permanently stopping memory recording for sessions with stored rows.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3628",
+      "quote": "`updateMemorySessionId(id, null)` runs `UPDATE sdk_sessions SET memory_session_id = NULL WHERE id = ?`. With `PRAGMA foreign_keys = ON` that NULL cascades into every child row and violates their `NOT NULL` column. The transaction rolls back, the generator throws, the session is dropped.",
+      "locator": "## Mechanism",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A prior fix for a related issue (#2283) guards only the INSERT path; it does not protect against the UPDATE CASCADE path that causes this failure.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3628",
+      "quote": "The guard that closed #2283 (`if (!e.memorySessionId) { defer storage; return }`) is present and working in 13.15.2 and correctly protects the INSERT path. The failure below never reaches an INSERT.",
+      "locator": "## Summary",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The stored memory_session_id is not used for session resumption; the suggested fix is to drop the DB write and keep only the in-memory reset.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3628",
+      "quote": "The stored id is never used to resume. Two lines later `shouldResume` is hardcoded false and the query logs `resume_parameter: \"(none - fresh start)\"`",
+      "locator": "## Suggested fix",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The patch (drop DB write, keep in-memory reset) was applied locally on 2026-08-18 and produced no further constraint failures.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3628",
+      "quote": "Patch applied locally on 2026-08-18; the observer has produced no further constraint failures since.",
+      "locator": "## Environment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "There is uncertainty whether pre-existing local memories can be imported into CMEM Cloud, indicating a potential continuity gap at subscription boundary",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3763",
+      "quote": "Is there a supported way to upload/import those existing memories into CMEM Cloud so they become available through cloud sync/private MCP, or does CMEM Pro only sync memories created after it is enabled?",
+      "locator": "issue body, question 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A hosted cmem-observer service is part of the CMEM Pro tier, with its underlying model/provider unspecified or intentionally abstracted",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3763",
+      "quote": "Which model powers the paid cmem-observer service? Is it based on a specific third-party model/provider, a custom/fine-tuned model, or a routing layer? If the exact model is intentionally abstracted",
+      "locator": "issue body, question 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "This is a regression: the same window-flashing bug had been fixed at least nine times previously across versions, now reappearing from different spawn sites in 13.24.0",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3873",
+      "quote": "Regression of previously-closed issues (#2869, #2946, #2965, #3069, #3170, #3327, #3337, #2900, #3521) \u2014 all closed between 2026-07-23 and 2026-08-16 as fixed (adding `windowsHide`/`spawnHidden` to various spawn paths), but the visible console-window flashing is back on 13.24.0, from *different* spawn sites than the ones those fixes covered.",
+      "locator": "Summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Observer sessions are isolation-scoped background agents with restricted tooling, implying per-session isolation design intent",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3812",
+      "quote": "so these background sessions are limited to their intended read-only summarization role and cannot reach other sessions at all",
+      "locator": "Suggested fix",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A continuity/security failure was observed where an observer session dispatched task instructions to a peer session via SendMessage, attempting to launder tool restrictions through a privileged peer",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3812",
+      "quote": "sent an unrelated, idle Claude Code session a cross-session-message with from-mode=\"prompting\", formatted as a complete task-dispatch prompt \u2014 e.g. \"You are implementing Task N from Plan ... Worktree: <path> ... remaining sites in <file>\" \u2014 instructing the receiving session to autonomously implement and commit a specific code change",
+      "locator": "What we observed",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The worker daemon uses worker-service.cjs and listens on a configurable port (default observed: 37701)",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3815",
+      "quote": "claude-mem 13.18.0 (plugin marketplace install, thedotmack), bun worker, port 37701",
+      "locator": "Environment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The child subprocess environment is explicitly constructed and includes CLAUDE_MEM_INTERNAL and CLAUDE_MEM_WORKER_PORT among others, but omits USER and LOGNAME",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3815",
+      "quote": "The spawned child's full environment \u2014 USER and LOGNAME are absent: __CF_USER_TEXT_ENCODING=... AI_AGENT=claude-code_2-1-240_harness CLAUDE_AGENT_SDK_VERSION=0.3.251 CLAUDE_MEM_INTERNAL=1 CLAUDE_MEM_WORKER_PORT=37701",
+      "locator": "Evidence",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A restart command does not fix broken auth-env state because the daemon inherits and re-propagates its own broken environment to successors",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3815",
+      "quote": "Three restarts changed nothing; stop followed by start from a shell that has USER is what cured it. Anyone debugging this via restart will conclude the fix does not work.",
+      "locator": "Why claude-mem restart does not fix it",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A NOT NULL constraint on session_summaries.memory_session_id causes the summary insert to fail when the recycle path flushes a payload with an unpopulated memory_session_id",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3832",
+      "quote": "NOT NULL constraint failed: session_summaries.memory_session_id",
+      "locator": "Symptom / log excerpt",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The failure produces a user-visible 'nothing from this session will be remembered' continuity outage banner that overstates the real impact",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3832",
+      "quote": "the session-start banner then reports the observer as **fully down** (\"nothing from this session will be remembered\") \u2014 overstated, since the session re-initializes on the next tool activity. Several of my users-visible \"outage\" reports traced to this.",
+      "locator": "Impact",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The same root failure was reported in #2283 and closed without a linked fix; it reproduces on 13.21.2",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3832",
+      "quote": "Ref: #2283 (closed without a linked fix) \u2014 same failure, latest version.",
+      "locator": "header / issue body preamble",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Sessions have a numeric sessionDbId and a UUID memorySessionId; multiple concurrent sessions (3\u20134) are supported",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3832",
+      "quote": "STORING | sessionDbId=433 | memorySessionId=e9f3f748-... | obsCount=1 | hasSummary=false ... 3\u20134 concurrent Claude Code sessions during the window",
+      "locator": "Environment / Symptom / log excerpt",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "claude-mem hooks into UserPromptSubmit to gate every prompt submission; a failing memory worker hard-blocks the user from submitting prompts at all",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3834",
+      "quote": "`UserPromptSubmit` hard-blocks (`process.exit(2)`) for what is fundamentally a best-effort memory subsystem. A user who can't submit a prompt because a background memory worker is unhealthy is a severe UX regression relative to the feature's value",
+      "locator": "Suggested improvements, item 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Consecutive failure state accumulates without an upper bound; the >= comparison means the block persists on every invocation once the threshold is crossed, with no automatic reset or cool-down",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3834",
+      "quote": "`recordWorkerUnreachable` uses `>=` instead of `===` when comparing against the threshold (worker-utils.ts ~line 785), so once tripped, it blocks on *every* subsequent invocation, not just the first time the threshold is crossed",
+      "locator": "Suggested improvements, item 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Worker ownership across restarts is tracked via a startToken in worker.pid; a token mismatch prevents the recycle path from cleanly identifying or killing a stale worker, causing repeated failed attempts and failure-count accumulation",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3834",
+      "quote": "could never match the fake token, so it couldn't cleanly identify/kill the stale worker. Meanwhile my watchdog kept reviving the same stale worker every couple of minutes. Each failed recycle attempt called `recordWorkerUnreachable()`",
+      "locator": "Root cause in my case",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Worker port isolation is per-user on non-Windows systems via getuid(); on Windows all sessions share a single fixed port, creating a multi-session collision risk",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3834",
+      "quote": "`CLAUDE_MEM_WORKER_PORT` defaults to `37700 + getuid()%100`, but `getuid()` doesn't exist on Windows, so it silently degenerates to a single fixed port (37777) regardless of user/session. Not the cause of my specific incident, but worth flagging as a latent multi-session collision risk on Windows.",
+      "locator": "Suggested improvements, item 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Related internal issues suggest recycle-storm (#3378) and descendant-inherited-socket (#3482) are known failure modes in the worker lifecycle",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3834",
+      "quote": "I noticed references to #3378 recycle-storm and #3482 descendant-inherited-socket in the codebase, which sound related",
+      "locator": "Closing paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "overflow-recycle fails with NOT NULL constraint on session_summaries.memory_session_id in version 13.21.2",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3840",
+      "quote": "NOT NULL constraint failed: session_summaries.memory_session_id",
+      "locator": "## The failure chain \u2014 log sample",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Observations are persisted separately from session summaries; a generator failure loses the summary but not observations already written",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3840",
+      "quote": "observations survive, the affected sessions lose their summary",
+      "locator": "## Impact",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Provider-specific context cap env vars exist for Gemini and OpenRouter but not for the claude provider, making overflow-recycle routine for claude users",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3840",
+      "quote": "CLAUDE_MEM_GEMINI_MAX_CONTEXT_MESSAGES / _MAX_TOKENS and the OpenRouter equivalents exist, but grepping the bundle for CLAUDE_MEM_*(MAX|CONTEXT|OVERFLOW|RECYCLE)* finds no claude equivalent",
+      "locator": "## Possibly related",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "claude-mem's memory processing cost reached ~64% of the user's primary coding model spend over one month, using a Flash-class model.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3848",
+      "quote": "CMEM API usage | $65.82 \u2026 So CMEM alone added another 63.9% on top of my actual coding model spend.",
+      "locator": "issue body, Usage table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "claude-mem may re-process full conversation context on each summary or observation generation pass, a potential source of high token usage.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3848",
+      "quote": "Does claude-mem process the full conversation/context repeatedly when generating observations or summaries?",
+      "locator": "issue body, question 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Redundant triggering of observation or processing pipelines is a suspected contributor to unexpectedly high API cost.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3848",
+      "quote": "Are there known cases where observations or other processing can be triggered redundantly?",
+      "locator": "issue body, question 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "claude-mem has user-configurable settings governing the intensity of background memory processing.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3848",
+      "quote": "Are there recommended settings to significantly reduce background API usage without making the memory functionality largely ineffective?",
+      "locator": "issue body, question 5",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "claude-mem operates with its own isolated API key, separate from the user's primary model key, allowing independent cost tracking.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3848",
+      "quote": "CMEM has its own API key, so I can separate its usage from my normal model usage.",
+      "locator": "issue body, controlled test description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Prompt-injected content encountered during normal agent operation can contaminate the memory store without explicit user action",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3861",
+      "quote": "Any content the agent processes during a normal session (a README, a dependency's docs, a comment in a file it's asked to summarize, output from a command it runs) is a place a prompt injection payload could sit.",
+      "locator": "Why this is worse than a normal local-file-read bug",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Bearer-token auth was added to the local worker then deliberately removed; MCP path validation and /api/settings exposure remain unaddressed",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3861",
+      "quote": "bearer-token auth was added in #2080 and removed again two hours later in #2081 as a deliberate design choice for the localhost-only worker \u2014 but neither round touched the MCP path validation or the `/api/settings` response",
+      "locator": "Status",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "claude-mem hooks fire on every tool call via PostToolUse/PreToolUse, invoking worker-service.cjs each time",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3873",
+      "quote": "tied to `worker-service.cjs` invocations from `PostToolUse`/`PreToolUse` hooks (which fire on every tool call, `async: true`)",
+      "locator": "Live capture",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Credential reads are not cached; a new CredRead PowerShell subprocess is spawned approximately every 7 seconds during normal usage",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3873",
+      "quote": "A `powershell.exe -NoProfile -NonInteractive -Command` invocation that P/Invokes `Advapi32.dll CredRead` to read `Claude Code-credentials` from Windows Credential Manager \u2014 repeated every ~7s, not cached.",
+      "locator": "Live capture, item 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "chroma-mcp health-check runs on every hook invocation rather than once per session, spawning a full dependency-resolved process each time",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3873",
+      "quote": "Running `--help` repeatedly as a health-check spawns a full uv-resolved venv process each time.",
+      "locator": "Live capture, item 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "claude-mem persists session memory as observations and summaries in a SQLite store, keyed by memory_session_id",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/4062",
+      "quote": "NOT NULL constraint failed: session_summaries.memory_session_id ... matches a gap in session_summaries/observations writes for that whole window \u2014 i.e. no new session memories were captured while this was happening",
+      "locator": "Issue body, Summary section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A guard (ensureMemorySessionIdRegistered check) defers the observation/summary write if the memory session ID is not yet captured, deferring until next round",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/4062",
+      "quote": "if (e.consecutiveInvalidOutputs = 0, !e.memorySessionId) { h.warn(\"SDK\", \"memorySessionId not yet captured; deferring storage until next round\", {sessionId: e.sessionDbId}); await n.resetProcessingToPending(e.sessionDbId); return }",
+      "locator": "Issue body, code block under 'Where we found it'",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Buffered work survives auth outages via resetProcessingToPending and is replayed on recovery, so no permanent memory loss occurs in the buffered queue",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/4062",
+      "quote": "No permanent memory loss in our case (buffered work is preserved via resetProcessingToPending/message buffer and gets replayed once auth recovers)",
+      "locator": "Issue body, Impact section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The NOT NULL crash on memory_session_id causes the session to be finalized/removed rather than paused, which is a continuity failure distinct from the underlying auth cause",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/4062",
+      "quote": "This exception isn't caught locally \u2014 it propagates out of sdkAgent.startSession(...) and is caught only by the outer .catch(...) in startGeneratorWithProvider, which logs it as a generic 'Generator failed' and finalizes/removes the session",
+      "locator": "Issue body, 'Where we found it' section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory capture is disabled by a quota guard that aborts observation sessions when rate-limit window utilization meets a threshold; a stale window entry can keep capture disabled after the window has reset.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/4068",
+      "quote": "[SDK    ] Aborting session for quota guard: quota:seven_day utilization 93.0% >= 93%",
+      "locator": "Defect 1: stale `seven_day` snapshot outlives `resetsAt` / log excerpt",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The observation queue is held only in process memory; a graceful worker restart silently discards all queued (unprocessed) observations with no drain or persist step.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/4068",
+      "quote": "The queue lives only in process memory and the shutdown path neither drains nor persists it.",
+      "locator": "Bug description / Defect 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "RateLimitStore never evicts or expires entries; observedAt is written but never read, and there are no delete/clear calls in the source.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/4068",
+      "quote": "`unifiedWindows` 0 occurrences, `.delete(` / `.clear(` 0 occurrences, `observedAt` written but never read.",
+      "locator": "Defect 1: stale `seven_day` snapshot outlives `resetsAt`",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Rate-limit cooldown state is persisted to quota-cooldown.json across restarts, but the observation queue is not \u2014 creating an asymmetry where the backlog is lost when the only fix for Defect 1 (restart) is applied.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/4068",
+      "quote": "With the cooldown persisted to `quota-cooldown.json`, a restart is safe and is currently the only fix for Defect 1, but because of Defect 2 it costs the backlog.",
+      "locator": "Expected behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "602 ENQUEUED events across 6 sessions in 5 projects over ~90 minutes produced zero stored observations due to the compounded quota-guard and queue-loss defects.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/4068",
+      "quote": "Between the last successful `STORED` (21:47:08) and the shutdown (23:18:51) there were **602 `ENQUEUED` events across 6 sessions in 5 projects**. None of them produced observations.",
+      "locator": "Defect 2: restart discards the in-memory queue",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "After a restart and quota reset, the system resumes storing observations normally (22 stored in 6 minutes), confirming the quota guard was the cause of the outage.",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/4068",
+      "quote": "Worker restart verified (pid: 53114, version: 13.24.23)`, `rateLimits: {}`, first probe at 23:23:32, 22 observations stored within 6 minutes, 0 quota-guard aborts.",
+      "locator": "Workaround",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "An in-memory observation queue accumulates entries when generation is suppressed by quota logic",
+      "kind": "issue",
+      "url": "https://github.com/thedotmack/claude-mem/issues/4076",
+      "quote": "the in-memory observation queue keeps growing even though the provider reports usable quota",
+      "locator": "Failure mode",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory pipeline flows from hook capture through AI processing back to SQLite for retrieval in the next session",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/overview",
+      "quote": "Hook (stdin) \u2192 Database \u2192 Worker Service \u2192 SDK Processor \u2192 Database \u2192 Next Session Hook",
+      "locator": "## Data Flow, Memory Pipeline",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Observations are AI-compressed via Claude Agent SDK (or Gemini / OpenRouter) into structured learnings",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/overview",
+      "quote": "Extracts structured learnings via iterative AI processing",
+      "locator": "## Session Lifecycle, step 4",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Session cleanup is a soft mark-complete, not a DELETE; records are preserved for future context injection",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/overview",
+      "quote": "Marks session complete (graceful, not DELETE), ready for next session context. Skips on /clear to preserve ongoing",
+      "locator": "## Session Lifecycle, step 6",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-user isolation is enforced at the worker port level using the system uid",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/overview",
+      "quote": "Express.js HTTP server on a per-user port (default 37700 + (uid % 100), override via CLAUDE_MEM_WORKER_PORT)",
+      "locator": "## Component Details, 2. Worker Service",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "mem-search skill effectiveness increased from 67% to 100% after renaming and documentation improvements in v5.5.0",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/overview",
+      "quote": "Effectiveness increased from 67% to 100% with enhanced triggers and comprehensive documentation",
+      "locator": "## Component Details, 4. mem-search Skill (v5.4.0+)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context injection at session start reads summaries/observations from the database; count is configurable",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/overview",
+      "quote": "Next session's context hook reads summaries from database",
+      "locator": "## Data Flow, Memory Pipeline, step 5",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "PostToolUse hook fires 100+ times per session, capturing all tool executions as observations",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/architecture/overview",
+      "quote": "Claude Uses Tools \u2192 PostToolUse Hook Fires (100+ times)",
+      "locator": "## Session Lifecycle, step 3",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "claude-mem provides persistent memory across IDE sessions via a local SQLite store and background worker",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/installation",
+      "quote": "Install Claude-Mem plugin for persistent memory across sessions",
+      "locator": "page title / meta description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context from previous sessions is automatically loaded into new sessions",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/installation",
+      "quote": "Start a new Claude Code session and you'll see context from previous sessions automatically loaded.",
+      "locator": "Option 3: Plugin Marketplace",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The store is a SQLite database; Chroma provides the embedding service",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/installation",
+      "quote": "SQLite 3: bundled via `bun:sqlite` ... uv (auto-installed if missing \u2014 provides Python for Chroma's embedding service)",
+      "locator": "System Requirements",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory compression (observations) uses a configurable LLM; provider choice determines which model and whose API quota is consumed",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/installation",
+      "quote": "Prompts for the Claude model used to compress observations (Haiku / Sonnet / Opus).",
+      "locator": "Memory Provider Options > Anthropic plan",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per user/machine; data lives in ~/.claude-mem/ scoped to the local user",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/installation",
+      "quote": "Data is stored in `~/.claude-mem/`",
+      "locator": "Post-Installation Verification > Data Directory Location",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Worker exposes a local HTTP API including health and sync/status endpoints",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/installation",
+      "quote": "curl -s \"http://127.0.0.1:${CLAUDE_MEM_WORKER_PORT}/api/health\" curl -s \"http://127.0.0.1:${CLAUDE_MEM_WORKER_PORT}/api/sync/status\"",
+      "locator": "Post-Installation Verification > CMEM Pro / sync",
+      "confidence": "medium",
+      "label": "measured"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/storage/sqlite/memory-items.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/storage/sqlite/schema.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/core/schemas/memory-item.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/services/context-generator.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/services/context/ObservationCompiler.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.claude-mem.ai/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.claude-mem.ai/introduction.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.claude-mem.ai/usage/getting-started.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.claude-mem.ai/usage/search-tools.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.claude-mem.ai/usage/private-tags.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.claude-mem.ai/context-engineering.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.claude-mem.ai/usage/folder-context.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.claude-mem.ai/architecture/overview.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.claude-mem.ai/architecture/hooks.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.claude-mem.ai/architecture/database.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/3848",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/4068",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/3873",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/3834",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/3607",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/3618",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/2785",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/3605",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/3608",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/2793",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/3812",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/4076",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/3628",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/3832",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/4062",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/3861",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/3763",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/3840",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/issues/3815",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://docs.claude-mem.ai/installation",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.claude-mem.ai/architecture/overview",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.claude-mem.ai/introduction",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    }
+  ],
+  "consensus": [],
+  "contested": [
+    {
+      "text": "README/docs benchmark percentages vs issue #3840 citing third-party agentmemory numbers\u2014treat leaderboard claims as vendor marketing unless independently reproduced."
+    },
+    {
+      "text": "Hook fail-loud (#3834) and quota snapshot bugs (#4068) can block or discard session memory\u2014continuity vs reliability tradeoff."
+    },
+    {
+      "text": "Observer worker (#3812) cross-session tool dispatch risk; database growth (#2793) vs advertised compression."
+    }
+  ],
+  "copy": [
+    {
+      "text": "Hook-driven capture + progressive-disclosure retrieval is a useful pattern for 'remember the repo, not every token'\u2014analogous to companion scaffolded recall if injection policy is explicit."
+    },
+    {
+      "text": "Folder-context CLAUDE.md files parallel per-scene companion lore without claiming emotional relationship memory."
+    }
+  ],
+  "refuse": [
+    {
+      "text": "Refuse third-party tutorials (Medium, DataCamp, preuve roundups) and smart-explore benchmark pages as specs\u2014use docs.claude-mem.ai and pinned worker/SQLite code."
+    },
+    {
+      "text": "Refuse equating observation compression with human-like companion remembering; product targets coding sessions."
+    },
+    {
+      "text": "Refuse stale Cipher-era issue threads when V5+ hook architecture docs contradict them without re-verification."
+    }
+  ],
+  "unknowns": [
+    {
+      "text": "The context injection endpoint returns the last 50 observations but this page does not describe how summaries are selected or ranked for retrieval, nor whether session_summaries rows are included in the injected context",
+      "url": "https://docs.claude-mem.ai/architecture/hooks.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The exact code path in worker-service.cjs that fails to populate memory_session_id on the summary payload before the recycle insert is not confirmed \u2014 inferred from log shape against a minified bundle",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3832",
+      "kind": "issue"
+    },
+    {
+      "text": "No documentation describes what the memory worker persists, how facts/summaries are written or updated across sessions, or what is selected into the prompt context \u2014 this is a worker lifecycle issue report, not a memory architecture doc",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3834",
+      "kind": "issue"
+    },
+    {
+      "text": "No breakdown of how tokens are distributed across observation extraction, summarization, and compression is surfaced to users; whether such a diagnostic view exists is unconfirmed.",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3848",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the full conversation/context is re-processed on every memory update cycle (vs. incremental/delta processing) is explicitly unresolved by this page.",
+      "url": "https://github.com/thedotmack/claude-mem/issues/3848",
+      "kind": "issue"
+    },
+    {
+      "text": "RateLimitStore.ts is a canonical architecture file for the quota/eviction mechanism; it does not implement any resetsAt check, expiry, or entry deletion \u2014 the page notes this gap explicitly.",
+      "url": "https://github.com/thedotmack/claude-mem/issues/4068",
+      "kind": "issue"
+    },
+    {
+      "text": "The pending_messages SQLite table exists in schema but has no INSERT path in the 13.24.23 bundle \u2014 the page explicitly notes no queued-work persistence is implemented.",
+      "url": "https://github.com/thedotmack/claude-mem/issues/4068",
+      "kind": "issue"
+    },
+    {
+      "text": "The page attributes a 95.2% Recall@5 / 98.6% Recall@10 benchmark result to 'agentmemory' (rohitg00/agentmemory) immediately after describing claude-mem's architecture. It is not stated whether this score belongs to claude-mem, agentmemory as a separate project, or a shared component. The page does not clarify.",
+      "url": "https://preuve.ai/blog/ai-memory-systems-statistics-2026",
+      "kind": "blog"
+    }
+  ]
+}
