@@ -893,3 +893,80 @@ Fork mirror: [jiji262/awesome-harness-engineering](https://github.com/jiji262/aw
 ### Bottom line
 
 Best single **harness-engineering** syllabus for companmem **governance, compaction, permissions, and eval design**; weak for **companion-memory product discovery** (6/241 GitHub overlap with seed). Memory-section **gaps worth seeding next** if we widen the coding-agent/harness slice: **`engram`**, **`mempalace`**, then **`stash`** / **`mex`** / **`trajectory`**. For relationship-memory census, keep XiaomingX + companion list; use this list for Phase 3 protocol and QUESTIONS on memory invalidation + restraint. **No seed changes** in this audit unless you say yes to specific slugs.
+
+---
+
+## New seed quality gate (2026-09-18)
+
+**Scope:** 32 slugs added in `1e64fd2` (seed 29 → 61). **Not** full `just audit-write` — pre-harvest **verification** of repo identity, doc URLs, `open_code` on default branch, and red flags from README/issues/web.
+
+**Automated checks run:** `seed_lint --check-open-code` (all 61 OK after fixes); per-slug `open_code` vs GitHub default branch (32/32 paths exist); HTTP GET on `docs` + `open_docs` (30/32 clean before fixes).
+
+**Seed fixes applied (this pass):**
+
+| Slug | Issue | Fix |
+|------|--------|-----|
+| `taosmd` | Default branch **`master`**; all `blob/main/` URLs 404 | Point `docs` + `open_docs` at `blob/master/…` |
+| `tencentdb-agent-memory` | Default branch **`feat/server_team`**; `blob/main/` 404 | Point `docs` + `open_docs` at `blob/feat/server_team/…` |
+
+**Verdict key:** **Go** = harvest + audit-write now · **Go (caveat)** = harvest but treat marketing metrics as unverified · **Later** = keep in seed but deprioritize pipeline · **Watch** = small/stale; verify in first audit unknown bucket
+
+### Library / harness memory (plug-in bakeoff track)
+
+| Slug | Stars | Pushed | Verdict | Notes |
+|------|------:|--------|---------|--------|
+| `basic-memory` | 4.0k | 2026-09-16 | **Go** | `docs.basicmemory.com/llms.txt`; MCP + search/context services; open_code hits MCP + DB layer |
+| `simplemem` | 3.8k | 2026-07-24 | **Go** | Aiming-lab; README-only docs OK; compression/LTM research code present |
+| `memento-mcp` | 424 | 2025-10-27 | **Later** | Real KG MCP; **no commits ~11mo** — harvest for architecture, flag maintenance in audit |
+| `nano-graphrag` | 4.0k | 2026-01-27 | **Go (caveat)** | HKUDS fork; light GraphRAG **infra**, not companion; quiet since Jan |
+| `memclaw` | 521 | 2026-09-18 | **Go** | **caura-ai/caura-memclaw** (not Felo); governed shared memory + benchmark docs in open_docs |
+| `mengram` | 196 | 2026-09-16 | **Go** | `mengram.io/llms.txt`; brain/extractor/graph paths match product story |
+| `reme` | 3.5k | 2026-09-16 | **Go** | AgentScope ReMe; `reme.agentscope.io/llms.txt`; auto_memory + search code |
+| `memmachine` | 3.2k | 2026-09-18 | **Go** | `docs.memmachine.ai/llms.txt`; active MemMachine platform |
+| `a-mem` | 1.2k | 2025-12-12 | **Go (caveat)** | Agentic Memory paper implementation; **research repo**, slower cadence |
+| `mirix` | 3.4k | 2026-09-12 | **Go** | Multi-agent personal memory assistant; docs on site |
+| `agentmemory` | 28.6k | 2026-09-14 | **Go (caveat)** | **rohitg00** (not elizaOS); `eval/` + published scorecards; AML Task Solve ~52% (third-party DEV post) — do not ledger 95.2% R@5 without repro |
+| `tencentdb-agent-memory` | 27k | 2026-09-18 | **Go** | TencentCloud org; MemoryCore TS handlers; **non-`main` branch** in doc URLs (fixed) |
+| `memvid` | 16.5k | 2026-07-14 | **Go** | Rust single-file memory; open_code on search/graph modules |
+| `acontext` | 3.7k | 2026-07-14 | **Go** | `docs.acontext.io/llms.txt`; skill-memory / distillation code paths |
+| `hermes-agent` | 247k | 2026-09-18 | **Go (caveat)** | Full **runtime**, not memory-only; memory via `agent/memory_*` + `plugins/memory/` — audit as platform memory surface |
+| `khoj` | 37k | 2026-08-02 | **Go (caveat)** | Second-brain / RAG app; `api_memories.py` + docs.khoj.dev — **corpus** memory, not companion relationship |
+| `llm-wiki-cli` | 56 | 2026-09-13 | **Go** | Small but active; Rust store + MCP; aligns with LWC / agentmemory “wiki” pattern |
+| `mnemosyne` | 3.2k | 2026-09-18 | **Go** | `docs.mnemosyne.site/llms.txt`; polyphonic recall + MCP |
+| `vestige` | 628 | 2026-09-18 | **Go** | FSRS + MCP tools; strong companion-adjacent **hygiene** docs |
+| `taosmd` | 79 | 2026-09-18 | **Go (caveat)** | Legit local-first archive + benchmarks doc; author **discloses** inflated Judge scores fixed in PR #176 — ledger from `docs/benchmarks.md` only |
+
+### Companion / DIY stack (observe + relationship memory)
+
+| Slug | Stars | Pushed | Verdict | Notes |
+|------|------:|--------|---------|--------|
+| `paramecium` | 73 | 2026-06-13 | **Go** | Shitsuten gateway; verbatim philosophy; awesome `verify` |
+| `memory-constellations` | 184 | 2026-09-18 | **Go** | ClaraShafiq; fact→constellation pipeline; JS `services/memory.js` |
+| `nocturne-memory` | 1.4k | 2026-08-27 | **Go** | Rollbackable LTM; anti–vector-RAG positioning in README |
+| `kimi-core` | 90 | 2026-08-27 | **Watch** | Personal “memory OS” + drives; rich docs; **low stars**, single maintainer |
+| `ombre-brain` | 1.4k | 2026-09-11 | **Go** | Decay + retrieval scoring; ADRs in open_docs |
+| `imprint-memory` | 78 | 2026-06-01 | **Go** | Claude Code hooks; skip dup repos in seed |
+| `ai-memory-gateway` | 153 | 2026-09-12 | **Go** | **garan0613** PawWake; skip homonym gateways |
+| `omemo` | 110 | 2026-07-07 | **Go (caveat)** | OmniDimen memory server (not Signal OMEMO); skip XMPP crypto URLs |
+| `aelios` | 124 | 2026-09-15 | **Go** | CF Workers memory kernel; layered capture/extract |
+| `kiwi-mem` | 312 | 2026-09-18 | **Go** | Companion gateway; dream/digest/MCP; community issues linked |
+| `soul-of-waifu` | 1.3k | 2026-08-28 | **Later** | **Client/emotion** stack; memory not isolated product — audit for lore/memory modules only |
+| `airi` | 49k | 2026-09-18 | **Later** | Grok companion **container**; memory is part of moeru-ai stack — harvest for integration points, not pure memory API |
+
+### Homonyms / wrong-repo traps (already mitigated in seed)
+
+- `agentmemory` → **rohitg00/agentmemory** (not elizaOS).
+- `memclaw` → **caura-ai/caura-memclaw**.
+- `letta` unchanged (pre-expansion) → **letta-ai/letta-code** while harness list still cites `letta-ai/letta`.
+- `ai-memory-gateway` / `omemo` / `imprint-memory` → `skip_url_prefixes` for name collisions.
+
+### Recommended harvest order (after this gate)
+
+1. **High signal, fresh docs:** `basic-memory`, `reme`, `memmachine`, `mirix`, `vestige`, `mnemosyne`, `memclaw`, `acontext`, `tencentdb-agent-memory`, `taosmd` (URLs fixed).
+2. **High reach, caveat metrics:** `agentmemory`, `hermes-agent`, `khoj`, `memvid`.
+3. **Companion core:** `paramecium`, `kiwi-mem`, `nocturne-memory`, `ombre-brain`, `memory-constellations`.
+4. **Deprioritize:** `memento-mcp`, `nano-graphrag`, `a-mem`, `soul-of-waifu`, `airi`, `kimi-core` until bandwidth or audit demands.
+
+### Bottom line
+
+**All 32 entries stay in seed.** None failed the “is this a real, inspectable memory surface?” test. Two had **broken doc URLs** (fixed). Biggest audit risks: **unverified benchmark percentages** (`agentmemory`, `taosmd`, harness-list blurbs) and **platform vs memory-library** scope (`hermes-agent`, `airi`, `khoj`). Safe to proceed with `just harvest` + `just audit-write` using the order above; fold should mark marketing numbers **unknown** until ledger quotes exist.
