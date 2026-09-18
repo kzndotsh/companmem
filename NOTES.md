@@ -258,20 +258,16 @@ Addresses platform loss / session death — relevant to “memory persists acros
 
 **Eval gaps** — List has **no standardized exam**. Status tags are maintainer judgment after code inspection, not rerunnable scores. Same limitation as Assistant Benchmark for closed apps, but without even published task anchors.
 
-### Candidate seed additions (Phase 1, not committed)
+### Candidate seed additions (Phase 1)
 
-If expanding beyond memory libraries toward **companion-native memory infra**:
+Most **High/Medium** companion-memory infra rows below are now in `seed.json` (2026-09-18 batch + `soul-of-waifu`, `airi`). Still optional / not seeded:
 
 | Priority | Repo | Why |
 |----------|------|-----|
-| High | Paramecium | Verbatim-log philosophy; direct contrast to summary-first stores |
-| High | Memory Constellations | Fact → constellation → episode pipeline |
-| High | nocturne_memory | Structured/rollback memory; explicit anti–vector-RAG positioning |
-| Medium | kimi-core, Ombre-Brain | Hybrid retrieval + drives/affect + maintenance |
-| Medium | imprint-memory | Hook-based capture pattern (Claude Code ecosystem) |
 | Low | revive-companion, jiwen | Proactive **timing** engines, not storage — Phase 2 behavior refs |
+| Low | WrenWen | Write-up / anti-drift patterns, not a harvestable memory repo |
 
-Run `just lint-seed` before adding; several are `verify`/`adapt` in the awesome list.
+Run `just lint-seed` before adding further entries; several awesome-list tags are `verify`/`adapt`.
 
 ### What to refuse or treat carefully
 
@@ -291,3 +287,609 @@ Run `just lint-seed` before adding; several are `verify`/`adapt` in the awesome 
 ### Bottom line
 
 awesome-ai-companion is the best **companion-stack field map** we’ve seen for open source: it shows memory is always bundled with proactive loops, persona portability, and continuity anxiety. It does **not** give a rerunnable exam. Use it to expand **what to audit** and **how to categorize**; use Assistant Benchmark + Harbor/LoCoMo critique for **how to score**.
+
+---
+
+## awesome-second-brain audit (2026-09-18)
+
+Source: [aristoapp/awesome-second-brain](https://github.com/aristoapp/awesome-second-brain) — curated **second-brain lifecycle** comparison (Collect → Organize → Evolve → Use → Govern). Maintainer: Aristo / [Membase](https://membase.so/) (list default recommendation). English + [한국어 README](https://github.com/aristoapp/awesome-second-brain/blob/main/README.ko.md); deep pages under `solutions/`, `comparisons/`, `capabilities/`.
+
+This is **not** a benchmark and **not** neutral**: README funnels to Membase as the end-to-end default. It is still useful as a **structured field map** for “personal/team context brain” products and as **eval vocabulary** (especially [activation evidence](https://github.com/aristoapp/awesome-second-brain/blob/main/capabilities/activation-evidence.md)).
+
+### Lifecycle frame (steal for synthesis / Phase 3)
+
+| Stage | Question | companmem hook |
+|-------|----------|----------------|
+| Collect | How does context enter? | Log vs memory; hook capture vs connector |
+| Organize | Embeddings pile or durable structure? | Graph, wiki, tiers, facts, episodes |
+| Evolve | Consolidation, dedupe, decay, dream? | Maintenance probes; partial-memory failures |
+| Use | MCP/API/grounding in real work? | Remembering vs retrieving in **tasks** |
+| Govern | Inspect, correct, export, scope? | Trust boundaries; Assistant Benchmark permissions |
+
+**Activation evidence** ([capability page](https://github.com/aristoapp/awesome-second-brain/blob/main/capabilities/activation-evidence.md)): separate **retrieved** from **acted-on** (cited, injected, refused, write-back). Includes a 5-step handoff test (decision + stale note + rejected option). Stronger than LoCoMo for companion exam design; aligns with AB “city conflict” and our restraint dimension.
+
+### Already in `seed.json` (profiled solutions)
+
+| List profile | Seed slug(s) |
+|--------------|--------------|
+| Supermemory | `supermemory` |
+| Honcho | `honcho` |
+| Hindsight | `hindsight` |
+| Zep/Graphiti | `zep`, `graphiti` |
+| Cognee | `cognee` |
+| Mem0/OpenMemory | `mem0` |
+| Claude Projects/Code | `claude-mem` (partial; not full Claude product) |
+
+No new seed work required for these unless re-auditing after list claims.
+
+### Candidate seed additions (not in seed yet)
+
+**Agent memory layers** — **Mnemosyne, Vestige, taOSmd** added to `seed.json` (2026-09-18). Remaining:
+
+| Priority | Repo | Why | Harvest notes |
+|----------|------|-----|----------------|
+| **Medium** | [GBrain](https://github.com/garrytan/gbrain) | Markdown brain DB, dream/autopilot maintenance, hybrid search + `think`, MCP/CLI | Large repo (Garry Tan stack); **workspace ops** more than companion chat — still strong Organize/Evolve |
+| **Medium** | [Khoj](https://github.com/khoj-ai/khoj) | Personal AI over files/notes; self-host + [docs.khoj.dev](https://docs.khoj.dev/) | End-to-end app; memory is RAG-over-corpus not relationship memory |
+| **Medium** | [OpenHuman](https://github.com/tinyhumansai/openhuman) | Open harness, local-first memory + orchestration | Huge monorepo; beta; Collect-heavy |
+| **Low** | [obsidian-wiki](https://github.com/Ar9av/obsidian-wiki) | Agent **skills** for vault compile/query — Organize/Govern pattern | Not a memory engine; skills + Markdown discipline |
+| **Low** | [Pad](https://github.com/PerpetualSoftware/pad) | Agent workspace + MCP; list says **no semantic recall** | Project context, not companion continuity |
+
+**Defer / different track**
+
+| Entry | Reason |
+|-------|--------|
+| [Membase](https://docs.membase.so/) | List sponsor + hosted product; audit only if we add commercial census row deliberately |
+| [Hyperspell](https://docs.hyperspell.com/) | Private beta; docs-only harvest boundary |
+| [Hjarni](https://hjarni.com/) | Hosted notes app; OSS surface is small [hjarni-mcp](https://github.com/hjarni/hjarni-mcp) |
+| Hermes + wiki/Obsidian stacks | Integration recipes, not one substrate |
+| ChatGPT Memory, NotebookLM | Platform baselines — eval targets, not `just harvest` products |
+| [obsidian-logseq](solutions/obsidian-logseq.md) | PKM + plugins; memory behavior varies |
+
+### Watchlist ([watchlist.md](https://github.com/aristoapp/awesome-second-brain/blob/main/watchlist.md))
+
+Not ready for seed; track for Collect/Use gaps:
+
+- **screenpipe** — 24/7 local capture → SQLite (Collect only)
+- **BrainTube MCP** — hosted ingest + graph tools (Use layer)
+- **Dory**, **Open Second Brain**, **MAGI**, **TideMind** — emerging local MCP memory
+- **AccInt** — governance/work-model; core binary not open
+- **tracecraft** — coordination substrate, not memory
+- **Letta** — already `letta` in seed; list watchlist lags
+
+### Overlap with other lists
+
+| List | Overlap |
+|------|---------|
+| awesome-ai-companion | DIY companion gateways (Paramecium, kiwi-mem, …) — **not** in second-brain list |
+| Awesome-AI-Waifu | Clients (AIRI, Soul of Waifu) — second-brain ignores waifu stack |
+| This repo | **PKM + agent memory + team wiki** framing |
+
+### Ideas for QUESTIONS / Phase 3
+
+- Bucket audits by **lifecycle stage** above, not only “vector vs graph.”
+- Add **activation evidence** as exam dimension: require stale-item refusal or citation of source ID, not fact QA alone.
+- **GBrain `think`** (cited synthesis + conflict + gap) and **taOSmd verifier** are patterns for “memory changes the answer” probes.
+- **Vestige** `suppress` + reversible forgetting vs **Ombre-Brain** decay — maintenance taxonomy.
+
+### What to refuse
+
+- Treat Membase-forward rankings as **marketing**, not evidence.
+- Do not harvest **comparison markdown** in this repo as product truth — use linked **official repos/docs** only.
+- **Khoj/OpenHuman** are broad assistants; only add to seed if we explicitly widen census to “personal AI with memory,” not companion-memory substrates.
+
+### Bottom line
+
+awesome-second-brain is the best **lifecycle + governance vocabulary** we have for second brains: it names **Evolve** and **Govern** gaps most memory benchmarks skip. For seed expansion, prioritize **Mnemosyne, Vestige, taOSmd**, then **GBrain** if we want workspace-scale brains. Steal **activation evidence** for the companion exam; do not treat the list as an unbiased product catalog.
+
+---
+
+## awesome-ai-memory audit (2026-09-18)
+
+Source: [XiaomingX/awesome-ai-memory](https://github.com/XiaomingX/awesome-ai-memory) — bilingual **LLM long-term memory** survey (~176 stars). README is a **timeline + fishbone** (RAG → agent memory streams → graph/compression → production layers → neural LTM) plus curated tables; `docs/` splits MCP, narrative, multimodal consistency, continual learning, distributed training, etc.
+
+This is **not** a benchmark and **not** companion-focused. It is a **memory-layer and RAG field map** with heavy overlap with our existing **library/product** seed slice, plus MCP plugins and research forks. Maintainer activity: repo last code push **2026-08-07**; README still useful as a **taxonomy**, not as verified audits.
+
+### List structure
+
+| Section | Content | companmem relevance |
+|---------|---------|---------------------|
+| §1 Integrated memory layers | Mem0, Memobase, Graphiti, LangMem, Zep, Letta, SimpleMem | **Core census** — mostly already in `seed.json` |
+| §2 Agent & local tools | Basic Memory, Supermemory, Khoj, Nano-GraphRAG, NovelGenerator, AgentCortex | Local/MCP agents; **gaps** below |
+| §3 Frameworks | LlamaIndex, LangChain | Generic RAG — **not** seed products |
+| §4 Infra | Chroma, Milvus, Qdrant, Weaviate, Neo4j | Vector/graph stores — **out of scope** unless we add infra row |
+| §5 Integration advice | Mem0/Letta/OpenClaw, privacy → Basic Memory | Opinion only |
+| §6 Pretrain / architecture | Titans, HOMER, Memory3 | **Research track** — papers/repos, not harvest targets |
+| §7 MCP & skills | memento-mcp, meMCP, samwang0723/mcp-memory, OpenClaw skill lists | MCP **substrates**; only some are single-repo products |
+| §8–12 | Multimodal face/voice, Megatron/DeepSpeed, multi-agent sync, RLHF, continual LM | **Different problem** (consistency/training); refuse as memory census |
+
+Supplements: [docs/agent-memory-tools.md](https://github.com/XiaomingX/awesome-ai-memory/blob/main/docs/agent-memory-tools.md) (repeats Mem0/Letta/Cognee + SimpleMem), [docs/mcp-and-skills-memory.md](https://github.com/XiaomingX/awesome-ai-memory/blob/main/docs/mcp-and-skills-memory.md) (meMCP, memento-mcp, JamesANZ/memory-mcp, VoltAgent skill indexes).
+
+### Overlap with `seed.json` (54 products)
+
+**Already covered** (by slug or docs-only audit): `mem0`, `memobase`, `graphiti`, `langmem`, `zep` (no OSS repo), `letta` (`letta-ai/letta-code`), `supermemory`, `cognee`, `hindsight`, `lightrag`, `microsoft-graphrag`, `mcp-memory` (official MCP `modelcontextprotocol/servers` — **not** `samwang0723/mcp-memory`).
+
+**~41 unique GitHub repos** in README + MCP docs; **~34** are not the `repo` field of any seed entry. Most are frameworks, vector DBs, awesome-lists, research code, or OpenClaw skill indexes — not missing “memory products.”
+
+**Zero overlap** with awesome-ai-companion companion gateways (Paramecium, kiwi-mem, …). **Partial overlap** with awesome-second-brain (e.g. Khoj, Mnemosyne/Vestige/taOSmd now seeded from that list, not from here).
+
+### Candidate seed additions (not in seed yet)
+
+**Basic Memory, SimpleMem, memento-mcp, nano-graphrag** added to `seed.json` (2026-09-18). Remaining:
+
+| Priority | Repo | Why | Harvest notes |
+|----------|------|-----|----------------|
+| **Medium** | [Khoj](https://github.com/khoj-ai/khoj) | Personal “second brain” app | Already on second-brain NOTES; **corpus RAG**, not relationship memory — widen census deliberately |
+| **Low** | [samwang0723/mcp-memory](https://github.com/samwang0723/mcp-memory), [meMCP](https://github.com/mixelpixx/meMCP), [memory-mcp](https://github.com/JamesANZ/memory-mcp) | Alternate MCP servers | Small surface; name collision with seed `mcp-memory` |
+| **Low** | [AgentCortex](https://github.com/sage-hq/agentcortex-mcp) | MCP memory for coding assistants | ~5 stars; stale since 2025-05 — `verify` only |
+| **Defer** | NovelGenerator, StoryMaker, ConsistI2V, Amphion | **Narrative / multimodal consistency**, not conversational memory substrate |
+| **Defer** | Titans, Memory3, HOMER, continual-learning repos | **Architecture / training** — cite in QUESTIONS timeline, not `just harvest` |
+| **Defer** | VoltAgent awesome-moltbot/openclaw-skills | Skill **indexes**, not one product |
+
+### Ideas for QUESTIONS / synthesis
+
+- README **fishbone** (RAG → agent streams → graph/compression → production layer → neural LTM) is a compact **history frame** for “what we mean by memory” without endorsing list rankings.
+- **SimpleMem** “semantic lossless compression” + **Basic Memory** Markdown-as-source pair well with Paramecium/taOSmd **verbatim** axis in synthesis.
+- **MCP sprawl** (official graph memory vs memento vs Redis-graph vs meMCP) supports a governance question: *which MCP memory servers are interchangeable in an exam harness?*
+- List’s **LoCoMo / Mem0 paper** anchors are bibliography — do not treat README performance claims as ledger quotes.
+
+### What to refuse
+
+- Sections on **distributed training**, **RLHF**, and **GPU parameter sync** — mislabeled as “memory” in the broad Chinese README; ignore for companmem.
+- **Framework defaults** (LangChain Memory, LlamaIndex) — integration patterns, not auditable memory engines.
+- **Duplicate SimpleMem row** in §1 and §2 — list hygiene issue; one audit per repo.
+- Do not harvest **awesome-ai-memory** itself as a product — discovery + taxonomy only.
+
+### Bottom line
+
+awesome-ai-memory is the best **integrated-memory-layer index** aligned with our existing seed (Mem0/Zep/Letta/Graphiti cluster). High/medium harvest targets from this list are now in seed (`basic-memory`, `simplemem`, `memento-mcp`, `nano-graphrag`); **Khoj** still deferred. Use the fishbone for synthesis; use official repos + `llms.txt` where present for harvest. Companion-specific memory still lives in awesome-ai-companion, not here.
+
+---
+
+## topoteretes/awesome-ai-memory audit (2026-09-18)
+
+Source: [topoteretes/awesome-ai-memory](https://github.com/topoteretes/awesome-ai-memory) — English **AI memory landscape** list (~876 stars, maintainer [Cognee](https://github.com/topoteretes/cognee) / topoteretes). README is a **sponsor-forward** table (infographic `assets/infographic_v7.png`) tagging each entry: Open/Managed/Closed · Memory Tool / Framework / Optimizer / Storage · Graph / Vector / hybrid. Includes a **Benchmarks & evaluation** block (ATM-Bench, LoCoMo, LongMemEval). Repo `tools/push_to_posthog.py` only — no extra product pages.
+
+**Not the same repo** as [XiaomingX/awesome-ai-memory](https://github.com/XiaomingX/awesome-ai-memory) (different maintainer, Chinese fishbone + MCP/companion depth). Same name; cross-check URLs before citing “the awesome-ai-memory list.”
+
+### Bias and quality
+
+- **Cognee-promoted** header/footer (Discord, quickstart funnels) — comparable to Membase-forward second-brain list; use for **discovery**, not rankings.
+- **Category noise:** Prometheus, Vanna.AI, and several **vector DBs** labeled “Memory Tool”; Haystack/LlamaIndex/LangChain are frameworks, not memory substrates.
+- **Stale / broken links:** `statewave-ai/statewave` **404**; `LangbaseInc/baseai` → moved to [CommandCodeAI/BaseAI](https://github.com/CommandCodeAI/BaseAI); `SynaLinks/HybridAGI` → [SynaLinks/synalinks-skills](https://github.com/SynaLinks/synalinks-skills) (verify before harvest).
+- **Duplicate name:** two “MemClaw” rows — [caura-ai/caura-memclaw](https://github.com/caura-ai/caura-memclaw) (fleet/governed memory, active) vs [Felo-Inc/memclaw](https://github.com/Felo-Inc/memclaw) (coding-agent dashboard, quieter).
+
+### Overlap with `seed.json` (54 products)
+
+**Listed and already seeded (directly or alias):** `cognee`, `mem0`, `microsoft-graphrag`, `zep` (list points at `getzep/zep`; we audit **Zep Cloud** docs-only), `letta` (list still links legacy `cpacker/MemGPT`).
+
+**Not in this list but in seed:** `graphiti`, `langmem`, `hindsight`, `memobase`, `basic-memory`, `simplemem`, `memento-mcp`, `nano-graphrag`, companion gateways (Paramecium, …), Mnemosyne/Vestige/taOSmd, etc. This list is **commercial-landscape + Cognee peer set**, not exhaustive vs our census.
+
+**~33 GitHub URLs** in README; **~28** are not any seed `repo`. Most are storage (Chroma, Milvus, …), frameworks, eval datasets (`snap-research/locomo`), or this list repo itself — not gaps we must seed.
+
+### Candidate seed additions (not in seed yet)
+
+**MemClaw (Caura), Mengram** added to `seed.json` (2026-09-18). Remaining:
+
+| Priority | Repo | Why | Harvest notes |
+|----------|------|-----|----------------|
+| **Medium** | [memonto](https://github.com/shihanwan/memonto) | User-defined ontology → KG long-term memory | Graph-only; last push **2024-10** — verify before seed |
+| **Medium** | [Memary](https://github.com/kingjulio8238/Memary) | KG memory for autonomous agents (~2.6k stars) | Stale since **2024-10**; high stars, low maintenance signal |
+| **Medium** | [llm-wiki-cli (LWC)](https://github.com/JanYork/llm-wiki-cli) | Local SQLite “wiki” + graph projections for coding agents | Small (~56 stars); overlaps **GBrain** / workspace-memory track |
+| **Low** | [txtai](https://github.com/neuml/txtai) | Embeddings DB + RAG orchestration | Huge generic RAG stack — only if census widens to “RAG platforms” |
+| **Low** | [BondAI](https://github.com/krohling/bondai), [BaseAI](https://github.com/CommandCodeAI/BaseAI) | Agent frameworks with vector memory modules | Framework-first; stale (BondAI) or product-bundle (BaseAI) |
+| **Defer** | Felo-Inc/memclaw, Vanna, Prometheus, closed rows (Graphlit, Pinecone, SID, …) | Wrong category, hosted-only, or duplicate naming |
+| **Defer** | `snap-research/locomo`, ATM-Bench | **Eval datasets** — QUESTIONS / Phase 3, not `just harvest` products |
+
+Shallow clones for scouting: `.cache/seed-research/memclaw-caura`, `mengram`.
+
+### Benchmarks block (steal for exam design)
+
+| Benchmark | List use |
+|-----------|----------|
+| [ATM-Bench](https://arxiv.org/abs/2603.01990) | Multimodal **personal** referential memory over years of records — closer to companion “knows my life” than LoCoMo QA |
+| [LoCoMo](https://github.com/snap-research/locomo) | Long conversational memory (already our skepticism anchor) |
+| [LongMemEval](https://arxiv.org/abs/2410.10813) | Multi-session abilities incl. **knowledge updates** and abstention |
+
+Treat README benchmark mentions as **pointers**; ledger quotes must come from papers/repos we harvest.
+
+### Cross-list comparison
+
+| Dimension | topoteretes | XiaomingX |
+|-----------|-------------|-----------|
+| Maintainer | Cognee / commercial funnel | Independent curator |
+| Unique entries | Mengram, MemClaw, memonto, Memary, closed vendors | Basic Memory, SimpleMem, MCP plugins, companion-adjacent tools |
+| Taxonomy | Open/closed + storage type + stack role | Historical fishbone + integrated/agent/MCP sections |
+| Companion memory | Minimal | Via other awesome lists, not this one |
+
+### What to refuse
+
+- **Infographic / table placement** as evidence of capability — marketing layout, not audits.
+- **Closed-source rows** without harvestable repos (Graphlit, Pinecone, llongterm, …) — map as commercial census only if we add a deliberate “hosted” track.
+- **Letta via cpacker/MemGPT** — use `letta-ai/letta-code` (our seed), not the archived MemGPT fork link.
+- Do not conflate the two **awesome-ai-memory** GitHub repos in citations.
+
+### Bottom line
+
+topoteretes/awesome-ai-memory is a **Cognee-centric market map** plus useful **memory-type vocabulary** (episodic / semantic / procedural) and **benchmark pointers**. High targets from this list are now in seed (`memclaw`, `mengram`); memonto/Memary/LWC remain optional. Most value for companmem is taxonomy + ATM-Bench discovery; product coverage is narrower than XiaomingX for MCP/local tools already in seed.
+
+---
+
+## IAAR-Shanghai/Awesome-AI-Memory audit (2026-09-18)
+
+Source: [IAAR-Shanghai/Awesome-AI-Memory](https://github.com/IAAR-Shanghai/Awesome-AI-Memory) — **academic + engineering knowledge base** from IAAR Shanghai (~1.2k stars). Bilingual mega-README (`README.md` / `README_en.md`, ~1 MB each) with **~795 paper entries** (HTML tables, collapsible sections) plus a **chronological open-source systems table** (~83 rows, badge claims 111 projects). Survey diagram in `assets/`. `scripts/update_paper_count.py` only.
+
+**Third repo named “Awesome-AI-Memory”** — do not confuse with [XiaomingX](https://github.com/XiaomingX/awesome-ai-memory) (fishbone/MCP) or [topoteretes](https://github.com/topoteretes/awesome-ai-memory) (Cognee market map). Cite **org + URL**.
+
+### What it is (vs our other lists)
+
+| Aspect | IAAR-Shanghai | XiaomingX | topoteretes |
+|--------|---------------|-----------|-------------|
+| Primary payload | **Papers** + dated systems registry | Curated tools + timeline | Vendor/infra table |
+| Taxonomy | In-scope/out-of-scope + memory ops (write/retrieve/update/forget/compress) | Fishbone evolution | Graph vs vector vs role |
+| Companion / DIY | Rare | awesome-ai-companion overlap | Minimal |
+| Eval pointers | **Large benchmark matrix** | LoCoMo anchors in prose | ATM-Bench + LoCoMo + LongMemEval |
+
+This is the best **paper bibliography + benchmark catalog** of the three; weakest as a **verified product audit** (table rows are community PRs, dates are “listed on” not independently checked).
+
+### Overlap with `seed.json` (54 products)
+
+**Systems table — already seeded** (by repo or close alias): `mem0`, `cognee`, `letta` (list uses `letta-ai/letta`; we use `letta-code`), `supermemory`, `zep` (`getzep/zep`), `memobase`, `langmem`, `vestige`, `memos`, `memoryos`, `memu`, `memori`, `hindsight`, `openviking`, `mengram`, `taosmd`, `memclaw` (**list row is [Felo-Inc/memclaw](https://github.com/Felo-Inc/memclaw)**; we seeded **caura-ai/caura-memclaw** — treat as **two products**).
+
+**Listed but seed gap / alias note:**
+
+| List name | Repo | Seed status |
+|-----------|------|-------------|
+| EverMemOS | `EverMind-AI/EverMemOS` | `everos` → [EverMind-AI/EverOS](https://github.com/EverMind-AI/EverOS) (same star count/push as MemOS repo — verify canonical name before harvest) |
+| Graphiti, LightRAG, Basic Memory, SimpleMem, Mnemosyne, … | — | **Not** in IAAR systems table (coverage lag) |
+
+**~82 GitHub repos** in the systems section; **~64** are not any seed `repo`. Many are 2026 micro-releases (npm/MCP one-offs), governance stubs (OWASP), or OpenClaw-adjacent stacks — not all belong in companion-memory census.
+
+### Candidate seed additions (not in seed yet)
+
+**ReMe, MemMachine, A-MEM, MIRIX** added to `seed.json` (2026-09-18). Remaining:
+
+| Priority | Repo | Why | Harvest notes |
+|----------|------|-----|----------------|
+| **Medium** | [Second-Me](https://github.com/mindverse/Second-Me) | “AI self” / long-term personalization; ~15k stars | Broad product — only if census widens beyond chat substrates |
+| **Medium** | [Nemori](https://github.com/nemori-ai/nemori), [MemEngine](https://github.com/nuster1128/MemEngine) | Research memory engines | Smaller; MemEngine quiet since 2025-05 |
+| **Medium** | [TiMEM](https://github.com/TiMEM-AI/timem), [omega-memory](https://github.com/omega-memory/omega-memory), [MemoryBear](https://github.com/SuanmoSuanyangTechnology/MemoryBear) | Listed 2025–26 integrated layers | Verify docs + MCP/API surface |
+| **Medium** | [JanYork/llm-wiki-cli](https://github.com/JanYork/llm-wiki-cli) (LWC) | Local wiki memory for coding agents | Already on topoteretes NOTES |
+| **Low** | [kingjulio8238/Memary](https://github.com/kingjulio8238/Memary) | KG agent memory | Stale since 2024-10 |
+| **Low** | [strangeadvancedmarketing/Adam](https://github.com/strangeadvancedmarketing/Adam) | OpenClaw 5-layer memory **framework** | Skills/architecture, not a single pip package |
+| **Defer** | SwarmVault, PackRat, GoodMemory, mnemoverse MCP, 30+ 2026 npm rows | Too new or packaging-only — watchlist |
+| **Broken / skip** | `elizaOS/agentmemory` | **404** on GitHub (2026-09-18) | Remove from trust until fixed |
+
+### Benchmarks & tasks (steal for Phase 3)
+
+From [README_en.md § Benchmarks](https://github.com/IAAR-Shanghai/Awesome-AI-Memory/blob/main/README_en.md#-benchmarks-and-tasks) — **do not harvest as products**; use as exam bibliography:
+
+- **Personalization / persona:** PersonaMem, PersonaMem-v2, PersonaBench, LaMP, KnowMe-Bench, IMPLEXCONV
+- **Comprehensive agent memory:** MemoryAgentBench, LifelongAgentBench, StreamBench
+- **Long-term dialogue:** LoCoMo, LongMemEval, LOCCO, RealMem, CloneMem, Mem-Gallery, DialSim, StoryBench
+- **Mechanism / hallucination:** MemBench, MemoryBench, HaluMem, Minerva
+- **Multimodal personal:** ATM-Bench (also on topoteretes list)
+
+Pairs well with Assistant Benchmark **city conflict** and second-brain **activation evidence** — IAAR is where to **find paper titles**, not scores.
+
+### Ideas for QUESTIONS / synthesis
+
+- README **in-scope** definition (external explicit memory, forgetting/compression, multi-agent shared memory) matches companmem’s substrate focus better than IAAR’s long paper tail.
+- **Four-layer memory system** vocabulary (storage / processing / retrieval / control) is a synthesis bucket for audits.
+- Paper tables tag badges (Episodic, Memory Framework, Dynamic Memory Management) — useful **auto-labels** if we ever link papers to seed products.
+- **TierMem** and similar 2026 arXiv rows in the paper section — provenance-aware tiered memory aligns with taOSmd / lossy-vs-verified theme.
+
+### What to refuse
+
+- **~1 MB README papers** — discovery only; ledger quotes must come from PDFs we open, not HTML summaries in the list.
+- **Systems table as ground truth** — no code verification gate (unlike awesome-ai-companion `verify` rule); MemClaw row may not match best-in-class fork (Caura vs Felo).
+- **Adam / OpenClaw stacks** — integration patterns, not interchangeable with Mem0-class APIs in an exam harness.
+- **Multimedia / Bilibili / YouTube rows** — training material, not evidence.
+- Do not `just harvest` **IAAR-Shanghai/Awesome-AI-Memory** as a product.
+
+### Bottom line
+
+IAAR-Shanghai/Awesome-AI-Memory is the **research librarian** of the three namesakes: papers + benchmark matrix + a **dated systems phonebook**. Seed already covers most **mature** rows (Mem0, MemOS family, Vestige, taOSmd, Mengram, etc.); IAAR **high quartet** now in seed (`reme`, `memmachine`, `a-mem`, `mirix`). **Second-Me** still optional if we widen to personalization products. Primary steal for companmem is the **eval bibliography** (PersonaMem, MemoryAgentBench, HaluMem, RealMem/CloneMem), not bulk-adding 64 repos.
+
+---
+
+## EvoMap/awesome-agent-evolution audit (2026-09-18)
+
+Source: [EvoMap/awesome-agent-evolution](https://github.com/EvoMap/awesome-agent-evolution) — curated list from [EvoMap](https://evomap.ai) (~226 stars) on **agent self-evolution**, **memory**, MCP/A2A, platforms, coding agents, and safety. README is **AUTOGEN** from [`data/projects.json`](https://github.com/EvoMap/awesome-agent-evolution/blob/main/data/projects.json) (119 projects, star-sorted within category). Mermaid taxonomy splits **Single-Agent** (evolution, memory, prompt opt) vs **Infrastructure** (protocols, platforms, coding, safety, embodied).
+
+This is **not** a benchmark harness. It is a **star-ranked catalog** with a short **paper bibliography** and benchmark links. Maintainer funnel: [evolver](https://github.com/EvoMap/evolver) (GEP), [gep-mcp-server](https://github.com/EvoMap/gep-mcp-server), sibling [awesome-agent-swarm](https://github.com/EvoMap/awesome-agent-swarm).
+
+### List structure
+
+| Section | Count (projects.json) | companmem relevance |
+|---------|----------------------|---------------------|
+| Agent evolution & self-improvement | 17 | **Evolve** track — workflow/prompt/code mutation, not conversational memory substrates |
+| Memory systems | 22 | **Core census** overlap with seed |
+| A2A / MCP protocols | 7 | Harness plumbing, not memory engines |
+| Agent platforms | 21 | Dify, LangGraph, OpenHands — out of scope |
+| Agent coding | 18 | Claude Code, Codex, SWE-agent — eval targets, not `just harvest` |
+| Multi-agent | 21 | Orchestration, not memory |
+| Prompt optimization | 2 | TextGrad, Promptfoo |
+| Safety / embodied | 2 + 8 | Refuse for memory census |
+| Key papers + benchmarks | README prose | **Phase 3 bibliography** |
+
+CI workflow: `generate-readme.js`, `check-links.js` (requires `gh`). Inclusion = JSON row + passing link check — **no code-audit gate**.
+
+### Overlap with `seed.json` (58 products)
+
+**Memory section — already seeded:** `mem0`, `cognee`, `letta` (list uses `letta-ai/letta`; we use `letta-code`), `memu`, `everos` (listed as EverMemOS → `EverMind-AI/EverOS`), `honcho`, `nocturne-memory`, `reme`, `memmachine`, `telemem`, `memobase` org cousin **Acontext** is **not** seeded (see below).
+
+**Not in this list but in seed (coverage gap):** `graphiti`, `zep`, `langmem`, `hindsight`, `vestige`, `mnemosyne`, `taosmd`, `basic-memory`, `simplemem`, `memento-mcp`, `nano-graphrag`, `memclaw` (Caura), `mengram`, `mirix`, `a-mem`, companion gateways (Paramecium, kiwi-mem, …), most closed companions.
+
+**~129 unique GitHub URLs** in full README; memory block has **22** entries only — highly **Mem0-cluster biased**, plus meta-lists (IAAR, TeleAI Awesome-Agent-Memory).
+
+### Candidate seed additions (not in seed yet)
+
+**agentmemory, tencentdb-agent-memory, memvid, acontext** added to `seed.json` (2026-09-18). Remaining:
+
+| Priority | Repo | Why | Harvest notes |
+|----------|------|-----|----------------|
+| **Medium** | [holaOS](https://github.com/holaboss-ai/holaOS) | Long-horizon agent environment + continuity/self-evolution (~11k stars) | Platform, not pure memory API |
+| **Medium** | [Mem9](https://github.com/mem9-ai/mem9) | Cloud-synced persistent memory layer (~1.2k stars) | Hosted slant |
+| **Medium** | [MemSkill](https://github.com/ViktorAxelsen/MemSkill) | Meta-memory skills for **self-evolving** agents (~578 stars) | Bridges evolution + memory — good for QUESTIONS |
+| **Low** | [memgraph](https://github.com/memgraph/memgraph) | Graph DB for GraphRAG | Storage infra, not agent memory product |
+| **Low** | [ChatLab](https://github.com/ChatLab/ChatLab) | Local chat **analysis** | Social archive tool, not agent substrate |
+| **Defer** | EvoMap/evolver, OpenEvolve, HyperAgents, … | **Evolution engines** | Cite for Evolve taxonomy; harvest only if we add “self-improvement substrate” row |
+| **Defer** | Awesome-* rows inside memory section | Meta lists | Discovery only |
+
+### Evolution ↔ memory cross-links (synthesis)
+
+- List separates **evolution** and **memory** in taxonomy but papers merge them (AutoAgent elastic memory, MemSkill, Live-SWE-agent).
+- [aiming-lab/Agent0](https://github.com/aiming-lab/Agent0) appears under evolution; [SimpleMem](https://github.com/aiming-lab/SimpleMem) is **not** in this list — same lab, different awesome silo.
+- **GEP / evolver** — Genome Evolution Protocol as alternative to memory-layer census; useful for “maintenance vs mutation” vocabulary, not companion exam tasks.
+
+### Benchmarks & papers (steal for Phase 3)
+
+**Benchmarks block:** LoCoMo (again), **ClawBench** (OpenClaw live-web traces), **ATM-Bench**, **SWE-Milestone** (continuous evolution), PerspectiveGap (multi-agent prompts).
+
+**Papers block:** Self-evolving agent surveys (arXiv 2508.07407, TMLR 2507.21046); agent memory survey arXiv **2603.07670** (write–manage–read loop); TeleMem paper cross-cites our `telemem` seed.
+
+Treat README performance claims (Mem0 26%, Memvid +35% LoCoMo) as **discovery**, not ledger quotes.
+
+### What to refuse
+
+- **Star counts** as quality — list is explicitly star-sorted; favors incumbents and coding-agent hype repos.
+- **Platform / coding / embodied** sections — wrong track for companion-memory harvest (129 repos ≠ 129 products).
+- **EvoMap commercial funnel** — not evidence for product rankings.
+- Do not harvest **awesome-agent-evolution** itself — curated JSON + generator.
+
+### Bottom line
+
+EvoMap’s list is the best **evolution + memory crossover map** with **machine-readable** `projects.json` and strong **benchmark/paper pointers**. Seed already hits most of its **memory table**; EvoMap **high four** now in seed (`agentmemory`, `tencentdb-agent-memory`, `memvid`, `acontext`). Companion/DIY memory from awesome-ai-companion is largely **absent**. Use this list for **Evolve** framing and **ClawBench / SWE-Milestone** eval ideas; use IAAR for paper depth, XiaomingX for MCP/local tools.
+
+---
+
+## 0xNyk/awesome-agent-cortex audit (2026-09-18)
+
+Source: [0xNyk/awesome-agent-cortex](https://github.com/0xNyk/awesome-agent-cortex) — **sovereign agent stack** map (~221 stars, CC0, maintainer 0xNyk). README (~212 unique GitHub URLs) is organized as **Build → Operate → Remember → Own**, with deliberate cross-listing (e.g. Hermes in CLI + Hermes Stack). Unlike the three “awesome-ai-memory” repos and EvoMap, this list is **full-stack operator cartography**: MCP, coding agents, harnessing, **in-repo playbooks** (`guides/`), Solana/DeFi identity rails, and commerce — not a memory-only census. CI: `docs-health.yml`. Contribution bar: maintenance, docs, distinct value, operability, security ([CONTRIBUTING.md](https://github.com/0xNyk/awesome-agent-cortex/blob/main/CONTRIBUTING.md)).
+
+This is **not** a benchmark. It is a **curated link + playbook index** with a strong **Remember** lane (context engineering, KG/memory products, neural-linking bibliography, Obsidian-as-backend patterns).
+
+### List structure (companmem lens)
+
+| Lane | Sections | Relevance |
+|------|----------|-----------|
+| **Remember** | Context engineering, neural linking, Obsidian vault architecture, Knowledge graphs and memory | **Primary** — aligns with govern/collect/exam vocabulary |
+| **Operate** | Harnessing & evaluation, security, observability | **Phase 3** — MCPMark, τ-bench, ClawBench, AgentDojo, in-repo harnessing playbook |
+| **Build** | Frameworks, coding agents, MCP, skills, Hermes stack | Runtime/integration context; **Hermes** is the main memory-adjacent **product** gap |
+| **Own** | Solana, wallets, payments, DeFi | **Refuse** for companion-memory harvest unless census widens to on-chain identity |
+
+**In-repo guides to steal (discovery, not ledger):** [context-engineering-playbook](https://github.com/0xNyk/awesome-agent-cortex/blob/main/guides/context-engineering-playbook.md), [obsidian-vault-architecture-playbook](https://github.com/0xNyk/awesome-agent-cortex/blob/main/guides/obsidian-vault-architecture-playbook.md), [neural-linking-memory-playbook](https://github.com/0xNyk/awesome-agent-cortex/blob/main/guides/neural-linking-memory-playbook.md), [agent-harnessing-playbook](https://github.com/0xNyk/awesome-agent-cortex/blob/main/guides/agent-harnessing-playbook.md), [arxiv-deep-research-map](https://github.com/0xNyk/awesome-agent-cortex/blob/main/guides/arxiv-deep-research-map.md) (includes memory category watchlist).
+
+### Knowledge Graphs and Memory vs `seed.json` (58 products)
+
+Section has **18** GitHub links; **7** match a seed `repo` today: `cognee`, `graphiti`, `microsoft-graphrag`, `langmem`, `lightrag`, `mem0`, `reme`.
+
+**Listed but not seeded via that repo field:** `getzep/zep` (seed is **docs-only** `zep`), **Letta** absent from this section (seed: `letta-ai/letta-code`). Most other seed slugs (`vestige`, `mnemosyne`, `basic-memory`, `simplemem`, `memclaw`, `mengram`, `mirix`, `agentmemory`, `acontext`, companion gateways, …) do **not** appear anywhere in this README.
+
+**Not in seed (memory-section gaps):**
+
+| Priority | Repo | Why | Harvest notes |
+|----------|------|-----|----------------|
+| **Added** | [Khoj](https://github.com/khoj-ai/khoj) | Personal assistant + long-term memory/search | Seed slug `khoj` — corpus RAG, not relationship memory |
+| **Added** | [LWC](https://github.com/JanYork/llm-wiki-cli) | SQLite FTS + optional graphs + MCP for **coding-agent** project memory | Seed slug `llm-wiki-cli` |
+| **Added** | [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) | Full CLI/gateway agent with **memory, subagents, tools** | Seed slug `hermes-agent` — integrated runtime, not memory-only library |
+| **Low** | [neuml/txtai](https://github.com/neuml/txtai) | Embeddings DB / semantic workflows | Infra-adjacent |
+| **Low** | [MarlBurroW/hivekeep](https://github.com/MarlBurroW/hivekeep) | “Persistent memory platform” (~59 stars) | Thin surface; verify before harvest |
+| **Low** | [Necmttn/ax](https://github.com/Necmttn/ax) | Local-first observability + memory for Claude Code/Codex (~111 stars) | Coding-agent **telemetry**, not companion substrate |
+| **Low** | FalkorDB, Memgraph, Neo4j, Qdrant, Weaviate, `obsidian-graph-query`, Memgraph ODIN | Graph/vector **stores** or Obsidian glue | Out of scope unless infra row |
+| **Defer** | [Herbert](https://github.com/robertaustinbell/herbert) | Identity/judgment/**memory** template | Dotfiles pattern, not auditable engine |
+| **Defer** | SandBase harness/CLI, Hexis, OpenClaw/NemoClaw rows | Runtime + MCP bridges | Operate lane, not memory products |
+
+### Cross-list comparison (memory-relevant)
+
+| Dimension | awesome-agent-cortex | XiaomingX awesome-ai-memory | EvoMap evolution |
+|-----------|----------------------|----------------------------|------------------|
+| Framing | Sovereign stack (Remember + Own) | Fishbone LTM survey | Self-evolution + memory JSON |
+| Memory products | ~18-link KG table | Integrated layers + MCP | Star-sorted memory category |
+| Unique value | Context/Obsidian/**Hermes** playbooks | MCP/local tool depth | `projects.json`, evolution papers |
+| Companion DIY | Weak | Weak | Weak |
+| Eval pointers | Harnessing + MCPMark reality check | LoCoMo anchors | ClawBench, ATM-Bench, SWE-Milestone |
+
+### Benchmarks & papers (steal for Phase 3)
+
+**Harnessing:** MCPMark pass@1 reality check, τ-bench, OSWorld/WebArena human gaps, **ClawBench** (live-web traces), AgentDojo, Inspect AI — plus in-repo [agent-harnessing-playbook](https://github.com/0xNyk/awesome-agent-cortex/blob/main/guides/agent-harnessing-playbook.md).
+
+**Papers:** MemGPT, Generative Agents, ReAct, Reflexion, Voyager; links to [VoltAgent/awesome-ai-agent-papers](https://github.com/VoltAgent/awesome-ai-agent-papers). **Neural linking** block is bibliography for QUESTIONS “neural vs symbolic memory,” not harvest targets.
+
+### What to refuse
+
+- **Own** track (Solana agent kit, wallets, DeFi playbooks) — wrong product class for current seed.
+- **Star badges** on the README — discovery ordering, not quality evidence.
+- **Cross-listed megarepos** (Hermes, browser-use) — one harvest decision per slug, not duplicate seed rows.
+- Do not harvest **awesome-agent-cortex** itself — CC0 index + guides; not a memory engine.
+
+### Bottom line
+
+awesome-agent-cortex is the best **operator-stack map** for **context engineering + Obsidian-backed memory + harness design**, with a thin **KG/memory product table** that mostly **reconfirms** existing seed (`mem0`, graph cluster, `reme`). New harvest value is **playbooks** and **Hermes/LWC/Khoj** candidates — not the Solana/commerce long tail. For product census depth, prefer XiaomingX + IAAR; for evolution ↔ memory, EvoMap; for closed-companion eval framing, Assistant Benchmark.
+
+**Seed adds (2026-09-18):** `hermes-agent`, `khoj`, `llm-wiki-cli` (LWC).
+
+---
+
+## VoltAgent/awesome-ai-agent-papers audit (2026-09-18)
+
+Source: [VoltAgent/awesome-ai-agent-papers](https://github.com/VoltAgent/awesome-ai-agent-papers) — **2026-only arXiv weekly** for LLM-agent developers (~1.8k stars, MIT). README is five collapsible tables (Multi-Agent, Memory & RAG, Eval & Observability, Agent Tooling, AI Agent Security). Maintainer: VoltAgent (Necati Özmen); last merge **2026-09-12**. Sponsors in header (Crawlbase, SerpApi) plus product ads in the body. Already linked from awesome-agent-cortex NOTES as a bibliography pointer.
+
+This is **not** a product catalog and **not** a benchmark harness. It is a **paper funnel** with 1–2 sentence developer blurbs. Inclusion: arXiv + “relevant to AI/LLM agent developers” + exactly one category ([CONTRIBUTING.md](https://github.com/VoltAgent/awesome-ai-agent-papers/blob/main/CONTRIBUTING.md)). CONTRIBUTING still mentions `lists/awesome-agents-YYYY-MM-DD-to-….md`; **that directory is not in the repo** as of HEAD `28be5d0` (README-only tree).
+
+Parsed counts (README HEAD, 2026-09-18): Multi-Agent 59 · Memory & RAG 58 · Eval 85 · Tooling 102 · Security 84. Badge says “364+”; TOC headings are **duplicated** with mismatched counts. Treat numbers as approximate.
+
+### What it is vs IAAR / other lists
+
+| Aspect | VoltAgent papers | IAAR-Shanghai Awesome-AI-Memory |
+|--------|------------------|----------------------------------|
+| Window | **2026 arXiv only** (policy: Jan 2026+) | Historical papers + systems table |
+| Audience | Agent **engineers** (plain-English blurbs) | Academic + engineering KB |
+| Memory | One category mixed with **RAG/GraphRAG** | Ops taxonomy + huge paper tables |
+| Evals | Agent/coding/browser benches + a few memory benches | PersonaMem, LoCoMo, HaluMem matrix |
+| Products | Almost none (SimpleMem paper is the exception) | Dated GitHub systems phonebook |
+
+Use VoltAgent to **catch 2026 papers IAAR’s systems table lags**; use IAAR for **pre-2026** and named eval datasets. Do not `just harvest` this repo.
+
+### Hygiene (do not trust layout)
+
+- Duplicate `<summary>` under Agent Tooling; some arXiv **badge IDs do not match the PDF link** (e.g. Graph of States PDF `2603.21250` vs badge `2607.08983`).
+- List disclaims: “do not audit, endorse, or guarantee correctness.” Blurbs are **not** ledger quotes.
+- OptimAI (`2504.16918`) is a **2025** paper in a 2026-only list — policy leak.
+
+### Memory & RAG — later **paper** audits (not seed)
+
+~half of the Memory table is **RAG/GraphRAG/multi-hop QA** (CompactRAG, SOPRAG, Deep GraphRAG, ViDoRe-adjacent tooling). Companmem-relevant **external-memory / companion** cluster:
+
+| Track | Papers (arXiv) | Why |
+|-------|----------------|-----|
+| **Already in QUESTIONS** | [CMA](https://arxiv.org/pdf/2601.09913) | Stateless RAG vs accumulation/mutation — keep citing PDFs we open, not this README |
+| **Already seeded (product)** | [SimpleMem](https://arxiv.org/abs/2601.02553) | `simplemem` in `seed.json` — paper is extra evidence for that audit, not a new harvest |
+| **Surveys (synthesis)** | [Graph-based Agent Memory](https://arxiv.org/abs/2602.05665); [Foundation-agent memory survey](https://arxiv.org/abs/2602.06052); [AI Hippocampus](https://arxiv.org/abs/2601.09113) | Taxonomy: substrate / episodic-semantic-procedural / user- vs agent-centric |
+| **Remembering vs retrieving** | [Grounding memory in contextual intent](https://arxiv.org/abs/2601.10702); [To Retrieve or To Think?](https://arxiv.org/abs/2601.08747); [Controllable memory usage](https://arxiv.org/abs/2601.05107) | Intent-compat retrieval; when not to retrieve; user-steerable anchoring vs innovation |
+| **Time / narrative / personalization** | [Beyond Dialogue Time](https://arxiv.org/abs/2601.07468); [Amory](https://arxiv.org/abs/2601.06282); [Membox](https://arxiv.org/abs/2601.03785); [HiMeS](https://arxiv.org/abs/2601.06152) | Occurrence-time vs chat-time; episode→semantic; topic continuity; assistant personalization |
+| **Forget / conflict / extract** | [FadeMem](https://arxiv.org/abs/2601.18642); [Seeing through the Conflict](https://arxiv.org/abs/2601.06842); [Beyond Static Summarization](https://arxiv.org/abs/2601.04463); [E-mem](https://arxiv.org/abs/2601.21714) | Decay + fusion; observable conflict; iterative extract vs one-shot summary; uncompressed episodic reconstruction |
+| **Ops / cost (not companion exam)** | BudgetMem, ShardMemo, SwiftMem, AtomMem, AMA, MAGMA, ProcMEM | Routing, shards, CRUD policy, procedural skills — product-shaped **if** they ship code; list has **no GitHub column** |
+
+**Do not add seed rows from titles.** Confirm a maintained repo + memory API before harvest. SimpleMem is the only Memory-table paper that already maps to seed.
+
+### Eval & Observability — later **eval** audits (Phase 3)
+
+Most of this category is **coding-agent PRs, SWE, browser, science agents**. Steal only the memory/companion-adjacent benches (open the paper; README scores are discovery):
+
+| Bench | arXiv | Companmem hook |
+|-------|-------|----------------|
+| **Mem2ActBench** | [2601.19935](https://arxiv.org/abs/2601.19935) | **Use memory to act** (tools), not fact QA — closest to “remembering vs retrieving” + AB city-conflict |
+| **RealMem** | [2601.06966](https://arxiv.org/abs/2601.06966) | Cross-session, evolving goals — already on IAAR long-term-dialogue list |
+| **ES-MemEval** | [2602.01885](https://arxiv.org/abs/2602.01885) | Personalized **emotional-support** long-term memory — companion-adjacent, not LoCoMo |
+| **ATOD** | [2601.11854](https://arxiv.org/abs/2601.11854) | Task-oriented dialogue: memory + **proactivity** + multi-goal |
+| **MineNPC-Task** | [2601.05215](https://arxiv.org/abs/2601.05215) | Memory-aware agents + machine-checkable validators (Harbor-shaped), wrong domain (Minecraft) |
+| **Architecture-aware agent metrics** | [2601.19583](https://arxiv.org/abs/2601.19583) | Tie planner/memory/router to observables — synthesis language, not a dataset |
+| **Agent Drift** | [2601.04170](https://arxiv.org/abs/2601.04170) | Semantic/coordination/behavioral degradation over long MAS runs — pairs with WrenWen anti-drift NOTES |
+| **Insider Knowledge** | [2601.13227](https://arxiv.org/abs/2601.13227) | RAG systems **Goodhart** nugget judges — caution for our exam graders |
+| **Why agents break rules** | [2608.12323](https://arxiv.org/abs/2608.12323) | Framing + social pressure vs a hard rule — pairs with AB **permissions / restraint**, not memory storage |
+| ClawBench, PerspectiveGap, Terminal-Bench | already on EvoMap / cortex NOTES | Task-agent / orchestration — refuse as companion-memory ground truth |
+
+**Absent here (still on IAAR):** LoCoMo, LongMemEval, PersonaMem, HaluMem, ATM-Bench, MemoryAgentBench. VoltAgent is a **2026 agent-eval dump**, not a memory-eval catalog.
+
+### Multi-agent / tooling / security (thin slices)
+
+- **MASCOT** ([2601.14230](https://arxiv.org/abs/2601.14230)) — “socio-collaborative **companion**” MAS; persona + group dialogue. Paper-audit candidate for companion *social* memory, not a product.
+- **CORAL** ([2604.01658](https://arxiv.org/abs/2604.01658)) — shared persistent memory + heartbeat — evolution track (EvoMap), not chat memory.
+- **Affective state dynamics** ([2601.16087](https://arxiv.org/abs/2601.16087)) — long-horizon dialogue coherence via explicit state — pairs with Drivesoid/jiwen NOTES, not seed.
+- **Security (memory-specific):** [Memory Poisoning](https://arxiv.org/abs/2601.05504); [MemTrust](https://arxiv.org/abs/2601.07004); [When Personalization Legitimizes Risks](https://arxiv.org/abs/2601.17887); [Mandela Effect in MAS](https://arxiv.org/abs/2602.00428); [NeuroFilter](https://arxiv.org/abs/2601.14660); RAG privacy SoK ([2601.03979](https://arxiv.org/abs/2601.03979)). Useful for QUESTIONS trust/isolation; **not** harvest targets.
+
+### Overlap with `seed.json`
+
+**No new product harvest from this list.** GitHub links are essentially absent; the payload is PDFs. Product overlap is **SimpleMem’s paper**, plus CMA already cited in QUESTIONS.
+
+### What to refuse
+
+- **README blurbs as evidence** — open the PDF (or abs) for ledger quotes.
+- **Coding / browser / UAV / DeFi / GraphRAG-QA bulk** — wrong track for companion memory.
+- **VoltAgent rankings or weekly “what’s working” framing** — marketing + un-audited arXiv.
+- Do not invent `by-paper/` audits until we have a paper-audit protocol; this list is a **queue**, not that protocol.
+- CONTRIBUTING `lists/` weekly files — stale; do not cite them as existing artifacts.
+
+### Concrete next steps
+
+1. **Phase 3 bibliography:** prioritize Mem2ActBench, RealMem, ES-MemEval, ATOD over LoCoMo clones.
+2. **Paper queue (when we add `by-paper/`):** CMA (already in QUESTIONS), Amory/Membox/FadeMem/intent-grounding, MASCOT, Mem2ActBench.
+3. **QUESTIONS.md:** optional `open` eval bullets citing Mem2ActBench + ES-MemEval as 2026 alternatives to LoCoMo QA — only after someone opens the PDFs.
+4. Re-check this README quarterly; it is designed to churn weekly.
+
+### Bottom line
+
+awesome-ai-agent-papers is the best **2026 agent-paper radar** we have: Memory & RAG + a few **act-with-memory** benches. It does **not** expand the product census. Primary steal is **eval names** (Mem2ActBench, RealMem, ES-MemEval, ATOD) and **memory-mechanism papers** (intent, time, forget, conflict, narrative). IAAR remains the librarian for classic memory evals; this list is the **current-year firehose**.
+
+---
+
+## ai-boost/awesome-harness-engineering audit (2026-09-18)
+
+Source: [ai-boost/awesome-harness-engineering](https://github.com/ai-boost/awesome-harness-engineering) — opinionated **agent harness** curriculum (~4.3k stars, CC0, active 2026-09-18). README is huge (~252 KB): every link has a 1–2 sentence *why* note. Scope is **scaffolding** (loop, context, tools, permissions, memory, verification, sandboxes, ops) — explicitly *not* model choice. In-repo **templates** (`templates/AGENTS.md`, `PLAN.md`, `IMPLEMENT.md`, `HARNESS_CHECKLIST.md`) are copy-paste harness artifacts.
+
+This is **not** a product census and **not** companion-focused. It is the best public map of **harness engineering as a discipline** (LangChain “anatomy,” Lilian Weng self-improvement synthesis, OpenAI/Anthropic eval posts) with a dense **Memory & State** primitive and a top-level **Evals & Verification** chapter.
+
+### Structure (companmem lens)
+
+| Block | Content | Relevance |
+|-------|---------|-----------|
+| **Design primitives** | Agent loop, planning, **context delivery & compaction**, tools, MCP, permissions, **memory & state**, runners, CI, observability, HITL | **QUESTIONS** on govern/collect, compaction vs exam fidelity, permission UX |
+| **Reference implementations** | Tutorials, meta-harnesses, demo stacks, adjacent awesome lists | Runtime noise for memory harvest — use for vocabulary only |
+| **Security / Evals / Ops** | Sandboxes, RAMPART, DeepEval, **STATE-Bench**, Terminal-Bench, Harness-Bench | **Phase 3** exam + reliability protocol |
+| **Related lists** | Context engineering, EvoMap evolution, Claude Code, MCP servers, MemAgents ICLR workshop | Cross-walk to existing NOTES audits |
+
+Fork mirror: [jiji262/awesome-harness-engineering](https://github.com/jiji262/awesome-harness-engineering) — cite **ai-boost** canonical URL.
+
+### Overlap with `seed.json` (61 products)
+
+~**241** unique GitHub URLs in README; only **6** match a seed `repo` today: `mem0`, `cognee`, `hindsight`, `openviking`, `agentmemory`, `mcp-memory` (`modelcontextprotocol/servers`).
+
+**Memory & State** section also links `letta-ai/letta`, `getzep/zep`, `Tencent/TencentDB-Agent-Memory` — seed uses `letta-ai/letta-code`, docs-only `zep`, slug `tencentdb-agent-memory`. None of the companion/DIY slugs (`paramecium`, `kiwi-mem`, `vestige`, `hermes-agent`, `khoj`, `llm-wiki-cli`, …) appear. **Expected:** this list optimizes for **coding-agent harnesses**, not relationship-memory products.
+
+### Candidate seed additions (memory & harness-adjacent, not in seed)
+
+| Priority | Repo | Why | Harvest / refuse |
+|----------|------|-----|------------------|
+| **High** | [engram](https://github.com/Gentleman-Programming/engram) | Go binary, SQLite+FTS5, 18 MCP tools; huge 2026 traction in harness list | Coding-agent **substrate**; disambiguate from `mengram` via `body_markers` |
+| **High** | [MemPalace](https://github.com/MemPalace/mempalace) | Local-first “palace” retrieval; list cites LongMemEval R@5 without LLM calls | Verify benchmark claims in harvest; not companion emotion memory |
+| **Medium** | [stash](https://github.com/alash3al/stash) | Self-hosted 8-stage consolidation + MCP | Ops-heavy; Docker/Postgres — still a memory **engine** |
+| **Medium** | [mex](https://github.com/mex-memory/mex) | Symbol-grounded repo wiki + **drift** when code changes | Bridges harness “freshness” (Copilot blog) to auditable product |
+| **Medium** | [letta-ai/trajectory](https://github.com/letta-ai/trajectory) | Normalizes transcripts from 15+ harnesses for **memory/training** | **Infrastructure**, not conversational memory — pair with `letta` seed |
+| **Medium** | [deja-vu](https://github.com/vshulcz/deja-vu) | Indexes on-disk agent sessions → MCP, no embeddings | Lightweight; overlaps `llm-wiki-cli` / trace-memory theme |
+| **Low** | [claude-memory-compiler](https://github.com/coleam00/claude-memory-compiler) | Trace → compiled articles | Parallel **pattern** to `claude-mem` (different repo) — one audit each |
+| **Low** | [PRO-LONG](https://github.com/alexisfox7/PRO-LONG), [codebase-memory-mcp](https://github.com/DeusData/codebase-memory-mcp), [openwiki](https://github.com/langchain-ai/openwiki) | Programmatic / code-graph / wiki **context** | Harness compaction, not companion exam tasks |
+| **Defer** | LangGraph, Mastra, CrewAI, OpenHands, IronClaw, nanobot, everything-claude-code | Full **runtime harnesses** | Cite for Phase 3 “closed vs plug-in”; do not confuse with memory libraries |
+| **Defer** | [STATE-Bench](https://github.com/microsoft/STATE-Bench), [claw-eval](https://github.com/claw-eval/claw-eval), Terminal-Bench, RealReplicaBench | **Eval harnesses** | Track under `by-eval/` when built; not `just harvest` products |
+
+### Ideas for QUESTIONS / Phase 3 (steal without seeding)
+
+**Memory governance (papers + posts linked here):** MemArchitect (policy-driven lifecycle), Knowledge Objects (compaction destroys facts), GitHub Copilot **JIT verification** before recall, OpenWiki **staleness as state**, ClawVM / MAGE (execution-state vs semantic retrieval). Directly supports “zombie memory” and **exam probes that punish stale carryover**.
+
+**Permissions:** arXiv 2608.27443 — user-authored allow/ask/never rules **underperform** per-action HITL (~20pp); pairs with Assistant Benchmark **restraint** dimension.
+
+**Context:** ByteRover paper + OpenViking row — hierarchical / filesystem context; list positions memory as **harness primitive** separate from model.
+
+**Evals:** STATE-Bench (memory as independent variable), Harness-Bench (report scores at **model×harness**), StaminaBench (100-turn coding stamina), AgentAssay (non-deterministic CI), Claw-Eval Pass³ — complement EvoMap/cortex benchmark pointers.
+
+**Templates:** Repo `HARNESS_CHECKLIST.md` + `AGENTS.md` template — pattern for Phase 2 “eval author checklist,” not a product.
+
+### Cross-list comparison
+
+| Dimension | awesome-harness-engineering | awesome-agent-cortex | EvoMap evolution |
+|-----------|----------------------------|----------------------|------------------|
+| Center of gravity | Harness **primitives** + CI/evals | Sovereign stack + playbooks | Self-evolution JSON |
+| Memory products | Curated **Memory & State** essay + ~15 repos | Thin KG table | Star-ranked memory category |
+| Companion / DIY | Absent | Absent | Absent |
+| Unique value | Opinionated **why** blurbs, STATE-Bench, permission studies | Obsidian/Hermes guides | `projects.json` |
+
+### What to refuse
+
+- **Star badges** in README — ranking bias (engram/MemPalace inflated visibility).
+- **Framework long tail** (200+ repos) — not 200 memory products; default **refuse** for seed unless row is explicitly “memory engine” or “exam harness.”
+- **Performance claims** in list blurbs (MemPalace 96.6%, agentmemory 95.2%, TencentDB 51% pass-rate) — **discovery only** until ledger quotes from primary repos/papers.
+- Do not harvest **awesome-harness-engineering** itself — CC0 index + templates.
+
+### Bottom line
+
+Best single **harness-engineering** syllabus for companmem **governance, compaction, permissions, and eval design**; weak for **companion-memory product discovery** (6/241 GitHub overlap with seed). Memory-section **gaps worth seeding next** if we widen the coding-agent/harness slice: **`engram`**, **`mempalace`**, then **`stash`** / **`mex`** / **`trajectory`**. For relationship-memory census, keep XiaomingX + companion list; use this list for Phase 3 protocol and QUESTIONS on memory invalidation + restraint. **No seed changes** in this audit unless you say yes to specific slugs.
