@@ -113,6 +113,7 @@ LOW_QUALITY_UNKNOWN_HOSTS = (
     "piwheels.org",
     "glukhov.org",
     "learn.hindsight.vectorize.io",
+    "preuve.ai",
 )
 META_COMMUNITY_UNKNOWN_RE = re.compile(
     r"no community discussion|despite this being a community thread|could surface such signals",
@@ -148,6 +149,10 @@ THIRD_PARTY_BLOG_HOSTS_WHEN_DOCS = (
 )
 COMPARISON_BLOG_PATH_RE = re.compile(
     r"vs[-_/]|benchmark|/comparison|stacked-up",
+    re.I,
+)
+ROADMAP_SPEC_ISSUE_CLAIM_RE = re.compile(
+    r"net-new capabilities, not defects|one generation pipeline shared by worker and server",
     re.I,
 )
 
@@ -355,6 +360,8 @@ def should_drop_ledger_row(row: dict[str, object], *, has_official_docs: bool) -
             return True
     if is_weak_wiki_index_ledger(row):
         return True
+    if kind == "issue" and ROADMAP_SPEC_ISSUE_CLAIM_RE.search(claim):
+        return True
     if LEDGER_ABSENCE_CLAIM_RE.search(claim):
         return True
     if MODERATION_LEDGER_RE.search(claim) and "memory" not in normalize_claim(claim):
@@ -438,8 +445,11 @@ def unknown_superseded_by_ledger(
             "retrieval into context",
             "curation of a memory",
             "how retrieval into context",
+            "memory worker persists",
+            "facts/summaries are written",
         )
     )
+    injection_gap = "context injection" in blob or "last 50 observations" in blob
     capability_gap = any(
         token in blob
         for token in ("forget", "delete", "retrieve", "conflict", "supersession", "merge")
@@ -452,15 +462,23 @@ def unknown_superseded_by_ledger(
             or isolation_gap
             or store_shape_gap
             or write_path_gap
+            or injection_gap
         ):
             return False
-        if not capability_gap and not isolation_gap and not store_shape_gap and not write_path_gap:
+        if (
+            not capability_gap
+            and not isolation_gap
+            and not store_shape_gap
+            and not write_path_gap
+            and not injection_gap
+        ):
             return False
     elif (
         not capability_gap
         and not isolation_gap
         and not store_shape_gap
         and not write_path_gap
+        and not injection_gap
     ):
         return False
     for row in ledger:
@@ -525,6 +543,26 @@ def unknown_superseded_by_ledger(
                 "query",
                 "not a raw",
                 "markdown-writer",
+                "observation",
+                "summary",
+                "sqlite",
+                "persist",
+                "worker",
+                "hook",
+                "memory-item",
+            )
+        ):
+            return True
+        if injection_gap and any(
+            token in claim
+            for token in (
+                "inject",
+                "progressive disclosure",
+                "observation",
+                "summar",
+                "context generator",
+                "compiler",
+                "last 50",
             )
         ):
             return True

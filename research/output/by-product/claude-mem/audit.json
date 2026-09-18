@@ -24,7 +24,7 @@
       "text": "Retrieve: MCP search tools (3-layer progressive disclosure); context generator / ObservationCompiler injects recent observations; file-read gate substitutes observation history for re-reads."
     },
     {
-      "text": "Forget: retention/eviction via quota guards (#4068); manual recovery for stuck observations; schema tables like pending_messages contested in issues\u2014no soft companion-style 'forget this feeling' API."
+      "text": "Forget: retention/eviction via quota guards (#4068) and RateLimitStore paths; manual recovery for stuck observations; pending_messages wiring contested in issues\u2014no companion-style soft forget API."
     },
     {
       "text": "Isolation: per-project / memory_session_id scoping (#3608 plan); observer subprocess isolation (#3607); fail-open hook wrapper (#3605) vs fail-loud thresholds (#3834) trade continuity for safety."
@@ -190,6 +190,42 @@
       "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/services/context/ObservationCompiler.ts",
       "quote": "Replacing only `/` left a literal `.` in the dir name, so \"Include last message\" silently no-opped for any cwd component containing a dot \u2014 Unix usernames like `john.doe`, dotted dirs, etc. (#2401).",
       "locator": "cwdToDashed function, comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Rate limit state is in-memory only and does not persist across worker restarts.",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/services/worker/RateLimitStore.ts",
+      "quote": "in-memory only). State resets on worker restart \u2014 that's fine, the SDK pushes a fresh event on the next request.",
+      "locator": "file:src/services/worker/RateLimitStore.ts, top-level JSDoc",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write policy is last-write-wins per rateLimitType bucket; no merge or conflict resolution beyond overwrite.",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/services/worker/RateLimitStore.ts",
+      "quote": "Last-write-wins per bucket key.\n   * Accepts both the literal `rate_limit_info` payload and a wrapping object;\n   * callers should pass the inner info.",
+      "locator": "file:src/services/worker/RateLimitStore.ts, RateLimitStore.set() JSDoc",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Store is isolated at process scope (singleton), not per user, session, or agent.",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/services/worker/RateLimitStore.ts",
+      "quote": "/** Process-wide singleton. */\nexport const globalRateLimitStore = new RateLimitStore();",
+      "locator": "file:src/services/worker/RateLimitStore.ts, globalRateLimitStore declaration",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The abort guard protecting background memory work from exhausting subscription quota distinguishes auth method: api_key users are never aborted, subscription/OAuth users are subject to per-window utilization thresholds.",
+      "kind": "code",
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/services/worker/RateLimitStore.ts",
+      "quote": "Crossing one of these aborts the SDK loop so we don't burn through the window on background memory work and starve interactive sessions.",
+      "locator": "file:src/services/worker/RateLimitStore.ts, UTILIZATION_THRESHOLDS JSDoc",
       "confidence": "high",
       "label": "measured"
     },
@@ -1670,67 +1706,58 @@
       "label": "inferred"
     },
     {
-      "claim": "Memory pipeline flows from hook capture through AI processing back to SQLite for retrieval in the next session",
-      "kind": "docs",
-      "url": "https://docs.claude-mem.ai/architecture/overview",
-      "quote": "Hook (stdin) \u2192 Database \u2192 Worker Service \u2192 SDK Processor \u2192 Database \u2192 Next Session Hook",
-      "locator": "## Data Flow, Memory Pipeline",
-      "confidence": "medium",
-      "label": "measured"
-    },
-    {
-      "claim": "Observations are AI-compressed via Claude Agent SDK (or Gemini / OpenRouter) into structured learnings",
-      "kind": "docs",
-      "url": "https://docs.claude-mem.ai/architecture/overview",
-      "quote": "Extracts structured learnings via iterative AI processing",
-      "locator": "## Session Lifecycle, step 4",
-      "confidence": "medium",
-      "label": "measured"
-    },
-    {
-      "claim": "Session cleanup is a soft mark-complete, not a DELETE; records are preserved for future context injection",
-      "kind": "docs",
-      "url": "https://docs.claude-mem.ai/architecture/overview",
-      "quote": "Marks session complete (graceful, not DELETE), ready for next session context. Skips on /clear to preserve ongoing",
-      "locator": "## Session Lifecycle, step 6",
-      "confidence": "medium",
-      "label": "measured"
-    },
-    {
-      "claim": "Per-user isolation is enforced at the worker port level using the system uid",
-      "kind": "docs",
-      "url": "https://docs.claude-mem.ai/architecture/overview",
-      "quote": "Express.js HTTP server on a per-user port (default 37700 + (uid % 100), override via CLAUDE_MEM_WORKER_PORT)",
-      "locator": "## Component Details, 2. Worker Service",
-      "confidence": "medium",
-      "label": "measured"
-    },
-    {
-      "claim": "mem-search skill effectiveness increased from 67% to 100% after renaming and documentation improvements in v5.5.0",
-      "kind": "docs",
-      "url": "https://docs.claude-mem.ai/architecture/overview",
-      "quote": "Effectiveness increased from 67% to 100% with enhanced triggers and comprehensive documentation",
-      "locator": "## Component Details, 4. mem-search Skill (v5.4.0+)",
+      "claim": "claude-mem captures all agent activity each session and compresses it with AI for future injection.",
+      "kind": "blog",
+      "url": "https://www.growthtoday.co/claude-skills/thedotmack-claude-mem",
+      "quote": "Claude-Mem (now Grok Mem) captures everything your agent does during sessions, compresses it with AI, and injects relevant context back into future sessions.",
+      "locator": "About section",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "Context injection at session start reads summaries/observations from the database; count is configurable",
-      "kind": "docs",
-      "url": "https://docs.claude-mem.ai/architecture/overview",
-      "quote": "Next session's context hook reads summaries from database",
-      "locator": "## Data Flow, Memory Pipeline, step 5",
+      "claim": "Installed via npx.",
+      "kind": "blog",
+      "url": "https://www.growthtoday.co/claude-skills/thedotmack-claude-mem",
+      "quote": "npx claude-mem install",
+      "locator": "Install command block",
       "confidence": "medium",
-      "label": "measured"
+      "label": "inferred"
     },
     {
-      "claim": "PostToolUse hook fires 100+ times per session, capturing all tool executions as observations",
-      "kind": "docs",
-      "url": "https://docs.claude-mem.ai/architecture/overview",
-      "quote": "Claude Uses Tools \u2192 PostToolUse Hook Fires (100+ times)",
-      "locator": "## Session Lifecycle, step 3",
+      "claim": "claude-mem is an open-source persistent memory compression system for Claude Code",
+      "kind": "blog",
+      "url": "https://betterstack.com/community/guides/ai/claude-mem.md",
+      "quote": "claude-mem is a persistent memory compression system built specifically for Claude Code.",
+      "locator": "Introducing claude-mem as a long-term memory solution",
       "confidence": "medium",
-      "label": "measured"
+      "label": "inferred"
+    },
+    {
+      "claim": "Capture is automatic: the system watches for patterns and logs debugging sequences, file modifications, and decisions without user instruction",
+      "kind": "blog",
+      "url": "https://betterstack.com/community/guides/ai/claude-mem.md",
+      "quote": "You don't need to manually tell it what to remember. It intelligently watches for patterns and events (such as debugging sequences, file modifications, and explicit decisions) and logs them automatically.",
+      "locator": "Core features and advantages",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval is triggered automatically when a new prompt relates to past work; claude-mem intercepts the prompt, searches local memory, and injects relevant context before the LLM sees it",
+      "kind": "blog",
+      "url": "https://betterstack.com/community/guides/ai/claude-mem.md",
+      "quote": "claude-mem intercepts the prompt, searches its local memory for relevant information about a 'Fibonacci bug,' finds the detailed log of the previous session, and injects that context into the prompt before sending it to the LLM.",
+      "locator": "Testing recall in a completely new session",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Stored entries are structured with sections (Investigated, Learned, Completed) and include code diffs and exact prompts",
+      "kind": "blog",
+      "url": "https://betterstack.com/community/guides/ai/claude-mem.md",
+      "quote": "The claude-mem web UI displaying a detailed session summary for the bug fix, broken down into sections like 'Investigated,' 'Learned,' and 'Completed.'",
+      "locator": "Viewing automatic capture in the web UI",
+      "confidence": "medium",
+      "label": "inferred"
     },
     {
       "claim": "claude-mem provides persistent memory across IDE sessions via a local SQLite store and background worker",
@@ -1785,6 +1812,69 @@
       "locator": "Post-Installation Verification > CMEM Pro / sync",
       "confidence": "medium",
       "label": "measured"
+    },
+    {
+      "claim": "Every tool execution (read, write, edit, bash, glob, grep, and others) is captured as an observation",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/getting-started",
+      "quote": "Every time Claude uses a tool, claude-mem captures it: Read \u2026 Write \u2026 Edit \u2026 Bash \u2026 Glob \u2026 Grep \u2026 And all other Claude Code tools",
+      "locator": "Getting Started with Claude-Mem / Automatic Operation / What Gets Captured",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Worker service extracts structured fields from raw observations including narrative, facts, and concepts",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/getting-started",
+      "quote": "The worker service processes tool observations and extracts: Title \u2026 Narrative \u2013 Detailed explanation \u2026 Facts \u2013 Key learnings as bullet points \u2026 Concepts \u2013 Relevant tags and categories \u2026 Type \u2013 Classification (decision, bugfix, feature, etc.) \u2026 Files \u2013 Which files were read or modified",
+      "locator": "Getting Started with Claude-Mem / Automatic Operation / What Gets Processed",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Stop hook triggers automatic session summary generation at end of each response",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/getting-started",
+      "quote": "When Claude finishes responding (triggering the Stop hook), a summary is automatically generated",
+      "locator": "Getting Started with Claude-Mem / Automatic Operation / Session Summaries",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "SessionStart hook retrieves last 50 observations and recent summaries and injects them into initial context",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/getting-started",
+      "quote": "Queries the database for recent observations in your project (default: 50) \u2026 Retrieves recent session summaries for context \u2026 Injects formatted context into Claude's initial context",
+      "locator": "Getting Started with Claude-Mem / Automatic Operation / Context Injection",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Summary display is conditional: full summary details are suppressed when newer observations exist after the summary",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/getting-started",
+      "quote": "Hides summary: Summary generated at 2:00 PM, new observation at 2:05 PM \u2192 Summary details hidden (outdated). This prevents showing stale summaries when new work has been captured but not yet summarized.",
+      "locator": "Getting Started with Claude-Mem / Automatic Operation / Context Injection / Summary Display Logic",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Progressive disclosure limits upfront token cost to ~50\u2013200 tokens for index view, with on-demand detail fetch costing ~100\u2013500 tokens per observation",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/getting-started",
+      "quote": "Token cost: ~50-200 tokens for index view \u2026 Token cost: ~100-500 tokens per observation fetched",
+      "locator": "Getting Started with Claude-Mem / Understanding Progressive Disclosure",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistent store is a local SQLite database with tables for sessions, summaries, and observations",
+      "kind": "docs",
+      "url": "https://docs.claude-mem.ai/usage/getting-started",
+      "quote": "Context is stored in SQLite database at ~/.claude-mem/claude-mem.db",
+      "locator": "Getting Started with Claude-Mem / Viewing Stored Context",
+      "confidence": "medium",
+      "label": "measured"
     }
   ],
   "sources": [
@@ -1820,6 +1910,12 @@
     },
     {
       "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/services/context/ObservationCompiler.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/thedotmack/claude-mem/blob/40be934a846cca6d2038f1d9800428a4f4d5136f/src/services/worker/RateLimitStore.ts",
       "kind": "code",
       "accessed_at": "2026-09-18",
       "quality": "high"
@@ -2005,16 +2101,28 @@
       "quality": "high"
     },
     {
-      "url": "https://docs.claude-mem.ai/architecture/overview",
+      "url": "https://docs.claude-mem.ai/introduction",
       "kind": "docs",
       "accessed_at": "2026-09-18",
       "quality": "high"
     },
     {
-      "url": "https://docs.claude-mem.ai/introduction",
+      "url": "https://docs.claude-mem.ai/usage/getting-started",
       "kind": "docs",
       "accessed_at": "2026-09-18",
       "quality": "high"
+    },
+    {
+      "url": "https://www.growthtoday.co/claude-skills/thedotmack-claude-mem",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://betterstack.com/community/guides/ai/claude-mem.md",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
     }
   ],
   "consensus": [],
@@ -2050,18 +2158,8 @@
   ],
   "unknowns": [
     {
-      "text": "The context injection endpoint returns the last 50 observations but this page does not describe how summaries are selected or ranked for retrieval, nor whether session_summaries rows are included in the injected context",
-      "url": "https://docs.claude-mem.ai/architecture/hooks.md",
-      "kind": "docs"
-    },
-    {
       "text": "The exact code path in worker-service.cjs that fails to populate memory_session_id on the summary payload before the recycle insert is not confirmed \u2014 inferred from log shape against a minified bundle",
       "url": "https://github.com/thedotmack/claude-mem/issues/3832",
-      "kind": "issue"
-    },
-    {
-      "text": "No documentation describes what the memory worker persists, how facts/summaries are written or updated across sessions, or what is selected into the prompt context \u2014 this is a worker lifecycle issue report, not a memory architecture doc",
-      "url": "https://github.com/thedotmack/claude-mem/issues/3834",
       "kind": "issue"
     },
     {
@@ -2083,11 +2181,6 @@
       "text": "The pending_messages SQLite table exists in schema but has no INSERT path in the 13.24.23 bundle \u2014 the page explicitly notes no queued-work persistence is implemented.",
       "url": "https://github.com/thedotmack/claude-mem/issues/4068",
       "kind": "issue"
-    },
-    {
-      "text": "The page attributes a 95.2% Recall@5 / 98.6% Recall@10 benchmark result to 'agentmemory' (rohitg00/agentmemory) immediately after describing claude-mem's architecture. It is not stated whether this score belongs to claude-mem, agentmemory as a separate project, or a shared component. The page does not clarify.",
-      "url": "https://preuve.ai/blog/ai-memory-systems-statistics-2026",
-      "kind": "blog"
     }
   ]
 }

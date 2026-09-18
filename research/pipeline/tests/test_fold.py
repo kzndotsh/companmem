@@ -592,6 +592,32 @@ def test_unknown_superseded_by_ledger_store_shape_when_context_tree_documented()
     assert unknown_superseded_by_ledger(text, ledger)
 
 
+def test_unknown_superseded_by_ledger_worker_persist_when_sqlite_documented() -> None:
+    ledger = [
+        {
+            "claim": "claude-mem uses SQLite as its persistent memory store, writing curated observations",
+            "kind": "docs",
+            "url": "https://docs.claude-mem.ai/architecture/database.md",
+        }
+    ]
+    text = (
+        "No documentation describes what the memory worker persists, "
+        "how facts/summaries are written or updated"
+    )
+    assert unknown_superseded_by_ledger(text, ledger)
+
+
+def test_should_drop_ledger_row_roadmap_spec_issue_claim() -> None:
+    row = {
+        "claim": "[plan-12] Provider roadmap — net-new capabilities, not defects",
+        "kind": "issue",
+        "url": "https://github.com/thedotmack/claude-mem/issues/2785",
+        "quote": "net-new capabilities, not defects",
+        "locator": "issue",
+    }
+    assert should_drop_ledger_row(row, has_official_docs=True)
+
+
 def test_filter_unknown_items_drops_legacy_cipher_mcp_issue_unknown() -> None:
     items = [
         {
