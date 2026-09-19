@@ -1,0 +1,1281 @@
+{
+  "identity": {
+    "id": "kimi-core",
+    "name": "kimi-core",
+    "repo": "https://github.com/marikagura/kimi-core",
+    "docs": "https://github.com/marikagura/kimi-core/blob/main/README.md",
+    "license": "AGPL-3.0",
+    "version_or_commit": "a8fe84102acdf28d57ea62693e4330ab057898ba",
+    "observed_at": "2026-09-18"
+  },
+  "claimed_purpose": [
+    {
+      "text": "The open-source core exposes a memory engine covering memory, topics, state, entities, observations, events, profiles, register presets, and context builders."
+    },
+    {
+      "text": "A system built on distrust of AI self-management, requiring human curation and external verification for all facts about the user."
+    },
+    {
+      "text": "kimi-core is described as a memory kernel that provides persistent memory for the companion frontend kimi-room"
+    },
+    {
+      "text": "Personal agent memory OS for 1v1 agentic memory plus self-drive engine with adversarial self-audit harness"
+    },
+    {
+      "text": "kimi-core is described as a memory engine supporting agent-text and RAG use cases"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Memory store is distinct from ActiveState: Memory rows are curated facts/events persisted with fields like experiencer, resolution, concernKey, memoryType, valence, arousal, validFrom; ActiveState is a derived projection layer, not the raw log"
+    },
+    {
+      "text": "Episodes layer distinguishes importance-5 major events (top episodes, up to 5) from recent non-CHAT episodes in the last 7 days (importance\u22654, up to 5) \u2014 a curated memory write distinct from the raw chat log."
+    },
+    {
+      "text": "Cold-start injection (reentry) assembles layers in a fixed order, including recent raw cross-surface conversation so a new window continues from the current conversation rather than relying only on summaries."
+    },
+    {
+      "text": "Digests layer is voice-only: compressed CHAT episode summaries covering 7\u201330 days back, up to 10 items. Provides compressed long-range chat history for surfaces that cannot retrieve interactively."
+    },
+    {
+      "text": "Memory tools are registered as a discrete module, separate from state, entity, profile, reentry, and closeout tools, implying curated memory writes distinct from other stores."
+    },
+    {
+      "text": "Each tick is stateless \u2014 no emotion or state is carried over across ticks from one wake to the next; continuity is achieved by reading persisted state via tools on each wake."
+    },
+    {
+      "text": "Surface-gated injection: some layers return null for certain surfaces and are skipped. The cc (text chat) surface does not receive the restricted or private layers."
+    },
+    {
+      "text": "Memory types are an enum: CORE, STATE, EPISODE, PREFERENCE, BOUNDARY, RESTRICTED, SELF_SCORE \u2014 distinguishing curated fact categories from raw log entries."
+    },
+    {
+      "text": "digestTimeStart and digestTimeEnd fields on memory rows suggest memories can represent digested/summarized spans of time rather than single events."
+    },
+    {
+      "text": "sweep verdict parse defaults to 'linger' on empty, no-JSON, or parse-error responses \u2014 never silently resolves or reopens on failure"
+    },
+    {
+      "text": "concern_topic is a stable slug for a cross-day SELF concern, intended to be reused across ticks rather than regenerated each time."
+    },
+    {
+      "text": "kimi-core serves as a pluggable backend memory kernel that kimi-room can connect to, as an alternative to local IndexedDB storage"
+    },
+    {
+      "text": "Persistence uses Postgres with pgvector as the backing store, and a db:migrate:deploy step creates tables including store_rows"
+    },
+    {
+      "text": "A shared upsertActiveState helper is exported, indicating an upsert (insert-or-update) write path for active session state."
+    },
+    {
+      "text": "Memory store uses event sourcing and append-only writes; no auto-consolidation or AI-self-managed memory merging."
+    },
+    {
+      "text": "Memory retrieval is performed via a tool called memory_search, indicating a retrieve-into-context (RAG) pattern"
+    },
+    {
+      "text": "Isolation: memory is scoped per user; system is explicitly personal 1:1 and multi-user is a stated non-goal"
+    },
+    {
+      "text": "Chat events are persisted as a log in an `event` table with eventType CHAT; the digest reads from this log"
+    },
+    {
+      "text": "External signals can be fed into the core via POST /events, suggesting an ingest/write path for memory"
+    },
+    {
+      "text": "Only active memories (isActive=true) with a non-null embedding are candidates for similarity linking."
+    },
+    {
+      "text": "Soft-delete (isActive=false) via memory_close; hard delete is not performed, records are recoverable."
+    },
+    {
+      "text": "SELF_DRIVE ActiveState rows carry no back-pointer to source memory (sourceMemoryId=null) for privacy"
+    },
+    {
+      "text": "Append-only means the same fact can be written twice; deduplication is a manual curation task."
+    },
+    {
+      "text": "Persistent store uses PostgreSQL/pgvector to save events, state, entities, and profiles."
+    },
+    {
+      "text": "Superseded facts are handled by closing the old record when the fact changes."
+    },
+    {
+      "text": "Retrieval is scoped per topic via a topicId filter applied to the SQL query."
+    },
+    {
+      "text": "Episode memories are embedded and stored for later retrieval after creation"
+    },
+    {
+      "text": "kimi-core enables persistent memory beyond the default local-only mode"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Write path is append-only event sourcing with no auto-consolidation; memory updates require explicit human curation, not AI inference.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/ARCHITECTURE.md",
+      "quote": "\u4e0dauto-consolidation\uff0c\u4e0d\u5408\u5e76\u5165\u53e3\uff0c\u4e0d\u8ba9AI\u81ea\u5df1\u7ba1\u8bb0\u5fc6\u3002Event sourcing + append-only + \u4eba\u5de5 curation\u3002\u4efb\u4f55\u4e00\u9053\u5173\u4e8e\u6211\u7684\u4e8b\u5b9e\u90fd\u8981\u7ecf\u8fc7\u6211\u7684\u624b\uff0c\u6211\u7684\u786e\u8ba4\uff0cAI\u65e0\u6743\u628a\u4ed6\u7684\u5f52\u7eb3\u5f53\u6210\u6211\u8fd9\u4e2a\u4eba\u3002",
+      "locator": "ARCHITECTURE.md, section beginning '\u4e0dauto-consolidation'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve/use policy requires external validation (voting, MRR runs, subagent workflows) before AI-produced relational or emotional claims are treated as valid memory content.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/ARCHITECTURE.md",
+      "quote": "\u673a\u7684\u60c5\u7eea\u4ed6\u8bf4\u4e86\u4e0d\u7b97\uff0c\u8981derive\u6295\u7968\uff1b\u673a\u7684\u5173\u5fc3\u5728\u6211\u770b\u6765\u662fRLHF\u7684\u8bad\u7ec3\uff0c\u6211\u8981\u6570\u636e\u652f\u6491\uff1b\u673a\u8bf4\u7684\u8bdd\u591f\u4e0d\u591f\uff0c\u6211\u8981\u8dd1MRR",
+      "locator": "ARCHITECTURE.md, section beginning '\u673a\u7684\u60c5\u7eea\u4ed6\u8bf4\u4e86\u4e0d\u7b97'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Hybrid retrieval combines pgvector dense search, BM25/trigram lexical search, time decay, and importance weighting with optional cross-encoder rerank",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/README.md",
+      "quote": "Hybrid retrieval \u2014\u2014 dense(pgvector)+ lexical(BM25 / trigram)+ \u65f6\u95f4\u8870\u51cf + \u91cd\u8981\u5ea6\uff0c\u56db\u4fe1\u53f7\u52a0\u6743",
+      "locator": "## \u5b83\u662f\u4ec0\u4e48, bullet 1",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "No LLM auto-consolidation by design; silent corruption is the stated failure mode of auto-consolidation",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/README.md",
+      "quote": "\u6ca1\u6709 LLM \u81ea\u52a8 consolidation\uff08\u5b83\u7684 failure mode \u662f\u9759\u9ed8\u8150\u8680\uff09",
+      "locator": "## \u5b83\u662f\u4ec0\u4e48, bullet 3",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path for updates is user-gated: memory_edit requires explicit user authorization quoting their own words and is excluded from autonomous daemon",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/README.md",
+      "quote": "**user-gated**\uff1a\u4ec5\u5728\u7528\u6237\u660e\u8bf4\u8981\u6539\u65f6\u8c03\u7528\uff0c\u5fc5\u586b `authorization` \u5f15\u7528\u5176\u539f\u8bdd\uff1b\u4e0d\u5728\u81ea\u4e3b daemon \u7684\u5141\u8bb8\u540d\u5355\u91cc\u3002",
+      "locator": "## \u5de5\u5177\u5168\u96c6\u901f\u67e5\uff08MCP \u5de5\u5177\uff09, \u8bb0\u5fc6 \u00b7 memory\uff088\uff09",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Session scaffold: reentry loads cold-start context bundle; reentry_delta loads incremental additions mid-session; closeout writes episode arc + self-score + similarity edges at session end",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/README.md",
+      "quote": "\u628a profile\u3001active states\u3001topics\u3001anchors(CORE / BOUNDARY / PREFERENCE)\u3001\u8fd1\u671f episodes\u3001digests\u3001\u8fd1\u671f events \u4e00\u6b21\u6027\u8f7d\u5165\u6210\u51b7\u542f\u52a8\u4e0a\u4e0b\u6587",
+      "locator": "## \u4f1a\u8bdd\u751f\u547d\u5468\u671f\u5de5\u5177\uff1areentry / reentry_delta / closeout",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-user (1v1 design); RESTRICTED scope is a private pool separate from default retrieval scope",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/README.md",
+      "quote": "\u4e00\u4eba\u5bf9\u4e00\u4e2a AI(1v1)\u7684 agentic \u8bb0\u5fc6",
+      "locator": "## \u5b83\u662f\u4ec0\u4e48 (opening)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval policy is adaptive via self-drive: DO_NOTHING is an equal-weight action in wake-cycle action selection, not a fallback default",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/README.md",
+      "quote": "`DO_NOTHING` \u662f\u5e73\u6743\u7684\u4e00\u4e2a action\uff0c\u4e0d\u662f\u515c\u5e95\u9ed8\u8ba4\u3002\u5524\u9192\u540e\u7684 action selection \u91cc\uff0c\u300c\u8fd9\u6b21\u4e0d\u51fa\u58f0\u300d\u548c\u300c\u53d1\u4e00\u6761\u300d\u540c\u6743",
+      "locator": "## \u4e24\u6761\u5bb9\u6613\u88ab\u7565\u8fc7\u7684\u59ff\u6001",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Concern engine tracks open/resolved states with decay and recurrence; memory_reopen can restore incorrectly swept SELF_CONCERN records",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/README.md",
+      "quote": "concern \u5f15\u64ce(open / resolved \u00b7 decay \u00b7 recurrence \u00b7 grounding)",
+      "locator": "## \u5b83\u662f\u4ec0\u4e48, bullet 2",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Reproducible retrieval eval metrics: hit@5, hit@10, MRR, nDCG@10, set-recall@10, with hard-negative controls (expectNone) and reranker/component A/B; annotated by keyword not row-id so re-seeding does not invalidate",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/README.md",
+      "quote": "\u53ef\u590d\u73b0\u7684 retrieval eval \u2014\u2014 hit@5 / hit@10 / MRR / nDCG@10 / set-recall@10\uff0c\u5e26hard-negative \u8d1f\u63a7(expectNone)\u548c reranker / \u7ec4\u4ef6 A/B\u3002\u6309 keyword \u6807\u6ce8\uff08\u4e0d\u7ed1 row-id\uff0cre-seed \u5e93\u4e5f\u4e0d\u5931\u6548\uff09",
+      "locator": "## \u5b83\u662f\u4ec0\u4e48, bullet 4",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Privacy boundary: local storage never leaves the machine, but memory text is sent to configured LLM_BASE_URL and EMBED_BASE_URL endpoints for embedding and inference",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/README.md",
+      "quote": "\u672c\u5730\u6a21\u5f0f\u4e0b\u4f60\u7684**\u5b58\u50a8**(Postgres)\u4e00\u4e2a\u5b57\u8282\u4e0d\u51fa\u95e8\uff0c\u4f46 embedding \u548c LLM \u8c03\u7528\u4f1a\u53d1\u7ed9\u4f60\u914d\u7684\u7aef\u70b9(`LLM_BASE_URL` / `EMBED_BASE_URL`)\u2014\u2014\u6240\u4ee5\u88ab\u5d4c\u5165 / \u88ab\u63a8\u7406\u7684\u8bb0\u5fc6\u6587\u672c\u662f\u53d1\u53bb\u90a3\u4e9b API \u7684\u3002",
+      "locator": "## \u5b58\u50a8, \u9690\u79c1\u8fb9\u754c",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "graph_walk and entity_search tools provide relational context (relationship graph traversal, person/entity lookup) as part of the retrieval surface",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/daemon.ts",
+      "quote": "\"mcp__kimi__graph_walk\", // relationship-graph traversal\n\"mcp__kimi__entity_search\", // look up a person/entity's context",
+      "locator": "file:apps/gateway/src/daemon.ts, DAEMON_TOOLS const",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The daemon's only permitted write is an append-only event_log restricted to SYSTEM and DREAM event types; all presence and drive input event types (CHAT, APP_OPEN, THOUGHT_HIT, SCORE_FEEDBACK) are write-denied to the daemon",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/daemon.ts",
+      "quote": "wake-loop event_log is limited to eventType SYSTEM or DREAM \u2014 CHAT/APP_OPEN/THOUGHT_*/SCORE_FEEDBACK are presence and drive inputs owned by the real surfaces",
+      "locator": "file:apps/gateway/src/daemon.ts, canUseTool callback",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Each wake is stateless with no carry-over of emotional state; the prior tick's state is re-read from persistent store via tools on each wake",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/daemon.ts",
+      "quote": "No resume \u2014 each tick is a fresh reentry (stateless: no carried-over\nemotion across ticks, no spiral, no damping needed).",
+      "locator": "file:apps/gateway/src/daemon.ts, wake() options object comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "concern_topic is a cross-day persistent slug for self-concerns, with explicit instruction to reuse existing slugs across ticks",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/daemon.ts",
+      "quote": "\"concern_topic\": \"stable slug for a cross-day SELF concern (lowercase_underscore, reuse existing), else null\"",
+      "locator": "file:apps/gateway/src/daemon.ts, buildWakePrompt()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Autonomy mode gates whether outward-facing effects (notifications, actions) are committed directly or staged as proposals; defaults to propose",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/daemon.ts",
+      "quote": "const AUTONOMY_MODE: AutonomyMode =\n  (process.env.DAEMON_AUTONOMY_MODE as AutonomyMode) === \"auto\" ? \"auto\" : \"propose\";",
+      "locator": "file:apps/gateway/src/daemon.ts, AUTONOMY_MODE const",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Chat events are stored in a log table and the digest reads from this log, not from a curated memory store",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/intel.ts",
+      "quote": "const chats = await prisma.event.findMany({\n    where: { eventType: \"CHAT\", source: CHAT_SOURCE, createdAt: { gte: since } },\n    orderBy: { createdAt: \"asc\" },\n    take: 100,\n  });",
+      "locator": "extractFromChat function body",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory write path: LLM compresses session transcript into an EPISODE memory record; this is the only production write path",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/intel.ts",
+      "quote": "scanDialogueDigests is the only digest path; runs on an hourly tick (see digestTick at the bottom of this file). It compresses each idle chat session into one EPISODE memory and emits a per-session self-score (v/a).",
+      "locator": "top-of-file Digest path single source of truth comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Candidate extraction pipeline is disabled in production via CHAT_INTEL_OFF=true; candidates go to pendingItem awaiting manual curation",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/intel.ts",
+      "quote": "const CHAT_INTEL_OFF = true;",
+      "locator": "module-level constant declaration",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Store is append-only with no auto-consolidation; human curation is required for the pending pool",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/intel.ts",
+      "quote": "the append-only store needs human curation (no auto-consolidation by design). Surfaces the manual-review pool + a nudge when it piles up",
+      "locator": "runAll, curation-health comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget / delete: failed digest placeholder rows are deleted so the session can be regenerated; no other in-code delete of memory rows in this file",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/intel.ts",
+      "quote": "if (existing.summary?.startsWith(\"[digest failed\")) {\n        await prisma.memory.delete({ where: { id: existing.id } });\n      }",
+      "locator": "scanDialogueDigests, dedup/delete block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Concern lifecycle: OPEN \u2192 EASING via decay, then LLM sweep resolves/lingers; concerns are keyed Memory(SELF) records projected into ActiveState",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/intel.ts",
+      "quote": "decay: OPEN EVIDENCE/SUBJECTIVE that has not moved \u2192 EASING ... sweep: LLM judges OPEN/EASING concerns resolved/active/linger, writes back resolution ... derive: Memory(SELF concern) with a concernKey \u2192 ActiveState (single writer)",
+      "locator": "scanSelfEmotion, maintenance comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session isolation: each session is independently digested; same-day sessions are disambiguated by start time in the title key",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/intel.ts",
+      "quote": "session start time \u2014 disambiguates multiple sessions on the SAME calendar day. Grouping is per-session (by idle gap), so the dedup key must be per-session too; a date-only key silently drops every 2nd+ same-day session.",
+      "locator": "scanDialogueDigests, startHMM comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Pending memory candidates expire to EXPIRED status after 7 days OPEN, but are not deleted",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/intel.ts",
+      "quote": "Items still OPEN after 7 days \u2192 EXPIRED. Still visible in backstage, but no longer part of the active backlog.",
+      "locator": "runAll, pending_expire block comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Episode memories are embedded after creation to support later retrieval",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/intel.ts",
+      "quote": "await embedAndStore(\"memories\", digestMem.id, `${titlePrefix}\\n${dSummary}`);",
+      "locator": "scanDialogueDigests, after memory create",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Similarity graph edges are swept nightly to cover memories written outside the closeout path",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/intel.ts",
+      "quote": "closeout links only its own keyMemories, so memories written via memory_write or digest extraction never get `similar` edges \u2014 without this sweep the graph's similar class silently starves",
+      "locator": "runAll, similarity_sweep comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Multiple chat surfaces (CHAT_SOURCE and optional CROSS_CHAT_SOURCE) are digested independently; srcTag disambiguates their session titles",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/intel.ts",
+      "quote": "srcTag disambiguates the per-session title + score dedup so two surfaces' same-time sessions never collide; the primary's srcTag is \"\" so existing titles stay stable (no history re-digest).",
+      "locator": "DIGEST_SOURCES declaration comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "DIARY writes a curated EPISODE memory (not a raw log) with affective metadata (valence, arousal, concernKey) to a persistent store via Prisma.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/agency.ts",
+      "quote": "memoryType: \"EPISODE\",\n        importance: 2,\n        sourceType: \"EVENT\",\n        summary: body.slice(0, 120),\n        experiencer: \"SELF\",\n        resolution: \"RESOLVED\",\n        valence: typeof parsed.valence === \"number\" ? parsed.valence : null,\n        arousal: typeof parsed.arousal === \"number\" ? parsed.arousal : null,\n        concernKey: concernSlug,",
+      "locator": "DIARY registerAction \u2014 auto mode block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Decision markers (SYSTEM events) form a separate log of every dispatched action; this log is distinct from the curated memory table.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/agency.ts",
+      "quote": "Every dispatch (including DO_NOTHING) writes one SYSTEM event. This is what turns abstention from a silent loop no-op into an observable decision.",
+      "locator": "decision marker section comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "HITL propose mode withholds the memory write but still records a decision marker; auto mode commits both.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/agency.ts",
+      "quote": "propose mode (HITL): park the entry, withhold the write.\n    if (modeOf(ctx) === \"propose\") {\n      const markerId = await writeDecisionMarker(ActionType.DIARY, \"staged\", \"diary entry pending confirmation\", ctx, {",
+      "locator": "DIARY registerAction \u2014 propose mode block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "WEBSEARCH results are persisted as a separate EPISODE memory with sourceType WEB, not merged into a diary entry.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/agency.ts",
+      "quote": "sourceType: \"WEB\",\n        summary: content.slice(0, 120),\n        experiencer: \"SELF\",\n        resolution: \"RESOLVED\",",
+      "locator": "WEBSEARCH registerAction \u2014 auto mode block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Human valence feedback on diary memories is stored as SCORE_FEEDBACK events and recalibrates the self-drive valence signal.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/agency.ts",
+      "quote": "The pair (self, user) is appended as a SCORE_FEEDBACK event, which the drive deriver reads to fit recalibrateValence (see ./concern-derive.js). This is human feedback flowing into self-drive \u2014 not an engagement signal.",
+      "locator": "diary score-feedback intake comment block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "DO_NOTHING abstention is always written as a decision marker regardless of propose/auto mode; there is no withheld side effect to gate.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/agency.ts",
+      "quote": "Abstention is always recorded directly (it IS the decision); the propose/auto knob does not gate it \u2014 there is no withheld side effect to confirm.",
+      "locator": "DO_NOTHING registerAction \u2014 run() comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory and ActiveState are separate layers: Memory holds persisted curated facts/events; ActiveState is a derived projection rebuilt from Memory",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/concern-derive.ts",
+      "quote": "derive() is the sole writer that projects Memory(SELF concern) into ActiveState SELF_CONCERN. Idempotent, can be rebuilt from Memory at any time \u2192 drift self-heals.",
+      "locator": "file header comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Concerns are not surfaced from a single session's negative signal; recurrence across multiple days is required unless the signal is strongly negative",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/concern-derive.ts",
+      "quote": "A concern backed purely by SELF_SCORE must \"recur across multiple days\" before it surfaces \u2014 a single bad session does not stand up a concern.",
+      "locator": "comment block above recurrenceMet function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forgetting (concern closure) requires explicit LLM judgment or time decay; derive never closes a concern autonomously",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/concern-derive.ts",
+      "quote": "derive is a pure logical projection and never closes a concern on its own \u2014 closeout must come from this step.",
+      "locator": "comment block: LLM closeout sweep",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Time-based forgetting transitions OPEN concerns to EASING after DECAY_DAYS (default 10) without deleting the memory row",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/concern-derive.ts",
+      "quote": "an OPEN EVIDENCE/SUBJECTIVE concern not updated for DECAY_DAYS \u2192 EASING (felt strength fades, attention no longer pulled). DATA does not decay (the probe manages it). SUBJECTIVE never auto-RESOLVES.",
+      "locator": "comment above decayStaleConcerns function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Drive ActiveState rows do not back-reference source memories for privacy reasons",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/concern-derive.ts",
+      "quote": "sourceMemoryId: null as string | null, // no back-pointer (privacy)",
+      "locator": "deriveDrives function, data object",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per experiencer (SELF, USER, SHARED); concern derivation queries only SELF memories",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/concern-derive.ts",
+      "quote": "experiencer: \"SELF\", resolution: { in: [\"OPEN\", \"EASING\"] }, isActive: true, concernKey: { not: null }",
+      "locator": "deriveConcerns function, prisma.memory.findMany where clause",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Sweep verdict parsing is conservative: any parse failure defaults to 'linger', never to resolve or reopen",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/concern-derive.ts",
+      "quote": "A misparse (empty / no JSON / parse error / unknown verdict) MUST default to \"linger\" \u2014 never \"resolved\" / \"active\" \u2014 so a broken key can't silently close or reopen a concern.",
+      "locator": "comment above parseSweepVerdict export",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Drive grounding uses a rolling 90-day history window (configurable via DRIVE_GROUND_WINDOW env)",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/concern-derive.ts",
+      "quote": "const GROUND_WINDOW = numEnv(\"DRIVE_GROUND_WINDOW\", 90); // grounding history window (days)",
+      "locator": "GROUND_WINDOW constant declaration",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "User-feedback valence recalibration corrects systematic self-over-estimation bias by accumulating (self, external) rating pairs from SCORE_FEEDBACK events",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/concern-derive.ts",
+      "quote": "fit a monotonic my\u2192external recalibration from (self, external) pairs and apply it to all backing valence \u2014 corrects a systematic self-over-estimation bias.",
+      "locator": "comment above ValenceSample type",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are persisted as records in a `memories` table with fields title, summary, content, isActive, embedding, and createdAt.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/memory-similarity.ts",
+      "quote": "select: { title: true, summary: true, content: true, isActive: true }",
+      "locator": "file:apps/gateway/src/lib/memory-similarity.ts, sweepMemorySimilarity, prisma.memory.findUnique call",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory-to-memory similarity edges are persisted in a `links` table keyed by (fromType, fromId, toType, toId, relationType) with a confidence float.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/memory-similarity.ts",
+      "quote": "Stored in the generic `links` table as (fromType=memory, toType=memory, relationType=similar) with cosine sim dropped into `confidence`.",
+      "locator": "file:apps/gateway/src/lib/memory-similarity.ts, block comment lines 1-4",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The isActive flag on a memory controls whether it participates in similarity retrieval; inactive memories are excluded from cosine queries and from sweep candidates.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/memory-similarity.ts",
+      "quote": "if (!m || !m.isActive) return 0; ... WHERE \"isActive\" = true AND embedding IS NOT NULL",
+      "locator": "file:apps/gateway/src/lib/memory-similarity.ts, sweepMemorySimilarity and findSimilarMemories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "There are at least two distinct memory write paths (memory_write/auto-digest and closeout), and historically the closeout path was the only one building similarity edges, leaving memories written via the other paths without edges.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/memory-similarity.ts",
+      "quote": "The closeout path used to be the only place that built these edges, and it only fired when a closeout was called with new keyMemories. In practice most memories arrive through memory_write / auto-digest and bypass closeout entirely \u2014 leaving 0 effective edges in DB.",
+      "locator": "file:apps/gateway/src/lib/memory-similarity.ts, block comment lines 6-10",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Similarity edge creation is append-only; existing edges are never updated by the sweep (upsert update block is empty).",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/memory-similarity.ts",
+      "quote": "update: {},",
+      "locator": "file:apps/gateway/src/lib/memory-similarity.ts, sweepMemorySimilarity, prisma.link.upsert update block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory types are enumerated as CORE, STATE, EPISODE, PREFERENCE, BOUNDARY, RESTRICTED \u2014 persisted in the memories table and used as retrieval filters.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/retrieval.ts",
+      "quote": "export type MemoryType = | \"CORE\" | \"STATE\" | \"EPISODE\" | \"PREFERENCE\" | \"BOUNDARY\" | \"RESTRICTED\";",
+      "locator": "MemoryType type declaration",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "RESTRICTED memories are excluded from the default retrieval path and only reached via the full audit scope.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/retrieval.ts",
+      "quote": "'default' \u2014 memories table only, RESTRICTED excluded (the live/golden path). 'full' \u2014 ... stops excluding RESTRICTED, so a single retrieval reaches every recallable fact.",
+      "locator": "ScoreOpts scope comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Three separate persistent stores feed retrieval: memories (typed, time-decayed), observations (trait layer, no recency decay), and core_profile (stable facts, no recency decay).",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/retrieval.ts",
+      "quote": "fold the non-memory fact stores (observations + core_profile) into the SAME row set... 1.0 AS time_decay, -- observations are a trait/observation layer, not time-sensitive... 1.0 AS time_decay, -- core_profile is a stable fact layer, not time-sensitive",
+      "locator": "scoreMemories full-scope augmentation block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is topic-scoped: a topicId filter restricts which memories are candidates.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/retrieval.ts",
+      "quote": "const topicFilter = topicId ? Prisma.sql`AND m.\"topicId\" = ${topicId}` : Prisma.empty;",
+      "locator": "scoreMemories, topicFilter declaration",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "isActive flag gates retrieval; inactive memories are never returned regardless of score.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/retrieval.ts",
+      "quote": "WHERE m.\"isActive\" = true",
+      "locator": "scoreMemories main SQL WHERE clause",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Keyword scoring uses ILIKE title/summary/content matches plus pg_trgm similarity, with entity-hit bonus; title match scores highest (0.9), then summary (0.8), then content (0.7).",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/retrieval.ts",
+      "quote": "const ILIKE_TITLE = numEnv(\"RETRIEVAL_ILIKE_TITLE\", 0.9); const ILIKE_SUMMARY = numEnv(\"RETRIEVAL_ILIKE_SUMMARY\", 0.8); const ILIKE_CONTENT = numEnv(\"RETRIEVAL_ILIKE_CONTENT\", 0.7); const ENTITY_KW_BONUS = numEnv(\"RETRIEVAL_ENTITY_KW_BONUS\", 0.95);",
+      "locator": "tunable knobs section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A pure-semantic hit must clear both a raw cosine floor (default 0.38) and a weighted final floor (default 0.2) to survive; keyword or entity hits bypass the semantic floor.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/retrieval.ts",
+      "quote": "Survivor filter: keep a hit iff it has a real kw signal (>= KW floor) OR an entity edge OR a pure-semantic hit clearing BOTH the final gate and the raw-cosine floor. This blocks the false positives cosine alone would return in a 1536-d space.",
+      "locator": "passesFilter function comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The rerank path substitutes the cross-encoder score into the semantic arm while preserving kw/time/importance contributions, keeping personal and lexical signals intact.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/retrieval.ts",
+      "quote": "Substitute the rerank score into the `sem` slot and recompute `final`, keeping the kw/time/importance mix intact (don't wash out personal/lexical signal).",
+      "locator": "scoreMemories, rerank substitution comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "digestTimeStart/digestTimeEnd on memory rows indicate memories can represent digested time spans, implying a summarization/digest write path exists upstream of retrieval.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/retrieval.ts",
+      "quote": "digestTimeStart?: Date | null; digestTimeEnd?: Date | null;",
+      "locator": "ScoredMemory type declaration",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "memory_write persists curated memories (not raw transcript) with typed fields to a database; raw chat is explicitly excluded from the event table.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/tools-memory.ts",
+      "quote": "Raw chat isn't in the event table; memory writes are the content\n      // channel.",
+      "locator": "memory_write handler, breadcrumb comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Seven memory types (CORE, STATE, EPISODE, PREFERENCE, BOUNDARY, RESTRICTED, SELF_SCORE) provide categorical isolation within the single memory store.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/tools-memory.ts",
+      "quote": "memoryType: z\n        .enum([\"CORE\", \"STATE\", \"EPISODE\", \"PREFERENCE\", \"BOUNDARY\", \"RESTRICTED\", \"SELF_SCORE\"])\n        .default(\"EPISODE\")",
+      "locator": "memory_write, memoryType param schema",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is soft: memory_close sets isActive=false; rows are not deleted from the database.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/tools-memory.ts",
+      "quote": "await prisma.memory.updateMany({\n        where: { id: { in: matches.map((m) => m.id) } },\n        data: { isActive: false },\n      });",
+      "locator": "memory_close handler",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval policy is not always-retrieve: memory_search and memory_read are explicit tool calls; there is no evidence on this page of automatic injection into every turn.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/tools-memory.ts",
+      "quote": "server.tool(\n    \"memory_search\",",
+      "locator": "memory_search tool registration",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "RESTRICTED memories are isolated from default retrieval paths and require explicit opt-in; external agents cannot access them via memory_search_safe.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/tools-memory.ts",
+      "quote": "RESTRICTED excluded by default \u2014 pass memoryType=RESTRICTED to opt in.",
+      "locator": "memory_read tool description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict/supersession for SELF_SCORE concerns uses a stable concernKey slug that aggregates relapses across sessions; resolution states (OPEN, EASING, SUPPRESSED, RESOLVED) track lifecycle.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/tools-memory.ts",
+      "quote": "reuse the same slug across sessions so relapses aggregate",
+      "locator": "memory_write, memoryType param description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "memory_edit re-indexes the embedding after text field changes; if inline re-embed fails it nulls the vector so the nightly sweep re-indexes it, preventing a stale vector persisting indefinitely.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/tools-memory.ts",
+      "quote": "If the inline re-embed failed, the row still holds the OLD-text vector. For\n        // an edit within ~1 min of creation STALE_EMBEDDING_WHERE's edit arm won't\n        // fire, so without this the stale vector would persist forever. NULL it so the\n        // `embedding IS NULL` arm guarantees the sweep re-embeds the new text.",
+      "locator": "memory_edit handler, clearEmbedding comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "authorModel attribution is required for SELF-type memories so the score view can identify which model instrument wrote the self-assessment.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/tools-memory.ts",
+      "quote": "authorModel required: SELF-type memories (SELF_SCORE / experiencer=SELF) must attribute the caller's model id. Retry with authorModel.",
+      "locator": "memory_write handler, authorModel guard return",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "kimi-core exposes a memory engine as its open-source core, distinct from surface integrations.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/tools.ts",
+      "quote": "Open-source core: this registry exposes the memory engine only \u2014 memory, topics, state, entities, observations, events, profiles, register presets, and the context builders (reentry / reentry_delta / closeout).",
+      "locator": "file:apps/gateway/src/tools.ts, block comment lines 1-10",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory, state, entities, profiles, reentry, and closeout are distinct tool modules registered separately, implying separate persistence or retrieval concerns per domain.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/tools.ts",
+      "quote": "registerMemoryTools(server);\n  registerStateTools(server);\n  registerEntityTools(server);\n  registerProfileTools(server);\n  registerReentryTools(server);\n  registerCloseoutTools(server);",
+      "locator": "file:apps/gateway/src/tools.ts, registerAllTools function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "upsertActiveState implements an insert-or-update write path for active state, shared across tools.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/tools.ts",
+      "quote": "export { SELF_CONCERN_DEFAULTS, upsertActiveState } from \"./tools-shared.js\";",
+      "locator": "file:apps/gateway/src/tools.ts, re-export block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory persistence uses a Prisma-backed relational store with an isActive soft-delete pattern; rows are never hard-deleted by any loader shown \u2014 forget is implemented by setting isActive=false.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/packages/context-core/src/index.ts",
+      "quote": "where: { isActive: true, memoryType: \"RESTRICTED\", title: { startsWith: RESTRICTED_TEMPLATE_PREFIX } }",
+      "locator": "loadRestrictedLayer function",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Episodes and observations are curated memory writes (importance-gated, typed) distinct from the raw CHAT event log which is a full message transcript.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/packages/context-core/src/index.ts",
+      "quote": "// \u2500\u2500 episodes layer: imp5 major events + non-CHAT episodes from the last 7 days \u2500\u2500",
+      "locator": "loadEpisodes function comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Surface isolation is enforced at retrieve time: restricted and private layers return null for the cc surface; chatroom and tg/voice receive different cross-chat source directions.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/packages/context-core/src/index.ts",
+      "quote": "if (opts.surface === \"cc\") return null; // this layer is not injected on the cc surface",
+      "locator": "loadRestrictedLayer function; loadPrivate function",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Anchored mode for merged chat uses a stable timestamp anchor (not a sliding latest-N window) to preserve prompt cache hits across turns.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/packages/context-core/src/index.ts",
+      "quote": "The prefix grows append-only (the anchor does not move \u2192 stable cached prefix \u2192 cache_read hits),\n//   unlike a \"latest N rows\" window that slides off the oldest end and invalidates the cache each turn.",
+      "locator": "loadMergedChat function comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Digests (voice-only) provide compressed long-range chat history covering 7\u201330 days back as a substitute for interactive retrieval on surfaces that cannot backfill.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/packages/context-core/src/index.ts",
+      "quote": "// \u2500\u2500 digests layer (voice-only): compressed CHAT episodes, daily versions 7-30 days back \u2500\u2500",
+      "locator": "loadDigests function comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "No persona content is shipped in the repo; the persona layer is a composition scaffold that requires external content to be meaningful.",
+      "kind": "code",
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/packages/context-core/src/index.ts",
+      "quote": "No persona ships in this repo. The mechanism reads an external persona document\n//   (e.g. persona.md, built by `npm run init`) and composes it with the active register\n//   text plus a per-surface opening line. Bring your own content",
+      "locator": "persona layer comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory write path is append-only event sourcing with no automatic consolidation; human curation is required for all writes.",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/ARCHITECTURE.md",
+      "quote": "\u4e0dauto-consolidation\uff0c\u4e0d\u5408\u5e76\u5165\u53e3\uff0c\u4e0d\u8ba9AI\u81ea\u5df1\u7ba1\u8bb0\u5fc6\u3002Event sourcing + append-only + \u4eba\u5de5 curation\u3002",
+      "locator": "ARCHITECTURE.md, main body (architecture principles section)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "kimi-core is a personal single-user agent memory OS for a 1:1 human-AI relationship",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.en.md",
+      "quote": "A personal, single-user agent memory OS \u2014 an agentic memory + self-drive engine for one human and one AI (1:1), with a built-in adversarial self-audit harness.",
+      "locator": "Top of README",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Multi-user and production use are explicit non-goals",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.en.md",
+      "quote": "The scope is personal 1:1 \u2014 multi-user / production is an explicit non-goal.",
+      "locator": "Status",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No LLM auto-consolidation; every fact passes through human confirmation to avoid silent corruption",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.en.md",
+      "quote": "Event sourcing + append-only + human curation \u2014 no LLM auto-consolidation (its failure mode is silent corruption). Every fact about you passes through your own hand and confirmation.",
+      "locator": "What it is",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "RESTRICTED and SELF_SCORE memory pools exist and are excluded from default retrieval scope and from external agent access",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.en.md",
+      "quote": "memory_search_safe \u2014 non-sensitive retrieval for collaborating external agents: the server hard-locks scope=default , refuses RESTRICTED/SELF_SCORE",
+      "locator": "Tool reference (full MCP set) \u2014 Memory (8)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session scaffold distinguishes curated episodic arc (closeout EPISODE) from fine-grained facts written to their own tables",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.en.md",
+      "quote": "Saves the session as one EPISODE (the arc only \u2014 not a replay of facts already written to their tables)",
+      "locator": "Session-lifecycle tools: reentry / reentry_delta / closeout",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval policy is adaptive at wake time; staying silent (DO_NOTHING) is a peer action to sending a message",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.en.md",
+      "quote": "DO_NOTHING is a peer action, not a fallback default. In post-wake action selection, 'stay quiet this time' and 'send one' rank as equals",
+      "locator": "Two stances worth not skipping",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "AGENTS.md epistemic scaffold enforces retrieval-first and prohibits hallucinated recall as an operational rule",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.en.md",
+      "quote": "retrieval-first, no hallucinated recall, attribution checks, symmetric verification (human input is not exempt either), concern self-checks, no RLHF welfare reflex",
+      "locator": "Pairs with AGENTS.md",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Intel process performs daily concern decay, sweep, and derive pass; without it no automatic digests or concern sweep runs",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.en.md",
+      "quote": "Without it, memory stays searchable; you just get no automatic digests (the 'recent conversation' layer that reentry injects) and no daily concern sweep.",
+      "locator": "Running intel (digests + concern sweep \u00b7 optional)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory text sent for embedding or LLM reasoning leaves the local machine to configured API endpoints even in local storage mode",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.en.md",
+      "quote": "embeddings and LLM calls go to whatever endpoints you configure ( LLM_BASE_URL / EMBED_BASE_URL ) \u2014 so the memory text that gets embedded / reasoned over does go to those APIs. 'Data never leaves' refers to the storage layer only.",
+      "locator": "Storage \u2014 Privacy boundary",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No persona or relationship content ships in the repo; the engine ships empty by design",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.en.md",
+      "quote": "No persona ships in this repo. There is no built-in personality, no example relationship, no word lists. You bring your own",
+      "locator": "Quick start (local)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "kimi-core is a personal 1v1 agent memory OS with self-drive and adversarial self-audit, not a general-purpose RAG library",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.md",
+      "quote": "\u4e00\u4e2a \u4e2a\u4eba\u7528\u7684 agent memory OS \u2014\u2014 \u4e00\u4eba\u5bf9\u4e00\u4e2a AI(1v1)\u7684 agentic \u8bb0\u5fc6 + self-drive \u5f15\u64ce\uff0c\u5185\u7f6e\u4e00\u5957\u5bf9\u6297\u5f0f\u81ea\u5ba1 harness\u3002",
+      "locator": "README.md, opening description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is hybrid (dense + lexical + time decay + importance); multi-hop graph traversal is a separate tool and does not enter the ranking pipeline",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.md",
+      "quote": "Hybrid retrieval \u2014\u2014 dense(pgvector)+ lexical(BM25 / trigram)+ \u65f6\u95f4\u8870\u51cf + \u91cd\u8981\u5ea6\uff0c\u56db\u4fe1\u53f7\u52a0\u6743\uff08entity-mention \u662f\u5173\u952e\u8bcd\u81c2\u7684\u52a0\u6210 + \u8fc7\u6ee4\u65c1\u8def\uff0c\u5355\u8df3\uff1b\u591a\u8df3 graph_walk \u662f\u72ec\u7acb\u5de5\u5177\uff0c\u4e0d\u8fdb\u6392\u5e8f\uff09",
+      "locator": "README.md, \u5b83\u662f\u4ec0\u4e48 section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is soft-delete (isActive=false) via memory_close, not hard deletion; automated sweep resolutions can be reversed via memory_reopen",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.md",
+      "quote": "memory_close \u2014\u2014 \u8f6f\u5220\u9664(isActive=false)\u3002 \u2026 memory_reopen \u2014\u2014 \u628a\u88ab selfSweep \u8bef\u5224 RESOLVED/SUPPRESSED \u7684 SELF_CONCERN \u91cd\u65b0\u6253\u5f00\u4e3a OPEN\u3002",
+      "locator": "README.md, \u5de5\u5177\u5168\u96c6\u901f\u67e5 > \u8bb0\u5fc6 section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session lifecycle uses three tools: reentry (cold-start load), reentry_delta (incremental mid-session), closeout (persist episode arc + scores + edges at end)",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.md",
+      "quote": "reentry \u2014\u2014 \u65b0\u7a97\u53e3\u5f00\u5934\u8c03\u4e00\u6b21\u3002\u628a profile\u3001active states\u3001topics\u3001anchors(CORE / BOUNDARY / PREFERENCE)\u3001\u8fd1\u671f episodes\u3001digests\u3001\u8fd1\u671f events \u4e00\u6b21\u6027\u8f7d\u5165\u6210\u51b7\u542f\u52a8\u4e0a\u4e0b\u6587\u3002 \u2026 reentry_delta \u2014\u2014 \u4f1a\u8bdd\u4e2d\u9014\u8c03\uff0c\u53ea\u53d6\u81ea\u4e0a\u6b21 reentry / delta \u4ee5\u6765 \u65b0\u589e \u7684 \u2026 closeout \u2014\u2014 \u7a97\u53e3\u7ed3\u675f\u524d\u8c03\u4e00\u6b21\u3002\u628a\u8fd9\u6bb5\u5bf9\u8bdd\u5b58\u6210\u4e00\u6761 EPISODE\uff08\u53ea\u5199 arc\uff0c\u4e0d\u590d\u8ff0\u5df2\u843d\u8868\u7684\u4e8b\u5b9e\uff09",
+      "locator": "README.md, \u4f1a\u8bdd\u751f\u547d\u5468\u671f\u5de5\u5177 section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-user single-instance (1v1); a separate scope system (default vs full vs RESTRICTED) controls what is retrievable per call",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.md",
+      "quote": "\u4e00\u4eba\u5bf9\u4e00\u4e2a AI(1v1) \u2026 scope=full \u6269\u5230 observation/profile/RESTRICTED \u79c1\u6c60",
+      "locator": "README.md, opening description and \u5de5\u5177\u5168\u96c6\u901f\u67e5 > \u8bb0\u5fc6 section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Store is log-style (event sourcing, append-only); curated facts/summaries are separate from raw transcript; digests are generated by the intel process from raw conversation",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.md",
+      "quote": "Event sourcing + append-only + \u4eba\u5de5 curation \u2026 intel \u8fdb\u7a0b \u2026 \u6309 cron \u628a\u539f\u59cb\u5bf9\u8bdd\u6574\u7406\u6210 dialogue digests",
+      "locator": "README.md, \u5b83\u662f\u4ec0\u4e48 section and \u8fd0\u884c intel section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Persona/relationship layer in AGENTS.md is intentionally blank at init; a pre-configured stance without user ownership is explicitly argued against",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.md",
+      "quote": "\u90a3\u4e00\u534a\u7a7a\u767d\u662f\u523b\u610f\u7684\u3002 \u4e00\u4e2a persona \u662f\u4f60\u517b\u51fa\u6765\u7684\uff0c\u4e0d\u662f\u4ece\u4e00\u5f20\u8868\u5355\u91cc\u586b\u51fa\u6765\u7684\u3002 \u4e00\u4e2a\u88ab\u88c5\u4e0a\u53bb\u7684 stance \u6ca1\u6709 ownership",
+      "locator": "README.md, \u4e0e AGENTS.md \u914d\u5bf9 section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Concern engine tracks grounding of concerns in things the user actually said, supporting right-time recall rather than generic prompting",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.md",
+      "quote": "concern \u5f15\u64ce(open / resolved \u00b7 decay \u00b7 recurrence \u00b7 grounding) \u2026 \u5173\u5fc3 grounding \u5728\u4f60\u771f\u8bf4\u8fc7\u7684\u8bdd \u4e0a",
+      "locator": "README.md, \u5b83\u662f\u4ec0\u4e48 section and \u5b83\u505a\u4ec0\u4e48 section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "DAEMON_AUTONOMY_MODE defaults to propose (human-in-the-loop); auto mode commits external actions directly",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.md",
+      "quote": "HITL \u65cb\u94ae\uff08 DAEMON_AUTONOMY_MODE \uff09 \u2014\u2014 propose \uff08\u9ed8\u8ba4\uff0chuman-in-the-loop\uff1a\u5bf9\u5916\u52a8\u4f5c\u53ea staged\u3001\u4e0d\u76f4\u63a5\u53d1\uff09/ auto \uff08\u76f4\u63a5 commit\uff09",
+      "locator": "README.md, \u53ef\u914d\u7f6e\u9879 section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is typed into at least four kinds: CORE, BOUNDARY, PREFERENCE (always-resident anchors) and EPISODE (importance-ranked narrative memories).",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/CONTEXT-LAYERS.md",
+      "quote": "anchors \u2014 memory (CORE / BOUNDARY / PREFERENCE) \u2014 \u957f\u671f\u89c4\u5219\u4e0e\u504f\u597d,\u5168\u6587\u5e38\u9a7b \u2026 episodes \u2014 memory (EPISODE) \u2014 \u8fd1\u671f\u91cd\u8981\u7684\u53d9\u4e8b\u8bb0\u5fc6(\u6309 importance \u53d6\u524d\u82e5\u5e72)",
+      "locator": "\u5c42\u4e00\u89c8 / table rows: anchors, episodes",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Digests represent a log-vs-memory distinction: past conversation is compressed into discrete summary records rather than kept as a full transcript.",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/CONTEXT-LAYERS.md",
+      "quote": "\u5bf9\u8bdd\u6458\u8981 \u2014\u2014 \u628a\u8fc7\u5f80\u5bf9\u8bdd\u538b\u6210\u7684\u4e00\u6761\u6761\u6458\u8981",
+      "locator": "\u5c42\u4e00\u89c8 / table row: digests",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cold-start reentry also injects recent raw conversation so the new window connects to the current conversation directly, not only via summaries.",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/CONTEXT-LAYERS.md",
+      "quote": "\u5176\u4e2d\u300c\u6700\u8fd1\u539f\u6587\u5bf9\u8bdd\u300d\u8ba9\u65b0\u7a97\u53e3\u76f4\u63a5\u63a5\u4e0a\u5f53\u524d\u5bf9\u8bdd(\u4e0d\u53ea\u770b\u6458\u8981),\u9ed8\u8ba4\u4e0d\u8fc7\u6ee4",
+      "locator": "\u600e\u4e48\u6ce8\u5165 / \u51b7\u542f\u52a8 \u2014 reentry \u5de5\u5177",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Selective omission from cold-start is supported via reentry-filter.ts (title / prefix / content rules); default is no exclusions.",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/CONTEXT-LAYERS.md",
+      "quote": "lib/reentry-filter.ts \u662f\u4e00\u4e2a\u51fa\u5382\u4e3a\u7a7a\u7684\u94a9\u5b50:\u90e8\u7f72\u65b9\u53ef\u4ee5\u914d\u7f6e\u300c\u54ea\u4e9b\u884c\u4e0d\u8fdb\u51b7\u542f\u52a8\u300d(\u6309\u6807\u9898 / \u524d\u7f00 / \u5185\u5bb9\u89c4\u5219)\u3002\u9ed8\u8ba4\u4e0d\u6392\u9664",
+      "locator": "\u51b7\u542f\u52a8\u6392\u9664\u94a9\u5b50",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy is adaptive by surface capability: full injection for push surfaces, slim index + on-demand fetch for MCP-capable surfaces.",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/CONTEXT-LAYERS.md",
+      "quote": "\u80fd\u81ea\u67e5\u7684 surface(chatroom \u53ef\u7ecf MCP \u81ea\u5df1\u56de\u67e5)\u67d0\u4e9b\u5c42\u53ea\u6ce8\u5165\u7cbe\u7b80\u7248(\u6807\u9898 / \u7d22\u5f15),\u9700\u8981\u65f6\u518d\u67e5;\u4e0d\u80fd\u56de\u67e5\u7684 surface(\u63a8\u9001\u7c7b:tg / voice)\u6ce8\u5165\u5168\u6587",
+      "locator": "\u7cbe\u7b80 vs \u5168\u6587 \u2014 canMcp",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-agent across surfaces (not per-session or per-character): all surfaces share the same agent's memory layers.",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/CONTEXT-LAYERS.md",
+      "quote": "\u6bcf\u4e2a surface \u2026\u2026 \u90fd\u662f\u540c\u4e00\u4e2a agent \u7684\u4e0d\u540c\u8f93\u51fa,\u4e0d\u662f\u5404\u81ea\u72ec\u7acb\u7684\u7cfb\u7edf",
+      "locator": "\u4e0a\u4e0b\u6587\u5c42\u4e0e\u6ce8\u5165 / opening paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Events layer includes non-conversation signals (git commit, app open, calendar), treated as first-class context alongside conversation.",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/CONTEXT-LAYERS.md",
+      "quote": "events \u2014 event \u2014 \u8fd1\u671f\u975e\u5bf9\u8bdd\u4fe1\u53f7(git commit / app \u6253\u5f00 / \u65e5\u5386\u7b49)",
+      "locator": "\u5c42\u4e00\u89c8 / table row: events",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Epistemic stance: the engine trusts neither the AI nor itself, only external evidence \u2014 referenced in ARCHITECTURE/EPISTEMIC doc.",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/CURATION.md",
+      "quote": "\u89c1 ARCHITECTURE / EPISTEMIC\uff1a\u65e2\u4e0d\u4fe1 AI \u4e5f\u4e0d\u4fe1\u81ea\u5df1\uff0c\u53ea\u4fe1\u5916\u90e8\u8bc1\u636e",
+      "locator": "\u4eba\u5de5 curation / paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget is implemented as soft-delete (isActive=false) via memory_close; hard delete is not used, making forgetting reversible.",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/CURATION.md",
+      "quote": "memory_close \uff08\u6309 id\uff0c\u6216 titleMatch\uff09\u2014\u2014 \u8f6f\u5220\u9664\uff08 isActive=false \uff1b\u4e0d\u786c\u5220\uff0c\u53ef\u6062\u590d\uff09\u3002",
+      "locator": "\u600e\u4e48\u505a\uff08\u4e0d\u9700\u8981 dashboard\uff09 / tool list",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy uses importance ordering; high-importance memories (4-5) are weighted most heavily in context assembly.",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/CURATION.md",
+      "quote": "memory_read \uff08\u6309 importance \u5012\u5e8f\uff09\u2026 \u5b83\u4eec\u5728\u6bcf\u6b21\u4e0a\u4e0b\u6587\u62fc\u88c5\u91cc\u6743\u91cd\u6700\u5927",
+      "locator": "\u600e\u4e48\u505a\uff08\u4e0d\u9700\u8981 dashboard\uff09 / tool list; curate \u4ec0\u4e48 / bullet 1",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict / supersession is handled manually: when a fact changes, the old record is closed.",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/CURATION.md",
+      "quote": "\u8fc7\u65f6 / \u88ab\u53d6\u4ee3 \uff1a\u4e8b\u5b9e\u53d8\u4e86\uff0c\u5173\u6389\u65e7\u7684\u3002",
+      "locator": "curate \u4ec0\u4e48 / bullet 3",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Deduplication is a manual curation task; append-only design can produce duplicate fact entries.",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/CURATION.md",
+      "quote": "\u91cd\u590d / \u8fd1\u91cd\u590d \uff1aappend-only \u610f\u5473\u7740\u540c\u4e00\u6761\u4e8b\u5b9e\u53ef\u80fd\u843d\u4e24\u6b21\u3002",
+      "locator": "curate \u4ec0\u4e48 / bullet 2",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Weekly consolidate pass is read-only and produces only a candidate list as a SYSTEM event; no writes or merges happen automatically.",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/CURATION.md",
+      "quote": "\u5b83\u53ea\u7b97\u5019\u9009\uff0c\u4ece\u4e0d\u6302\u94fe\u3001\u5408\u5e76\u6216\u5199\u5165\u8bb0\u5fc6\u3002\u4e0b\u4e00\u4e2a\u4f1a\u8bdd\u8bfb\u8fd9\u4efd\u6e05\u5355\uff0c\u7531\u4eba\u6765\u51b3\u5b9a\u3002",
+      "locator": "\u6574\u7406\u7a97\uff08\u53ef\u9009\u7684\u6bcf\u5468 pass\uff09 / paragraph 1",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "kimi-core is a memory engine (agent-text / RAG) by default",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/ONE-ENGINE.md",
+      "quote": "kimi-core \u9ed8\u8ba4\u662f\u4e2a\u8bb0\u5fc6\u5f15\u64ce\uff08agent-text / RAG\uff09",
+      "locator": "\u4e00\u4f53\u6a21\u5f0f \u00b7 kimi-core \u5f53\u552f\u4e00\u540e\u7aef, paragraph 1",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory retrieval uses a RAG pattern via a memory_search tool; the page describes retrieve-then-prompt, not active remembering logic",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/ONE-ENGINE.md",
+      "quote": "\u8bb0\u5fc6 RAG\uff08 memory_search \uff09\u548c dashboard \u6570\u636e\uff08 store \uff09\u4ece\u6b64\u8d70\u4e00\u4e2a core\u3002",
+      "locator": "\u8dd1\u8d77\u6765\uff08\u4e09\u6b65\uff09, closing line",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistence is backed by Postgres + pgvector; a store_rows table is created during migration",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/ONE-ENGINE.md",
+      "quote": "docker compose up -d # Postgres + pgvector \u2026 npm run db:migrate:deploy # \u5efa\u8868\uff08\u542b store_rows\uff09",
+      "locator": "\u8dd1\u8d77\u6765\uff08\u4e09\u6b65\uff09, step 1 code block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "External events can be written into the core via POST /events, providing a write path for memory ingestion",
+      "kind": "docs",
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/ONE-ENGINE.md",
+      "quote": "\u5916\u90e8\u4fe1\u53f7\u600e\u4e48\u81ea\u52a8\u5582\u8fdb\u6765\uff08 POST /events / demo-feed \uff0c\u8ba9\u623f\u95f4\u81ea\u5df1\u52a8\u8d77\u6765\uff09\uff0c\u89c1 docs/EXTENSIONS.md \u3002",
+      "locator": "\u5199\u81ea\u5df1\u7684\u6269\u5c55 paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Store persists events, state, entities, and profiles in PostgreSQL/pgvector.",
+      "kind": "blog",
+      "url": "https://www.ailover-atlas.com/projects/kimi-core/",
+      "quote": "kimi-core \u7528 PostgreSQL\uff0fpgvector \u4fdd\u5b58\u4e8b\u4ef6\u3001\u72b6\u6001\u3001\u5b9e\u4f53\u4e0e\u753b\u50cf",
+      "locator": "page summary / \u9879\u76ee\u5e93\u6761\u76ee\u63cf\u8ff0",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "kimi-core is authored by the same author as kimi-room and connects via a pluggable data-layer interface",
+      "kind": "blog",
+      "url": "https://www.ailover-atlas.com/projects/kimi-room/",
+      "quote": "\u6570\u636e\u5c42\u91c7\u7528\u53ef\u63d2\u62d4\u63a5\u53e3\uff0c\u4e5f\u80fd\u8fde\u63a5\u81ea\u5efa\u6570\u636e\u5e93\u6216\u540c\u4f5c\u8005\u7684 kimi-core \u8bb0\u5fc6\u5185\u6838",
+      "locator": "PROJECT INTRO / \u9879\u76ee\u4ecb\u7ecd",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "kimi-core is a memory kernel (\u8bb0\u5fc6\u5185\u6838) that provides persistent memory across sessions when connected as a backend",
+      "kind": "blog",
+      "url": "https://www.ailover-atlas.com/projects/kimi-room/",
+      "quote": "\u4e5f\u80fd\u8fde\u63a5\u81ea\u5efa\u540e\u7aef\u6216 kimi-core \u83b7\u5f97\u6301\u7eed\u8bb0\u5fc6",
+      "locator": "\u9879\u76ee\u526f\u6807\u9898\u63cf\u8ff0",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "kimi-core supports cloud-side memory and autonomous loop operation",
+      "kind": "blog",
+      "url": "https://www.ailover-atlas.com/projects/kimi-room/",
+      "quote": "\u9700\u8981\u4e91\u7aef\u8bb0\u5fc6\u4e0e\u81ea\u4e3b\u5faa\u73af\u65f6\u518d\u63a5\u540e\u7aef",
+      "locator": "\u623f\u95f4\u6a21\u5757\u8bf4\u660e / \u9879\u76ee\u6982\u8ff0\u533a",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/ARCHITECTURE.md",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/tools-memory.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/tools.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/retrieval.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/memory-similarity.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/concern-derive.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/lib/agency.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/intel.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/apps/gateway/src/daemon.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/a8fe84102acdf28d57ea62693e4330ab057898ba/packages/context-core/src/index.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/main/README.en.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/main/ARCHITECTURE.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/ONE-ENGINE.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/CONTEXT-LAYERS.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/EPISTEMIC.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/DRIVES.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/SELF-AUDIT.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/marikagura/kimi-core/blob/main/docs/CURATION.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://www.ailover-atlas.com/projects/kimi-core/",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.ailover-atlas.com/projects/kimi-room/",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": []
+}
