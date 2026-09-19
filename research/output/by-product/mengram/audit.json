@@ -1,0 +1,1334 @@
+{
+  "identity": {
+    "id": "mengram",
+    "name": "Mengram",
+    "repo": "https://github.com/alibaizhanov/mengram",
+    "docs": "https://mengram.io/llms.txt",
+    "license": "Apache-2.0",
+    "version_or_commit": "e90a8caa819f5f75fdb3cecb262e1b5071de894b",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Persistent memory for AI agents and coding tools, covering semantic facts, episodic events, and procedural workflows with a success/failure track record."
+    },
+    {
+      "text": "Hybrid retrieval engine combining vector search and graph traversal to assemble structured context for an AI agent"
+    },
+    {
+      "text": "Local vector store sufficient for vaults up to ~10K notes, intended to be replaceable at larger scale"
+    },
+    {
+      "text": "Mengram stores memories and profile data for users across hosted and self-hosted deployments."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Retrieve path is hybrid: semantic vector search (top-K by score, min_score=0.25) followed by graph expansion (multi-hop neighbors), with fallback to graph text search then raw text search then procedure search"
+    },
+    {
+      "text": "Facts carry optional temporal metadata; temporal resolution is mandatory when date context is available \u2014 relative terms like 'yesterday' must be resolved to absolute dates"
+    },
+    {
+      "text": "Procedure versions track violated_assumption, preconditions, success_count, and fail_count, so agents loading a version know what to verify before trusting the workflow."
+    },
+    {
+      "text": "Isolation: vault_path is a constructor parameter, implying per-user or per-agent isolation is achieved by instantiating MengramBrain with a different vault directory"
+    },
+    {
+      "text": "Three distinct memory types are persisted: semantic (facts/preferences), episodic (events/decisions/outcomes), and procedural (workflows that evolve from failures)"
+    },
+    {
+      "text": "Setup writes credentials to shell rc files (bashrc/zshrc) and sets them in-process, but on Windows this path is dead; only config.json actually persists."
+    },
+    {
+      "text": "Mengram's MCP server loads a profile on initialization; a failure in this step is surfaced in the instructions field of the initialize response."
+    },
+    {
+      "text": "Mengram exposes a 'recall' tool via its MCP server, accepting a query and user_id as arguments, indicating retrieval of memories keyed by user."
+    },
+    {
+      "text": "Proposed fix adds a credential resolver for base_url mirroring the existing key resolver, with env-var \u2192 config.json \u2192 default fallback chain."
+    },
+    {
+      "text": "Extraction produces five distinct memory types: entities (with typed facts), relations, knowledge artifacts, episodes, and procedures"
+    },
+    {
+      "text": "Existing memory context is injected into the extraction prompt to enable deduplication and consistent entity naming across sessions"
+    },
+    {
+      "text": "The OpenClaw integration installs Mengram as a skill (static documentation/scripts) rather than a plugin with lifecycle hooks."
+    },
+    {
+      "text": "save-conversation.sh POSTs conversation text to /v1/add_text with a JSON payload containing the text and source field."
+    },
+    {
+      "text": "Episodes carry an importance score (0.0\u20131.0) and emotional valence, enabling future ranked or filtered retrieval"
+    },
+    {
+      "text": "Current VectorStore API surface includes add, search (with top_k and min_score), stats(), and search_by_entity()"
+    },
+    {
+      "text": "Mengram provides a /v1/memories REST endpoint, suggesting a persistent store of memories accessible via API."
+    },
+    {
+      "text": "All hook exit paths are silent by design, providing no visibility into whether a hook fired or what it did."
+    },
+    {
+      "text": "Knowledge graph is lazily rebuilt from vault on first access after any remember() call invalidates it"
+    },
+    {
+      "text": "MCP tools named recall and remember are the named interfaces for retrieval and write operations."
+    },
+    {
+      "text": "Mengram has a current decay model for episodic memory based on half-life of individual events"
+    },
+    {
+      "text": "add() writes new facts and events from a conversation into memory, scoped per user_id"
+    },
+    {
+      "text": "Cloud retrieval uses Cohere multilingual embeddings and rerank across 23 languages"
+    },
+    {
+      "text": "One API call to profile() scaffolds the LLM system prompt with full user context"
+    },
+    {
+      "text": "Data cannot be deleted according to the developer's own data safety declaration"
+    },
+    {
+      "text": "Mengram maintains indexes, embeddings, and caches associated with an account."
+    },
+    {
+      "text": "Cloud uses pgvector with 1536-dim vectors, separate from local engine"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Mengram auto-extracts three memory types (fact, episode, procedure) from a raw conversation array on add().",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/README.md",
+      "quote": "# \u2192 Extracts: fact (\"applied to Acme Corp\"), episode (\"Greenhouse application\"),\n# procedure (\"React Select dropdown workaround\")",
+      "locator": "README.md, section 'Use with AI Agents'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Procedural memory versions track violated_assumption, preconditions, success_count, and fail_count; procedure_feedback() triggers automatic version increment.",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/README.md",
+      "quote": "{\n\"version\": 3,\n\"violated_assumption\": \"the build container had enough memory for a full build\",\n\"preconditions\": [\"check available memory before building\"],\n\"success_count\": 11, \"fail_count\": 2\n}",
+      "locator": "README.md, section 'Procedural \u2014 workflows that evolve'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-user isolation is enforced by user_id parameter on add and search calls; each user sees only their own data under one API key.",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/README.md",
+      "quote": "m.search_all(\"preferences\", user_id=\"alice\") # Only Alice's memories",
+      "locator": "README.md, section 'Multi-User Isolation'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Pre-compaction hook writes working state before compaction and restores it verbatim after; session-start hook re-injects cognitive profile after every /clear or compaction.",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/README.md",
+      "quote": "Session Start \u2192 Loads your cognitive profile (fires after /clear, compaction, and restarts)\nEvery Prompt \u2192 Searches past sessions for relevant context (auto-recall)\nAfter Response \u2192 Saves new knowledge in background (auto-save)",
+      "locator": "README.md, section 'Claude Code \u2014 Memory That Survives /clear AND Auto-Compaction', 'What happens' list",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Host/tool isolation excludes facts recorded under a different OS or tool from being injected into the current session; excluded fact count is reported as facts_left_out_for_host.",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/README.md",
+      "quote": "so a workspace path recorded on your Mac never reaches a Claude Code session on a Linux box, and a Cursor settings fact never reaches Codex \u2014 those are left out and counted (`facts_left_out_for_host`)",
+      "locator": "README.md, section 'Same memory in Codex and Cursor'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Local mode uses a memfmt Markdown folder as the store with atomic per-file writes, a folder lock for concurrent sessions, and no embeddings for search.",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/README.md",
+      "quote": "The folder is the memory: a [memfmt](https://github.com/alibaizhanov/memfmt) tree of Markdown you own\u2026 Local search matches words in Unicode text, including Russian; it does not use embeddings or translate queries.",
+      "locator": "README.md, section 'No account? Keep the memory in a folder'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cloud retrieval uses Cohere multilingual embeddings and rerank across 23 languages for semantic search and ask().",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/README.md",
+      "quote": "Native multilingual: ask in Russian, Chinese, Spanish, Japanese \u2014 Mengram retrieves and answers across 23 languages (Cohere multilingual embeddings + rerank).",
+      "locator": "README.md, top section after install block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Policy gate evaluates procedure reliability before a workflow-shaped Bash command runs; default threshold is 70%; the gate asks but never blocks autonomously.",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/README.md",
+      "quote": "sits below the bar (`58% reliable`, default 70), the hook answers `ask`\u2026 The memory can ask; it never denies.",
+      "locator": "README.md, section 'Policy gate' under Claude Code integrations",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Task card per repo/branch persisted to ~/.mengram/resume/; requires no account; only draft text generation uses a model.",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/README.md",
+      "quote": "The card lives in `~/.mengram/resume/` and needs no account; only the draft of task/done/remaining uses a model.",
+      "locator": "README.md, section 'Pick a task up where it was left \u2014 `mengram resume`'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "remember() persists curated extractions (entities, facts, relations, episodes, procedures) to .md vault files \u2014 not raw conversation logs",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/brain.py",
+      "quote": "Remember knowledge from a conversation.\n\n        1. Extracts entities/facts/relations via LLM\n        2. Writes to vault (.md files)\n        3. Indexes new data for semantic search",
+      "locator": "MengramBrain.remember docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "recall() uses hybrid retrieval: vector search then graph expansion, with text and procedure fallbacks; returns assembled string context for LLM",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/brain.py",
+      "quote": "Hybrid strategy:\n        1. Semantic search \u2192 top-K chunks by meaning\n        2. Graph expansion \u2192 related entities (multi-hop)\n        3. Fallback \u2192 graph text search \u2192 raw text search",
+      "locator": "MengramBrain.recall docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Vector index deletion on update: old chunks for an entity are deleted before re-indexing when that entity changes",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/brain.py",
+      "quote": "self._vector_store.conn.execute(\n                    \"DELETE FROM chunks WHERE entity_id = ?\", (entity_id,)\n                )",
+      "locator": "MengramBrain._index_entities",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Procedures track success/fail counts and accept feedback; trigger field enables conditional recall",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/brain.py",
+      "quote": "s = proc.get(\"success_count\", 0)\n                f = proc.get(\"fail_count\", 0)\n                lines.append(f\"- **{proc.get('name', '?')}** (success: {s}, fail: {f})\")\n                if proc.get(\"trigger\"):\n                    lines.append(f\"  Trigger: {proc['trigger']}\")",
+      "locator": "MengramBrain.recall_all",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Knowledge graph is invalidated (set to None) after every remember() call and rebuilt lazily on next access",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/brain.py",
+      "quote": "# 3. Invalidate graph\n        self._graph = None",
+      "locator": "MengramBrain.remember",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Vault isolation is per vault_path; no explicit per-user or per-session scoping logic is present in this file beyond path parameterization",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/brain.py",
+      "quote": "def __init__(self, vault_path: str, llm_client: Optional[LLMClient] = None,\n                 use_vectors: bool = True, vector_db_path: Optional[str] = None):\n        self.vault_path = vault_path",
+      "locator": "MengramBrain.__init__",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Mengram extracts five structured memory types from conversations: entities+facts, relations, knowledge artifacts, episodes, and procedures",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/extractor/conversation_extractor.py",
+      "quote": "Extracts:\n1. Entities (any type: person, project, technology, company, concept, place, activity, event, etc.)\n2. Facts \u2014 short assertions\n3. Relations \u2014 connections between entities\n4. Knowledge \u2014 solutions, formulas, recipes, configs, commands (with artifacts)",
+      "locator": "module docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Existing memory context is passed into extraction to prevent duplicate facts and enforce consistent entity naming across sessions",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/extractor/conversation_extractor.py",
+      "quote": "EXISTING ENTITIES FOR THIS USER (use same names, avoid duplicate facts):\n{context}",
+      "locator": "EXISTING_CONTEXT_BLOCK",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Temporal resolution to absolute dates is enforced at extraction time, not deferred to retrieval",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/extractor/conversation_extractor.py",
+      "quote": "TEMPORAL RESOLUTION IS MANDATORY when date context exists:\n  - \"[8 May, 2023]\" + \"yesterday\" \u2192 calculate: \"May 7, 2023\"\n  ALWAYS do the arithmetic \u2014 never output relative references like \"yesterday\" or \"last week\"",
+      "locator": "EXTRACTION_PROMPT / FACT RULES",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Two prompt variants exist (v1, v2); v2 adds stricter attribution rules excluding assistant-generated content by default",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/extractor/conversation_extractor.py",
+      "quote": "# V2 \u2014 stricter filtering, better attribution, quality bar\n# Activated via EXTRACTION_PROMPT_VERSION=v2 env var",
+      "locator": "comment above EXTRACTION_PROMPT_V2",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Episodes include emotional valence and a 0.0\u20131.0 importance score, which could support ranked or filtered recall",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/extractor/conversation_extractor.py",
+      "quote": "importance: 0.3 (minor) to 0.9 (major milestone)",
+      "locator": "EXTRACTION_PROMPT / EPISODIC MEMORY",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "This file is the write path only \u2014 it defines how memory is extracted and structured, not how it is stored, retrieved, or deleted",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/extractor/conversation_extractor.py",
+      "quote": "class ConversationExtractor:\n    \"\"\"Extracts structured knowledge from conversations\"\"\"",
+      "locator": "ConversationExtractor class definition",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The graph store is SQLite, defaulting to an in-memory database (':memory:') unless a file path is provided at construction.",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/graph/knowledge_graph.py",
+      "quote": "def __init__(self, db_path: str = \":memory:\"):\n        self.db_path = db_path\n        self.conn = sqlite3.connect(db_path)",
+      "locator": "engine/graph/knowledge_graph.py:KnowledgeGraph.__init__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity nodes carry five discrete types: note, person, project, technology, tag (plus 'reference' for phantom link targets).",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/graph/knowledge_graph.py",
+      "quote": "entity_type: str  # note, person, project, technology, tag",
+      "locator": "engine/graph/knowledge_graph.py:Entity dataclass",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Relation edges carry five discrete types: links_to, tagged, uses, member_of, related_to (with has_skill also created in practice).",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/graph/knowledge_graph.py",
+      "quote": "relation_type: str  # links_to, tagged, uses, member_of, related_to",
+      "locator": "engine/graph/knowledge_graph.py:Relation dataclass",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Traversal follows both outgoing and incoming edges (bidirectional), prefixing reverse relation_type with '\u2190' to distinguish direction.",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/graph/knowledge_graph.py",
+      "quote": "results.append({\n                    \"entity\": source,\n                    \"relation_type\": f\"\u2190{row['relation_type']}\",",
+      "locator": "engine/graph/knowledge_graph.py:_traverse:incoming relations block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "There is no delete operation for entities or relations anywhere in this file; the write path is insert/upsert only.",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/graph/knowledge_graph.py",
+      "quote": "# \u2500\u2500 CRUD Operations \u2500\u2500\n\n    def add_entity(self, entity: Entity) -> Entity:\n        ...\n    def add_relation(self, relation: Relation) -> Relation:\n        ...\n    def get_entity(self, entity_id: str) -> Optional[Entity]:\n        ...\n    def find_entity(self, name: str) -> Optional[Entity]:\n        ...\n    def search_entities(self, query: str, entity_type: str = None) -> list[Entity]:",
+      "locator": "engine/graph/knowledge_graph.py:CRUD Operations section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval combines vector similarity search with knowledge-graph traversal before injecting context into the AI prompt",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/retrieval/hybrid_search.py",
+      "quote": "Hybrid Retrieval Engine \u2014 combines Vector Search + Graph Traversal.",
+      "locator": "module docstring, hybrid_search.py:1",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph traversal depth is a caller-controlled parameter (graph_depth), defaulting to 1 for general queries and 2 for entity-context queries",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/retrieval/hybrid_search.py",
+      "quote": "def query(self, text: str, top_k: int = 5, graph_depth: int = 1,\n              min_score: float = 0.15)",
+      "locator": "HybridRetrieval.query signature, hybrid_search.py",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Duplicate content is suppressed at assembly time via a seen_content set, not at write time",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/retrieval/hybrid_search.py",
+      "quote": "seen_content = set()\n                for match in result.direct_matches:\n                    if match.content in seen_content:\n                        continue\n                    seen_content.add(match.content)",
+      "locator": "HybridRetrieval._assemble_context, hybrid_search.py",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "This file covers only the retrieval path; no write, update, delete, or forget operations are implemented here",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/retrieval/hybrid_search.py",
+      "quote": "Creates full retrieval engine from vault.\n    Builds graph + indexes vectors.",
+      "locator": "build_retrieval_engine docstring, hybrid_search.py",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic memory is split into three curated stores \u2014 Facts (short facts), Relations (entity connections), Knowledge (solutions, formulas, recipes, configs with code artifacts) \u2014 distinct from a raw conversation log.",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/vault_manager/vault_manager.py",
+      "quote": "Sections in .md file:\n  ## Facts \u2014 short facts\n  ## Relations \u2014 connections to other entities\n  ## Knowledge \u2014 solutions, formulas, recipes, configs (with artifacts)",
+      "locator": "module docstring, top of file",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Episodic memory records include summary, context, outcome, participants, emotional_valence, importance, and happened_at fields, indicating structured event capture rather than raw transcript.",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/vault_manager/vault_manager.py",
+      "quote": "existing.append({\n    \"id\": str(uuid.uuid4()),\n    \"summary\": ep.summary,\n    \"context\": ep.context,\n    \"outcome\": ep.outcome,\n    \"participants\": ep.participants,\n    \"emotional_valence\": ep.emotional_valence,\n    \"importance\": ep.importance,\n    \"happened_at\": ep.happened_at,\n    \"created_at\": datetime.now().isoformat(),\n})",
+      "locator": "_save_episodes method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "There is no delete operation for any memory store (facts, relations, knowledge, episodes, procedures) in this file; writes are append-or-update only.",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/vault_manager/vault_manager.py",
+      "quote": "if file_path.exists():\n    self._update_note(file_path, entity, entity_relations, entity_knowledge)\n    stats[\"updated\"].append(entity.name)\nelse:\n    self._create_note(file_path, entity, entity_relations, entity_knowledge)\n    stats[\"created\"].append(entity.name)",
+      "locator": "process_extraction method, step 1",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy for episodes and procedures is on-demand keyword search with a limit parameter; there is no always-on injection or adaptive selection visible in this file.",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/vault_manager/vault_manager.py",
+      "quote": "def search_episodes(self, query: str, limit: int = 10) -> list[dict]:\n    query_lower = query.lower()\n    episodes = self._load_json(self._episodes_path())\n    results = []\n    for ep in episodes:\n        text = f\"{ep.get('summary', '')} {ep.get('context', '')} {ep.get('outcome', '')}\".lower()\n        if query_lower in text:\n            results.append(ep)",
+      "locator": "search_episodes method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Persist writes curated entities+facts to .md files, not a raw message log; raw conversation is processed by an LLM extractor before storage",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/mengram.py",
+      "quote": "brain.remember_text(messages) ... brain.remember(messages) ... {\"entities_created\": [...], \"entities_updated\": [...]}",
+      "locator": "Memory.add method body and docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per user_id: each user gets a dedicated vault subfolder and a dedicated MengramBrain instance",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/mengram.py",
+      "quote": "Each user_id gets its own vault (subfolder).",
+      "locator": "Memory class docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete removes the entity's .md file from disk and invalidates the in-process graph cache; no soft-hide or generation-level omission",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/mengram.py",
+      "quote": "file_path.unlink()\n            brain._graph = None  # Invalidate cache",
+      "locator": "Memory.delete method body",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve combines vector search and graph traversal; brain.recall() is also called and its result is attached as context on every SearchResult",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/mengram.py",
+      "quote": "raw_results = brain.search(query, top_k=top_k)\n        context = brain.recall(query, top_k=top_k)",
+      "locator": "Memory.search method body",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The store distinguishes at least three memory kinds: semantic entities/facts, episodic memories (events/experiences/outcomes), and procedural memories (workflows/skills with success/fail stats)",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/mengram.py",
+      "quote": "List episodic memories (events, experiences, outcomes).\n        ...\n        List procedural memories (workflows, skills) with success/fail stats.",
+      "locator": "Memory.episodes and Memory.procedures docstrings",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Facts reader strips [[wiki-links]] and skips lines starting with * (interpreted as dates), suggesting the .md format stores timestamped update lines alongside facts",
+      "kind": "code",
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/mengram.py",
+      "quote": "clean = re.sub(r\"\\[\\[([^\\]]+)\\]\\]\", r\"\\1\", line[2:])\n                if clean and not clean.startswith(\"*\"):  # Skip dates",
+      "locator": "Memory._extract_facts_from_file method body",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Mengram persists three memory types \u2014 semantic, episodic, procedural \u2014 across sessions",
+      "kind": "docs",
+      "url": "https://github.com/alibaizhanov/mengram/blob/main/README.md",
+      "quote": "Every AI memory tool stores facts. Mengram stores 3 types of memory \u2014 and procedures evolve when they fail.",
+      "locator": "README.md, Why Mengram section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Procedural memory versions on failure and stores violated assumptions and preconditions with each version",
+      "kind": "docs",
+      "url": "https://github.com/alibaizhanov/mengram/blob/main/README.md",
+      "quote": "Every failure-driven revision records which assumption turned out false \u2014 not just which step broke \u2014 and derives a precondition that travels with the procedure at recall time",
+      "locator": "README.md, Procedural section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session-start hook re-injects stored context after /clear and auto-compaction events",
+      "kind": "docs",
+      "url": "https://github.com/alibaizhanov/mengram/blob/main/README.md",
+      "quote": "The SessionStart hook fires after every compact and re-injects your context. The summary can be lossy; the memory isn't.",
+      "locator": "README.md, Claude Code section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Facts are tagged with writing tool and timestamp; host-specific facts are filtered out at retrieve time",
+      "kind": "docs",
+      "url": "https://github.com/alibaizhanov/mengram/blob/main/README.md",
+      "quote": "Every fact remembers which tool wrote it and when, and recall shows it: deploys to Fly.io from main (codex, 2026-09-15). Each hook also tells the server which OS and tool it runs under, so a workspace path recorded on your Mac never reaches a Claude Code session on a Linux box",
+      "locator": "README.md, Same memory in Codex and Cursor section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Local mode uses a folder lock for write coordination; conflicting concurrent edits require a reload rather than silent overwrite",
+      "kind": "docs",
+      "url": "https://github.com/alibaizhanov/mengram/blob/main/README.md",
+      "quote": "Multiple Mengram sessions coordinate writes with a folder lock and merge independent additions. Conflicting edits require a reload instead of overwriting another session.",
+      "locator": "README.md, No account section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Policy gate uses outcome reliability scores to gate or allow workflow-shaped shell commands; default threshold is 70% reliable",
+      "kind": "docs",
+      "url": "https://github.com/alibaizhanov/mengram/blob/main/README.md",
+      "quote": "sits below the bar (58% reliable, default 70), the hook answers ask \u2026 Tune with MENGRAM_POLICY_MIN_RELIABLE=80",
+      "locator": "README.md, Claude Code / Policy gate section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Task card for resume lives in ~/.mengram/resume/ and requires no account; only the draft text uses a model",
+      "kind": "docs",
+      "url": "https://github.com/alibaizhanov/mengram/blob/main/README.md",
+      "quote": "The card lives in ~/.mengram/resume/ and needs no account; only the draft of task/done/remaining uses a model.",
+      "locator": "README.md, mengram resume section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Licensed Apache 2.0, free for commercial use",
+      "kind": "docs",
+      "url": "https://github.com/alibaizhanov/mengram/blob/main/README.md",
+      "quote": "Apache 2.0 \u2014 free for commercial use.",
+      "locator": "README.md, License section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram provides persistent memory that survives across sessions for AI agents and coding tools.",
+      "kind": "docs",
+      "url": "https://mengram.io/llms.txt",
+      "quote": "Persistent memory for AI agents and coding tools: semantic facts, episodic events, and procedural workflows with a success/failure track record.",
+      "locator": "page header / product description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A quickstart path exists for adding and searching memories via API key within 5 minutes, confirming both a write (add) and read (search) path are exposed.",
+      "kind": "docs",
+      "url": "https://mengram.io/llms.txt",
+      "quote": "API key, first add/search in 5 minutes",
+      "locator": "Docs > Quickstart",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A user requests OpenRouter integration so that Mengram's internal LLM decisions can be outsourced to externally hosted models via an API key.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/16",
+      "quote": "Would it be possible for you to add an Openrouter integration? So I could enter my Openrouter API Key and could \"outsource\" the decisions Mengram has to make onto externally hosted models.",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The self-hosted instance's reported version (v2.19.0 in footer) did not match the deployed version (2.22.0), suggesting versioning or build inconsistency.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/23",
+      "quote": "I deployed your version 2.22.0. When accessing http://192.168.2.99:8420 I am greeted with the same page, when opening mengram.io. But in the footer it shows version v2.19.0",
+      "locator": "issue body, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram has a health endpoint documented but it returned 404 on this deployment, indicating a gap between docs and self-hosted behavior.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/23",
+      "quote": "Using `curl http://192.168.2.99:8420/health` it is resulting in `{\"detail\":\"Not Found\"}` (contrary to the documentation)",
+      "locator": "issue body, health check paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram issues API keys after email-based signup; the key recovery flow (Lost your key?) was non-functional in this deployment.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/23",
+      "quote": "Clicking on `Lost your key?` does not send out an email with a new 6 digit code needed for creating a new key.",
+      "locator": "issue body, Lost your key paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram can function as an MCP server, enabling integration with IDE extensions such as Codex for VS Code.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/23",
+      "quote": "for using it with the Codex VSC Extension, do I need to add my local mengram instance as an MCP server?",
+      "locator": "issue body, closing question paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "There is an open-source version of Mengram distinct from a hosted/cloud offering",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/24",
+      "quote": "I am currently evaluating the open-source version of [Memgram]",
+      "locator": "issue body, first paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram may require an API key obtained from an official website even for the open-source version",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/24",
+      "quote": "Is it mandatory to obtain a Mengram API key from the official website for the open-source version?",
+      "locator": "issue body, API Key & Self-Hosting bullet",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram may support multiple client instances sharing a single service instance; configuration mechanism is unconfirmed",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/24",
+      "quote": "Does it support multiple OpenClaw instances sharing the same Memgram service? If yes, what is the configuration mechanism?",
+      "locator": "issue body, Multi-Client Sharing bullet",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory-related data storage location \u2014 local files vs. remote Mengram cloud server \u2014 is unresolved on this page",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/24",
+      "quote": "Are memory-related data stored locally in files (by OpenClaw) or remotely on the Mengram cloud server?",
+      "locator": "issue body, Data Persistence bullet",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram has a 'recall' MCP tool that takes a query and user_id, indicating user-isolated memory retrieval.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/29",
+      "quote": "'name':'recall','arguments':{'query':'test','user_id':'default'}",
+      "locator": "issue body, curl example #2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram persists memories in a dedicated store accessible at /v1/memories.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/29",
+      "quote": "curl -s -H \"Authorization: Bearer om-...\" https://mengram.io/v1/memories  # 200",
+      "locator": "issue body, curl example #3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram's MCP server loads a profile at initialization time, and a failure to load it is embedded in the instructions returned to the client \u2014 suggesting the profile scaffolds the model's context for the session.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/29",
+      "quote": "the instructions field in the response ends with: 'Error loading profile: API error 403: error code: 1010'",
+      "locator": "issue body, comment on curl example #1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram's OpenClaw integration is documented as a skill, not a plugin, meaning it lacks automatic before_agent_start and agent_end lifecycle hooks for memory injection and capture.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/3",
+      "quote": "The OpenClaw integration guide shows installation as a **skill** in `~/.openclaw/skills/mengram-memory/`, not as a plugin with hooks.",
+      "locator": "issue body, section: Mengram documentation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "It is unresolved whether Mengram achieves automatic memory injection/capture or requires manual tool calls (mengram.search()/mengram.add()) in the OpenClaw integration.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/3",
+      "quote": "Does it rely on manual `mengram.search()`/`mengram.add()` calls from the agent?",
+      "locator": "issue body, section: Possible approaches",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "If Mengram requires manual tool calls for memory, it would be less transparent than automatic capture/recall approaches.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/3",
+      "quote": "If Mengram requires manual tool calls, it would be less transparent than mem0.",
+      "locator": "issue body, section: Why this matters",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "VectorStore is documented as sufficient for vaults up to ~10K notes and replaceable at larger scale",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/33",
+      "quote": "The local `VectorStore` is documented as *\"sufficient for vaults up to ~10K notes\"* and noted as replaceable at larger scale.",
+      "locator": "Context & Motivation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "search() accepts top_k and min_score parameters, and search_by_entity() is a distinct retrieval method",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/33",
+      "quote": "The current API surface includes `add`, `search(query: str, top_k, min_score)`, `stats()`, and `search_by_entity()`",
+      "locator": "What I Have Already Checked",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The cloud backend uses pgvector with 1536-dim vectors, distinct from the local 384-dim SQLite store",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/33",
+      "quote": "The cloud uses pgvector/1536D; this PR stays strictly in the local embedder world to avoid confusion",
+      "locator": "Explicit Constraints",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram generates derived artifacts and background job artifacts from user data, which also persist per account.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/39",
+      "quote": "indexes, embeddings, caches, and background job artifacts tied to that account",
+      "locator": "Expected behavior \u2014 deletion scope list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory and associated data are scoped per account (per-user isolation).",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/39",
+      "quote": "users or operators cannot fully remove an account together with its stored memories, profile data, uploaded content, and other related records",
+      "locator": "Summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram lacks a supported delete (forget) path for account-level data in both hosted and self-hosted deployments \u2014 a continuity/privacy gap.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/39",
+      "quote": "There is no clear, complete, and supported account deletion path for either deployment model.",
+      "locator": "Actual result",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram's deletion behavior (immediate vs. asynchronous) is undocumented, meaning retention behavior after a forget request is unknown.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/39",
+      "quote": "clear documentation describing scope, retention behavior, and whether deletion is immediate or asynchronous",
+      "locator": "Expected result",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No existing tool can edit YAML frontmatter of entity files; this is a gap in the write path.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/59",
+      "quote": "The MCP server exposes `remember` / `remember_text` (write) and `recall` / `search` (read), but **no tool can edit an entity file's YAML frontmatter**.",
+      "locator": "Problem section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "On Windows, the entire credential persistence path via shell rc files is broken, meaning auto-recall/auto-save never fires for Windows users relying on setup.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/41",
+      "quote": "On Windows, the bashrc/zshrc write is dead: hooks run via cmd/PowerShell and never source it. Only `config.json` actually persists, so the hooks never see credentials and silently no-op forever.",
+      "locator": "Root cause section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "There is no mechanism for users to observe whether memory operations (recall, save) fired for a given session, making continuity failures invisible.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/41",
+      "quote": "all paths are silent by design (`output_hook_success()` / bare `sys.exit(0)`), making this kind of failure very hard to notice/diagnose",
+      "locator": "Additional issue: no visibility section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Credential resolution for the service endpoint uses a fallback chain: environment variable \u2192 ~/.mengram/config.json \u2192 hardcoded default https://mengram.io.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/41",
+      "quote": "Add `_load_cloud_base_url()` mirroring `_load_cloud_api_key()` (env var \u2192 `~/.mengram/config.json` \u2192 default `https://mengram.io`)",
+      "locator": "Fix section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A generated reflection incorrectly merged two distinct people into a single entity description, producing a nonsensical compound identity.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/54",
+      "quote": "A generated reflection even stated: \"Ali Baizhanov (smoochy) is a self-hosted infrastructure enthusiast...\"",
+      "locator": "### Bug 1: User facts written onto third-party entity",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Entity extraction from a GitHub URL owner segment caused the cognitive profile to present the wrong person's name as the authenticated user's identity across all sessions.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/54",
+      "quote": "Mengram's reflection generation extracted `DietrichGebert` from the tarball URL and inferred that smoochy **is** Dietrich Gebert. This incorrect identity propagated into the `/v1/profile` cognitive profile summary: \"You are assisting Dietrich Gebert (smoochy)...\"",
+      "locator": "### Bug 2: GitHub URL owner extracted as user identity",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The reflection prompt lacks explicit attribution boundaries, identified as the root cause of cross-entity pollution.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/54",
+      "quote": "The reflection generation prompt appears to lack explicit attribution boundaries when processing conversation chunks that mention multiple people.",
+      "locator": "## Root cause hypothesis",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Individual reflections cannot be deleted via the API; only archiving facts and injecting corrections is available as a remediation path.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/54",
+      "quote": "reflections cannot be individually deleted via the current API",
+      "locator": "## Workaround",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "MCP tools for recall and remember are completely unavailable to self-hosted Mengram users because the Streamable HTTP MCP transport is not implemented in the self-hosted build.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/55",
+      "quote": "mcp__mengram__recall, mcp__mengram__remember, and all other MCP tools are unavailable for self-hosted users regardless of configuration. The only path today is pointing Claude Code at the cloud endpoint while storing memories locally \u2014 a confusing split.",
+      "locator": "Problem 2 \u2014 self-hosted server does not expose /mcp at all",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conversation text is persisted to Mengram via POST to /v1/add_text with a JSON body containing text and source fields.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/55",
+      "quote": "curl ... -d \"$(printf '%s' \"$TEXT\" | python3 -c '\nimport json, sys\ntext = sys.stdin.read()\nprint(json.dumps({\"text\": text, \"source\": \"claude_code\"}))\n' 2>/dev/null)\" >/dev/null 2>&1 || true",
+      "locator": "Problem 3 \u2014 save-conversation.sh uses python3 for JSON encoding; fails silently on Windows, file: integrations/claude-code-plugin/hooks/scripts/save-conversation.sh line 40\u201344",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The silent failure of save-conversation.sh on Windows means conversation history is never persisted for Windows self-hosted users, constituting a continuity failure.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/55",
+      "quote": "On Windows (Git Bash / MSYS2), python3 resolves to the Microsoft Store stub and exits immediately without producing output. The || true swallows the error, so curl is called with an empty -d \"\" body. The /v1/add_text endpoint receives an empty payload and either errors or no-ops. The user sees nothing.",
+      "locator": "Problem 3 \u2014 save-conversation.sh uses python3 for JSON encoding; fails silently on Windows",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram's MENGRAM_URL environment variable controls which server instance the bash hooks target, enabling self-hosted deployment routing.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/55",
+      "quote": "load-profile.sh \u2192 GET /v1/profile works against self-hosted when MENGRAM_URL is set \u2713\nsave-conversation.sh curl call itself works against self-hosted when MENGRAM_URL is set and payload is non-empty \u2713",
+      "locator": "What works",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dashboard export silently truncates to approximately 14% of entities and omits episodes, procedures, and the cognitive profile entirely \u2014 a completeness failure in the memory store's read path",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/57",
+      "quote": "The dashboard export silently truncates to ~14% of entities and omits episodes, procedures, and the profile entirely.",
+      "locator": "## Actual behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No working deletion path exists alongside the broken export path, leaving cloud users with no data lifecycle exit in either direction",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/57",
+      "quote": "Together with #39 (no supported account/data deletion), this means a cloud-mode user currently has no working exit path in either direction: they can neither take a complete copy of their data out, nor have it deleted.",
+      "locator": "## Why this matters",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The privacy policy commits to users being able to export their data at any time",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/57",
+      "quote": "The privacy policy commits to users being able to export their data at any time.",
+      "locator": "## Expected behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Proposed fix includes SessionStart-based recall (per-session prime, not per-prompt) as a fallback for non-TUI surfaces.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/58",
+      "quote": "SessionStart-based recall for non-TUI surfaces (per-session prime, not per-prompt)",
+      "locator": "issue body \u2014 Suggested fix",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Package is published on PyPI as obsidian-mem at version 0.6.0; repo is currently named mengram.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/59",
+      "quote": "**Package context:** PyPI `obsidian-mem` 0.6.0, current repo name `mengram`.",
+      "locator": "Affected section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram implements episodic memory decay using a half-life model applied to individual events",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/6",
+      "quote": "Half-life of individual events (your current decay model)",
+      "locator": "Proposed decay model consideration",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The conflict/supersession behavior for procedural memory is an open design question, not yet resolved",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/6",
+      "quote": "Your question about contradictory procedural updates maps to the same problem: if two procedures conflict, the conflict is itself evidence of a phase transition in agent capability. The timestamp of contradiction is more informative than either conflicting procedure.",
+      "locator": "Procedural memory implication",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram's maintainer asked for community feedback on memory decay logic in an r/openclaw thread, indicating active design iteration on decay calibration",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/6",
+      "quote": "I saw the r/openclaw thread where you asked for feedback on the memory decay logic \u2014 posting here since this is a GitHub-level discussion.",
+      "locator": "Background",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The Memory Feed displays individual memory entries with entity-type badges; entity types include at least company, place, technology, and activity.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/66",
+      "quote": "of 25 test rows in the feed, 7 were orange \u2014 5 `company` + 2 `place`. Not knowledge items at all.",
+      "locator": "## What happened",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The dashboard has a stats strip with colored cards (including one labeled KNOWLEDGE) positioned directly above the Memory Feed, which uses a partly overlapping color palette, causing user confusion between feed badge categories and stored knowledge counts.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/66",
+      "quote": "The stats strip sits directly above the feed, so a coloured card and same-coloured badges a few pixels below read as a legend.",
+      "locator": "## Why it misleads",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram supports self-hosted deployment with a 'selfhosted' plan and optional email verification disable flag.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/66",
+      "quote": "Reported while testing on a self-hosted instance (`DISABLE_EMAIL_VERIFICATION=true`, plan `selfhosted`).",
+      "locator": "## Suggestions",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram stores extracted facts per entity with fields: fact, entity, entity_type, importance, access_count, created_at \u2014 not raw transcript lines.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/70",
+      "quote": "{\"id\":\"2e4e4273-...\",\"fact\":\"uses speedtest-tracker on port 8003 for speedtest monitoring\",\"entity\":\"smoochy\",\"entity_type\":\"person\",\"importance\":0.8,\"access_count\":0,\"created_at\":\"2026-07-30T13:21:56.175549+00:00\"}",
+      "locator": "Reproduce section, raw API response",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The formatter bug caused a false apparent 26-hour memory outage; the actual write and extraction pipeline was healthy throughout.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/70",
+      "quote": "I spent a while diagnosing a suspected 26-hour memory outage that never happened \u2014 writes, extraction and the API were all healthy the whole time.",
+      "locator": "Summary section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram runs self-hosted on port 8420 with a plan=selfhosted mode, suggesting per-deployment isolation.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/70",
+      "quote": "self-hosted, `plan=selfhosted`\nserver image `composite-2026-07-30`, API on port 8420",
+      "locator": "Environment section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "There are at least two distinct reader paths in the MCP server \u2014 get_feed and _get_recent() \u2014 reading from the same underlying item schema, implying different retrieval policies or scopes.",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/70",
+      "quote": "This is not API shape drift. The same file already handles this exact item shape correctly in `_get_recent()` at `api/cloud_mcp_server.py:187`",
+      "locator": "Cause section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram has a cmd_auto_save function that handles memory save failures with a quota error branch",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/71",
+      "quote": "Line 649 is worth calling out separately: it is the quota-error branch in cmd_auto_save. On a cp1252 console the error handler would itself raise while trying to report the quota failure, swallowing the message it exists to deliver. A user hitting quota on Windows would get no usable diagnostic.",
+      "locator": "Issue body, 'Affected sites' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram uses a Cloud API key, suggesting a cloud-backed memory service",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/71",
+      "quote": "\u2705 Cloud API key: om-...\nConfigured: yes",
+      "locator": "Issue body, 'Reproduce' section, PYTHONIOENCODING=utf-8 output",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram exposes an MCP server interface via 'mengram server --cloud'",
+      "kind": "issue",
+      "url": "https://github.com/alibaizhanov/mengram/issues/71",
+      "quote": "mengram server --cloud prints an emoji banner before starting, so MCP server startup is affected too",
+      "locator": "Issue body, 'Summary' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mengram is a photo-based memory store: users capture photos, AI labels items, and the labeled photo persists as a retrievable memory engram",
+      "kind": "blog",
+      "url": "https://play.google.com/store/apps/details/index.md?id=com.hijimbo.memorygram&hl=en-US",
+      "quote": "Every photo becomes an artificial memory engram. Just tap on a label to be reminded of what an item is.",
+      "locator": "About this app \u2014 TAPPABLE MEMORY PHOTOS",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory write path includes both AI-generated labels (automated) and manual label editing by caregivers (human-curated update)",
+      "kind": "blog",
+      "url": "https://play.google.com/store/apps/details/index.md?id=com.hijimbo.memorygram&hl=en-US",
+      "quote": "Easily edit any label to make it more personal. If the AI detects a \"photo frame,\" a helper or family member can edit the label to say, \"Granddaughter Sarah\" or \"Our 50th Anniversary.\"",
+      "locator": "About this app \u2014 PERSONAL MEMORIES",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget / delete is not supported: the developer declares data cannot be deleted",
+      "kind": "blog",
+      "url": "https://play.google.com/store/apps/details/index.md?id=com.hijimbo.memorygram&hl=en-US",
+      "quote": "Data can't be deleted",
+      "locator": "Data safety",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory store is photo-based (visual engrams), not a conversational transcript or curated fact log",
+      "kind": "blog",
+      "url": "https://play.google.com/store/apps/details/index.md?id=com.hijimbo.memorygram&hl=en-US",
+      "quote": "Mengram creates a personal visual and audio guide to your home. Take photos around your home and let AI recognise everyday items. Add personal labels to important things and turn them into lasting memories.",
+      "locator": "What's new",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation appears to be per-device/per-user install with family/caregiver collaborative write access; no session or agent isolation is described",
+      "kind": "blog",
+      "url": "https://play.google.com/store/apps/details/index.md?id=com.hijimbo.memorygram&hl=en-US",
+      "quote": "Family members and caregivers can easily set up photos, edit labels, and print guides, creating a collaborative support system.",
+      "locator": "About this app \u2014 A Tool for Helpers",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Semantic memory stores preferences, interests, and personal details",
+      "kind": "docs",
+      "url": "https://mengram.io/usecase/personal-assistant",
+      "quote": "Semantic memory stores preferences, interests, and personal details. The AI knows the user inside and out.",
+      "locator": "How Mengram solves it / Deep personalization",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Episodic memory stores conversations, decisions, and events",
+      "kind": "docs",
+      "url": "https://mengram.io/usecase/personal-assistant",
+      "quote": "Episodic memory remembers conversations, decisions, and events. The AI references past interactions naturally.",
+      "locator": "How Mengram solves it / Shared history",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Procedural memory captures evolving workflows and recurring tasks",
+      "kind": "docs",
+      "url": "https://mengram.io/usecase/personal-assistant",
+      "quote": "Procedural memory captures daily workflows, recurring tasks, and preferred processes that evolve over time.",
+      "locator": "How Mengram solves it / Learned routines",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "profile() is the scaffold step: it reads stored memory and returns a system prompt string for injection into the LLM",
+      "kind": "docs",
+      "url": "https://mengram.io/usecase/personal-assistant",
+      "quote": "One API call generates a system prompt with the user's full context \u2014 making every LLM instantly personalized.",
+      "locator": "How Mengram solves it / Cognitive Profile",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "add() is the write path: stores new memories extracted from conversation text, scoped by user_id",
+      "kind": "docs",
+      "url": "https://mengram.io/usecase/personal-assistant",
+      "quote": "m.add(\"Alice asked me to remind her about the design review on Friday. She also mentioned she prefers Figma links over screenshots.\", user_id=\"alice\")",
+      "locator": "Quick implementation / code sample",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory grows incrementally after each conversation",
+      "kind": "docs",
+      "url": "https://mengram.io/usecase/personal-assistant",
+      "quote": "After each conversation, memory grows",
+      "locator": "Quick implementation / code comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Claims 100% context retention and infinite session continuity",
+      "kind": "docs",
+      "url": "https://mengram.io/usecase/personal-assistant",
+      "quote": "100% Context retention\n\u221e Session continuity\n3 types Memory depth",
+      "locator": "Results section",
+      "confidence": "unknown",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/mengram.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/brain.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/extractor/conversation_extractor.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/retrieval/hybrid_search.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/graph/knowledge_graph.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/blob/e90a8caa819f5f75fdb3cecb262e1b5071de894b/engine/vault_manager/vault_manager.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://mengram.io/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/issues/24",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/issues/54",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/issues/57",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/issues/59",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/issues/29",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/issues/16",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/issues/6",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/issues/3",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/issues/70",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/issues/55",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/issues/41",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/issues/39",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/issues/71",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/issues/66",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/issues/58",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/issues/33",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/alibaizhanov/mengram/issues/23",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://mengram.io/usecase/personal-assistant",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://play.google.com/store/apps/details/index.md?id=com.hijimbo.memorygram&hl=en-US",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "The self-hosting docs page (https://docs.mengram.io/self-hosting) is cited as the canonical setup reference but does not cover GitHub OAuth configuration for self-hosted deployments; this is flagged as a gap by the reporter.",
+      "url": "https://docs.mengram.io/self-hosting",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether an API key is required for the open-source/self-hosted deployment \u2014 page raises the question but provides no answer",
+      "url": "https://github.com/alibaizhanov/mengram/issues/24",
+      "kind": "issue"
+    },
+    {
+      "text": "Where memory data is persisted (local files vs. Mengram cloud) \u2014 page raises the question but provides no answer",
+      "url": "https://github.com/alibaizhanov/mengram/issues/24",
+      "kind": "issue"
+    },
+    {
+      "text": "How Mengram achieves (or fails to achieve) automatic memory injection into the system prompt and automatic capture after each turn in the OpenClaw integration is not answered on this page.",
+      "url": "https://github.com/alibaizhanov/mengram/issues/3",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how or whether stored engrams are selected or injected into any AI conversational context; retrieval mechanism beyond tap-to-display is unspecified",
+      "url": "https://play.google.com/store/apps/details/index.md?id=com.hijimbo.memorygram&hl=en-US",
+      "kind": "blog"
+    }
+  ]
+}
