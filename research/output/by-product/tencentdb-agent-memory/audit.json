@@ -1,0 +1,1744 @@
+{
+  "identity": {
+    "id": "tencentdb-agent-memory",
+    "name": "TencentDB Agent Memory",
+    "repo": "https://github.com/TencentCloud/TencentDB-Agent-Memory",
+    "docs": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/README.md",
+    "license": "LICENSE",
+    "version_or_commit": "41dee1f9f8cd2b7e87f3e5c073966dc58d296a16",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Open-source memory system for AI agents combining symbolic short-term memory with layered long-term memory, targeting context bloat and recall failure in long-horizon agents."
+    },
+    {
+      "text": "Enables agents to manage context across sessions via a four-tier hierarchy"
+    },
+    {
+      "text": "Plugin that injects recalled memories into each turn of conversation"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Short-term memory offloads full tool logs to external files under refs/*.md and encodes state transitions in Mermaid syntax inside a lightweight task canvas. The agent reasons over the symbol graph; when raw text is needed it greps a node_id to retrieve the file."
+    },
+    {
+      "text": "L1 memory extraction runs every five turns by default. A user persona is generated every 50 new memories. Recall returns five items by default with a 5-second timeout; on timeout the system skips injection rather than blocking the conversation."
+    },
+    {
+      "text": "Long-term memory is structured as a four-tier semantic pyramid: L0 Conversation (raw dialogue), L1 Atom (atomic facts), L2 Scenario (scene blocks), L3 Persona (user profile). Upper layers carry structure; lower layers preserve evidence."
+    },
+    {
+      "text": "Memory assets (Chat Memory, Skills, Wiki, CodeGraph) are bound to agents via Fixed Binding + ACL; permission scope narrows by Team, User, Agent, and visibility before retrieval"
+    },
+    {
+      "text": "Memory is organized into four layers: L0 (conversations/log), L1 (atomic memories), L2 (scenarios), L3 (profiles). L0 is a message log; L1\u2013L3 are curated memory structures."
+    },
+    {
+      "text": "Memory extraction and aggregation require an LLM; read-only queries may not invoke one, implying LLM-driven extraction is part of the write path from L0 to higher layers."
+    },
+    {
+      "text": "Isolation dimensions are team, agent, user, and optionally session. The v3 data plane requires all three of team_id, agent_id, user_id; session_id narrows to a session."
+    },
+    {
+      "text": "Team deletion bypasses the proper Agent cascade by using raw SQL directly against meta_agents, leaving orphaned task_agents, fixed_assets, and chat_memory records"
+    },
+    {
+      "text": "Append-only JSONL (conversation/message log) is explicitly separated from curated memory rows and lives on the others file backend, not the row store"
+    },
+    {
+      "text": "L3 tier builds long-term persona profiles from all past interactions, including behavior patterns, communication styles, and agent-specific rules"
+    },
+    {
+      "text": "Proposed fix: deleteTeams should collect agent_ids first then call deleteAgents() for a full cascade in both sqlite and mongodb adapters"
+    },
+    {
+      "text": "Retrieve path: adapters recall L1/L2/L3 before constructing the next prompt, then inject results as bounded, clearly labeled context."
+    },
+    {
+      "text": "Checkpoint counters drive L2/L3 pipeline thresholds for persona generation, meaning drifted counts cause premature or missed triggers"
+    },
+    {
+      "text": "Assets follow Team, not individual agent \u2014 preventing experience from being trapped in a private account or framework-specific cache"
+    },
+    {
+      "text": "L0 tier persists raw conversation turns including user inputs, agent responses, tool calls, and their outputs as ground truth logs"
+    },
+    {
+      "text": "Memory Proxy injects L2/L3 memory, matched Skills, and knowledge into the system prompt before forwarding upstream on every turn."
+    },
+    {
+      "text": "Scene index (L2 rows) is derived live from profile rows in rowfs mode; .metadata/scene_index.json is neither read nor written"
+    },
+    {
+      "text": "Auto-recall runs before each turn without the agent explicitly asking; agent can also call tools explicitly to search memory."
+    },
+    {
+      "text": "When Skills exist, they must be deleted before the Agent is archived, enforcing ordered teardown of Agent-associated state."
+    },
+    {
+      "text": "The product uses a Gateway and Redis Cluster deployment component, suggesting Redis is part of the memory infrastructure."
+    },
+    {
+      "text": "recall.scoreThreshold is applied as a single absolute cutoff against retrieval scores, regardless of search strategy"
+    },
+    {
+      "text": "Wiki and CodeGraph assets are not injected wholesale; agents discover them via tools list and call them on demand"
+    },
+    {
+      "text": "Raw conversations are stored as L0 and refined asynchronously through four layers up to L3 persona/profile"
+    },
+    {
+      "text": "Memory content is organized into at least four named layers: L0, L1, L2, and L3, each cleared separately"
+    },
+    {
+      "text": "Session state is deleted (forgotten) on explicit reset \u2014 called when a session is /new'd or destroyed."
+    },
+    {
+      "text": "Forget (clear) is idempotent: re-clearing an already-cleared memory_id succeeds and returns count 0"
+    },
+    {
+      "text": "Ingest at turn time is a no-op on the client; actual ingest is handled by an after_tool_call hook."
+    },
+    {
+      "text": "Skill mining is handled by an existing MemoryCore component; no new algorithms are introduced here"
+    },
+    {
+      "text": "L0 is a per-day conversation log (full transcript layer), written to a JSONL file keyed by date"
+    },
+    {
+      "text": "A separate index.db is written during ingestion, distinct from the metadata store knowledge.db"
+    },
+    {
+      "text": "New Chat Memory and Skills are private by default; sharing is an explicit action"
+    },
+    {
+      "text": "Remote embeddings are disabled by default; BM25 is the default retrieval method."
+    },
+    {
+      "text": "Retrieved memories are prepended to each user message as prependContext"
+    },
+    {
+      "text": "Runs on user's own machines; data does not leave local infrastructure"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "L0 is a conversation/message log layer; L1\u2013L3 are progressively more curated memory structures (atomic memories, scenarios, profiles).",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/README.md",
+      "quote": "**Memory**: L0 conversations, L1 atomic memories, L2 scenarios, and L3 profiles.",
+      "locator": "## MemoryCore (opening paragraph)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LLM is used for memory extraction and aggregation (the curated write path from raw L0 to L1+), not for read-only retrieval.",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/README.md",
+      "quote": "Read-only queries may not invoke an LLM, but memory extraction and aggregation require valid credentials.",
+      "locator": "## Requirements",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall is selective (L1/L2/L3), not a full transcript replay; the log (L0) is written but recalled memory is the curated layer injected as labeled context.",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/README.md",
+      "quote": "Write completed turns or sessions to L0. Recall L1/L2/L3 before constructing the next prompt. Inject recalled results into the Agent as bounded, clearly labeled context.",
+      "locator": "## Agent integration > Custom Agents",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is multi-dimensional: team, agent, user, and optionally session, enforced at the v3 data plane API level.",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/README.md",
+      "quote": "The v3 memory data plane requires `team_id`, `agent_id`, and `user_id`. Supply them in the request body or the corresponding `x-tdai-*` headers. `session_id` is optional and narrows operations to a session when provided.",
+      "locator": "## API surface",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Default retrieval is BM25 (no external embedding service required); embedding-based and hybrid retrieval are available when an embedding API is configured.",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/README.md",
+      "quote": "Disables remote embeddings by default and uses BM25 retrieval.",
+      "locator": "## Runtime",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Storage is split: curated memory (scene blocks, persona) lives in row-view backend (L2/L3); message/conversation log lives as append-only JSONL on the file backend \u2014 these are architecturally distinct",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/core/storage/composite-backend.ts",
+      "quote": "L2/L3 live in the store as rows, while append-only JSONL and\npipeline bookkeeping stay on a real filesystem (design doc D8/A3).",
+      "locator": "file header JSDoc",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Profile isolation is per-domain and enforced at wiring time; cross-tenant row view leakage is explicitly prevented by throwing on unbound rebind",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/core/storage/composite-backend.ts",
+      "quote": "serving a scoped request\nthrough an unbound (whole-set) row view would leak across tenants, so\nthis must surface loudly at wiring time rather than silently.",
+      "locator": "withProfileIsolation JSDoc",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Scene index for L2 rows is derived live from the row store in rowfs mode, not from a cached metadata file",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/core/storage/composite-backend.ts",
+      "quote": "rowfs \u6a21\u5f0f\u4e0b\n\u7d22\u5f15\u4ece L2 \u884c\u5b9e\u65f6\u6295\u5f71\uff0c`.metadata/scene_index.json` \u4e0d\u8bfb\u4e0d\u5199\u3002",
+      "locator": "deriveSceneIndex JSDoc comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Profile keys follow a single key convention (classifyPath) shared across the whole storage layer per design doc D12",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/core/storage/composite-backend.ts",
+      "quote": "Defaults to the rowfs key convention (classifyPath),\nkeeping one key convention for the whole storage layer (D12).",
+      "locator": "CompositeStorageBackendOptions isProfileKey JSDoc",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory content is layered (L0, L1, L2/L3); clear deletes all layers for a (team, agent) scope",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/gateway/chat-memory-handlers.ts",
+      "quote": "\u6e05\u7a7a\u662f L0\u2192L1\u2192profiles\u2192\u5b58\u50a8\u56db\u6b65\uff0c\u4efb\u4f55\u4e00\u6b65\u5f7b\u5e95\u5931\u8d25\u90fd\u4f1a\u7559\u4e0b\"\u534a\u6e05\u7a7a\"\u72b6\u6001\u3002",
+      "locator": "clearChatMemoryContentWithRetry, JSDoc comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "L2/L3 profile storage includes persona.md and scene_blocks/, isolated by (team, agent) scope prefix",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/gateway/chat-memory-handlers.ts",
+      "quote": "\u8986\u76d6 persona.md\u3001scene_blocks/\u3001.metadata/scene_index.json \u53ca\u4efb\u4f55\u6d3e\u751f\u6587\u4ef6\uff1b\u4e0d\u4f1a\u8d8a\u51fa\u8be5 (team, agent) \u7684\u4f5c\u7528\u57df\u3002",
+      "locator": "clearProfileStorage, JSDoc comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation unit is (team, agent) pair; cross-agent data access is prevented by scoped storage prefix",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/gateway/chat-memory-handlers.ts",
+      "quote": "\u4f5c\u7528\u57df\u524d\u7f00\u4e0e v2-router scopedProfileStorage \u4fdd\u6301\u5b8c\u5168\u4e00\u81f4\uff0c\u5426\u5219\u4f1a\u6e05\u5230\u9519\u8bef\u7684\u76ee\u5f55\uff08\u6216\u6e05\u4e0d\u5230\uff09\u3002",
+      "locator": "clearProfileStorage, inline comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/clear is idempotent; repeat calls on an already-cleared memory return success with count 0",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/gateway/chat-memory-handlers.ts",
+      "quote": "\u5e42\u7b49\uff1a\u5df2\u6e05\u7a7a\u8fc7\u7684 memory_id \u518d\u6b21\u8c03\u7528\u4ecd\u8fd4\u56de\u6210\u529f\uff0c\u8ba1\u6570\u4e3a 0\u3002",
+      "locator": "file header comment, \u8bbe\u8ba1\u8981\u70b9 bullet 3",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Asset metadata (asset_id, team/agent ownership, agent binding, ACL, owner, name, visibility) is preserved after content clear",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/gateway/chat-memory-handlers.ts",
+      "quote": "asset_id\u3001Team/Agent \u5f52\u5c5e\u3001Agent \u7ed1\u5b9a\u3001ACL\u3001Owner\u3001\u540d\u79f0\u3001\u53ef\u89c1\u6027\u5168\u90e8\u4fdd\u7559\uff0c\u6e05\u7a7a\u540e Agent \u7ee7\u7eed\u7528\u539f memory_id \u5199\u5165\u3002",
+      "locator": "file header comment, \u8bbe\u8ba1\u8981\u70b9 bullet 1",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Audit records per-layer delete events containing only memory_id, timestamp, and result \u2014 no original memory content is stored in audit",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/gateway/chat-memory-handlers.ts",
+      "quote": "\u53ea\u8bb0 memory_id + \u65f6\u95f4 + \u7ed3\u679c\uff0c**\u4e0d\u4fdd\u7559\u4efb\u4f55\u539f\u5185\u5bb9**\u3002",
+      "locator": "file header comment, \u8bbe\u8ba1\u8981\u70b9 bullet 4",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "archiveAgent (agent deletion) reuses the same content-clear path, then additionally deletes the asset record",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/gateway/chat-memory-handlers.ts",
+      "quote": "`MetadataService.archiveAgent` \u2014\u2014 \u6e05\u5b8c\u518d\u5220\u8d44\u4ea7\uff08\u5220Agent \u573a\u666f\uff09",
+      "locator": "clearChatMemoryContent, JSDoc comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory prompts are versioned records persisted in IMemoryStore with create, get, update, delete, and list operations exposed via /v3/memory-prompt/* routes.",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/gateway/memory-prompt-handlers.ts",
+      "quote": "export function makeMemoryPromptRouteTable(): Record<string, RouteHandler> {\n  return {\n    \"/v3/memory-prompt/create\": handleCreate,\n    \"/v3/memory-prompt/get\": handleGet,\n    \"/v3/memory-prompt/update\": handleUpdate,\n    \"/v3/memory-prompt/delete\": handleDelete,\n    \"/v3/memory-prompt/set\": handleSet,\n    \"/v3/memory-prompt/setting/list\": handleSettingList,\n    \"/v3/memory-prompt/log\": handleLog,\n  };\n}",
+      "locator": "makeMemoryPromptRouteTable",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Prompt isolation is by team_id and agent_id \u2014 settings bind a prompt to a team scope or a specific agent within a team, not per-user or per-session.",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/gateway/memory-prompt-handlers.ts",
+      "quote": "function targetsOf(data: { team_id?: string; agent_ids?: string[] }): Array<{ teamId?: string; agentId?: string }> {\n  if (data.agent_ids) return data.agent_ids.map((agentId) => ({ teamId: data.team_id, agentId }));\n  if (data.team_id) return [{ teamId: data.team_id }];\n  return [{}];\n}",
+      "locator": "targetsOf",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "When no custom prompt is set for a layer/target, the system falls back to a builtin prompt with an empty prompt string and source 'system'.",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/gateway/memory-prompt-handlers.ts",
+      "quote": "return successEnvelope(resolved ?? {\n      memory_prompt_id: `builtin:${data.layer}`,\n      prompt: \"\",\n      layer: data.layer,\n      source: \"system\",\n      version: 1,\n    }, requestId);",
+      "locator": "handleGet",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Clearing a prompt setting records the action with reason 'explicit' and the previous prompt ID, providing a supersession trail.",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/gateway/memory-prompt-handlers.ts",
+      "quote": "logs.push({\n        setting_log_id: `mpsl-${randomUUID()}`,\n        ...\n        action: \"clear\",\n        reason: \"explicit\",\n        before_memory_prompt_id: old.memory_prompt_id,\n        operator_id: operator,\n        operated_at_ms: now,\n      });",
+      "locator": "handleSet \u2014 clear branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The operator who performs create, update, delete, or set actions is recorded via requestIsolation.userId, providing operator-level attribution on all write paths.",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/gateway/memory-prompt-handlers.ts",
+      "quote": "function operatorId(deps: unknown): string | undefined {\n  return getDeps(deps).requestIsolation?.userId;\n}",
+      "locator": "operatorId",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session state (token counts, message counts, prompt hash, cached recent messages) is stored in an in-process Map keyed by sessionKey \u2014 not persisted to disk or a database.",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/offload-client/context-engine.ts",
+      "quote": "private sessions = new Map<string, {\n    lastAccessMs: number;\n    lastKnownTotalTokens: number;\n    lastKnownMsgCount: number;\n    lastL15PromptHash: string;\n    cachedPrompt?: string;\n    cachedRecentMessages: RecentMessage[];\n    cachedRecentContext?: string;\n  }>();",
+      "locator": "class OffloadContextEngine, sessions field",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is implemented as session deletion (sessions.delete) on /new or destroy, and as bulk clear on emergency shutdown \u2014 not as selective fact removal.",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/offload-client/context-engine.ts",
+      "quote": "resetSession(sessionKey: string): void {\n    this.sessions.delete(sessionKey);\n  }",
+      "locator": "method resetSession",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path for curated memory is the after_tool_call hook, not the ingest() method; ingest() is explicitly a no-op.",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/offload-client/context-engine.ts",
+      "quote": "ingest \u2014 no-op for client mode (ingest is handled by after_tool_call hook).\n   * Required by the framework ContextEngine interface.",
+      "locator": "method ingest, JSDoc comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Compaction (what gets selected into the turn) targets 50% of the context window and is adaptive: skipped below a configurable ratio, server-delegated when possible, locally truncated from the head as fallback.",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/offload-client/context-engine.ts",
+      "quote": "const COMPACT_TARGET_RATIO = 0.5;\n...\nif (ratio < this.config.compactionRatio) { ... return { messages: [...messages], estimatedTokens: total }; }\n...\nconst result = await this.client.compaction({...});\n...\nthis.logger.warn(\"[offload-client] server compaction failed, falling back to local compact\");",
+      "locator": "constant COMPACT_TARGET_RATIO; method assemble",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "L1.5 ingest sends a deduplicated (per session, per prompt hash), truncated user prompt plus up to 10 recent text-only turns to the server \u2014 this is the curated memory write, distinct from the raw message log.",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/offload-client/context-engine.ts",
+      "quote": "this.client.ingestL15(sessionKey, prompt.slice(0, 500), recentMsgs).catch((err) => {\n      this.logger.warn(`[offload-client] L1.5 ingestL15 failed: ${err}`);\n    });",
+      "locator": "method triggerL15IfNeeded",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-session (sessionKey); there is no cross-session or per-user isolation visible in this file.",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/offload-client/context-engine.ts",
+      "quote": "private getSession(sessionKey: string) {\n    let s = this.sessions.get(sessionKey);\n    if (!s) { s = { ... }; this.sessions.set(sessionKey, s); }",
+      "locator": "method getSession",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval uses BM25 + vector search + RRF, with results bounded by item count, character budget, and timeout to avoid context overflow",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/README.md",
+      "quote": "BM25 + vector retrieval + RRF fall back to L1/L0. Results are further capped by item count, character budget, and timeout limits to prevent memory from overwhelming the context window.",
+      "locator": "### 1. Memory isn't flat records \u2014 it grows in layers",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory asset access is controlled by Fixed Binding + ACL scoped to Team, User, Agent, and visibility before retrieval fires",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/README.md",
+      "quote": "Memory Hub uses Fixed Binding + ACL to determine which assets a given Agent can use: first narrow the permission scope by Team, User, Agent, and visibility, then retrieve based on the current query.",
+      "locator": "### 2. Memory isn't a global prompt \u2014 it's the Agent's loadout",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Wiki and CodeGraph enter context only on demand via tool calls, not by wholesale injection",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/README.md",
+      "quote": "they remain available tools that only enter context when truly needed.",
+      "locator": "### 3. Knowledge isn't injected wholesale \u2014 it's called on demand",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "PersonaMem benchmark: 48% without the product, 76% with it enabled (+59% relative improvement)",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/README.md",
+      "quote": "PersonaMem \u2014 Without TencentDB Agent Memory: 48% | With it enabled: 76% | Relative improvement: +59%",
+      "locator": "## Benchmark",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "New Chat Memory and Skills default to private; sharing requires an explicit action by the owner",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/README.md",
+      "quote": "New Chat Memory and Skills are private by default. Sharing is an explicit action, not a default leak.",
+      "locator": "## One Agent Team: Shared Experience, Not Shared Privacy",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Skills carry versions, resource files, trigger boundaries, execution steps, and validation rules \u2014 not just prompt snippets",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/README.md",
+      "quote": "A Skill isn't just a prompt snippet; it has versions, resource files, trigger boundaries, execution steps, and validation rules.",
+      "locator": "### \u26a1 A Skill library that accumulates expertise",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Fully automated memory routing is not yet implemented; hub supports manual asset binding only",
+      "kind": "code",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/README.md",
+      "quote": "The Hub supports manual asset binding; fully automated memory routing is still under iteration.",
+      "locator": "## Notes",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is organized into four tiers: L0 raw conversations, L1 atomic memories, L2 scenarios, L3 profiles \u2014 a log-to-curated-fact hierarchy.",
+      "kind": "docs",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/MemoryCore/README.md",
+      "quote": "Memory : L0 conversations, L1 atomic memories, L2 scenarios, and L3 profiles.",
+      "locator": "MemoryCore section, opening paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path flows from completed turns written to L0; extraction and aggregation (LLM-driven) promote content to L1/L2/L3.",
+      "kind": "docs",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/MemoryCore/README.md",
+      "quote": "Write completed turns or sessions to L0. \u2026 memory extraction and aggregation require valid credentials.",
+      "locator": "Custom Agents responsibilities + Requirements section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve path: L1/L2/L3 are recalled before prompt construction and injected as bounded, labeled context \u2014 not raw transcript replay.",
+      "kind": "docs",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/MemoryCore/README.md",
+      "quote": "Recall L1/L2/L3 before constructing the next prompt. Inject recalled results into the Agent as bounded, clearly labeled context.",
+      "locator": "Custom Agents / An adapter generally has three responsibilities",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget / delete is supported at both L0 (conversation delete) and L1 (atomic delete) via stable API endpoints.",
+      "kind": "docs",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/MemoryCore/README.md",
+      "quote": "/v2/conversation/* L0 write, query, search, delete, and count \u2026 /v2/atomic/* L1 query, search, update, delete, and count",
+      "locator": "API surface table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is multi-dimensional: team, agent, user, and optionally session; the v3 data plane enforces all four.",
+      "kind": "docs",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/MemoryCore/README.md",
+      "quote": "The v3 memory data plane requires team_id , agent_id , and user_id \u2026 session_id is optional and narrows operations to a session when provided.",
+      "locator": "API surface section, note below table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Default retrieval is BM25 (no embedding service required); an OpenAI-compatible embedding API can be configured for vector or hybrid retrieval.",
+      "kind": "docs",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/MemoryCore/README.md",
+      "quote": "Disables remote embeddings by default and uses BM25 retrieval. \u2026 BM25 works without an external embedding service; an OpenAI-compatible embedding API can be configured when needed.",
+      "locator": "Runtime section + Storage and isolation section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistent store is SQLite plus local files; data directory defaults to ~/.memory-tencentdb/memory-tdai.",
+      "kind": "docs",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/MemoryCore/README.md",
+      "quote": "Memory and metadata are stored in SQLite. Files and large objects are stored in the local data directory. \u2026 Stores data under ~/.memory-tencentdb/memory-tdai by default.",
+      "locator": "Storage and isolation section + Runtime section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Skills can be populated from conversation content via conversation-driven extraction.",
+      "kind": "docs",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/MemoryCore/README.md",
+      "quote": "Skill Memory : supports Skill creation, versions, resources, search, routing, and conversation-driven extraction.",
+      "locator": "Core capabilities section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cross-tenant access prevention is a stated security requirement, implying instance-level isolation is enforced per request.",
+      "kind": "docs",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/MemoryCore/README.md",
+      "quote": "Validate instance and Team/User/Agent ownership on every request to prevent cross-tenant access.",
+      "locator": "Security recommendations section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "L0\u2013L3 layered memory pipeline: raw conversation \u2192 atoms \u2192 scenario blocks \u2192 persona profiles, refined asynchronously",
+      "kind": "docs",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/README.md",
+      "quote": "Conversations are first saved as L0, then refined by an async pipeline into multiple levels of granularity: L0 Conversation \u2014 Raw conversations with full context; L1 Atom \u2014 Facts, preferences, constraints, and events extracted from conversations; L2 Scenario \u2014 Knowledge blocks organized around projects or scenarios; L3 Core / Persona \u2014 Long-term profiles, stable patterns, and high-level cognition",
+      "locator": "Technical Implementation \u00a7 1. Memory isn't flat records \u2014 it grows in layers",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-agent memory isolation via Fixed Binding + ACL; scope narrows by Team, User, Agent, visibility before query-based retrieval",
+      "kind": "docs",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/README.md",
+      "quote": "Memory Hub uses Fixed Binding + ACL to determine which assets a given Agent can use: first narrow the permission scope by Team, User, Agent, and visibility, then retrieve based on the current query.",
+      "locator": "Technical Implementation \u00a7 2. Memory isn't a global prompt \u2014 it's the Agent's loadout",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Wiki and CodeGraph enter context only on demand via tool calls (/v3/tools/list, /v3/tools/call), not pre-injected",
+      "kind": "docs",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/README.md",
+      "quote": "Agents first discover capabilities via /v3/tools/list, then use /v3/tools/call to read relevant pages, source code, or impact paths. This makes documents and code part of memory as well \u2014 but they remain available tools that only enter context when truly needed.",
+      "locator": "Technical Implementation \u00a7 3. Knowledge isn't injected wholesale \u2014 it's called on demand",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "New memory assets (Chat Memory, Skills) are private by default; explicit sharing action required to promote to team or restricted visibility",
+      "kind": "docs",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/README.md",
+      "quote": "New Chat Memory and Skills are private by default. Sharing is an explicit action, not a default leak.",
+      "locator": "One Agent Team: Shared Experience, Not Shared Privacy",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "PersonaMem benchmark: 48% without, 76% with TencentDB Agent Memory (+59% relative improvement)",
+      "kind": "docs",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/README.md",
+      "quote": "PersonaMem \u2014 Without TencentDB Agent Memory: 48%, With it enabled: 76%, Relative improvement: +59%. PersonaMem tests whether an Agent can correctly understand and apply user information after extended interactions.",
+      "locator": "Benchmark",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Wiki and CodeGraph assets are built asynchronously and are not immediately queryable after import",
+      "kind": "docs",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/README.md",
+      "quote": "Wiki and CodeGraph are built asynchronously; allow some processing time before they reach ready status.",
+      "locator": "Notes",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Silent memory loss: LLM extraction failures (429, network error, timeout) advance the L0\u2192L1 cursor, permanently dropping those conversation turns with no retry or operator warning.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1395",
+      "quote": "When the L1 LLM call fails (429/quota, network error, timeout), or when the response cannot be parsed as a JSON array\u2026 the pipeline still calls `markL1ExtractionComplete()` with the processed slice's max `recorded_at`. Since the cursor is the only filter for the next L0 read, those rows are never re-read.",
+      "locator": "Describe the bug section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The bug was first observed on 2026-09-03 and persisted unremediated through 1.0.2-beta.1 as of 2026-09-08",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1289",
+      "quote": "The issue was first observed as \"L0\u957f\u6587/\u5de5\u5177\u5bc6\u96c6\u6bb5\u6f0f\u5f55\" in our deployment notes (2026-09-03) and re-confirmed today with explicit log evidence.",
+      "locator": "Additional context section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Recall permanently breaks after compaction or gateway restart until process restart \u2014 a continuity failure where every subsequent turn fails to retrieve memories",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1155",
+      "quote": "After an in-process gateway restart (SIGUSR1) or after a context-engine compaction run, recall breaks **permanently** until a full process restart",
+      "locator": "Symptoms",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Failed store initialization is cached forever, permanently disabling vector+FTS recall and embedding dedup for the lifetime of the process",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1155",
+      "quote": "One transient init error (e.g. sqlite busy during a restart race) therefore permanently disables vector+FTS recall and embedding: every subsequent `initStores()` call returns the cached failure.",
+      "locator": "Root cause / 1. Failed init results are cached forever",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Compaction teardown causes VectorStore to be closed outside the normal destroy path, leaving a closed instance in cache and breaking all subsequent recall",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1155",
+      "quote": "When close happens outside the `gateway_stop` destroy path (observed around compaction teardown; also during restart races where an L1-query executes while the pipeline is being destroyed), all subsequent `initStores()` calls return the closed instance \u2192 `statement has been finalized` / `database is not open` forever.",
+      "locator": "Root cause / 2. Closed stores keep being served from cache",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Self-healing patch restores vector recall automatically on the next turn after any close/failure, without process restart",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1155",
+      "quote": "the gateway now recovers automatically on the next turn after any close/failure event, and vector recall (vec hits) is restored without process restart.",
+      "locator": "Proposed fix: self-healing initStores()",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Store init cache is keyed by pluginDataDir, implying per-directory (per-agent or per-character) store isolation",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1155",
+      "quote": "const key = pluginDataDir;",
+      "locator": "Proposed fix: self-healing initStores() / code",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "TencentDB prepends recalled memories (~500-1700 tokens) to each user message every turn via prependContext",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/120",
+      "quote": "TencentDB prepends `prependContext` (recalled memories, ~500-1700 tokens) to each user message.",
+      "locator": "Root Cause / Primary, item 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "showInjected=true causes injected memory content to be written into conversation history, leading to context bloat over multiple turns",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/120",
+      "quote": "With `showInjected=true`, this content is frozen into conversation history. Context bloat triggers more frequent tool result truncation over multiple turns.",
+      "locator": "Root Cause / Primary, items 1-2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Enabling the memory-tencentdb plugin caused prompt cache hit rate to drop from ~91-96% to ~64-83% due to variable per-turn context injection making conversation history prefixes inconsistent",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/120",
+      "quote": "Variable truncation amounts per turn (dynamic token budget) \u2192 conversation history prefix inconsistent \u2192 prefix-matching cache invalidated.",
+      "locator": "Root Cause / Primary, item 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "appendSystemContext places stable persona content after CACHE_BOUNDARY, causing it to be re-sent as fresh tokens every turn rather than being cached",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/120",
+      "quote": "`composeSystemPromptWithHookContext` appends persona + scene navigation (~4000 chars) after the CACHE_BOUNDARY marker without using the existing `prependSystemPromptAdditionAfterCacheBoundary`. Stable content re-sent as fresh tokens every turn.",
+      "locator": "Root Cause / Secondary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agent deletion is blocked when SkillCore is disabled because the cascade route checks skill/list and fails on the capability-absence 404 before reaching agent archive.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1218",
+      "quote": "POST /api/v1/agent/delete-cascade always calls /v3/skill/list before archiving an Agent. When SkillCore is not configured, MemoryCore returns the explicit capability-absence envelope code=404, message=\"Skill module not enabled\". MemoryPanel forwards that response and never reaches /v3/meta/agent/archive, even for an Agent with no Skills.",
+      "locator": "Root cause",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Checkpoint counters (total_memories_extracted, l0_conversations_count) permanently overstate reality after any cleanup, causing incorrect status reporting",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/157",
+      "quote": "`total_memories_extracted=50` while actual JSONL has 42 records\nCounter will never self-correct",
+      "locator": "Reproduction",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agent deletion must cascade through Skill deletion first, establishing that Skills are sub-resources of Agents in the memory model.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1218",
+      "quote": "When Skills exist, they must still be deleted before the Agent is archived.",
+      "locator": "Expected behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The fix must preserve fail-closed behavior to avoid orphaning active Skills, indicating Skills are persistent state that must be explicitly removed.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1218",
+      "quote": "The main risk is accidentally swallowing unrelated upstream 404/errors and orphaning active Skills. The fix therefore needs an exact capability-absence match and tests that preserve fail-closed behavior.",
+      "locator": "Risk",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Ingestion pipeline writes files to disk but fails to commit asset metadata to knowledge.db, making assets unretrievable via API despite physical storage succeeding",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1232",
+      "quote": "The gap is in the metadata layer: Ingestion worker: Processes files, writes to `/data/knowledge` volume \u2014 Knowledge.db transaction: Never commits the asset record \u2014 API layer: Queries working, but finding no asset in metadata",
+      "locator": "Root Cause Analysis",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Two distinct stores exist: index.db (written during LLM processing) and knowledge.db (metadata registry); retrievability depends on knowledge.db, not index.db",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1232",
+      "quote": "Index exists: `index.db` is 300KB (actively being written to) \u2014 But metadata never registered in `knowledge.db`",
+      "locator": "Additional context | \u8865\u5145\u4fe1\u606f \u2014 Disk Evidence",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Wiki status reflects ingestion failure as status=failed with internal_status=ingesting and page_count=null when metadata commit does not occur",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1232",
+      "quote": "\"status\": \"failed\", \"internal_status\": \"ingesting\", \"page_count\": null",
+      "locator": "To Reproduce | \u590d\u73b0\u6b65\u9aa4 \u2014 step 5, Actual",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Files uploaded via /v3/wiki/raw/write at batch sizes up to 10 per request return 200 OK but are inaccessible via /v3/wiki/raw/list after ingestion failure",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1232",
+      "quote": "All requests return 200 OK \u2026 Response: 404 Not Found \u274c",
+      "locator": "To Reproduce | \u590d\u73b0\u6b65\u9aa4 \u2014 steps 2 and 6",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "L0 layer records full conversation transcript (user + assistant) to a per-day JSONL file",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1289",
+      "quote": "Today's L0 file (2026-09-08.jsonl):\n  total messages: 50\n  role=user: 26\n  role=assistant: 24",
+      "locator": "Quantitative evidence section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Bug: assistant messages are silently dropped from L0 during tool-call sessions, causing continuity failure where the model's own prior findings are not retrievable",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1289",
+      "quote": "L0 conversation recording only stores role=user messages. role=assistant messages are consistently skipped during sessions involving tool calls (MCP tools, web_search, etc.), while simple text-only sessions correctly record both roles.",
+      "locator": "Summary section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The continuity failure is asymmetric: user queries are remembered but assistant conclusions and tool results are not, degrading future recall quality",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1289",
+      "quote": "User inputs are indexed but assistant findings/conclusions are not. Semantic search on tool-call-heavy sessions returns only user queries, missing the actual results.",
+      "locator": "Impact, point 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Long tool-call sessions (health data queries, web research, multi-step diagnosis) result in complete assistant-side data loss at the L0 layer",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1289",
+      "quote": "Long tool-call sessions (e.g., Garmin health data queries, web research, multi-step diagnosis) have zero assistant-side retention in L0.",
+      "locator": "Impact, point 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hypothesized root cause: L0 writer filters out assistant messages containing tool_call results, messages from multi-turn tool-call sequences, or conversations exceeding an internal size threshold",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1289",
+      "quote": "The L0 writer in tdai-core's gateway may have a filter that drops assistant messages when:\n- The message content contains tool_call results (large/structured payloads)\n- The message is from a multi-turn tool-call sequence (not a standalone completion)\n- The conversation context exceeds some internal size threshold",
+      "locator": "Possible root cause section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A single absolute scoreThreshold (default 0.3) is applied across all search strategies despite their scores living on incommensurable scales, causing incorrect recall filtering behavior",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1296",
+      "quote": "`recall.scoreThreshold` (default `0.3`) is applied as a single absolute cutoff, but the scores it is compared against live on **different, incommensurable scales** depending on the search strategy.",
+      "locator": "issue body, Summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "searchHybrid silently ignores the _threshold parameter, meaning the threshold is not applied on the hybrid path at all",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1296",
+      "quote": "the hybrid path avoids the problem only because it does not apply the threshold at all (see related issue about `searchHybrid` ignoring `_threshold`)",
+      "locator": "issue body, Details",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agent deletion is owner-only with no admin bypass; ctx.isSystemAdmin is never consulted",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1321",
+      "quote": "deleteAgentsForCaller() \u8d70 assertCallerIsAgentOwner() \u7684\u88f8\u7b49\u503c\u6821\u9a8c\uff0cctx.isSystemAdmin \u4ece\u672a\u88ab\u53c2\u8003\uff1bPanel agent-lifecycle.ts \u540c\u6837\u786c\u6027 403\uff08\u6ce8\u91ca\uff1a\"\u672c\u671f\u4e0d\u5141\u8bb8 admin \u4ee3\u5220\"\uff09",
+      "locator": "Describe the bug | \u95ee\u9898\u63cf\u8ff0 \u2014 \u6839\u672c\u539f\u56e0 \u6761\u76ee3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Removing a team member leaves their Agent orphaned in meta_agents with a dangling owner_user_id; no ownership transfer or GC mechanism exists",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1321",
+      "quote": "\u8be5\u7528\u6237\u540d\u4e0b\u7684 Agent \u4f1a\u6210\u4e3a\u5b64\u513f Agent\uff1aowner_user_id \u60ac\u7a7a\uff0c\u4e14 Agent \u5220\u9664\u662f\u4e25\u683c owner-only\uff0c\u4efb\u4f55\u89d2\u8272\uff08\u5305\u62ec system_admin / team admin\uff09\u90fd\u65e0\u6cd5\u5220\u9664\u5b83",
+      "locator": "Describe the bug | \u95ee\u9898\u63cf\u8ff0",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User deletion does not cascade to meta_agents, so deleted-user Agents become permanently undeletable because the only party with delete rights no longer exists",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1321",
+      "quote": "store \u5c42 deleteUsers() \u6e05\u7406 meta_user_keys / meta_team_members / meta_asset_acl\uff0c\u4f46\u4e0d\u5220 meta_agents\u3002\u4e14\u7528\u6237 key \u5df2\u88ab\u5220\uff0cowner \u518d\u4e5f\u65e0\u6cd5\u8ba4\u8bc1\uff0c\u552f\u4e00\u6709\u5220\u9664\u6743\u7684\u4e3b\u4f53\u6d88\u5931\u4e86",
+      "locator": "Describe the bug | \u95ee\u9898\u63cf\u8ff0 \u2014 \u6839\u672c\u539f\u56e0 \u6761\u76ee2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Team deletion uses raw SQL to delete meta_agents rows directly, bypassing deleteAgents(), causing chat_memory and other asset bindings to be left as orphan records",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1321",
+      "quote": "store \u5c42 deleteTeams() \u7528 raw SQL \u76f4\u5220 meta_agents\uff0c\u7ed5\u8fc7 deleteAgents()\uff0c\u5bfc\u81f4 meta_task_agents / meta_agent_fixed_assets / chat_memory \u8d44\u4ea7\u8bb0\u5f55\u6b8b\u7559",
+      "locator": "Describe the bug | \u95ee\u9898\u63cf\u8ff0 \u2014 \u6b21\u751f\u95ee\u9898",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The store has both sqlite and mongodb adapters for Agent persistence",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1321",
+      "quote": "store deleteTeams\uff08sqlite \u4e0e mongodb adapter \u540c\u6b65\uff09\u6539\u4e3a\u5148\u6536\u96c6 agent_ids \u518d\u8c03 deleteAgents() \u8d70\u5b8c\u6574\u7ea7\u8054",
+      "locator": "Additional context | \u8865\u5145\u4fe1\u606f \u6761\u76ee4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The regression onset is precisely dated: 100% of sessions were skipped from 2026-09-14 18:17 onward, discovered only by manual packet capture.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1377",
+      "quote": "\u6211\u4eec\u4ece `2026-09-14 18:17` \u8d77\u5c31 100% \u88ab\u8df3\u8fc7\uff0c\u76f4\u5230\u624b\u5de5\u6293\u5305\u624d\u53d1\u73b0",
+      "locator": "## \u5f71\u54cd\u9762",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The bug affects all users running dsh in PTC mode, not just edge cases; 406 requests were misclassified as headless and 414 had injectedSkipped=true over the logged period.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1377",
+      "quote": "| \u5224\u5b9a\u4e3a `headless/no-preset` | 406 |\n| `injectedSkipped=true` | 414 |\n| \u6ce8\u5165\u6b63\u5e38 | 135 |",
+      "locator": "## \u73b0\u8c61 / statistics table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The memory proxy skips injection because body.tools contains only run_code in PTC mode, causing the headless heuristic to always fire true.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1377",
+      "quote": "**`tools` \u91cc\u6c38\u8fdc\u53ea\u6709 `run_code`**\uff0c\u56e0\u6b64\u5224\u5b9a\u6052\u4e3a `true` \u2192 `injectedSkipped=true` \u2192 **\u8bb0\u5fc6\u6ce8\u5165 / L0 \u5199\u5165 / skill \u63d0\u53d6\u5168\u90e8\u88ab\u8df3\u8fc7**\uff0c\u957f\u671f\u8bb0\u5fc6\u6c38\u8fdc\u4e3a\u7a7a\u3002",
+      "locator": "## \u6839\u56e0",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A local patch splitting the headless boolean into _dshNoForm and _dshPtcMode was applied and a patched image (memory-proxy:ptc-patch) was built for validation.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1377",
+      "quote": "\u6211\u4eec\u5df2\u5728\u672c\u5730\u6309\u4e0a\u8ff0\u601d\u8def\u6253\u4e86\u8865\u4e01\u5e76\u91cd\u5efa\u955c\u50cf\uff08`agentmemory/memory-proxy:ptc-patch`\uff09\uff0c\u9a8c\u8bc1\u540e\u4f1a\u628a\u9a8c\u8bc1\u7ed3\u679c\u8865\u5145\u5728\u8bc4\u8bba\u91cc\u3002",
+      "locator": "## \u73b0\u7f51\u89c4\u907f",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User-side workaround for the continuity failure is to switch the agent preset back to standard mode, which restores ask_user_question in body.tools and re-enables injection and session-init.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1377",
+      "quote": "**\u628a agent preset \u5207\u56de\u300c\u6807\u51c6\u6a21\u5f0f\u300d**\uff0c`ask_user_question` \u5c31\u4f1a\u91cd\u65b0\u51fa\u73b0\u5728 `body.tools` \u91cc\uff0c\u6ce8\u5165\u4e0e session-init \u5168\u90e8\u6062\u590d\u6b63\u5e38\u3002",
+      "locator": "## \u8865\u5145 / 2026-09-15 22:20 section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Silent recall degradation for CJK users: short Chinese queries return 0 hits with no user-visible error when embedding is disabled.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1382",
+      "quote": "For any CJK-language user, \"recall\" appears to work and quietly does not. This is worse than an explicit failure because the agent stops searching instead of escalating.",
+      "locator": "Why this matters section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "FTS tokenisation logs `No usable FTS tokens from query` for short CJK inputs; reproduced with \u53e3\u4ee4, \u95ea\u7535\u963b\u5c3c\u5668, \u4e13\u5c5e\u6d4b\u8bd5\u53e3\u4ee4.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1382",
+      "quote": "Short Chinese queries return zero hits and the log says `No usable FTS tokens from query`. Reproduced with: `\u53e3\u4ee4`, `\u95ea\u7535\u963b\u5c3c\u5668`, `\u4e13\u5c5e\u6d4b\u8bd5\u53e3\u4ee4` \u2014 all 0 hits.",
+      "locator": "Observed section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "recall_top_score is not surfaced in recall responses/logs by default, preventing integrators from detecting silent degradation without reading raw logs.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1382",
+      "quote": "Additionally, exposing `recall_top_score` in the recall response/log would let integrators notice this class of silent degradation without reading raw logs.",
+      "locator": "Suggested fix section, additional note",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Embedding is effectively required for CJK recall; no documented warning or startup refusal exists when embedding is disabled in a CJK deployment.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1382",
+      "quote": "Treat embedding as required for CJK: refuse to start (or log a prominent warning) when `embedding.enabled: false` and `bm25.language` is a CJK language.",
+      "locator": "Suggested fix section, item 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "L1 extraction fails silently when LLM credentials are misconfigured: the pipeline worker logs a debug-level line and reports zero failures, while zero memory records are written.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1386",
+      "quote": "[l1-extractor] LLM extraction failed: You didn't provide an API key\n...\n[pipeline-worker] Stopped (consumed=8, completed=8, failed=0, deadLettered=0)",
+      "locator": "Evidence, section (3)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A user could run the system for weeks believing memory was accumulating when in fact nothing above L0 was ever stored, because no observable surface (health endpoint, counters, Hermes logs) reflects the extraction failure.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1386",
+      "quote": "A user could run this for weeks believing memory was accumulating.",
+      "locator": "Impact",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The mismatch between documented environment variable names (MEMORY_TENCENTDB_LLM_*) and the names the Gateway actually reads (TDAI_LLM_*) is a documentation/code defect causing silent L1 extraction failure.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1386",
+      "quote": "No code path ever maps those names onto what the Gateway actually reads (TDAI_LLM_API_KEY / _BASE_URL / _MODEL, MemoryCore/src/gateway/config.ts:588-590). Following the documented setup produces a Gateway that boots, reports status: ok, and runs its pipeline with failed=0 \u2014 while every L1 extraction has failed and no memory is ever written.",
+      "locator": "Summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Issue #709 describes a related family of bug: a documented environment variable (MEMORY_LLM_PROTOCOL) that never reaches the runtime on the Docker deploy path, also causing L1 extraction failure.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1386",
+      "quote": "#709 \u2014 same family (a documented environment variable that never reaches the runtime, L1 fails), different root cause: that report concerns the Docker deploy path's MEMORY_LLM_PROTOCOL",
+      "locator": "Related",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "markL1ExtractionComplete is called unconditionally regardless of extraction outcome, cementing the silent-failure behavior in the pipeline.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1386",
+      "quote": "pipeline-factory.ts:604-652 accumulates extractedCount / storedCount, never branches on l1Result.success, then calls markL1ExtractionComplete unconditionally (:658) and logs 'L1 complete'.",
+      "locator": "Evidence, section (3) \u2014 pipeline-factory.ts:604-658",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No first-class forget/delete UX existed prior to this issue; deletion was only available at low SDK/core API level",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1393",
+      "quote": "The repository currently has no first-class \"forget\" command. Low-level delete APIs exist (`sdk/memory-core/.../memory-prompt.delete`, `MemoryCore/.../skill-core.delete`) but there's no UX layer that lets a Pi user selectively delete memory entries with a redacted preview before committing",
+      "locator": "Background section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "An ack-gap between gateway acceptance and local acknowledgement write is a prior known failure mode (discussed in #978)",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1391",
+      "quote": "See #978 for the earlier ack-gap discussion this design avoids",
+      "locator": "Related section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory write delivery contract requires same-key + different-payload to surface as an explicit error rather than silent failure",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1391",
+      "quote": "same-key + different-payload as an explicit error. This is the contract #1142 establishes for retry-safe conversation writes",
+      "locator": "Alignment with #1142 section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "DLQ entries must be queryable and re-drivable via a documented operator path",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1391",
+      "quote": "DLQ entries queryable and re-drivable via a documented operator path",
+      "locator": "Acceptance criteria section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget is scoped per client adapter (Pi); lifting to other clients is deferred",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1393",
+      "quote": "Lifting the command to other clients \u2014 do that in a follow-up once the Pi shape has stabilized",
+      "locator": "Out of scope section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The forget command reuses existing SDK delete primitives and introduces no new low-level deletion code",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1393",
+      "quote": "Wire-in point: Pi adapter command surface; underlying deletes reuse existing SDK/core APIs \u2014 no new low-level delete code",
+      "locator": "In scope section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemoryCore contains existing skill mining algorithms that the sync pipeline reuses",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1394",
+      "quote": "New skill mining algorithms (reuse what MemoryCore already has)",
+      "locator": "Out of scope",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User-authored skill files are detected and preserved; sync must not silently overwrite them",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1394",
+      "quote": "User-authored SKILL.md files are detected and preserved (test: place a hand-written skill, run sync, assert file unchanged)",
+      "locator": "Acceptance criteria",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The skill capture pipeline has no closed loop returning mined skills to Pi's native directory without overwriting user content \u2014 identified as a missing capability",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1394",
+      "quote": "there's no closed loop that pulls mined SKILL.md back into Pi's native skills directory without overwriting user-authored ones",
+      "locator": "Background",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Silent memory loss: truncated LLM responses (finishReason=length) are treated as empty extractions and cause the same permanent cursor advance.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1395",
+      "quote": "Truncated responses (`finishReason=length`) should be treated as failures rather than as \"no memories\".",
+      "locator": "Expected behavior section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "emptyReason field exists in parse output to distinguish parse failure from genuine empty extraction, but has no consumer in MemoryCore \u2014 a known gap reported in this issue.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1395",
+      "quote": "`emptyReason` currently has no consumer anywhere in `MemoryCore/src`, so a truncated/garbled response is indistinguishable from a genuine \"nothing to remember\"",
+      "locator": "Describe the bug section, path (2)",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "PI_SLOT_MAP routes both 'skills' and 'rules' slots to the same 'Guidelines' segment key, causing both injectors to target the same segment",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1411",
+      "quote": "Because PI_SLOT_MAP routes both skills and rules to the Guidelines key, and pipeline.ts applyInjection lands the injected block on every segment matching that key",
+      "locator": "## Bug description (opening paragraph)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Misplaced second memory copy lands inside the project instructions block, confirmed by marker position measurement",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1411",
+      "quote": "marker inside nested: true on the unfixed build is the misplaced second copy.",
+      "locator": "## Evidence / measurement output",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The bug affects any Pi session whose project instructions contain a label-shaped line, described as the common case",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1411",
+      "quote": "Any Pi session whose project instructions contain a label-shaped line \u2014 e.g. Guidelines:, Never:, Prefer:, Ownership rules: \u2014 gets the skills/rules memory block twice, once in the wrong place. This is the common case, not an edge case: PI-Desktop's own AGENTS.md contains 10 such lines.",
+      "locator": "## Impact",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory injection is scoped to a per-profile, per-slot architecture where profile type (Pi) determines how the system prompt is parsed and where memory is inserted",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1411",
+      "quote": "Drive the real InjectionPipeline with the Pi profile registered, using a realistic Pi system prompt",
+      "locator": "## To Reproduce",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Drifted checkpoint counters can cause persona generation pipeline to trigger prematurely or never trigger \u2014 a continuity failure where the agent's persona state diverges from actual conversation history",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/157",
+      "quote": "The counter is used by L2/L3 pipeline logic for persona generation thresholds (`cp.total_processed`, `cp.memories_since_last_persona`), which may trigger prematurely or never trigger",
+      "locator": "Actual Impact",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "CheckpointManager is implemented in dist/index.mjs at lines 8339 and 8375",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/157",
+      "quote": "`CheckpointManager` (bundled in `dist/index.mjs` L8339, L8375)",
+      "locator": "Root Cause",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Suggested fix proposes a recalibrate() method on CheckpointManager that recounts from actual JSONL files and DB on gateway startup",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/157",
+      "quote": "Add a `recalibrate()` method to `CheckpointManager` that recounts from actual data \u2026 Call once on gateway startup. ~20 lines.",
+      "locator": "Suggested Fix",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Kubernetes manifests for deploying the memory system (tdai-memory.yaml, multi-hermes.yaml) are referenced in documentation but absent from the repository.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/668",
+      "quote": "Neither file exists in the repository. The `MemoryCore/deploy/k8s/` directory is also absent.",
+      "locator": "Issue body, Steps to reproduce section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The deployment involves a Gateway and Redis Cluster, implying Redis-backed persistence for the memory store.",
+      "kind": "issue",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/668",
+      "quote": "Gateway and Redis Cluster deployment",
+      "locator": "Issue body, Expected result / bullet list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "TencentDB Agent Memory is an MIT-licensed open-source memory system for AI agents targeting context bloat and recall failure in long-horizon tasks.",
+      "kind": "blog",
+      "url": "https://www.marktechpost.com/2026/05/23/tencent-open-sources-tencentdb-agent-memory-a-4-tier-local-memory-pipeline-for-ai-agents/",
+      "quote": "Tencent has released TencentDB Agent Memory, an open-source memory system for AI agents. The project ships under the MIT license. It targets a problem familiar to anyone shipping long-horizon agents: context bloat and recall failure.",
+      "locator": "Introduction paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Long-term memory uses a 4-tier semantic pyramid (L0 Conversation, L1 Atom, L2 Scenario, L3 Persona) rather than a flat vector store, with upper layers providing structure and lower layers preserving evidence.",
+      "kind": "blog",
+      "url": "https://www.marktechpost.com/2026/05/23/tencent-open-sources-tencentdb-agent-memory-a-4-tier-local-memory-pipeline-for-ai-agents/",
+      "quote": "For long-term personalization, TencentDB Agent Memory builds a four-level pyramid instead of a flat log. The layers are L0 Conversation, L1 Atom, L2 Scenario, and L3 Persona. These correspond to raw dialogue, atomic facts, scene blocks, and a user profile.",
+      "locator": "Section: A 4-tier semantic pyramid",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Short-term memory compresses context by offloading verbose tool logs to refs/*.md and keeping only a Mermaid symbol graph in context; raw text is retrieved on demand by node_id.",
+      "kind": "blog",
+      "url": "https://www.marktechpost.com/2026/05/23/tencent-open-sources-tencentdb-agent-memory-a-4-tier-local-memory-pipeline-for-ai-agents/",
+      "quote": "Full tool logs are offloaded to external files under refs/*.md. State transitions are encoded in Mermaid syntax inside a lightweight task canvas. The agent reasons over the symbol graph in its context window. When it needs the raw text, it greps for a node_id and retrieves the corresponding file.",
+      "locator": "Section: Symbolic short-term memory via Mermaid",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "L1 extraction runs every 5 turns; persona generation triggers every 50 new memories; recall returns 5 items; on 5-second timeout recall is skipped rather than blocking.",
+      "kind": "blog",
+      "url": "https://www.marktechpost.com/2026/05/23/tencent-open-sources-tencentdb-agent-memory-a-4-tier-local-memory-pipeline-for-ai-agents/",
+      "quote": "Default settings trigger an L1 memory extraction every five turns. A user persona is generated every 50 new memories. Recall returns five items by default with a 5-second timeout. On timeout, the system skips injection rather than blocking the conversation.",
+      "locator": "Section: Recall and retrieval",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SWE-bench success rate climbs from 58.4% to 64.2% with token reduction of 33.09%; AA-LCR success rate moves from 44.0% to 47.5% with token reduction of 30.98%.",
+      "kind": "blog",
+      "url": "https://www.marktechpost.com/2026/05/23/tencent-open-sources-tencentdb-agent-memory-a-4-tier-local-memory-pipeline-for-ai-agents/",
+      "quote": "On SWE-bench, success climbs from 58.4% to 64.2% while tokens fall from 3474.1M to 2375.4M, a 33.09% reduction. On AA-LCR, the success rate moves from 44.0% to 47.5%. Tokens drop from 112.0M to 77.3M, a 30.98% reduction.",
+      "locator": "Section: Benchmark numbers",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Four memory tiers: L0 raw logs, L1 atomic facts, L2 scenario summaries, L3 persona profiles",
+      "kind": "blog",
+      "url": "https://www.neura.market/blog/tencentdb-agent-memory-a-4-tier-local-memory-system-for-ai-agents",
+      "quote": "TencentDB Agent Memory introduces a four-tier hierarchy that mimics how humans retain and recall information. Each tier serves a distinct purpose, and together they enable agents to manage context across sessions.",
+      "locator": "Section: Understanding the 4-Tier Memory Pyramid for AI Agents",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "L0 is a full transcript log (log), while L1/L2/L3 are progressively curated/abstracted memory (memory)",
+      "kind": "blog",
+      "url": "https://www.neura.market/blog/tencentdb-agent-memory-a-4-tier-local-memory-system-for-ai-agents",
+      "quote": "L0 stores every raw conversation turn \u2013 user inputs, agent responses, tool calls, and their outputs. This tier functions as the ground truth, enabling full replay and debugging.",
+      "locator": "Section: L0 Conversation: Raw Interaction Logs",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "L1 atoms stored with timestamps and confidence scores",
+      "kind": "blog",
+      "url": "https://www.neura.market/blog/tencentdb-agent-memory-a-4-tier-local-memory-system-for-ai-agents",
+      "quote": "These atoms are stored as structured key-value pairs with timestamps and confidence scores.",
+      "locator": "Section: L1 Atom: Atomic Facts and Entities",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval uses hybrid BM25 + vector search with Reciprocal Rank Fusion (RRF)",
+      "kind": "blog",
+      "url": "https://www.neura.market/blog/tencentdb-agent-memory-a-4-tier-local-memory-system-for-ai-agents",
+      "quote": "Retrieval uses a hybrid BM25 + vector search with Reciprocal Rank Fusion (RRF) to balance keyword precision and semantic similarity.",
+      "locator": "Section: How the Pipeline Works",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is per user, with tier selectable at read time",
+      "kind": "blog",
+      "url": "https://www.neura.market/blog/tencentdb-agent-memory-a-4-tier-local-memory-system-for-ai-agents",
+      "quote": "HTTP Request to http://localhost:8080/memory/read?user_id=X&tier=L1",
+      "locator": "Section: Building an AI-Powered Customer Support Workflow with Local Memory, Step 2: Retrieve Memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "L3 stores lore/backstory-like persistent persona (preferences, communication style, behavioral rules) distinct from episodic interaction events",
+      "kind": "blog",
+      "url": "https://www.neura.market/blog/tencentdb-agent-memory-a-4-tier-local-memory-system-for-ai-agents",
+      "quote": "L3 builds a long-term persona from all past interactions. It includes user behavior patterns, preferred communication styles, and even agent-specific rules.",
+      "locator": "Section: L3 Persona: Persistent User and Agent Profiles",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Symbolic short-term memory reduces token consumption on WideSearch benchmark by 61.38% and improves success rate by 51.52% relative; SWE-bench shows +9.93% success and -33.09% tokens over 50 consecutive tasks per session.",
+      "kind": "blog",
+      "url": "https://blog.baifan.site/en/tencentdb-agent-memory-deep-dive/",
+      "quote": "WideSearch: +51.52% (relative) / -61.38% / SWE-bench: +9.93% / -33.09% ... 50 consecutive tasks per session, simulating the context accumulation pressure a real long-horizon agent faces \u2014 far stricter than evaluations that wipe the context after each task.",
+      "locator": "Core Highlights at a Glance",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Storage backend is SQLite with sqlite-vec for vector search; no external services required.",
+      "kind": "blog",
+      "url": "https://blog.baifan.site/en/tencentdb-agent-memory-deep-dive/",
+      "quote": "Local backend: SQLite + sqlite-vec, no extra services required",
+      "locator": "Engineering Maturity: Not a Demo, a Pluggable Component",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No adapter exists today beyond OpenClaw and Hermes (Standalone); third-party integration requires custom glue code to intercept turns, call capture and recall, and inject recalled results into the prompt.",
+      "kind": "blog",
+      "url": "https://blog.baifan.site/en/tencentdb-agent-memory-deep-dive/",
+      "quote": "Only two adapter implementations exist today \u2014 OpenClaw and Hermes (Standalone) \u2014 so Pi Agent needs custom glue code to talk to the Gateway HTTP API. That means intercepting every turn of Pi's conversation, calling capture and recall, and injecting recalled results into the prompt",
+      "locator": "What I Actually Ran Into",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Skill generation from execution traces is on the roadmap but not yet implemented.",
+      "kind": "blog",
+      "url": "https://blog.baifan.site/en/tencentdb-agent-memory-deep-dive/",
+      "quote": "Skill generation layering (roadmap): induce solution patterns from execution traces and eventually distill them into reusable Skills",
+      "locator": "Core Technique 1: Memory Layering \u2014 the L0-to-L3 Semantic Pyramid",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Roadmap includes cross-agent memory migration, automatic Skill generation, and a visual debugging panel.",
+      "kind": "blog",
+      "url": "https://blog.baifan.site/en/tencentdb-agent-memory-deep-dive/",
+      "quote": "Cross-agent memory migration, automatic Skill generation, a visual debugging panel \u2014 these are the core problems of the agent memory field.",
+      "locator": "Why I Recommend It",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Four distinct memory store types: Chat Memory, Skill, Wiki, CodeGraph",
+      "kind": "blog",
+      "url": "https://toknow.ai/posts/tencentdb-agent-memory-local-memory-hub-agents/",
+      "quote": "Chat Memory distills conversations through four layers, from raw record to facts and preferences, project scenarios, and a stable persona; Skill captures proven workflows; Wiki structures documents; and CodeGraph maps how code calls connect.",
+      "locator": "paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Automatic memory routing is not yet settled \u2014 vendor-acknowledged gap",
+      "kind": "blog",
+      "url": "https://toknow.ai/posts/tencentdb-agent-memory-local-memory-hub-agents/",
+      "quote": "Tencent says automatic memory routing is still being refined, and the benchmark numbers are its own.",
+      "locator": "paragraph 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Self-hosted deployment keeps data local; no data leaves user machines",
+      "kind": "blog",
+      "url": "https://toknow.ai/posts/tencentdb-agent-memory-local-memory-hub-agents/",
+      "quote": "Because it runs on your own machines, your data never leaves them",
+      "locator": "paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "BM25 + vector + RRF retrieval is used for L0/L1 fallback lookup under item count, character, and timeout budget caps.",
+      "kind": "blog",
+      "url": "https://andrew.ooo/posts/tencentdb-agent-memory-team-hub-review.md",
+      "quote": "Only when specific facts are needed does the system fall back to L1/L0 using BM25 + vector retrieval + RRF (reciprocal rank fusion). Every result set is capped by item count, character budget, and a timeout",
+      "locator": "Layered Distillation: L0 \u2192 L3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Fixed Binding + ACL narrows memory scope by team, user, agent, and visibility before retrieval runs.",
+      "kind": "blog",
+      "url": "https://andrew.ooo/posts/tencentdb-agent-memory-team-hub-review.md",
+      "quote": "TencentDB Agent Memory uses Fixed Binding + ACL: it first narrows scope by team, user, agent, and visibility, then retrieves against the current query.",
+      "locator": "Governance Is the Actual Differentiator",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is injected into the system prompt on every turn before forwarding to the upstream model.",
+      "kind": "blog",
+      "url": "https://andrew.ooo/posts/tencentdb-agent-memory-team-hub-review.md",
+      "quote": "Every subsequent turn injects that agent's L2/L3 memory, matched Skills, and knowledge into the system prompt before forwarding upstream \u2014 so from the model's perspective, memory just appears in context.",
+      "locator": "Getting It Running",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Fully automated memory routing (right memory to right agent without manual configuration) is not yet complete.",
+      "kind": "blog",
+      "url": "https://andrew.ooo/posts/tencentdb-agent-memory-team-hub-review.md",
+      "quote": "fully automated 'the right memory shows up for the right agent' routing is still under iteration. You'll be doing loadout config by hand for now.",
+      "locator": "Honest Limitations",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory capture is still largely reactive; users frequently must explicitly prompt the agent to remember something.",
+      "kind": "blog",
+      "url": "https://andrew.ooo/posts/tencentdb-agent-memory-team-hub-review.md",
+      "quote": "my main pain point is that memory capture is still too reactive. I frequently have to explicitly prompt the agent to 'remember this' or manually dictate what needs to be stored.",
+      "locator": "Community Reactions",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Task completion rate on SWE-bench increased from 60% to 80% when team memory (all four asset types combined) was added",
+      "kind": "blog",
+      "url": "https://www.tencentcloud.com/techpedia/148654",
+      "quote": "adding team memory raised the task completion rate from 60% to 80%\u2014an absolute gain of 20 percentage points and a relative gain of approximately 33.3%",
+      "locator": "Section 5.1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "On exceptionally long/difficult SWE-bench tasks, pass rate increased from 17% to 20%, cost fell from $887.64 to $717.78, and total tool-call turns decreased by ~19%",
+      "kind": "blog",
+      "url": "https://www.tencentcloud.com/techpedia/148654",
+      "quote": "Without team memory, 17% of 50 tasks passed, at a cost of $887.64 \u2026 With team memory, the pass rate increased to 20%, cost fell to $717.78, and total tool-call turns also decreased by nearly 19%",
+      "locator": "Section 5.2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Of 5,081 segmented tasks, 1,350 blockers were caused by logical rework vs. 269 by missing context, motivating memory to preserve decision rationale and failed paths not just retrievable text",
+      "kind": "blog",
+      "url": "https://www.tencentcloud.com/techpedia/148654",
+      "quote": "1,350 cases of logical rework greatly outnumbered the 269 cases of missing context. Team memory cannot merely 'find information'; it must also preserve decision rationale, failed paths, applicability conditions, and validation methods.",
+      "locator": "Section 3.2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Assets follow a Team ownership unit rather than a specific agent or user account, enabling organizational inheritability",
+      "kind": "blog",
+      "url": "https://www.tencentcloud.com/techpedia/148654",
+      "quote": "assets must follow a Team rather than a particular agent. If experience remains trapped in one account, chat format, or framework-specific cache, it is closer to a private cache than a team asset.",
+      "locator": "Section 2.4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory Hub, Memory Pack, and four Memory Asset types form the three-layer architecture; relevance is assembled per task rather than exposing the full pool",
+      "kind": "blog",
+      "url": "https://www.tencentcloud.com/techpedia/148654",
+      "quote": "completeness belongs in the asset pool; relevance belongs in the current task",
+      "locator": "Section 2.1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval combines BM25 and vector search fused with RRF to avoid dependence on a single relevance signal",
+      "kind": "blog",
+      "url": "https://www.tencentcloud.com/techpedia/148654",
+      "quote": "Use exact retrieval such as BM25 for error codes, filenames, and symbols; use vector retrieval for intent, failure modes, and similar tasks; then fuse the two result sets with RRF",
+      "locator": "Section 2.3.1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Human negative feedback must change subsequent routing; the model cannot self-correct retrieval errors without governance",
+      "kind": "blog",
+      "url": "https://www.tencentcloud.com/techpedia/148654",
+      "quote": "Incorrect retrieval cannot rely solely on the next model to 'judge for itself'; human negative feedback must change subsequent routing.",
+      "locator": "Section 6.1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Raw conversation is stored as L0; background workers progressively distill L1 Atoms, L2 Scenarios, L3 Persona",
+      "kind": "blog",
+      "url": "https://www.tencentcloud.com/techpedia/148654",
+      "quote": "L0 conversations are stored as raw interaction records and progressively distilled into L1 Atoms and L2 Scenarios \u2026 L2 scenarios and the L3 Persona continue to accumulate",
+      "locator": "Section 7, Step 6",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Team memory is treated as a governance system analogous to a code repository, requiring versions, branches, permissions, review, merging, and rollback",
+      "kind": "blog",
+      "url": "https://www.tencentcloud.com/techpedia/148654",
+      "quote": "Team memory is not merely a retrieval module. It is more like a code repository: it needs versions, branches, permissions, review, merging, and rollback.",
+      "locator": "Section 6.2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Layered long-term memory retains user preferences, facts, and personas across sessions via four semantic layers (L0\u2013L3).",
+      "kind": "blog",
+      "url": "https://regolo.ai/tencentdb-agent-memory-the-complete-guide-to-persistent-memory-for-hermes-and-openclaw-with-zero-data-retention.md",
+      "quote": "layered long-term memory (for retaining user preferences, facts, and personas across sessions)",
+      "locator": "What TencentDB Agent Memory Actually Is",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "L2 stores scenario blocks \u2014 recurring patterns and scenes \u2014 as Markdown files.",
+      "kind": "blog",
+      "url": "https://regolo.ai/tencentdb-agent-memory-the-complete-guide-to-persistent-memory-for-hermes-and-openclaw-with-zero-data-retention.md",
+      "quote": "L2 Scenario blocks \u2014 recurring patterns and scenes Markdown files Workflow patterns, project contexts",
+      "locator": "Why Flat Vector Memory Not Working (And What Replaces It)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Short-term symbolic compression replaces verbose tool outputs in context with a Mermaid diagram, saving up to 61% tokens on WideSearch benchmark.",
+      "kind": "blog",
+      "url": "https://regolo.ai/tencentdb-agent-memory-the-complete-guide-to-persistent-memory-for-hermes-and-openclaw-with-zero-data-retention.md",
+      "quote": "Token savings: up to 61% on wide-search benchmarks.",
+      "locator": "The Architecture in Plain English",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Auto-recall injects relevant L1/L2/L3 memories before each turn without explicit agent invocation.",
+      "kind": "blog",
+      "url": "https://regolo.ai/tencentdb-agent-memory-the-complete-guide-to-persistent-memory-for-hermes-and-openclaw-with-zero-data-retention.md",
+      "quote": "The auto-recall system also uses these internally \u2014 it runs before each turn without the Agent explicitly asking.",
+      "locator": "What the LLM Tools Actually Do",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "PersonaMem benchmark: TencentDB scores 76% accuracy vs Mem0's 48% on user persona consistency.",
+      "kind": "blog",
+      "url": "https://regolo.ai/tencentdb-agent-memory-the-complete-guide-to-persistent-memory-for-hermes-and-openclaw-with-zero-data-retention.md",
+      "quote": "on PersonaMem (user persona consistency), TencentDB scores 76% accuracy vs Mem0's 48% \u2014 a 40% relative improvement.",
+      "locator": "Why Hermes and OpenClaw Need TencentDB",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "WideSearch benchmark: with plugin, success rate rises from 33% to 50% and token usage drops from 221.31M to 85.64M (\u221261.4%).",
+      "kind": "blog",
+      "url": "https://regolo.ai/tencentdb-agent-memory-the-complete-guide-to-persistent-memory-for-hermes-and-openclaw-with-zero-data-retention.md",
+      "quote": "WideSearch Success rate 33% 50% +51.5% / WideSearch Token usage 221.31M 85.64M \u221261.4%",
+      "locator": "Benchmark Numbers That Actually Matter",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "L0 raw conversation data is the heaviest storage layer; retention controlled by capture.l0l1RetentionDays (default 0 = never prune).",
+      "kind": "blog",
+      "url": "https://regolo.ai/tencentdb-agent-memory-the-complete-guide-to-persistent-memory-for-hermes-and-openclaw-with-zero-data-retention.md",
+      "quote": "L0 (raw conversations) is the heaviest. The `capture.l0l1RetentionDays` setting controls cleanup \u2014 set to 0 (default) to never clean up, or specify days to auto-prune old data.",
+      "locator": "FAQ",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "BM25 tokenizer defaults to Chinese (jieba); must be changed to 'en' for English-language conversations.",
+      "kind": "blog",
+      "url": "https://regolo.ai/tencentdb-agent-memory-the-complete-guide-to-persistent-memory-for-hermes-and-openclaw-with-zero-data-retention.md",
+      "quote": "Default BM25 language is Chinese (`\"zh\"`, using jieba). Change to `\"en\"` in your config if your conversations are in English.",
+      "locator": "Common Pitfalls and How to Fix Them",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/gateway/chat-memory-handlers.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/gateway/memory-prompt-handlers.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/core/storage/composite-backend.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/offload-client/context-engine.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/MemoryCore/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/feat/server_team/README_CN.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/120",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/157",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1289",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1321",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1411",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1386",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1391",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1232",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1394",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1395",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1393",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1296",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1382",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/668",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1218",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1155",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1377",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://regolo.ai/tencentdb-agent-memory-the-complete-guide-to-persistent-memory-for-hermes-and-openclaw-with-zero-data-retention.md",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.neura.market/blog/tencentdb-agent-memory-a-4-tier-local-memory-system-for-ai-agents",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://toknow.ai/posts/tencentdb-agent-memory-local-memory-hub-agents/",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.tencentcloud.com/techpedia/148654",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://blog.baifan.site/en/tencentdb-agent-memory-deep-dive/",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://andrew.ooo/posts/tencentdb-agent-memory-team-hub-review.md",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.marktechpost.com/2026/05/23/tencent-open-sources-tencentdb-agent-memory-a-4-tier-local-memory-pipeline-for-ai-agents/",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "The 'layer' field controls scaffold hierarchy but the page does not define what layer values exist or how layers compose at inference time (e.g. whether multiple layers are merged into a single system prompt or applied sequentially).",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/gateway/memory-prompt-handlers.ts",
+      "kind": "code"
+    },
+    {
+      "text": "resolveMemoryPrompt is called to select the active prompt for a team/agent/layer but its resolution logic (priority, inheritance, fallback chain) is in resolver.ts and not visible on this page.",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/blob/41dee1f9f8cd2b7e87f3e5c073966dc58d296a16/MemoryCore/src/gateway/memory-prompt-handlers.ts",
+      "kind": "code"
+    },
+    {
+      "text": "No information on what an Agent or its Skills persist across sessions, or how they relate to user-facing memory continuity.",
+      "url": "https://github.com/TencentCloud/TencentDB-Agent-Memory/issues/1218",
+      "kind": "issue"
+    }
+  ]
+}
