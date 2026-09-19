@@ -1,0 +1,1671 @@
+{
+  "identity": {
+    "id": "vestige",
+    "name": "Vestige",
+    "repo": "https://github.com/samvallad33/vestige",
+    "docs": "https://github.com/samvallad33/vestige/blob/main/README.md",
+    "license": "AGPL-3.0",
+    "version_or_commit": "3c5b198712d97b1f5350a04a4f2df5ed6cb2245b",
+    "observed_at": "2026-09-18"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Intelligent memory ingestion with Prediction Error Gating \u2014 automatically decides whether to create, update, or supersede memories based on semantic similarity to existing content."
+    },
+    {
+      "text": "Records retrieval telemetry without reinforcing memories; positive feedback through memory(action='promote') is the explicit strengthening signal."
+    },
+    {
+      "text": "Preview mode does not mutate the graph; explicit promotion persists edges and reinforces nodes."
+    },
+    {
+      "text": "Queryless memory layer for multi-agent coding fleets"
+    },
+    {
+      "text": "Local-first design with FSRS-based memory scheduling"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Source-aware filters allow post-filtering retrieved memories by external system, project, id, type, author, update time, and validity status (valid/tombstoned); tombstoned records are kept in the store for audit even after removal upstream."
+    },
+    {
+      "text": "Retrieval is audit-only; a recalled memory being shown does not strengthen it. An explicit promote signal is required to strengthen a memory after it proves useful, preventing stale results from becoming self-reinforcing."
+    },
+    {
+      "text": "purge is an irreversible delete operation, being split into its own advertised MCP tool with requiresUserInteraction and destructiveHint: true; memory(action='purge') is kept as an alias for one release."
+    },
+    {
+      "text": "Memory state is derived from retention_strength: Active (>0.7), Dormant (>0.4), Silent (>0.1), Unavailable (<=0.1), and each state produces an accessibility multiplier on the combined score."
+    },
+    {
+      "text": "On ingest, Vestige compares new content against existing memories by similarity score and either reinforces, updates, or creates a new memory entry \u2014 the write path has three branches."
+    },
+    {
+      "text": "Explicit purge (hard delete): memory(action=\"purge\", confirm=true) permanently removes content and embeddings, scrubs internal references, and keeps only a non-content tombstone."
+    },
+    {
+      "text": "Risk-gated review of destructive (memory-mutating) writes is implemented via gate_writes and gate_pending_memory_mutation, intended to fire before destructive writes execute."
+    },
+    {
+      "text": "Vector search uses an embedding profile system that enforces a declared dimension; mismatched dimensions abort storage initialisation and block all memory retrieval."
+    },
+    {
+      "text": "Outcome labeling provides a write-path feedback loop: users can tag composition results as helpful, dead end, accepted, rejected, duplicate risk, or needs proof."
+    },
+    {
+      "text": "The MCP check path evaluates triggers with its own logic, handling only 'time' and 'context' trigger types; recurring intentions fall through to a false branch."
+    },
+    {
+      "text": "Storage engine: SQLite with optional SQLCipher encryption; retrieval uses Nomic Embed v1.5 embeddings + USearch HNSW + SQLite FTS5 with optional Qwen3 reranker"
+    },
+    {
+      "text": "The purge tool is gated behind confirm=true inside a tool that is mostly reads, making it difficult for the host to treat it differently from other actions."
+    },
+    {
+      "text": "Stats distinguish never-accessed memories from access-unknown-pruned-log memories; agents must not suppress or purge pre-prune memories on access grounds"
+    },
+    {
+      "text": "Isolation: per data directory, supporting shared (multi-agent pointing to same --data-dir) or separate (each agent its own directory) configurations."
+    },
+    {
+      "text": "A dedup reflog tracks supersede operations and supports undo; this is the documented reversible merge path, but consolidation-cycle merges bypass it."
+    },
+    {
+      "text": "Suppress is distinct from delete: the memory row persists in storage but is inhibited from retrieval and decays faster via FSRS state degradation."
+    },
+    {
+      "text": "Write path uses smart_ingest to persist durable preferences, project decisions, recurring corrections, stable facts, and reusable code patterns."
+    },
+    {
+      "text": "Retrieval score (retrievability) is computed from stability and elapsed days before each review and returned alongside updated state"
+    },
+    {
+      "text": "Isolation is per scope (project namespace). Recall searches within the scope unless includeCrossScope=true. Default scope is 'user'."
+    },
+    {
+      "text": "Store isolation is per-scope; ordinary operations default to user scope; cross-scope maintenance requires explicit all_scopes=true"
+    },
+    {
+      "text": "Durable audit log for tag operations committed in the same transaction as the mutation; audit reason is screened for credentials"
+    },
+    {
+      "text": "Referenced open issue #85 describes a Trust Zones / Memory Quarantine direction, implying a quarantine state for stored memories"
+    },
+    {
+      "text": "The schema includes bitemporal validity columns (valid_from / valid_until) on knowledge_nodes, though currently unpopulated"
+    },
+    {
+      "text": "Vestige tracks provenance from generated rule lines back to memory IDs, linking output to the originating memory record."
+    },
+    {
+      "text": "Receipt mechanism: every retrieval and consequential write produces a signed receipt naming the exact evidence path"
+    },
+    {
+      "text": "Hybrid search combines keyword and semantic scoring with RRF fusion, using a 0.3/0.7 keyword/semantic weight split."
+    },
+    {
+      "text": "A scope column exists in the schema, intended for project-level namespace partitioning at ingest and recall"
+    },
+    {
+      "text": "Memories are never deleted automatically \u2014 they fade in accessibility but are not removed from the store."
+    },
+    {
+      "text": "The in-memory prospective memory engine is never hydrated from storage; it is always empty in production."
+    },
+    {
+      "text": "Write path \u2014 novelty-gated ingestion: only novel facts are stored; redundant writes are merged on write."
+    },
+    {
+      "text": "Memories are scoped to a namespace; cross-scope inference is not performed. Scope defaults to 'user'."
+    },
+    {
+      "text": "Intentions are persisted to SQLite storage via the MCP path, not held in the in-memory engine."
+    },
+    {
+      "text": "Write path tool: smart_ingest gates writes for novelty and contradiction before persisting"
+    },
+    {
+      "text": "Sensitive memory writes can require promotion or approval before becoming durable policy"
+    },
+    {
+      "text": "Forget / suppress mechanism: Active Forgetting provides reversible top-down suppression"
+    },
+    {
+      "text": "Managed Continuity backup and restore \u2014 encrypted archive portable across machines."
+    },
+    {
+      "text": "Search, ingest, lifecycle, purge, suppress, and protect are free local primitives"
+    },
+    {
+      "text": "Vestige surfaces contradictions between memories rather than flattening them."
+    },
+    {
+      "text": "Data isolation: local only, no cloud, no telemetry"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Redundant memories are merged on write rather than accumulated",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/README.md",
+      "quote": "redundant memories merge, contradicted ones are flagged, unused ones fade",
+      "locator": "README.md, section 'The cause never looks like the bug'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "smart_ingest gates writes for novelty and contradiction before persisting to store",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/README.md",
+      "quote": "`smart_ingest` | Store a fact, gated for novelty and contradiction",
+      "locator": "README.md, section 'The tools'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Unused memories fade via FSRS-6 spaced repetition; used memories persist at full weight",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/README.md",
+      "quote": "Unused memories | Persist at full weight [Vector search] | Fade (FSRS-6 spaced repetition) [Vestige]",
+      "locator": "README.md, section 'Why not just RAG?', comparison table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Active Forgetting provides reversible top-down suppression (not hard deletion)",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/README.md",
+      "quote": "Active Forgetting | Reversible top-down suppression | Anderson 2025, Davis 2020",
+      "locator": "README.md, section 'The science', mechanism table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Every retrieval produces a signed receipt naming the exact evidence path",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/README.md",
+      "quote": "Every backfill result ships with a receipt naming the exact evidence path.",
+      "locator": "README.md, section 'Why not just RAG?'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Operator kernel enforces a receipt-then-permit-then-effect flow; disallowed actions are stopped with zero effects",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/README.md",
+      "quote": "Receipt, then a one-use permit, then the effect. Or STOP with zero effects.",
+      "locator": "README.md, section '\ud83d\udee1\ufe0f Founding Operator'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Storage is local SQLite with optional SQLCipher encryption; retrieval uses Nomic Embed v1.5 (768d\u2192256d Matryoshka) + USearch HNSW + SQLite FTS5",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/README.md",
+      "quote": "Retrieval | Nomic Embed v1.5 (Matryoshka 768d\u2192256d) + USearch HNSW + SQLite FTS5, optional Qwen3 reranker | Storage | SQLite, optional SQLCipher encryption",
+      "locator": "README.md, section 'Under the hood'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Data never leaves the machine; no cloud, no telemetry",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/README.md",
+      "quote": "Local. Encrypted. No cloud, no telemetry.",
+      "locator": "README.md, opening tagline paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Managed Continuity backup/restore persists decisions, receipts, traces, and memory PRs across machines; store is encrypted end-to-end with XChaCha20-Poly1305 + Argon2id; server holds ciphertext only",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/README.md",
+      "quote": "End to end encrypted: XChaCha20-Poly1305 applied on your device, Argon2id over a passphrase only you know, ciphertext-only server. Lose the passphrase and the data is unrecoverable, by anyone.",
+      "locator": "README.md, section '\ud83d\udd04 Managed Continuity'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Silent Rotation benchmark: Vestige converged correct 20/23 trials vs 0/25 for no-memory and 4/23 for dense cosine RAG; 0 wrong convergences vs 21/25 and 12/23",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/README.md",
+      "quote": "No memory | 0/25 | 21/25 | 4/25 | Dense cosine RAG | 4/23 | 12/23 | 7/23 | Vestige | 20/23 | 0/23 | 3/23",
+      "locator": "README.md, section 'The receipts: Silent Rotation'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "FSRSState persists difficulty, stability, state, reps, lapses, last_review, and scheduled_days as the durable record for each memory item",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-core/src/fsrs/scheduler.rs",
+      "quote": "pub struct FSRSState {\n    pub difficulty: f64,\n    pub stability: f64,\n    pub state: LearningState,\n    pub reps: i32,\n    pub lapses: i32,\n    pub last_review: DateTime<Utc>,\n    pub scheduled_days: i32,\n}",
+      "locator": "file:crates/vestige-core/src/fsrs/scheduler.rs, FSRSState struct",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Unclamped sentiment boost compounding was observed driving stability to 1.4e24 days, confirmed by issue #121",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-core/src/fsrs/scheduler.rs",
+      "quote": "unclamped compounding was measured driving real memories to stability 1.4e24 days (issue #121) \u2014 beyond any horizon the forgetting curve can express",
+      "locator": "file:crates/vestige-core/src/fsrs/scheduler.rs, FSRSScheduler::review, sentiment boost comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Learning state machine has four states: New, Learning, Review, Relearning \u2014 a lapse demotes a Review card to Relearning",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-core/src/fsrs/scheduler.rs",
+      "quote": "pub enum LearningState {\n    #[default]\n    New,\n    Learning,\n    Review,\n    Relearning,\n}",
+      "locator": "file:crates/vestige-core/src/fsrs/scheduler.rs, LearningState enum",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrievability is calculated from stability and elapsed days and returned per review, but the page does not show a retrieve policy (when or whether FSRSState records are selected into a conversation turn)",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-core/src/fsrs/scheduler.rs",
+      "quote": "/// Current retrievability before review\n    pub retrievability: f64,",
+      "locator": "file:crates/vestige-core/src/fsrs/scheduler.rs, ReviewResult struct",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "SQLite is the durable source of truth for capture eligibility and mutation; the in-process neuroscience engine is a fast projection only.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-core/src/storage/synaptic_store.rs",
+      "quote": "The in-process neuroscience engine remains a fast projection, but this module is the source of truth for capture eligibility and mutation.",
+      "locator": "file:crates/vestige-core/src/storage/synaptic_store.rs, module-level doc comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are stored as knowledge_nodes with retrieval_strength, retention_strength, and stability fields that are mutated on capture.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-core/src/storage/synaptic_store.rs",
+      "quote": "retrieval_strength = MIN(1.0, retrieval_strength + 0.20),\n                        retention_strength = MIN(1.0, retention_strength + 0.10),\n                        stability = MIN(stability * 1.5, stability + 365.0),",
+      "locator": "file:crates/vestige-core/src/storage/synaptic_store.rs, fn capture_synaptic_event, promotion UPDATE",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Tags serve as capture-eligibility markers, not message log entries; they are associated with a specific memory_id and carry an initial_strength that decays over time.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-core/src/storage/synaptic_store.rs",
+      "quote": "INSERT OR IGNORE INTO synaptic_tags\n                 (tag_id, memory_id, created_at_ms, initial_strength,\n                  encoding_context, algorithm_version, state, capture_event_id,\n                  captured_at_ms, recorded_at)\n             VALUES (?1, ?2, ?3, ?4, ?5, ?6, 'active', NULL, NULL, ?7)",
+      "locator": "file:crates/vestige-core/src/storage/synaptic_store.rs, fn save_synaptic_tag, INSERT",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-memory isolation: tags and capture events are scoped to individual memory node ids, not to sessions or agents.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-core/src/storage/synaptic_store.rs",
+      "quote": "WHERE memory_id = ?1 AND state = 'active' AND tag_id <> ?2",
+      "locator": "file:crates/vestige-core/src/storage/synaptic_store.rs, fn save_synaptic_tag, active-episode expiry UPDATE",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path is a single atomic SQLite transaction covering event insert, backward evaluation, forward reconciliation, candidate items, strength mutations, and receipt insert. No partial writes are observable.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-core/src/storage/synaptic_store.rs",
+      "quote": "tx.commit()?;\n        drop(writer);\n\n        // Re-read through the state-aware receipt projection",
+      "locator": "file:crates/vestige-core/src/storage/synaptic_store.rs, fn process_synaptic_ingest, commit",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget / suppression: suppressed memories are withheld from capture promotion and their stable ids are not disclosed in receipts. Purge scrubs ids from stored receipt payloads and deletes associated synaptic_events rows.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-core/src/storage/synaptic_store.rs",
+      "quote": "active suppression forbids promotion and stable-id disclosure\n    \u2026\n    purge must scrub the durable receipt payload, not only its public projection",
+      "locator": "file:crates/vestige-core/src/storage/synaptic_store.rs, fn capture_synaptic_event suppression branch; test later_suppression_and_purge_cannot_resurrect_ids_through_receipt_reads",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "V1 capture is backward-only; a forward window is not evaluated. V2 adds a configurable forward window and context gating.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-core/src/storage/synaptic_store.rs",
+      "quote": "// V1 is deliberately backward-only. Persisting a non-zero forward\n        // window before tag-arrival matching exists would make the receipt\n        // claim an eligibility path the implementation did not evaluate.\n        let evaluated_forward_hours = 0.0_f64;",
+      "locator": "file:crates/vestige-core/src/storage/synaptic_store.rs, fn capture_synaptic_event",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Active tags survive a process restart; they are loaded from the database on reopen.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-core/src/storage/synaptic_store.rs",
+      "quote": "let reopened = Storage::new(Some(path)).unwrap();\n        let tags = reopened.load_active_synaptic_tags().unwrap();\n        assert!(tags.iter().any(|tag| tag.memory_id == memory_id));",
+      "locator": "file:crates/vestige-core/src/storage/synaptic_store.rs, test active_tags_survive_reopen",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Context mismatch disposition withholds capture without mutating memory strength, and is recorded in the receipt.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-core/src/storage/synaptic_store.rs",
+      "quote": "assert_eq!(\n            outcome.forward_receipts[0].disposition,\n            SynapticCaptureDisposition::ContextMismatch\n        );\n        let after = storage.get_node(&unrelated.id).unwrap().unwrap();\n        assert_eq!(after.retrieval_strength, before.retrieval_strength);",
+      "locator": "file:crates/vestige-core/src/storage/synaptic_store.rs, test v2_unrelated_later_tag_is_context_mismatch_without_mutation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "When multiple open events compete for a single tag, exactly one wins (captured) and the rest receive LostCompetition disposition.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-core/src/storage/synaptic_store.rs",
+      "quote": "assert_eq!(\n            outcome\n                .forward_receipts\n                .iter()\n                .filter(|receipt| receipt.disposition == SynapticCaptureDisposition::Captured)\n                .count(),\n            1\n        );\n        assert_eq!(\n            outcome\n                .forward_receipts\n                .iter()\n                .filter(|receipt| {\n                    receipt.disposition == SynapticCaptureDisposition::LostCompetition\n                })\n                .count(),\n            1\n        );",
+      "locator": "file:crates/vestige-core/src/storage/synaptic_store.rs, test v2_two_open_events_compete_for_one_later_tag",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Default backfill preview does not persist edges or reinforce memories; only explicit promote=true writes to the graph and storage.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/backfill.rs",
+      "quote": "The default preview does not persist edges or reinforce memories. Explicit promote=true records candidate edges and reinforces eligible nodes.",
+      "locator": "file top-level doc comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per scope (namespace); the scope defaults to 'user' and cross-project inference is not performed.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/backfill.rs",
+      "quote": "Exact project namespace for failure and candidates. Defaults to user; cross-project inference is not performed.",
+      "locator": "schema() / scope property description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Superseded and suppressed nodes are excluded from retrieval during backfill candidate scanning.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/backfill.rs",
+      "quote": "if node.id == failure_node.id || node.suppression_count > 0 || superseded.contains(&node.id) { continue; }",
+      "locator": "execute() / candidate loop",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Promotion writes a weak 'backfill_candidate' edge type, not a causal fact; causality is never verified by the tool.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/backfill.rs",
+      "quote": "Explicit promotion preserves the weaker candidate edge type; it does not create a causal fact.",
+      "locator": "execute() / promote loop",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Promotion reinforces the memory node via FSRS-based stability multiply (promote_memory_backfill), boosting future retrieval strength.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/backfill.rs",
+      "quote": "promote_memory_backfill boosts retrieval strength + reps (the FSRS knob) with a bounded stability multiply.",
+      "locator": "execute() / did_promote block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Backfill candidate ranking is driven by shared entities and chronology, not vector similarity; a semantic distractor with no shared entity is not surfaced over a non-similar but entity-linked cause.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/backfill.rs",
+      "quote": "top cause must be the env-var edit, got: {content} ... must link via the shared API_TIMEOUT entity",
+      "locator": "live_backfill_surfaces_root_cause_through_storage test assertions",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Temporal validity fields (valid_from, valid_until) on a node gate whether it is eligible for promotion.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/backfill.rs",
+      "quote": "node.valid_from.is_none_or(|date| date <= now) && node.valid_until.is_none_or(|date| date > now)",
+      "locator": "execute() / eligible_for_promotion",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hybrid search uses a keyword/semantic weight split of 0.3/0.7 with RRF fusion internally.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/search_unified.rs",
+      "quote": "// Favor semantic search \u2014 research shows 0.3/0.7 outperforms equal weights\n    let keyword_weight = 0.3_f32;\n    let semantic_weight = 0.7_f32;",
+      "locator": "file:crates/vestige-mcp/src/tools/search_unified.rs, execute()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval does not reinforce memory strength; explicit memory(action='promote') is the only strengthening signal.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/search_unified.rs",
+      "quote": "Records retrieval telemetry without reinforcing memories. Positive feedback\n//! through `memory(action=\"promote\")` is the explicit strengthening signal.",
+      "locator": "file:crates/vestige-mcp/src/tools/search_unified.rs, module-level doc comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory states Active/Dormant/Silent/Unavailable are derived from retention_strength thresholds (0.7/0.4/0.1) and modulate retrieval score via an accessibility calculator.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/search_unified.rs",
+      "quote": "lifecycle.state = if result.node.retention_strength > 0.7 {\n                MemoryState::Active\n            } else if result.node.retention_strength > 0.4 {\n                MemoryState::Dormant\n            } else if result.node.retention_strength > 0.1 {\n                MemoryState::Silent\n            } else {\n                MemoryState::Unavailable\n            };",
+      "locator": "file:crates/vestige-mcp/src/tools/search_unified.rs, STAGE 4",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Scope isolation is enforced: project memories do not appear in unscoped recall; cross-scope retrieval requires explicit opt-in.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/search_unified.rs",
+      "quote": "assert_eq!(\n            default_scope[\"total\"], 0,\n            \"unscoped recall must not bleed projects\"\n        );",
+      "locator": "file:crates/vestige-mcp/src/tools/search_unified.rs, test project_scope_prevents_cross_project_retrieval_by_default",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Expired and future facts are downranked (score *= 0.1) but not hidden when no validAt is given; they are excluded when validAt is specified.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/search_unified.rs",
+      "quote": "if valid_at.is_none() && !result.node.is_currently_valid() {\n        // Historical and future facts remain available for audit, but should\n        // not outrank a current policy on relevance alone.\n        result.combined_score *= 0.1;\n    }",
+      "locator": "file:crates/vestige-mcp/src/tools/search_unified.rs, apply_default_validity_penalty()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieved memories are marked labile for a reconsolidation window of 5 minutes after each retrieval.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/search_unified.rs",
+      "quote": "// 7C. Mark labile for reconsolidation window (5 min)",
+      "locator": "file:crates/vestige-mcp/src/tools/search_unified.rs, STAGE 7",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Tombstoned records (removed upstream) are retained in the store for audit and can be retrieved via source_status='tombstoned'.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/search_unified.rs",
+      "quote": "'tombstoned' (removed upstream, kept for audit)",
+      "locator": "file:crates/vestige-mcp/src/tools/search_unified.rs, schema(), source_status property description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A tag prefix case-sensitivity bug was reported from production (2026-08-15): filtering on 'Reflection' returned zero results while 'reflection' returned the expected set, with no error surfaced.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/search_unified.rs",
+      "quote": "Reported from production (2026-08-15): filtering on `Reflection` returned zero\n/// results while `reflection` returned the expected set, with no error and no\n/// warning. One capital letter silently blanked an entire recall. For a memory\n/// system that is the worst possible failure shape -- the caller cannot tell an\n/// empty result caused by a typo from an empty result meaning \"you never learned\n/// this\", so a silent zero reads as confident absence.",
+      "locator": "file:crates/vestige-mcp/src/tools/search_unified.rs, tags_match_prefix() doc comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Stable evidence packets allow the model to avoid re-fetching unchanged results: if the store has not changed, notModified=true is returned with no cards.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/search_unified.rs",
+      "quote": "assert_eq!(same[\"notModified\"], true);\n        assert_eq!(same[\"results\"], serde_json::json!([]));",
+      "locator": "file:crates/vestige-mcp/src/tools/search_unified.rs, test stable_packets_acknowledge_only_unchanged_retained_context",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The retrieval competition mechanism could bury corrections by suppressing the dissenting side of a contradiction, causing the agent to never see the correcting memory; this was identified and explicitly addressed.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/search_unified.rs",
+      "quote": "Every time\n            // an agent retrieves and acts on one side, the evidence that would\n            // correct it gets demoted and can fall out of the returned window.\n            // That is precisely how a memory system buries its own correction.",
+      "locator": "file:crates/vestige-mcp/src/tools/search_unified.rs, STAGE 5B, contradiction protection comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Vestige uses Prediction Error Gating to decide create vs update vs supersede on ingest, based on semantic similarity to existing memories.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/smart_ingest.rs",
+      "quote": "Intelligent memory ingestion with Prediction Error Gating.\nAutomatically decides whether to create, update, or supersede memories\nbased on semantic similarity to existing content.",
+      "locator": "file:crates/vestige-mcp/src/tools/smart_ingest.rs, module doc comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "'state' node type gets an automatic expiry TTL (default 30 days) to prevent stale state memories polluting recall; all other node types have no default expiry.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/smart_ingest.rs",
+      "quote": "\"Current state\" memories (version numbers, progress percentages,\ninventories) are the rot class that pollutes recall worst: they never stop\nbeing true in the store long after they stopped being true in the world.\nA `state` node therefore expires by default instead of by discipline.",
+      "locator": "file:crates/vestige-mcp/src/tools/smart_ingest.rs, apply_state_ttl fn doc comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are isolated per scope (project namespace); default scope is 'user'. Cross-scope search requires explicit opt-in.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/smart_ingest.rs",
+      "quote": "\"scope\": {\n    \"type\": \"string\",\n    \"description\": \"Project namespace (default 'user'). Recall searches it unless includeCrossScope=true.\"\n},",
+      "locator": "file:crates/vestige-mcp/src/tools/smart_ingest.rs, schema() fn, scope property",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Each persisted memory carries validFrom/validUntil timestamps, inferred from content prose ('as of DATE') when not supplied explicitly, with ambiguity detection that abstains rather than guesses.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/smart_ingest.rs",
+      "quote": "\"validFrom\": {\n    \"type\": \"string\",\n    \"description\": \"When the fact becomes true (RFC3339 or YYYY-MM-DD). Omitted: one unambiguous 'as of DATE' phrase is inferred.\"\n},",
+      "locator": "file:crates/vestige-mcp/src/tools/smart_ingest.rs, schema() fn, validFrom property",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Suppressed memories are ineligible for synaptic capture promotion and their IDs are withheld from capture receipts.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/smart_ingest.rs",
+      "quote": "let trigger_is_eligible = node.as_ref().is_some_and(|node| {\n    node.suppression_count == 0 && node.valid_until.is_none_or(|until| until > Utc::now())\n});",
+      "locator": "file:crates/vestige-mcp/src/tools/smart_ingest.rs, run_post_ingest_with_snapshot fn",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Credential detection blocks ingestion and the rejected credential is never echoed in the error response or stored.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/smart_ingest.rs",
+      "quote": "assert!(result.is_err());\nlet err = result.unwrap_err();\nassert!(err.contains(\"Refused to store probable credential\"));\nassert!(\n    !err.contains(&secret),\n    \"MCP errors must not echo the rejected credential\"\n);\nassert_eq!(\n    storage.get_stats().unwrap().total_nodes,\n    0,\n    \"forceCreate must not bypass the credential guard\"\n);",
+      "locator": "file:crates/vestige-mcp/src/tools/smart_ingest.rs, test_smart_ingest_rejects_secret_even_when_force_created test",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Post-retrieval failure feedback demotes memories retrieved in the prior 30 minutes when a failure memory is ingested; opt-in via VESTIGE_FAILURE_FEEDBACK=1.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/smart_ingest.rs",
+      "quote": "2. Post-retrieval failure feedback: the memories retrieved in the last\n   thirty minutes of receipts lose accessibility by their reactivation\n   strength (Heinbockel et al., eLife 2025). Opt-in through\n   `VESTIGE_FAILURE_FEEDBACK=1` for now: it demotes memories on its own,\n   so it becomes the default only once real-store data shows the\n   demotions land on the right ones.",
+      "locator": "file:crates/vestige-mcp/src/tools/smart_ingest.rs, run_failure_hooks fn doc comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Batch ingest is non-atomic: individual item failures do not roll back already-saved items.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/smart_ingest.rs",
+      "quote": "\"atomic\": false,",
+      "locator": "file:crates/vestige-mcp/src/tools/smart_ingest.rs, execute_batch fn return value",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Suppress inhibits retrieval and accelerates FSRS decay without deleting the memory row; suppression_count and retrieval_penalty compound across calls.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/suppress.rs",
+      "quote": "Distinct from `memory.delete` (which removes the row) and `memory.demote` (which is a one-shot thumb-down). Each call compounds: suppression_count increments, FSRS state is dealt a strong blow",
+      "locator": "module doc comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget mechanism is not deletion: suppressed memories remain in the store with suppression_count set and suppressed_at timestamp recorded.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/suppress.rs",
+      "quote": "Suppressed memory must still exist \u2026 assert_eq!(node.unwrap().suppression_count, 1) \u2026 assert!(node.suppressed_at.is_some(), \"suppressed_at must be set\")",
+      "locator": "tests `test_suppress_is_not_delete` and `test_suppress_records_timestamp`",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A background consolidation loop (Rac1 cascade sweep) spreads accelerated decay to up to 100 co-activated neighbour nodes over 72 hours asynchronously.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/suppress.rs",
+      "quote": "a background Rac1 cascade worker (in the existing consolidation loop) will fade co-activated neighbors \u2026 let estimated_cascade = edges.len().min(100)",
+      "locator": "module doc comment and execute() forward path",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Suppression is reversible within a 24-hour labile window; reversal is atomic for journaled cascade effects but cannot undo unrecorded side-effects.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/suppress.rs",
+      "quote": "Reversible within a 24-hour labile window via `reverse: true` \u2026 Journaled cascade effects are reversed atomically when neighbor state still matches \u2026 unrecordedEffectsReversed: false",
+      "locator": "module doc comment, schema description, execute() reverse path",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Reversal without a prior active suppression is an error; the store enforces this constraint.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/suppress.rs",
+      "quote": "let result = execute(&storage, Some(json!({\"id\": id.clone(), \"reverse\": true}))).await; assert!(result.is_err()); assert!(result.unwrap_err().contains(\"no active suppression\"))",
+      "locator": "test `test_reverse_without_prior_suppression_fails`",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory nodes are curated facts (node_type field) with sentiment, validity range, and tags \u2014 not raw transcript log entries.",
+      "kind": "code",
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/suppress.rs",
+      "quote": "IngestInput { content: content.to_string(), node_type: \"fact\".to_string(), \u2026 sentiment_score: 0.0, sentiment_magnitude: 0.0, tags: vec![\"test\".to_string()], valid_from: None, valid_until: None, validity_inferred: false, source_envelope: None, }",
+      "locator": "test helper `ingest()`",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Vestige is described as a queryless memory layer for multi-agent coding fleets",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=48993285",
+      "quote": "Show HN: Vestige \u2013 A queryless memory layer for multi agent coding fleets",
+      "locator": "page title / submission headline",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vestige merges redundant memories on write rather than accumulating duplicates.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/README.md",
+      "quote": "Redundant writes: Accumulate [RAG] vs Merged on write [Vestige]",
+      "locator": "Section: Why not just RAG?, comparison table row Redundant writes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Unused memories fade via FSRS-6 spaced repetition; used memories persist at full weight.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/README.md",
+      "quote": "Unused memories: Persist at full weight [RAG] vs Fade (FSRS-6 spaced repetition) [Vestige]",
+      "locator": "Section: Why not just RAG?, comparison table row Unused memories",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retroactive Salience Backfill enables causal root-cause retrieval that pure vector similarity cannot achieve.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/README.md",
+      "quote": "The backward reach implements Retroactive Salience Backfill (Zaki, Cai et al., Nature 2024): when a memory turns out to matter, the earlier memories that led to it become retrievable too.",
+      "locator": "Section: Why not just RAG?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "An agent attempting to permanently purge its own memory trail is blocked; a Memory PR is opened for human review instead.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/README.md",
+      "quote": "An agent tries to permanently purge its own memory trail. Operator refuses the effect, opens a Memory PR, and waits for a human.",
+      "locator": "Section: Founding Operator",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Night Letter provides a nightly signed digest of what changed, contradicted, and decayed in the store.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/README.md",
+      "quote": "Night Letter \u2014 a signed letter from your store at night: what changed, what contradicted, what decayed. Not a merge log. A letter.",
+      "locator": "Section: Founding Operator, What Operator buys",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Benchmark shows Vestige converged on the correct answer in 20/23 trials vs 4/23 for dense cosine RAG and 0/25 for no memory.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/README.md",
+      "quote": "No memory: 0/25 converged correct, 21/25 converged wrong; Dense cosine RAG: 4/23 converged correct, 12/23 converged wrong; Vestige: 20/23 converged correct, 0/23 converged wrong",
+      "locator": "Section: The receipts: Silent Rotation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Storage is fully local; data never leaves the machine in the free tier.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/README.md",
+      "quote": "Local. Encrypted. No cloud, no telemetry.",
+      "locator": "Section: Cognitive Deterministic Memory Security OS (intro)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vestige is a durable local memory MCP server for agents, not a Claude-specific workflow.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/AGENT-MEMORY-PROTOCOL.md",
+      "quote": "Vestige is an MCP server, not a Claude-specific workflow.",
+      "locator": "Register Vestige section, introductory paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "smart_ingest is the write path for persisting durable knowledge; ephemeral or unverified content should not be stored.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/AGENT-MEMORY-PROTOCOL.md",
+      "quote": "Save durable preferences, project decisions, recurring corrections, stable facts, and reusable code patterns with `smart_ingest`. Do not store secrets, credentials, one-off logs, speculation, or transient command output.",
+      "locator": "Agent Instruction section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Maintain covers garbage collection, consolidation, and dreaming \u2014 suggesting background memory hygiene operations exist.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/AGENT-MEMORY-PROTOCOL.md",
+      "quote": "Run requested consolidation, dreaming, garbage collection, scoring, backup, export or restore",
+      "locator": "Practical Tool Choices table, maintain row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path uses smart_ingest with Prediction Error Gating to REINFORCE, UPDATE, or CREATE memories based on semantic similarity thresholds (92%, 75%).",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/FAQ.md",
+      "quote": ">92%: REINFORCE 'I already know this'\u2014strengthen existing / 75-92%: UPDATE 'This adds to what I know'\u2014merge / <75%: CREATE 'This is new'\u2014add fresh memory",
+      "locator": "What is Prediction Error Gating?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hard delete (purge) removes content and embeddings but retains a tombstone for sync/audit purposes.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/FAQ.md",
+      "quote": "Purge permanently removes the memory content and embeddings, scrubs internal references, and keeps only a non-content tombstone so sync/audit can prove the deletion happened.",
+      "locator": "When memories decay, do you delete them completely?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval does not automatically strengthen memories; explicit promote feedback is required (Testing Effect applied only after positive outcome).",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/FAQ.md",
+      "quote": "retrieval is audit-only: a matching result is not automatically treated as correct. Promote a memory after it proves useful; that explicit feedback strengthens it and records the positive outcome.",
+      "locator": "What's the 'Testing Effect' I see in the code?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dual-strength model tracks storage strength (monotonically increasing) and retrieval strength (decays over time) separately, both factoring into search ranking.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/FAQ.md",
+      "quote": "Storage Strength: How well-encoded the memory is / Only increases, never decreases / Retrieval Strength: How accessible the memory is now / Decays over time, restored by explicit positive feedback / In Vestige: Both strengths are tracked separately and factor into search ranking.",
+      "locator": "What does 'Dual-Strength Memory' mean?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is per data directory; agents can share a store or have separate stores; no sub-user or per-character isolation is described beyond directory separation.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/FAQ.md",
+      "quote": "Share memories: Multiple agents point to the same --data-dir / Separate identities: Each agent gets its own data directory",
+      "locator": "Can Vestige support multiple agents or MCP clients?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session scaffold instructions (what to retrieve at session start and when to write during work) live in CLAUDE.md / the agent memory protocol, not in Vestige itself.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/FAQ.md",
+      "quote": "Add the agent memory protocol to your MCP client's instruction file / Vestige provides the storage layer. Your CLAUDE.md provides the behavioral instructions.",
+      "locator": "What's the learning curve for a non-technical human?; Could Vestige support autopoiesis / self-regeneration?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "FSRS-6 forgetting curve uses a power-law model (R(t,S) = (1 + factor \u00d7 t / S)^(\u2212w\u2082\u2080)) with 21 personalized parameters, described as 30% more efficient than SM-2.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/FAQ.md",
+      "quote": "FSRS-6: Power law / 21 parameters / 700M+ reviews / 30% more efficient than SM-2 in benchmarks / R(t, S) = (1 + factor \u00d7 t / S)^(-w\u2082\u2080)",
+      "locator": "How does FSRS-6 differ from other spaced repetition?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Embedding model is Nomic Embed Text v1.5 at 256 dimensions via fastembed, local only; no runtime network activity; optional profiles require manual provisioning and explicit activation.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/FAQ.md",
+      "quote": "Nomic Compact uses Nomic Embed Text v1.5 locally via fastembed, with a preserved 256-dimensional legacy profile... Vestige never downloads or switches an embedding profile at startup or on first use. Optional artifacts must be supplied locally, hash-verified, evaluated, migrated, and explicitly activated.",
+      "locator": "What embedding model does Vestige use?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hybrid search uses BM25 + semantic embeddings fused via Reciprocal Rank Fusion, with results further weighted by retention strength.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/FAQ.md",
+      "quote": "BM25 keyword search produces ranking / Semantic search produces ranking / RRF fuses them into final ranking / Retention strength provides additional weighting",
+      "locator": "How does hybrid search with RRF work?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context-dependent retrieval weights temporal and topical context match between encoding and retrieval context (defaults: temporal 0.3, topical 0.4).",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/FAQ.md",
+      "quote": "context(query=\"error handling patterns\", project=\"my-api\", topics=[\"authentication\"], mood=\"neutral\", time_weight=0.3, topic_weight=0.4)",
+      "locator": "What is Context-Dependent Retrieval?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Planned future work includes clearer merge/supersede controls, configurable MCP output fields, and guided import dry runs \u2014 implying current merge/conflict UX is limited.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/FAQ.md",
+      "quote": "clearer merge/supersede controls / configurable MCP output fields and output profiles / guided import dry runs and review queues",
+      "locator": "What's planned for future versions?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vestige persists memories in SQLite with temporal validity windows (validFrom / validUntil); smart_ingest is the write path",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/MEMORY_HYGIENE.md",
+      "quote": "smart_ingest accepts explicit validFrom and validUntil values as RFC 3339 timestamps or exact YYYY-MM-DD dates. Explicit values remain authoritative.",
+      "locator": "Dated facts at ingest",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Agents must not purge access-unknown memories; the page explicitly constrains agent behavior around pre-prune history",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/MEMORY_HYGIENE.md",
+      "quote": "accessUnknownPrunedLog : created before that window with zero durable counters. Pre-prune history is unknowable. Agents must not suppress or purge these on access grounds",
+      "locator": "Full-store hygiene statistics",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Tag rename/merge mutations and their audit records commit atomically in a single SQLite transaction; undo is supported",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/MEMORY_HYGIENE.md",
+      "quote": "The mutation and its durable audit record commit in one transaction.",
+      "locator": "Exact tag rename and merge",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Scope isolation is per-user by default; cross-scope operations require explicit opt-in",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/MEMORY_HYGIENE.md",
+      "quote": "Ordinary operations default to the legacy-compatible user scope. Cross-scope maintenance is always explicit.",
+      "locator": "Memory hygiene and tag maintenance",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path on ingest has three branches: reinforce existing memory (similarity > 0.92), update/merge existing memory (similarity > 0.75), or create new memory (similarity < 0.75).",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/SCIENCE.md",
+      "quote": "When you call smart_ingest, Vestige compares new content against existing memories: > 0.92 REINFORCE existing \u2026 > 0.75 UPDATE existing \u2026 < 0.75 CREATE new",
+      "locator": "Prediction Error Gating",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forgetting is implemented as accessibility decay through four states down to Unavailable (<10% accessibility), not as deletion from the store.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/SCIENCE.md",
+      "quote": "Memories are never deleted automatically. They fade from relevance but can be revived through explicit positive feedback after they prove useful.",
+      "locator": "Memory States",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval strengthening is gated on an explicit promote action, not on retrieval alone, to avoid self-reinforcing stale memories.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/SCIENCE.md",
+      "quote": "retrieval is deliberately audit-only: a result being shown is not proof that it was correct or useful. After a recalled memory proves valuable, an explicit memory(action=\"promote\") signal strengthens it and records that usefulness.",
+      "locator": "The Testing Effect",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Storage strength only increases; retrieval strength decays and is restored only by explicit positive feedback \u2014 the two strengths are tracked separately.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/SCIENCE.md",
+      "quote": "Storage Strength \u2026 Only increases, never decreases \u2026 Retrieval Strength \u2026 Decays over time, restored by explicit positive feedback",
+      "locator": "Dual-Strength Memory",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "FSRS-6 power-law decay uses 21 parameters; the page claims this is 30% more efficient than SM-2 based on 700M+ Anki reviews.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/SCIENCE.md",
+      "quote": "FSRS-6 uses 21 parameters optimized on 700M+ Anki reviews\u2014 30% more efficient than SM-2.",
+      "locator": "FSRS-6 Spaced Repetition",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dual-strength and memory-state models are described as engineering heuristics inspired by research, not literal implementations of the cited neuroscience.",
+      "kind": "docs",
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/SCIENCE.md",
+      "quote": "The \u26a1 features are engineering heuristics inspired by the research\u2014useful approximations, not literal neuroscience.",
+      "locator": "Overview / Transparency",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "trace_recorder module is declared in lib.rs but never imported or called anywhere in production code, making all trace/receipt/memory-PR writes dead code on origin/main.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/117",
+      "quote": "The module is referenced exactly once in the whole crate: `pub mod trace_recorder;` in lib.rs:12. It is declared but never imported or used.",
+      "locator": "Failure analysis, Evidence paragraph 4",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Risk gating of destructive memory writes never fires, meaning no write is ever held for review.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/117",
+      "quote": "gate_writes / gate_pending_memory_mutation never fire, so risk-gated review of destructive writes never happens",
+      "locator": "Failure analysis, Consequence paragraph",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A purge or direct write still executes; the failure is that those operations are not traced or gated, not that they crash or corrupt data.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/117",
+      "quote": "a purge still purges, a write still writes; they simply are not traced or gated",
+      "locator": "Failure analysis, Why major not blocker paragraph",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Intentions are persisted to SQLite storage via the MCP intention-set path.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/124",
+      "quote": "The MCP `intention set` path (`intention_unified.rs:376`) persists intentions to SQLite storage instead",
+      "locator": "Failure analysis, paragraph 'WHY SEVERITY IS MINOR', intention_unified.rs:376",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The MCP check path only handles 'time' and 'context' trigger types; recurring intentions silently return false.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/124",
+      "quote": "the MCP `check` path (lines 469-509) evaluates triggers with its OWN logic that only handles `\"time\"`/`\"context\"` (recurring falls into `_ => false`, a separate gap)",
+      "locator": "Failure analysis, paragraph 'WHY SEVERITY IS MINOR', intention_unified.rs:508",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The in-memory ProspectiveMemory engine is never populated from persistent storage in production; there is no hydration path.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/124",
+      "quote": "`cognitive.rs:149` builds `ProspectiveMemory::new()` empty and there is no hydration path from storage into it",
+      "locator": "Failure analysis, paragraph 'WHY SEVERITY IS MINOR', cognitive.rs:149",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Recurring intentions are permanently disabled after first fire due to missing re-arm logic; status guard skips them forever.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/124",
+      "quote": "Nothing advances `next_occurrence` or resets status to `Active`. The guard at line 1271 (`if intention.status != IntentionStatus::Active { ... continue; }`) then permanently skips it. `RecurrencePattern::next_occurrence` (line 477) is invoked only by a unit test (line 1683) \u2014 never by the engine.",
+      "locator": "Failure analysis, sub-defect 1, prospective_memory.rs:1271,1289,477",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No test covers the recurring fire/re-arm cycle, leaving the defect undetected by the test suite.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/124",
+      "quote": "no test covers the recurring fire/re-arm cycle",
+      "locator": "Failure analysis, paragraph 'WHY SEVERITY IS MINOR'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The predict tool's file-context channel is permanently dead: current_file input is accepted but produces no file-based speculative memories because file_memory_map is never populated",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/137",
+      "quote": "a user who passes current_file gets zero file-based predictions, always",
+      "locator": "Channel 1 (file-based)",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The predict tool's co-access channel is permanently dead: co_access_patterns is never populated in production",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/137",
+      "quote": "co_access_patterns is always empty. predict_from_patterns is also dead for a second independent reason: predict.rs:139 hardcodes recent_memory_ids = Vec::new(), so its outer loop never iterates",
+      "locator": "Channel 2 (co-access)",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The predict tool's query-similarity channel is permanently dead: recent_queries is hardcoded to empty regardless of available query context in access_sequence",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/137",
+      "quote": "predict.rs:138 hardcodes recent_queries = Vec::new(), so predict_from_queries' outer `for query in &context.recent_queries` loop (speculative.rs:394) never executes and returns empty \u2014 even though access_sequence does carry query_context",
+      "locator": "Channel 3 (query similarity)",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Only temporal-pattern predictions (predict_from_time) are reachable in production; the other three speculative channels silently return empty",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/137",
+      "quote": "Net: the `predict` tool advertises file-context, co-access and query-similarity predictions but can only ever emit temporal-pattern predictions",
+      "locator": "Failure scenario",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The failure is a silent degradation, not a crash: the predict tool returns fewer speculative results rather than wrong ones",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/137",
+      "quote": "the predict tool silently degrades to temporal-only predictions and returns fewer results, not wrong ones",
+      "locator": "Severity minor",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Consolidation cycle silently merges semantically similar nodes by concatenation without writing to the dedup reflog or per-memory changelog, making merges unauditable and irreversible via normal undo.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/142",
+      "quote": "It merges semantically similar memories by concatenating their bodies into a survivor node under [MERGED] markers and drops the merged-away nodes from the live store. This happens unattended, leaves no trace in the dedup reflog or the per-memory changelog, and there is no configuration switch to turn it off.",
+      "locator": "issue body, Summary section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "dedup is the documented reversible, bitemporal, undoable merge path; consolidation-cycle merges bypass this contract.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/142",
+      "quote": "It contradicts the documented contract that dedup (reversible, bitemporal, undoable) is the merge path.",
+      "locator": "issue body, Why this hurts section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "dedup protect is intended to prevent auto-merge of pinned nodes permanently; its effectiveness against the background consolidation cycle is unconfirmed at time of issue.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/142",
+      "quote": "please confirm whether dedup protect pins are honored by the background cycle. We are currently relying on protect as the workaround and the tool description (\"can never be auto-merged\") suggests it should hold.",
+      "locator": "issue body, Suggested fixes section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context bloat from merged nodes is a continuity failure mode: large fused memory bodies make the store too heavy for context injection.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/142",
+      "quote": "vestige becoming extremly context heavy. (Found bloats of 3k chars and bigger in some cases).",
+      "locator": "issue body, Personal note",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The consolidation cycle runs on a schedule as a background process independent of any active client session.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/142",
+      "quote": "with no client session active at that hour.",
+      "locator": "issue body, Evidence section, item 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vestige is distributed as an npm package named vestige-mcp-server",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/145",
+      "quote": "npm install -g vestige-mcp-server@latest",
+      "locator": "Problem or motivation / npm error block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "vestige-mcp-server version 2.2.1 restricts supported OS to darwin, linux, win32 and CPU to x64, arm64",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/145",
+      "quote": "Unsupported platform for vestige-mcp-server@2.2.1: wanted {\"os\":\"darwin,linux,win32\",\"cpu\":\"x64,arm64\"} (current: {\"os\":\"android\",\"cpu\":\"arm64\"})",
+      "locator": "npm error block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agents ingest audit output, incident notes, and debugging transcripts into the memory store automatically",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/154",
+      "quote": "Agents naturally ingest audit output, incident notes, and debugging transcripts, and those are exactly the texts most likely to contain credentials.",
+      "locator": "issue body, 'The finding' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vestige uses FSRS-based scheduling for memory retention",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/154",
+      "quote": "the FSRS-based design and the local-first stance are why we trusted it with seven months of working memory",
+      "locator": "issue body, closing paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No ingest-time credential or secret detection exists as of v1.1.2",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/154",
+      "quote": "I found no v2.x release note or open issue covering ingest-time credential scanning \u2014 apologies if I missed one.",
+      "locator": "issue body, 'Version context' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Trust Zones / Memory Quarantine is a planned or discussed direction (issue #85), not yet shipped as of this report",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/154",
+      "quote": "It also composes naturally with the Trust Zones / Memory Quarantine direction in #85 \u2014 a quarantine state for suspected-credential content would be a fine v1 of this.",
+      "locator": "issue body, 'The ask' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "664 memories stored across four projects after 7 months of deployment",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/156",
+      "quote": "~664 memories, four projects sharing one store, up to three concurrent agent identities, Windows, v1.1.2 locally built",
+      "locator": "Context recap",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Bitemporal validity columns (valid_from, valid_until) exist in the knowledge_nodes schema but are not populated by any current ingest path",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/156",
+      "quote": "`knowledge_nodes` has `valid_from` / `valid_until` \u2014 unused across all 664 of our nodes",
+      "locator": "Section 1: Bitemporal validity columns exist but nothing populates them",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Tag fragmentation across agents causes silent retrieval misses \u2014 a core continuity failure where filtered recall omits relevant memories",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/156",
+      "quote": "three tags for the same project (139/98/23 nodes respectively) \u2014 every filtered recall silently missed two-thirds of the project",
+      "locator": "Section 2: Tag rename/merge tooling",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A scope column exists in the schema for project-level isolation but is not yet exposed as a first-class filter at ingest or recall",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/156",
+      "quote": "A `scope` column already exists in the schema; exposing it as a first-class namespace (set at ingest, default-filter at recall, cross-scope on request) would fix it cleanly",
+      "locator": "Section 4: First-class project scopes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vestige surfaces months-old facts at the right moment, providing session continuity across long-running deployments",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/156",
+      "quote": "it has repeatedly saved sessions by surfacing a months-old gotcha at exactly the right moment",
+      "locator": "Closing note",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A dimension mismatch between stored vectors and the registered embedding profile causes storage init to abort and the MCP connection to close, resulting in total memory loss for the session \u2014 a continuity failure affecting all 759 memories.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/191",
+      "quote": "ERROR Failed to initialize storage: Invalid embedding profile: profile 'nomic-v1.5-legacy-raw-256' declares 256 dimensions but vector 'b612c8dd-\u2026' has 768",
+      "locator": "What happened section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The v2.6.0 migration hardcodes the legacy profile dimension as 256, incorrectly covering all 1.x stores that used raw 768-dim vectors \u2014 a systemic migration bug affecting any long-lived store.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/191",
+      "quote": "v1.1.2 stored raw 768-dim nomic-v1.5 vectors. The v2.6.0 migration registers the existing store under the hardcoded legacy profile nomic-v1.5-legacy-raw-256, which asserts 256 dims (Matryoshka-truncated). The strict dimension check then rejects every legacy vector.",
+      "locator": "Why section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memories (knowledge_nodes) are preserved independently of their embedding vectors; deleting invalid vectors and re-running backfill restored full memory coverage with zero memory loss.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/191",
+      "quote": "DELETE FROM embedding_profile_vectors WHERE dimensions = 768; \u2014 removed the 755 invalid rows; knowledge_nodes untouched \u2026 Result: 759/759 vectors at 256-dim, stats coverage 100 %, recall back to hybrid+cognitive. Zero memory loss.",
+      "locator": "Workaround that worked section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The CLI's DEGRADED status during this failure does not distinguish store health from embedder unavailability, making it misleading as a diagnostic for continuity health.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/191",
+      "quote": "the CLI never starts the embedding runtime \u2026 and reports DEGRADED for that reason alone, so it cannot repair the store and its status line is misleading here.",
+      "locator": "What did not work section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vestige exposes a `recall` tool for memory retrieval, filterable by tag_prefix, source_system, source_project, source_record, source_validity, valid_at, and scope.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/212",
+      "quote": "`recall` gets `filters: { tag_prefix, source_system, source_project, source_record, source_validity, valid_at, scope }`; the flat names stay as deprecated aliases for one release.",
+      "locator": "Plan section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vestige previously (before this issue) had a flat recall schema with 29 top-level properties; these are being consolidated and the flat names kept as deprecated aliases for one release.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/212",
+      "quote": "`recall` has 29 top-level properties (4,946 bytes of schema) \u2026 the flat names stay as deprecated aliases for one release.",
+      "locator": "Why section / Plan section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "purge is an irreversible delete from store, being promoted to a standalone tool with destructiveHint and requiresUserInteraction flags.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/219",
+      "quote": "Split `purge` into its own advertised tool with `requiresUserInteraction` and `destructiveHint: true`; keep `memory(action='purge')` as an alias for one release.",
+      "locator": "Plan",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The purge operation previously lacked surfaced user-interaction gating because it was embedded in a multi-action tool; the host could not distinguish it.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/219",
+      "quote": "`memory(action='purge')` is the one irreversible call and sits behind `confirm=true` inside a tool that is mostly reads, so the host cannot treat it differently.",
+      "locator": "Why",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vestige already has a source envelope with content-hash tracking on connector sync, to which the ACL envelope is being added as a sibling.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/82",
+      "quote": "Current connector sync already tracks source content with hashes. ACLs should have their own hash and lifecycle.",
+      "locator": "### 3. Split content sync from ACL sync",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ACL enforcement is framed explicitly as a security boundary, not a relevance or ranking hint.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/82",
+      "quote": "This is not a ranking hint. This is a security boundary. \u2026 Docs clearly state that ACL enforcement is a security boundary, not a relevance hint.",
+      "locator": "## Requirement / Acceptance criteria for v1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ACL Memory is a roadmap item, not yet shipped; acceptance criteria are expressed as open checkboxes.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/82",
+      "quote": "- [ ] ACL envelope structs exist and are persisted. - [ ] Connector records can carry ACL policies separately from content hashes.",
+      "locator": "## Acceptance criteria for v1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The connector roadmap (including ACL Memory) was split out from a prior issue #57 following a community contributor raising the requirement.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/82",
+      "quote": "This issue is split out from the external-source connector roadmap in #57.",
+      "locator": "## Source signal",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vestige connects memory storage to agent observability, tracking which memories, sources, and contradictions influenced an agent answer.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/84",
+      "quote": "Agent observability usually records prompts, traces, or tool calls. Memory systems usually store facts. Vestige can connect the two",
+      "locator": "## Why this matters",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vestige tracks provenance from generated output back to internal memory IDs, enabling auditability of what memory produced which rule line.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/87",
+      "quote": "track provenance from generated rule lines back to memory IDs",
+      "locator": "## Scope",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vestige explicitly does not build a full code search engine, index every symbol by default, or replace language servers \u2014 bounding what the memory store covers.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/88",
+      "quote": "Do not build a full code search engine. Do not index every symbol by default. Do not replace language servers or static analysis tools.",
+      "locator": "## Non-goals",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Human trust in an agent increases when the memory basis for its answers is inspectable and correctable.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/84",
+      "quote": "Teams will trust an agent faster when they can see why it answered, what it remembered, and what can be corrected.",
+      "locator": "## Why this helps growth",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory poisoning (persist prompt injection or stale facts from untrusted sources) is identified as the core risk Vestige's trust zones address",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/85",
+      "quote": "If a memory system saves or retrieves them without trust boundaries, it can persist prompt injection, poisoned context, or wrong project state.",
+      "locator": "Why this matters",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path includes a promotion/approval step before content from tool, web, or connector sources becomes durable memory policy",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/85",
+      "quote": "sensitive memory writes can require promotion/approval before becoming durable policy",
+      "locator": "Scope / Core behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Not all memory sources are treated as equally trustworthy \u2014 user-confirmed preferences, repo files, web pages, connector records, and tool output are differentiated",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/85",
+      "quote": "Memory should not treat user-confirmed preferences, repo files, web pages, connector records, and tool output as equally trustworthy.",
+      "locator": "Product goal",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vestige claims contradiction detection \u2014 surfacing disagreement rather than flattening conflicting memories.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/86",
+      "quote": "Contradictory memory: system surfaces disagreement instead of flattening it.",
+      "locator": "## Benchmark scenarios, item 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vestige claims tombstone-based deletion prevents stale retrieval of removed source records.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/86",
+      "quote": "connector tombstone prevents stale retrieval",
+      "locator": "## Benchmark scenarios, item 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Outcome labeling (helpful, dead end, accepted, rejected, duplicate risk, needs proof) constitutes a user-driven write/update path on memory records.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/91",
+      "quote": "Users can label outcomes as helpful, dead end, accepted, rejected, duplicate risk, or needs proof.",
+      "locator": "## Acceptance criteria",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Projection targets include active goals and milestones, but this is marked as future work (\"once available\").",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/87",
+      "quote": "active goals and milestones once available",
+      "locator": "## Projection types",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory types targeted for storage include architecture decisions, known dead paths, failing-test lessons, and review preferences \u2014 curated facts rather than full transcripts.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/88",
+      "quote": "architecture decisions, code patterns, public APIs, critical modules, setup commands, failing-test lessons, migration notes, dependency constraints, known dead paths, review preferences",
+      "locator": "## Memory types to support",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vestige supports JSON/JSONL memory migrations as an import mode, implying an existing serialized memory format.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/89",
+      "quote": "JSON/JSONL memory migrations",
+      "locator": "## Import modes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vestige distinguishes at least two prospective memory types: intentions (reminders) and goals (durable direction), with different decay and trigger semantics.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/90",
+      "quote": "Intentions are for prospective reminders. Goals are longer-lived direction that should survive normal decay until the user explicitly pivots, completes, pauses, or cancels them. This should not be modeled as a normal fading memory or a reminder that fires randomly.",
+      "locator": "## Product goal",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A continuity failure mode motivating this feature is agents restarting long-running projects from scratch across sessions.",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/90",
+      "quote": "what should not be restarted from scratch? Long-running projects are where agents feel weakest.",
+      "locator": "## Why this matters / ## Why this helps growth",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Purge and suppress are OSS lifecycle/forget primitives",
+      "kind": "issue",
+      "url": "https://github.com/samvallad33/vestige/issues/92",
+      "quote": "search, ingest, lifecycle, purge, suppress, protect",
+      "locator": "## OSS vs Pro boundary",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/smart_ingest.rs",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/search_unified.rs",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/backfill.rs",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-core/src/fsrs/scheduler.rs",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-core/src/storage/synaptic_store.rs",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/blob/3c5b198712d97b1f5350a04a4f2df5ed6cb2245b/crates/vestige-mcp/src/tools/suppress.rs",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/AGENT-MEMORY-PROTOCOL.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/SCIENCE.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/MEMORY_HYGIENE.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/blob/main/docs/FAQ.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/145",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/156",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/191",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/154",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/142",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/82",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/85",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/92",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/91",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/90",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/89",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/88",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/87",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/117",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/86",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/84",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/137",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/124",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/219",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/samvallad33/vestige/issues/212",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://news.ycombinator.com/item?id=48993285",
+      "kind": "community",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "How the consolidation trigger (fired after each tool execute()) relates to memory writes or summarisation \u2014 the page names it but does not describe its behavior.",
+      "url": "https://github.com/samvallad33/vestige/issues/117",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether dedup protect pins are actually honored by the background consolidation cycle is explicitly unconfirmed on this page; the reporter asks for confirmation and the issue has no response.",
+      "url": "https://github.com/samvallad33/vestige/issues/142",
+      "kind": "issue"
+    },
+    {
+      "text": "No description on this page of how the retrieve/selection policy works \u2014 what memories are surfaced into a turn and under what conditions",
+      "url": "https://github.com/samvallad33/vestige/issues/154",
+      "kind": "issue"
+    },
+    {
+      "text": "The page references 'hybrid+cognitive' retrieval as the full recall mode but does not describe what the cognitive component selects or how it determines relevance for a given turn.",
+      "url": "https://github.com/samvallad33/vestige/issues/191",
+      "kind": "issue"
+    }
+  ]
+}
