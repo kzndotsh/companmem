@@ -1,0 +1,1072 @@
+{
+  "identity": {
+    "id": "mirix",
+    "name": "MIRIX",
+    "repo": "https://github.com/Mirix-AI/MIRIX",
+    "docs": "https://github.com/Mirix-AI/MIRIX/blob/main/README.md",
+    "license": "Apache-2.0",
+    "version_or_commit": "8cb06a62bbb7c478beb33dd4f2815696a72df482",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "MIRIX organizes information into six distinct memory components, each designed to handle specific types of data and provide optimal retrieval performance."
+    },
+    {
+      "text": "Episodic Memory captures context-specific events and temporal activities, serving as a summarization or calendar of user behaviors."
+    },
+    {
+      "text": "Core Memory provides persistent information always visible to the agent when interacting with the user."
+    },
+    {
+      "text": "Multi-agent memory system with six specialized memory components managed by dedicated agents"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Six distinct memory types are persisted: Core (persona + human profile blocks), Episodic (time-stamped events), Semantic (facts and concepts), Procedural (how-to procedures), Resource (files, links, assets), and Knowledge Vault (sensitive/private facts)."
+    },
+    {
+      "text": "Message history is summarized via an LLM call when the token count of the sequence to summarize exceeds a warning threshold relative to the context window, compressing the log rather than keeping it verbatim."
+    },
+    {
+      "text": "Context window management summarises history when it reaches 75% of the context window, targets 10% pressure after summarisation, preserves the last 5 messages, prepends the summary, and trims old messages."
+    },
+    {
+      "text": "The LLM-facing write schema requires occurred_at as a string parseable from the user's response, meaning the LLM is expected to extract event time from conversation content at write time."
+    },
+    {
+      "text": "Images are handled end-to-end in the memory pipeline: they are converted to ImageContent with an image_id and expanded into real image bytes or URL for provider requests."
+    },
+    {
+      "text": "Message content types in the memory layer natively support text, image_url, file_uri, and google_cloud_file_uri, but not audio or video as first-class types."
+    },
+    {
+      "text": "Auto-dream consolidation: reviews existing memories, merges duplicates, resolves stale/conflicting entries, and writes the result back through memory tools"
+    },
+    {
+      "text": "Session conversation store persists message turns including tool calls, tool errors, and assistant responses \u2014 full transcript log per session"
+    },
+    {
+      "text": "A transcription helper exists (voice_utils.py) but is not wired into the REST or queue processing path for memory ingestion."
+    },
+    {
+      "text": "Events are isolated per user, per agent, and per client application, enabling multi-tenant and multi-agent separation."
+    },
+    {
+      "text": "All memories for a user can be deleted via the users endpoint, and all memories for a client via the clients endpoint."
+    },
+    {
+      "text": "CoreMemoryAgent is a named agent subclass, implying a dedicated agent role for core memory operations within MIRIX"
+    },
+    {
+      "text": "Async memory extraction is queued via Kafka (aiokafka), decoupling extraction from the synchronous request path."
+    },
+    {
+      "text": "The mirixAgent class is the entry point for both chat and memory/embedding initialization, configured via YAML."
+    },
+    {
+      "text": "send_message() is the primary API for processing input into memory, handling classification of what is stored."
+    },
+    {
+      "text": "Procedural memory migrated to skill-based model; backfill sets scope filter tags per skill's owning client"
+    },
+    {
+      "text": "Memory extraction is gated by a memorizing flag, suggesting extraction is not automatic on every turn"
+    },
+    {
+      "text": "A reflexion_agent performs self-reflection and learning as a distinct agent type."
+    },
+    {
+      "text": "Foundation of the memory system is derived from the Letta open-source framework"
+    },
+    {
+      "text": "Episodic Memory automatic cleanup archives old entries based on relevance."
+    },
+    {
+      "text": "MIRIX defines 6 distinct memory types as part of its core architecture"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "MIRIX has six specialized memory components \u2014 Core, Episodic, Semantic, Procedural, Resource, Knowledge Vault \u2014 each managed by a dedicated agent",
+      "kind": "code",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/README.md",
+      "quote": "Six specialized memory components (Core, Episodic, Semantic, Procedural, Resource, Knowledge Vault) managed by dedicated agents",
+      "locator": "Key Features",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Procedural memory learns skills from tool-call sequences including errors, retries, and successful fixes within session logs",
+      "kind": "code",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/README.md",
+      "quote": "tool errors, retries, and the fix that finally worked are the distiller's strongest signals. Pass tool results as role=\"tool\" turns and/or a \"tool_calls\" list on assistant messages (OpenAI shape) \u2014 both are preserved in the session conversation store.",
+      "locator": "Quick Start / code example comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is query-driven with a configurable result limit; not always-on injection",
+      "kind": "code",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/README.md",
+      "quote": "memories = client.retrieve_with_conversation(\n    user_id=\"demo-user\",\n    messages=[...],\n    limit=5,\n)",
+      "locator": "Quick Start / code example",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Auto-dream is an explicit consolidation pass that merges duplicates and resolves conflicts; it is not automatic on every write",
+      "kind": "code",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/README.md",
+      "quote": "MIRIX also exposes an auto-dream endpoint for explicit memory cleanup and consolidation. Auto-dream reviews existing memories, merges duplicates, resolves stale/conflicting entries where possible, and writes the result back through the memory tools.",
+      "locator": "Auto-Dream Memory Consolidation",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory system is built on the Letta open-source framework as its foundation",
+      "kind": "code",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/README.md",
+      "quote": "We would like to thank Letta for open-sourcing their framework, which served as the foundation for the memory system in this project.",
+      "locator": "Acknowledgement",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MIRIX has a dedicated CoreMemoryAgent class that extends a base Agent class, indicating memory is modeled as a specialised agent role rather than a utility or inline function",
+      "kind": "code",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/agent/core_memory_agent.py",
+      "quote": "class CoreMemoryAgent(Agent):\n    def __init__(self, **kwargs):\n        # load parent class init\n        super().__init__(**kwargs)",
+      "locator": "mirix/agent/core_memory_agent.py:1-6",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MIRIX has a named EpisodicMemoryAgent subclass, implying episodic memory (curated past events, not raw log) is architecturally separated from the base agent.",
+      "kind": "code",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/agent/episodic_memory_agent.py",
+      "quote": "class EpisodicMemoryAgent(Agent):",
+      "locator": "mirix/agent/episodic_memory_agent.py:4",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MIRIX treats procedural memory as a distinct memory category, instantiated via a dedicated agent subclass rather than a generic store.",
+      "kind": "code",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/agent/procedural_memory_agent.py",
+      "quote": "class ProceduralMemoryAgent(Agent):",
+      "locator": "mirix/agent/procedural_memory_agent.py:3",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MIRIX implements semantic memory as a separate agent type (SemanticMemoryAgent) that extends a shared Agent base class",
+      "kind": "code",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/agent/semantic_memory_agent.py",
+      "quote": "class SemanticMemoryAgent(Agent):\n    def __init__(self, **kwargs):\n        # load parent class init\n        super().__init__(**kwargs)",
+      "locator": "mirix/agent/semantic_memory_agent.py:1-6",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MIRIX compresses older message history into a summary (log-to-summary write path) when token usage crosses a threshold, rather than keeping a full verbatim transcript in context.",
+      "kind": "code",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/memory.py",
+      "quote": "if summary_input_tkns > summarizer_settings.memory_warning_threshold * context_window:",
+      "locator": "summarize_messages, threshold check",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The summarization scaffold sends a fixed system prompt plus an assistant acknowledgment message (MESSAGE_SUMMARY_REQUEST_ACK) before the content to compress, forming a structured summarizer conversation rather than a raw continuation.",
+      "kind": "code",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/memory.py",
+      "quote": "Message(\n            agent_id=dummy_agent_id,\n            role=MessageRole.system,\n            content=[TextContent(text=summary_prompt)],\n        ),\n        Message(\n            agent_id=dummy_agent_id,\n            role=MessageRole.assistant,\n            content=[TextContent(text=MESSAGE_SUMMARY_REQUEST_ACK)],\n        ),",
+      "locator": "summarize_messages, message_sequence construction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is scoped per agent (agent_id on each Message and AgentState passed to summarize_messages), suggesting isolation at the agent level.",
+      "kind": "code",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/memory.py",
+      "quote": "dummy_agent_id = agent_state.id\n        message_sequence = [\n            Message(\n                agent_id=dummy_agent_id,",
+      "locator": "summarize_messages, dummy_agent_id block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The truncation ratio includes an 0.8 safety multiplier to avoid the recursive summarization itself overflowing the context window.",
+      "kind": "code",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/memory.py",
+      "quote": "trunc_ratio = (\n            summarizer_settings.memory_warning_threshold * context_window / summary_input_tkns\n        ) * 0.8  # For good measure...",
+      "locator": "summarize_messages, trunc_ratio",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MIRIX episodic memory is a curated event store, not a raw message log \u2014 each record has an explicit summary and details field written by the LLM, not a verbatim transcript copy.",
+      "kind": "code",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/schemas/episodic_memory.py",
+      "quote": "summary: str = Field(..., description=\"Short textual summary of the event\") ... details: str = Field(..., description=\"Detailed description or text for the event\")",
+      "locator": "class EpisodicEventBase, field definitions",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Episodic memory records are isolated at least by user_id and optionally by agent_id and client_id, enabling per-agent and per-application separation.",
+      "kind": "code",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/schemas/episodic_memory.py",
+      "quote": "agent_id: Optional[str] = Field(None, description=\"The id of the agent this episodic event belongs to\") ... client_id: Optional[str] = Field(None, description=\"The id of the client application that created this event\") ... user_id: str = Field(..., description=\"The id of the user who generated the episodic event\")",
+      "locator": "class EpisodicEvent, field definitions",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is embedding-based: both the summary and the full details of each event are embedded and stored, and embeddings are padded to a fixed dimension at write time.",
+      "kind": "code",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/schemas/episodic_memory.py",
+      "quote": "details_embedding: Optional[List[float]] = Field(None, description=\"The embedding of the event\") ... summary_embedding: Optional[List[float]] = Field(None, description=\"The embedding of the summary\") ... \"\"\"Pad embeddings to `MAX_EMBEDDING_SIZE`. This is necessary to ensure all stored embeddings are the same size.\"\"\"",
+      "locator": "class EpisodicEvent, fields and pad_embeddings method",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The write schema exposed to the LLM (EpisodicEventForLLM) requires the LLM to extract and provide the event's occurred_at timestamp from the user's response content.",
+      "kind": "code",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/schemas/episodic_memory.py",
+      "quote": "occurred_at: str = Field(..., description=\"When the event happened (it should be mentioned in the user's response and it should be in the format of 'YYYY-MM-DD HH:MM:SS')\")",
+      "locator": "class EpisodicEventForLLM, field occurred_at",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The update schema supports partial in-place modification of existing episodic records, with last_modify tracking the operation type and timestamp.",
+      "kind": "code",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/schemas/episodic_memory.py",
+      "quote": "Schema for updating an existing episodic memory record. All fields (except id) are optional so that only provided fields are updated.",
+      "locator": "class EpisodicEventUpdate, docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MIRIX uses six specialized memory components (Core, Episodic, Semantic, Procedural, Resource, Knowledge Vault), each managed by a dedicated agent",
+      "kind": "docs",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/main/README.md",
+      "quote": "Multi-Agent Memory System: Six specialized memory components (Core, Episodic, Semantic, Procedural, Resource, Knowledge Vault) managed by dedicated agents",
+      "locator": "Key Features section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Core memory persists labeled blocks (human, persona) that survive across sessions",
+      "kind": "docs",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/main/README.md",
+      "quote": "\"core_memory_agent\": { \"blocks\": [ { \"label\": \"human\", \"value\": \"\" }, { \"label\": \"persona\", \"value\": \"I am a helpful assistant.\" } ] }",
+      "locator": "Quick Start / initialize_meta_agent config example",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Session conversation store preserves full tool call and tool result turns (log, not curated facts)",
+      "kind": "docs",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/main/README.md",
+      "quote": "both are preserved in the session conversation store",
+      "locator": "Quick Start / client.add() example comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Auto-dream is the write/update/conflict path: it merges duplicates and resolves stale or conflicting entries across memory components",
+      "kind": "docs",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/main/README.md",
+      "quote": "Auto-dream reviews existing memories, merges duplicates, resolves stale/conflicting entries where possible, and writes the result back through the memory tools.",
+      "locator": "Auto-Dream Memory Consolidation section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Procedural memory is skill-based and scoped per owning client; scope is stored as a filter tag",
+      "kind": "docs",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/main/README.md",
+      "quote": "migrate_backfill_procedural_scope.sql # backfill filter_tags['scope'] from each skill's owning client",
+      "locator": "Upgrading an Existing Database / migration scripts list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path persists typed memories to PostgreSQL via ORM managers after LLM-based extraction by sub-agents.",
+      "kind": "docs",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/main/docs/ARCHITECTURE.md",
+      "quote": "Sub-agents extract typed memories via tools \u2192 Managers (mirix/services/) persist via ORM \u2192 PostgreSQL",
+      "locator": "Data Flow > Write path (add memories)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval combines BM25 full-text search, vector similarity (pgvector), and fuzzy matching (rapidfuzz), with results ranked before return.",
+      "kind": "docs",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/main/docs/ARCHITECTURE.md",
+      "quote": "BM25 full-text search (pg_bm25) - Vector similarity search (pgvector) - Fuzzy match (rapidfuzz) \u2192 Results ranked and returned",
+      "locator": "Data Flow > Read path (retrieve memories)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Six memory types partition persistent state by kind: core (persona/profile), episodic (events), semantic (facts), procedural (how-to), resource (files/links), knowledge vault (sensitive facts).",
+      "kind": "docs",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/main/docs/ARCHITECTURE.md",
+      "quote": "Core \u2026 Persona + human profile blocks | Episodic \u2026 Time-stamped events | Semantic \u2026 Facts and concepts | Procedural \u2026 How-to procedures | Resource \u2026 Files, links, assets | Knowledge Vault \u2026 Sensitive/private facts",
+      "locator": "Memory Types",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Individual memory records can be updated (PATCH) or deleted (DELETE) per memory type via REST endpoints.",
+      "kind": "docs",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/main/docs/ARCHITECTURE.md",
+      "quote": "PATCH /memory/episodic/{memory_id}\nDELETE /memory/episodic/{memory_id}\nPATCH /memory/semantic/{memory_id}\nDELETE /memory/semantic/{memory_id}",
+      "locator": "REST API Endpoints > Memory",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Bulk memory deletion is scoped per-user and per-client, indicating user-level and client-level memory isolation.",
+      "kind": "docs",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/main/docs/ARCHITECTURE.md",
+      "quote": "DELETE /users/{user_id}/memories \u2026 DELETE /clients/{client_id}/memories",
+      "locator": "REST API Endpoints > Users & Organizations / Clients & API Keys",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Context window is managed by summarisation at 75% capacity, targeting 10% pressure, keeping the last 5 messages and prepending a summary.",
+      "kind": "docs",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/main/docs/ARCHITECTURE.md",
+      "quote": "Warning threshold : 75% of context window ( memory_warning_threshold = 0.75 )\nTarget after summarization : 10% memory pressure ( desired_memory_token_pressure = 0.1 )\nSummarization preserves the last 5 messages ( keep_last_n_messages = 5 )\nSummary is prepended; old messages are trimmed",
+      "locator": "Agent Execution > Context window management",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Async memory extraction is decoupled from the request path via a Kafka queue.",
+      "kind": "docs",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/main/docs/ARCHITECTURE.md",
+      "quote": "Kafka (via aiokafka) \u2026 Async memory extraction queue",
+      "locator": "Infrastructure Services",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A dedicated reflexion_agent handles self-reflection and learning as a named agent type.",
+      "kind": "docs",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/main/docs/ARCHITECTURE.md",
+      "quote": "reflexion_agent AgentType.reflexion_agent Self-reflection and learning",
+      "locator": "Agent Types",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Triggering zero managers (Managers 0 Triggered) in the meta_memory_agent causes no downstream writes, resulting in 'No updates recorded' \u2014 a continuity failure where content the model correctly classifies is silently dropped from the store",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/103",
+      "quote": "Managers\n0 Triggered\n...\nNo updates recorded.",
+      "locator": "issue body, Managers0 Triggered section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Even when trigger_memory_update is called with memory_types=[\"semantic\",\"knowledge\"], the sub-agent may complete with 'No updates recorded', indicating the insert call either fails silently or is not executed",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/103",
+      "quote": "Updates Summary\nNo updates recorded.\nAssistant Output\n...semantic_memory_insert...",
+      "locator": "issue body, semantic_memory_agent Updates Summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "retrieve_memories supports a topics parameter (nullable) and returns per-component counts and text, used by sub-agents to avoid duplicate writes",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/103",
+      "quote": "retrieve_memories\n26ms\ncompleted\nArguments\n{\n  \"topics\": null\n}",
+      "locator": "issue body, semantic_memory_agent Tool Calls",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is isolated per user via user_id on the client.add() write path",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/103",
+      "quote": "result = client.add(\n            user_id=user_id,",
+      "locator": "issue body, first code block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Current MIRIX architecture is designed for a single user, without multi-user memory isolation",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/11",
+      "quote": "Is the current MIRIX architecture designed for a single user?",
+      "locator": "issue body, opening question",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Multi-user support would require metadata to distinguish memories of different users, which is not yet present",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/11",
+      "quote": "it is necessary to distinguish the memories of multiple users. Will the subsequent MIRIX design consider adding some metadata to distinguish the memories of different users?",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MIRIX has a core architecture consisting of 6 memory types and an agent structure",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/112",
+      "quote": "MIRIX-node duplicates the core architecture (6 memory types, agent structure)",
+      "locator": "issue body, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MIRIX docs/README claim multimodal memory support (text, images, audio, video) that is not fully implemented in v0.1.6.",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/115",
+      "quote": "The README/paper/docs describe MIRIX as supporting multimodal inputs (text, images, audio, video). In the current `main` branch (v0.1.6), the code path for the memory layer appears to natively support **text + images**, but **not audio/video as first-class inputs**.",
+      "locator": "Summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MIRIX's memory layer supports text and images as first-class input types in v0.1.6, but audio and video are not first-class inputs.",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/116",
+      "quote": "Message content types include `text`, `image_url`, `file_uri`, `google_cloud_file_uri` (no `audio` / `video`). Code: `mirix/schemas/mirix_message_content.py`",
+      "locator": "What actually happens",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Image storage assigns an image_id and resolves bytes/URL at provider request time, forming the end-to-end image memory path.",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/115",
+      "quote": "Images are handled end-to-end: they become `ImageContent(image_id=...)` and are expanded into real image bytes/URL for provider requests.",
+      "locator": "What actually happens / mirix/utils.py, mirix/llm_api/openai_client.py, mirix/llm_api/anthropic_client.py",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A transcription helper for voice/audio exists but is disconnected from the memory ingestion pipeline, leaving audio memory partially unimplemented.",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/115",
+      "quote": "There is a transcription helper (`mirix/voice_utils.py`), but it does not appear wired into the REST/queue processing path.",
+      "locator": "What actually happens / mirix/voice_utils.py",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "episodic_memory_merge accepts only event_id, combined_summary, combined_details; extra fields from the model cause tool-call argument mismatches",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/128",
+      "quote": "episodic_memory_merge() got an unexpected keyword argument 'actor'\nepisodic_memory_merge() got an unexpected keyword argument 'tree_path'",
+      "locator": "Memory tool failures observed",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The knowledge_vault store uses a last_modify JSON timestamp column queried with the ->> operator, requiring PostgreSQL+pgvector; SQLite is unsupported on the evals branch",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/128",
+      "quote": "ORDER BY CAST(knowledge_vault.last_modify ->> 'timestamp' AS DATETIME) DESC\nThis appears to be caused by SQLite not supporting PostgreSQL-style JSON operators.",
+      "locator": "Reproduction > 1. SQLite path fails",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "MIRIX retrieval returns nearby or generic memories rather than exact evidence, producing wrong answers on specific social-event and date questions in LoCoMo",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/128",
+      "quote": "The bigger pattern is that answers often retrieve or use adjacent/generic memories instead of the exact evidence.",
+      "locator": "Error pattern in wrong answers",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Official LoCoMo LLM score for global_idx=1 is in the 0.8889\u20130.9259 range; the reproduced run yields 0.7654, a large gap the reporter attributes to retrieval quality and tool failures",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/128",
+      "quote": "the provided official evaluation metrics appear to be around: 0.8889 - 0.9259 LLM score\nso this is a large gap",
+      "locator": "Observed score",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The evals entry point is public_evaluations/main.py with run_instance.py handling per-instance execution; results are written to a structured results/ path",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/128",
+      "quote": "the official `main.py -> run_instance.py` path completes successfully for `global_idx=1`\nGenerated result:\nresults/mirix_LOCOMO-modelgpt-4.1-mini/1_subsetNone_cksizeNone/results.json",
+      "locator": "Reproduction > 2. PostgreSQL path completes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MIRIX's memory system is multimodal, and a text-only model like qwen3-32b may be insufficient to drive it; a multimodal model like Gemini may be required.",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/14",
+      "quote": "The memory system part is multimodal. How can I use qwen3-32b according to the tutorial? In theory, it is impossible to drive the memory system, right? Do I need a model similar to gemini that supports all modal inputs?",
+      "locator": "issue body, first paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "send_message() classifies input into memory categories during ingestion.",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/21",
+      "quote": "send_message() provides optimized processing and memory classification",
+      "locator": "issue body, section 1 (Bulk File Ingestion)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Granular memory management (tag-based search and delete) is a missing capability flagged as a gap for real-world enterprise use.",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/21",
+      "quote": "For use in real-world tools (especially enterprise), we need more granular memory management.",
+      "locator": "issue body, section 3 (Memory Deletion / Tag System for Long-term Control)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory extraction requires memorizing=True; it does not occur automatically during regular conversation flows",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/26",
+      "quote": "Is memory only extracted when memorizing=True? If so, how can we extract memory during regular conversation flows?",
+      "locator": "issue body, Memory Extraction Timing",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "CHAINING_FOR_MEMORY_UPDATE=False (the default) may terminate processing after any tool call, potentially preventing memory from being written",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/26",
+      "quote": "The default CHAINING_FOR_MEMORY_UPDATE=False appears to terminate the process after any tool call (such as search_in_memory, or others), maybe preventing memory from being saved. Is this the intended behavior?",
+      "locator": "issue body, Memory Update Behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MIRIX uses an additional LLM turn to refine memory retrieval queries before searching",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/29",
+      "quote": "MIRIX needs to check what the user wants to know, so it needs one more chat with LLM to improve search memory",
+      "locator": "issue body, question 1 bullet 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The underlying database or storage system used by MIRIX for memory is unknown to the commenter and not documented accessibly",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/29",
+      "quote": "Can you tell me which db or system MIRIX stores memory information?",
+      "locator": "issue body, question 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "When using azure_openai as the LLM backend, the semantic and episodic memory insert functions fail because they still attempt to call a Google AI/Vertex AI embedding or storage backend, indicating the memory write path has a separate embedding dependency not overridden by the LLM provider setting.",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/33",
+      "quote": "Error executing function semantic_memory_insert: ValueError: Missing key inputs argument! To use the Google AI API,provide (`api_key`) arguments. To use the Google Cloud API, provide (`vertexai`, `project` & `location`) arguments.",
+      "locator": "issue body / error log",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MIRIX architecture includes named specialist memory agents (core memory agent, episodic memory agent, and others).",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/50",
+      "quote": "specific memory agents (such as core memory agent, episodic memory agent and etc)",
+      "locator": "issue #50 body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "mirixAgent hardcodes GoogleGenAIEmbedding for memory/embedding, ignoring YAML embedding_provider config",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/64",
+      "quote": "The `mirixAgent` class is **hardcoded to initialize `GoogleGenAIEmbedding`** for memory/embedding tasks, completely ignoring the `embedding_provider` and related settings in the YAML configuration file.",
+      "locator": "Bug Description",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory and embedding functionality is configured separately from chat in the YAML file via embedding_provider and embedding_model_name fields",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/64",
+      "quote": "Explicitly adding `embedding_provider: openai` and `embedding_model_name` to the YAML file had no effect. The error persisted, proving that these configuration fields are being ignored by the code.",
+      "locator": "Symptom Progression",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "mirixAgent is the class responsible for initializing both chat and memory/embedding subsystems, located in mirix/agent/agent_wrapper.py",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/64",
+      "quote": "The root of the problem lies in the `__init__` method of the `mirixAgent` class, located in `mirix/agent/agent_wrapper.py`.",
+      "locator": "Root Cause Analysis",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation bug: core memory manager does not isolate per-user blocks \u2014 all users share the default user's block, causing cross-user memory leakage in chat responses.",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/66",
+      "quote": "When you use chat function with user1's id, you might get user2's memories, which is not I expect. [...] even though two different users are created, core memories are only stored in the block of default user.",
+      "locator": "issue body, 'How to reproduce?' and 'database screenshot' sections",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Continuity failure: a user asking about their own hobby receives another user's stored memory verbatim ('Your hobby is to play basketball and soccer' returned to zyk002 who stored swimming/hiking).",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/66",
+      "quote": "As zjk002, I expect not to get zjk001's core memory, but Mirix produce: \"Your hobby is to play basketball and soccer\"",
+      "locator": "issue body, 'How to reproduce?' section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Affected version is v0.1.3 running on SQLite3 with qwen3-8B as the LLM model.",
+      "kind": "issue",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/66",
+      "quote": "Mirix version: tag v0.1.3 [...] LLM model: qwen3-8B\ndatabase: sqlite3",
+      "locator": "issue body, 'Mirix version' and 'Other information might be useful' sections",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "MIRIX outperforms RAG baselines on ScreenshotVQA by 35% in LLM-as-a-Judge accuracy and reduces retrieval storage by 99.9%",
+      "kind": "blog",
+      "url": "https://www.marktechpost.com/2025/07/20/mirix-a-modular-multi-agent-memory-system-for-enhanced-long-term-reasoning-and-personalization-in-llm-based-agents/",
+      "quote": "MIRIX outperforms retrieval-augmented generation (RAG) baselines\u2014specifically SigLIP and Gemini\u2014by 35% in LLM-as-a-Judge accuracy, while reducing retrieval storage needs by 99.9% compared to text-heavy methods.",
+      "locator": "Evaluation on Multimodal and Conversational Benchmarks \u2014 ScreenshotVQA bullet",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MIRIX achieves 85.38% average accuracy on LOCOMO, outperforming LangMem and Mem0 by over 8 points",
+      "kind": "blog",
+      "url": "https://www.marktechpost.com/2025/07/20/mirix-a-modular-multi-agent-memory-system-for-enhanced-long-term-reasoning-and-personalization-in-llm-based-agents/",
+      "quote": "MIRIX achieves 85.38% average accuracy, outperforming strong open-source systems such as LangMem and Mem0 by over 8 points, and approaching full-context sequence upper bounds.",
+      "locator": "Evaluation on Multimodal and Conversational Benchmarks \u2014 LOCOMO bullet",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Active Retrieval reduces reliance on outdated parametric model knowledge and provides stronger answer grounding",
+      "kind": "blog",
+      "url": "https://www.marktechpost.com/2025/07/20/mirix-a-modular-multi-agent-memory-system-for-enhanced-long-term-reasoning-and-personalization-in-llm-based-agents/",
+      "quote": "This process decreases reliance on outdated parametric model knowledge and provides much stronger answer grounding.",
+      "locator": "Active Retrieval and Interaction Pipeline",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory Marketplace enables secure memory sharing, monetization, and collaborative personalization with fine-grained privacy controls and decentralized storage",
+      "kind": "blog",
+      "url": "https://www.marktechpost.com/2025/07/20/mirix-a-modular-multi-agent-memory-system-for-enhanced-long-term-reasoning-and-personalization-in-llm-based-agents/",
+      "quote": "A visionary feature of MIRIX is the Memory Marketplace: a decentralized ecosystem enabling secure memory sharing, monetization, and collaborative AI personalization between users. The Marketplace is designed with fine-grained privacy controls, end-to-end encryption, and decentralized storage to ensure data sovereignty and user self-ownership.",
+      "locator": "Use Cases: Wearables and the Memory Marketplace",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "MIRIX has six persistent memory stores: Core Memory, Episodic Memory, Semantic Memory, Procedural Memory, Resource Memory, and Knowledge Vault, each typed for different data.",
+      "kind": "blog",
+      "url": "https://docs.mirix.io/architecture/memory-components/",
+      "quote": "MIRIX organizes information into six distinct memory components, each designed to handle specific types of data and provide optimal retrieval performance.",
+      "locator": "page intro",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Core Memory is always-on (scaffold): it is always visible to the agent during user interaction, not retrieved on demand.",
+      "kind": "blog",
+      "url": "https://docs.mirix.io/architecture/memory-components/",
+      "quote": "Purpose : Persistent information that should always be visible to the agent when interacting with the user.",
+      "locator": "1. Core Memory > Purpose",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Core Memory uses character-count capacity limits per block (human: 500 chars, persona: 5000 chars) and rewrites blocks when approaching capacity.",
+      "kind": "blog",
+      "url": "https://docs.mirix.io/architecture/memory-components/",
+      "quote": "<human 117/500 characters>\n...\n<persona 24/5000 characters>\n...\nCore Memory : Rewrites blocks when approaching capacity",
+      "locator": "1. Core Memory > Structure; Memory Optimization > Automatic Cleanup",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Core Memory design is attributed to MemGPT's core memory architecture.",
+      "kind": "blog",
+      "url": "https://docs.mirix.io/architecture/memory-components/",
+      "quote": "Inspired by : MemGPT's core memory architecture",
+      "locator": "1. Core Memory > Structure",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Episodic Memory stores curated event summaries (not full transcripts) with actor and timestamp, functioning as a summarization or calendar of user behaviors.",
+      "kind": "blog",
+      "url": "https://docs.mirix.io/architecture/memory-components/",
+      "quote": "Purpose : Captures context-specific events and temporal activities, serving as a summarization or calendar of user behaviors.",
+      "locator": "2. Episodic Memory > Purpose",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Episodic Memory forget/cleanup policy archives old entries based on relevance (not deletion by explicit user command).",
+      "kind": "blog",
+      "url": "https://docs.mirix.io/architecture/memory-components/",
+      "quote": "Episodic Memory : Archives old entries based on relevance",
+      "locator": "Memory Optimization > Automatic Cleanup",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Semantic Memory stores abstracted facts, concepts, and knowledge about other people, independent of temporal context; duplicate concepts are merged automatically.",
+      "kind": "blog",
+      "url": "https://docs.mirix.io/architecture/memory-components/",
+      "quote": "Purpose : Maintains general knowledge, concepts, and abstracted information independent of temporal context.\n...\nSemantic Memory : Merges duplicate concepts",
+      "locator": "3. Semantic Memory > Purpose; Memory Optimization > Automatic Cleanup",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Procedural Memory stores step-by-step workflows and guides; entries are updated based on usage patterns.",
+      "kind": "blog",
+      "url": "https://docs.mirix.io/architecture/memory-components/",
+      "quote": "Purpose : Records process workflows and step-by-step instructions for accomplishing specific tasks.\n...\nProcedural Memory : Updates workflows based on usage patterns",
+      "locator": "4. Procedural Memory > Purpose; Memory Optimization > Automatic Cleanup",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Resource Memory stores full document content (pdf, markdown, voice transcripts) alongside title and summary; unused resources are compressed or removed.",
+      "kind": "blog",
+      "url": "https://docs.mirix.io/architecture/memory-components/",
+      "quote": "Purpose : Manages active documents and project-related files that the user interacts with.\n...\nResource Memory : Compresses or removes unused resources",
+      "locator": "5. Resource Memory > Purpose; Memory Optimization > Automatic Cleanup",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Knowledge Vault stores sensitive credentials and personal data with sensitivity tiers; data is encrypted at rest, access-controlled, audit-logged, and credentials can auto-expire.",
+      "kind": "blog",
+      "url": "https://docs.mirix.io/architecture/memory-components/",
+      "quote": "Security Features\nEncryption : Sensitive data encrypted at rest\nAccess Control : Restricted access based on sensitivity level\nAudit Trail : All access to sensitive data is logged\nAutomatic Expiration : Credentials can have expiration dates",
+      "locator": "6. Knowledge Vault > Security Features",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "All six memory stores are queryable through a unified search_in_memory API that accepts query string, memory_type selector, and limit.",
+      "kind": "blog",
+      "url": "https://docs.mirix.io/architecture/memory-components/",
+      "quote": "results = search_in_memory (\nquery = \"machine learning project\" ,\nmemory_type = 'episodic' , # can be chosen from ['all', 'episodic', 'semantic', 'resource', 'procedural', 'knowledge_vault']\nlimit = 20\n)",
+      "locator": "Memory Interaction Patterns > Search Integration",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MIRIX organizes memory into six functionally distinct types managed by dedicated agents under a Meta Memory Manager",
+      "kind": "blog",
+      "url": "https://www.emergentmind.com/topics/mirix-architecture",
+      "quote": "MIRIX transcends the scope of prior flat memory approaches by structuring memory into six functionally distinct types and orchestrating memory operations through a dynamic multi-agent framework.",
+      "locator": "MIRIX Architecture, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Core Memory is always visible during interactions and uses controlled rewrite at 90% capacity rather than eviction",
+      "kind": "blog",
+      "url": "https://www.emergentmind.com/topics/mirix-architecture",
+      "quote": "It is designed to stay 'visible' throughout interactions, with controlled rewrites triggered above 90% capacity to ensure essential information is retained.",
+      "locator": "Section 2: Specialized Memory Types, Core Memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "New inputs are checked against existing memory before update, implying a conflict/supersession check prior to write",
+      "kind": "blog",
+      "url": "https://www.emergentmind.com/topics/mirix-architecture",
+      "quote": "New inputs (such as screenshots or user queries) are first checked against existing memory. The Meta Memory Manager then selects which agents must be updated, enabling simultaneous and non-conflicting memory updates.",
+      "locator": "Section 3: Multi-Agent Coordination and Control",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Raw images (screen captures) are deleted after extraction, so only processed/abstracted information is persisted",
+      "kind": "blog",
+      "url": "https://www.emergentmind.com/topics/mirix-architecture",
+      "quote": "Privacy is maintained by storing only processed information in a secure local sqlite database, while raw images are discarded after extraction, minimizing both risk and storage demand.",
+      "locator": "Section 5: Application Deployment and Privacy",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MIRIX achieved ~85.4% overall accuracy on LoCoMo benchmark \u2014 vendor harness score, not independent companion proof",
+      "kind": "blog",
+      "url": "https://www.emergentmind.com/topics/mirix-architecture",
+      "quote": "MIRIX attained approximately 85.4% overall accuracy, outperforming existing baselines notably in multi-hop reasoning (by 24 points in some categories)",
+      "locator": "Section 4: Benchmark Performance and Empirical Results, LOCOMO",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is per-user and local; the deployed application is single-user with all memory stored in a local SQLite database",
+      "kind": "blog",
+      "url": "https://www.emergentmind.com/topics/mirix-architecture",
+      "quote": "MIRIX utilizes a compact sqlite database (~15\u201320 MB) due to information abstraction and redundancy elimination\u2026 storing only processed information in a secure local sqlite database",
+      "locator": "Sections 4 and 5",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/memory.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/agent/episodic_memory_agent.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/agent/semantic_memory_agent.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/agent/core_memory_agent.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/agent/procedural_memory_agent.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/schemas/episodic_memory.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/main/docs/ARCHITECTURE.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/112",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/103",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/50",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/66",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/14",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/11",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/26",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/128",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/64",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/21",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/116",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/115",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/29",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/33",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.marktechpost.com/2025/07/20/mirix-a-modular-multi-agent-memory-system-for-enhanced-long-term-reasoning-and-personalization-in-llm-based-agents/",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://docs.mirix.io/architecture/memory-components/",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Retrieve policy: the page shows retrieve_with_conversation as an explicit client call but does not document whether memories are automatically injected into every agent turn or only on explicit retrieval calls.",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "The SUMMARY_PROMPT_SYSTEM prompt content (mirix/prompts/gpt_summarize.py) is not shown; it defines the scaffold instructions the model receives about what to retain or discard, which is central to the remember-vs-retrieve distinction.",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/memory.py",
+      "kind": "code"
+    },
+    {
+      "text": "Retrieve policy: the schema defines embeddings for retrieval but does not specify when or how episodic events are selected into a turn context (always, adaptive, top-k, threshold).",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/8cb06a62bbb7c478beb33dd4f2815696a72df482/mirix/schemas/episodic_memory.py",
+      "kind": "code"
+    },
+    {
+      "text": "Retrieve policy is not specified: the page shows client.retrieve_with_conversation() exists but does not describe when or whether retrieval is triggered automatically vs. always on every turn, or what selection logic determines which memory components are queried.",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Scaffold / instruction path is not described: the page does not explain what instructions or prompts are assembled around retrieved memories before they are passed to the model.",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Retrieve policy is not described: the architecture doc shows retrieval endpoints exist but does not specify when or whether retrieval is triggered automatically per turn, on demand only, or adaptively.",
+      "url": "https://github.com/Mirix-AI/MIRIX/blob/main/docs/ARCHITECTURE.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The root cause of trigger_memory_update being called yet producing 'No updates recorded' is not explained on this page \u2014 no maintainer response is present",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/103",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the official LoCoMo scores were produced from this exact evals-branch code and prompt/tool schema is explicitly questioned but not answered on this page",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/128",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the multimodal memory system requirement (e.g., Gemini-class model) is confirmed by maintainers or documented in architecture docs \u2014 the page contains only a user question with no maintainer response visible.",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/14",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether CHAINING_FOR_MEMORY_UPDATE=False terminating after tool calls is intentional behavior or a bug \u2014 the issue asks but no response is recorded on this page",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/26",
+      "kind": "issue"
+    },
+    {
+      "text": "Storage backend: the issue explicitly asks which database or system MIRIX uses to persist memory, indicating this is not documented",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/29",
+      "kind": "issue"
+    },
+    {
+      "text": "Latency/delay of memory extraction pipeline compared to other systems (mem0, zep) is not answered on this page",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/29",
+      "kind": "issue"
+    },
+    {
+      "text": "It is unclear whether individual memory agents (core memory agent, episodic memory agent, etc.) ever update their own topics, or whether topic steering is exclusively the role of the chat agent and meta agent. This is a canonical architecture question left open by the issue.",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/50",
+      "kind": "issue"
+    },
+    {
+      "text": "The issue asks whether MIRIX's monitoring process captures unnecessary information during idle periods, implying a continuous background capture mechanism, but the page provides no answer or description of how the monitoring/capture/persist pipeline works.",
+      "url": "https://github.com/Mirix-AI/MIRIX/issues/9",
+      "kind": "issue"
+    },
+    {
+      "text": "Retrieve policy for non-Core stores is not specified: this is a canonical architecture doc but it does not state when or how episodic, semantic, procedural, resource, or vault entries are selected into the active context (always, adaptive, on explicit search call only).",
+      "url": "https://docs.mirix.io/architecture/memory-components/",
+      "kind": "blog"
+    }
+  ]
+}
