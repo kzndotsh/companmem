@@ -1,0 +1,209 @@
+{
+  "identity": {
+    "id": "msc",
+    "name": "MSC (Multi-Session Chat)",
+    "repo": null,
+    "docs": "https://aclanthology.org/2022.acl-long.356/",
+    "license": "MIT",
+    "version_or_commit": "main",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Evaluate open-domain dialogue models in a long-term, multi-session conversation setting where partners learn about each other's interests across sessions."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Sessions are numbered 1\u20135. Session 1 is ConvAI2 (PersonaChat). Sessions 2\u20134 have train/valid/test splits; session 5 has only valid/test. Train data does not exist beyond session 4."
+    },
+    {
+      "text": "Data files are split into train.txt, valid.txt, and test.txt under a session-specific directory path."
+    },
+    {
+      "text": "Dataset is human-human, collected as multiple chat sessions with cross-session knowledge sharing."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "MSC is a human-human dataset of multiple chat sessions focused on long-term open-domain conversation.",
+      "kind": "paper",
+      "url": "https://aclanthology.org/2022.acl-long.356/",
+      "quote": "we collect and release a human-human dataset consisting of multiple chat sessions whereby the speaking partners learn about each other's interests and discuss the things they have learnt from past sessions",
+      "locator": "abstract",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MSC has train, valid, and test splits implemented as train.txt, valid.txt, and test.txt per session.",
+      "kind": "code",
+      "url": "https://github.com/facebookresearch/ParlAI/blob/main/parlai/tasks/msc/agents.py",
+      "quote": "if self.datatype.startswith('train'):\n    path_to_open = os.path.join(data_path, 'train.txt')\nelif self.datatype.startswith('valid'):\n    path_to_open = os.path.join(data_path, 'valid.txt')\nelse:\n    path_to_open = os.path.join(data_path, 'test.txt')",
+      "locator": "agents.py:SessionBaseMscTeacher.setup_data, lines ~316\u2013321",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session 1 is PersonaChat/ConvAI2; MSC sessions 2\u20134 extend it across multiple sessions; session 5 exists only for valid/test; no train data exists for session 5.",
+      "kind": "code",
+      "url": "https://github.com/facebookresearch/ParlAI/blob/main/parlai/tasks/msc/agents.py",
+      "quote": "assert opt['session_id'] <= 5, f\"No data beyong session {opt['session_id']}!\"\nassert (\n    opt['session_id'] <= 4 or 'train' not in opt['datatype']\n), f\"No train data beyong session {opt['session_id']}!\"",
+      "locator": "agents.py:SessionBaseMscTeacher.__init__, lines ~270\u2013274",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Each data record contains dialog turns, previous_dialogs (prior sessions), personas, init_personas, metadata with initial_data_id, and time gap (time_num, time_unit) between sessions.",
+      "kind": "code",
+      "url": "https://github.com/facebookresearch/ParlAI/blob/main/parlai/tasks/msc/agents.py",
+      "quote": "initial_data_id = dialog_dict['metadata']['initial_data_id']\n...\n'time_num': dialog_dict['previous_dialogs'][-1]['time_num'],\n'time_unit': dialog_dict['previous_dialogs'][-1]['time_unit'],",
+      "locator": "agents.py:SessionBaseMscTeacher.setup_data, lines ~356, 430\u2013433",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Gold persona summaries are from crowdworkers; predicted summaries are from a separate summarization model loaded from a JSON file.",
+      "kind": "code",
+      "url": "https://github.com/facebookresearch/ParlAI/blob/main/parlai/tasks/msc/agents.py",
+      "quote": "\"the 'goldsum_' prefix refers to gold persona summaries from crowdworkers; \"\n\"the 'predsum_' prefix refers to predicted persona summaries from a summarization model\"",
+      "locator": "agents.py:SessionBaseMscTeacher.add_cmdline_args, lines ~215\u2013217",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Temporal reasoning is supported: time elapsed since last session (time_num/time_unit in hours or days) can be injected into model context.",
+      "kind": "code",
+      "url": "https://github.com/facebookresearch/ParlAI/blob/main/parlai/tasks/msc/agents.py",
+      "quote": "'--include-time-gap', type=bool, default=False, help=\"whether to include time passed since last conversation in the context\"\n...\n'time_unit': bot_first_entry['time_unit']",
+      "locator": "agents.py:SessionBaseMscTeacher.add_cmdline_args line ~238; ContextGenerator._extract_personas line ~727",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Persona summarization task uses subsampled negative (no-persona) examples during training; subsampling is disabled at test time.",
+      "kind": "code",
+      "url": "https://github.com/facebookresearch/ParlAI/blob/main/parlai/tasks/msc/agents.py",
+      "quote": "if 'test' in opt['datatype']:\n    logger.warning(f'WARNING: Do not subsampling for {opt[\"datatype\"]}')\n    self.nopersona_subsampling_weight = 1",
+      "locator": "agents.py:SessionBasePersonaSummaryTeacher.__init__, lines ~96\u201399",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No train data exists beyond session 3 in the persona summarization task.",
+      "kind": "code",
+      "url": "https://github.com/facebookresearch/ParlAI/blob/main/parlai/tasks/msc/agents.py",
+      "quote": "assert (\n    opt['session_id'] <= 3 or 'train' not in opt['datatype']\n), f\"No train data beyong session {opt['session_id']}!\"",
+      "locator": "agents.py:SessionBasePersonaSummaryTeacher.__init__, lines ~105\u2013107",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Human evaluation used a per-turn protocol; context for bots was generated from MSC sessions to seed crowdsourced human-human follow-up conversations.",
+      "kind": "code",
+      "url": "https://github.com/facebookresearch/ParlAI/blob/main/parlai/tasks/msc/agents.py",
+      "quote": "This generator was used to generate the context information shown to bots at the beginning of a conversation, when crowdsourcing the conversations that for per-turn human evaluation.",
+      "locator": "agents.py:ContextGenerator docstring",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The default teacher (DefaultTeacher) is MscTeacher, which aggregates sessions 2\u20134 for training.",
+      "kind": "code",
+      "url": "https://github.com/facebookresearch/ParlAI/blob/main/parlai/tasks/msc/agents.py",
+      "quote": "class DefaultTeacher(MscTeacher):\n    pass",
+      "locator": "agents.py:DefaultTeacher, lines ~614\u2013615",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The MSC task is implemented within ParlAI under parlai/tasks/msc, with constituent files including agents.py, build.py, constants.py, mutators.py, and test.py, indicating a structured task/eval harness.",
+      "kind": "docs",
+      "url": "https://github.com/facebookresearch/ParlAI/tree/main/parlai/tasks/msc",
+      "quote": "agents.py build.py constants.py mutators.py test.py",
+      "locator": "file listing, parlai/tasks/msc/",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "PersonaSummary sub-task has 130k train and 25k valid examples",
+      "kind": "docs",
+      "url": "https://parl.ai/projects/msc/",
+      "quote": "dialog summary for multi-session chat data (session 1-4, with 130k train examples and 25k valid examples)",
+      "locator": "Data section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval-augmented and summarization-based models outperform standard encoder-decoder baselines on this benchmark",
+      "kind": "docs",
+      "url": "https://parl.ai/projects/msc/",
+      "quote": "retrieval-augmented methods and methods with an ability to summarize and recall previous conversations outperform the standard encoder-decoder architectures currently considered state of the art",
+      "locator": "Abstract",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://arxiv.org/abs/2206.06176",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://aclanthology.org/2022.acl-long.356/",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://parl.ai/projects/msc/",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/facebookresearch/ParlAI/tree/main/parlai/tasks/msc",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/facebookresearch/ParlAI/blob/main/parlai/tasks/msc/agents.py",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Repository or data release URL for the MSC dataset is not provided on this page.",
+      "url": "https://aclanthology.org/2022.acl-long.356/",
+      "kind": "paper"
+    },
+    {
+      "text": "The page at the provided URL (arXiv:2206.06176) is an astrophysics paper about a radio filament in a galaxy cluster and contains no information about the MSC (Multi-Session Chat) benchmark. No claims, quotes, or locators about MSC can be extracted from this source.",
+      "url": "https://arxiv.org/abs/2206.06176",
+      "kind": "paper"
+    },
+    {
+      "text": "The construction methodology for the summarization model used to produce predicted summaries (predsum_*) is not described here.",
+      "url": "https://github.com/facebookresearch/ParlAI/blob/main/parlai/tasks/msc/agents.py",
+      "kind": "docs"
+    },
+    {
+      "text": "Grader/scorer details (exact match, LLM-as-judge, rubric) are not visible; scoring logic would need to be read from agents.py or test.py source files.",
+      "url": "https://github.com/facebookresearch/ParlAI/tree/main/parlai/tasks/msc/agents.py",
+      "kind": "docs"
+    },
+    {
+      "text": "Train/test boundary for session splits and whether session 5 is held out as a test set is not clarified on this page",
+      "url": "https://parl.ai/projects/msc/",
+      "kind": "docs"
+    }
+  ]
+}
