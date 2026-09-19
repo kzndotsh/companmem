@@ -1,0 +1,864 @@
+{
+  "identity": {
+    "id": "memento-mcp",
+    "name": "Memento MCP",
+    "repo": "https://github.com/gannonh/memento-mcp",
+    "docs": "https://github.com/gannonh/memento-mcp/blob/main/README.md",
+    "license": "MIT",
+    "version_or_commit": "be6dc369784ecf8e6a7eced47b551f4b1f186e75",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Local-first MCP middleware providing persistent memory, proactive goal enforcement, and autonomous intelligence for AI agents"
+    },
+    {
+      "text": "Provides a knowledge graph memory system for persistent storage of entities, relations, and observations"
+    },
+    {
+      "text": "Storage interface for loading and saving knowledge graphs as the persistence unit"
+    },
+    {
+      "text": "Enables persistent memory across sessions for AI assistants"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Vector index (entity_embeddings) participates in entity lookup during create_entities; a deleted graph node may persist as a 'ghost' in the vector index and be returned by vector search, causing the crash on merge."
+    },
+    {
+      "text": "Memory operations are delegated to a KnowledgeGraphManager instance, which is passed into the server and forwarded to the call-tool handler \u2014 suggesting a graph-structured store rather than a flat log."
+    },
+    {
+      "text": "Session continuity via auto-checkpoints every 25 tool calls saving full L1 working memory snapshot, with auto-resume restoring goals and context from the previous session"
+    },
+    {
+      "text": "Proactive memory injection: relevant memories are injected into every tool call by default, configurable via MEMENTO_PROACTIVE_INJECT and MEMENTO_PROACTIVE_TOP_K"
+    },
+    {
+      "text": "Three memory decay rates by type: semantic (~200d half-life), episodic (~50d half-life), working (~14d half-life), each with configurable decay lambda"
+    },
+    {
+      "text": "Delete path covers entities (with their relations), individual observations, and individual relations \u2014 supporting partial or full forgetting"
+    },
+    {
+      "text": "Debug tooling bypasses application abstractions to query the Neo4j database directly for entity embeddings, revealing the underlying store"
+    },
+    {
+      "text": "Write path \u2014 createEntities merges observations when an entity already exists (deduplication via Set), rather than replacing or erroring"
+    },
+    {
+      "text": "Adaptive retrieve policy: system chooses between vector-only, keyword-only, or hybrid search based on query characteristics"
+    },
+    {
+      "text": "Vector embeddings are stored per entity and synced to a separate VectorStore; on entity delete the vector is also removed"
+    },
+    {
+      "text": "Retrieve fallback: if vector search fails or yields insufficient results, system falls back to text-based keyword search"
+    },
+    {
+      "text": "Scaffold: system prompt instructs the LLM to check the knowledge graph and use semantic_search when answering questions"
+    },
+    {
+      "text": "Vector search uses Neo4j's db.index.vector.queryNodes procedure; retrieve returns ranked entities by score"
+    },
+    {
+      "text": "Non-destructive versioning: updates create new versions rather than overwriting, preserving full history"
+    },
+    {
+      "text": "Entity creation: new entity nodes written to the knowledge graph with name, type, and observations"
+    },
+    {
+      "text": "Full database reset is possible by deleting the data directory and reinitializing the schema"
+    },
+    {
+      "text": "Memento MCP uses Neo4j as a storage backend, accessed via a Neo4jStorageProvider component"
+    },
+    {
+      "text": "Retrieve \u2014 full graph read: the entire knowledge graph can be read into context at once"
+    },
+    {
+      "text": "File-based storage is explicitly deprecated in favour of a StorageProvider abstraction"
+    },
+    {
+      "text": "Store backend: Neo4j used as unified storage for both graph data and vector search"
+    },
+    {
+      "text": "Confidence decay on relations is time-based, computed from a half-life parameter"
+    },
+    {
+      "text": "Embedding generation can be forced for a specific entity via a debug tool"
+    },
+    {
+      "text": "Persistence backend: Neo4j graph database with integrated vector index"
+    },
+    {
+      "text": "Embeddings are generated via OpenAI API with a configurable model"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Memento MCP stores a curated knowledge graph (entities + observations + relations) in Neo4j, not a raw message log",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/README.md",
+      "quote": "Entities are the primary nodes in the knowledge graph. Each entity has: A unique name (identifier), An entity type (e.g., \"person\", \"organization\", \"event\"), A list of observations, Vector embeddings (for semantic search), Complete version history",
+      "locator": "README.md, Core Concepts > Entities section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistence is in Neo4j; data survives container restarts via Docker volume mounts",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/README.md",
+      "quote": "Neo4j data persists across container restarts and even version upgrades due to the Docker volume configuration",
+      "locator": "README.md, Storage Backend > Data Persistence and Management section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path supports create, add observations, update, and delete for both entities and relations",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/README.md",
+      "quote": "create_entities ... add_observations ... delete_entities ... delete_observations ... create_relations ... update_relation ... delete_relations",
+      "locator": "README.md, MCP API Tools section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Temporal versioning is non-destructive: updates append new versions with timestamps rather than overwriting",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/README.md",
+      "quote": "Non-Destructive Updates: Updates create new versions rather than overwriting existing data",
+      "locator": "README.md, Advanced Features > Temporal Awareness section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Relation confidence decays over time with a default 30-day half-life and can be reinforced by new observations",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/README.md",
+      "quote": "Configurable Half-Life: Define how quickly information becomes less certain (default: 30 days) ... Reinforcement Learning: Relations regain confidence when reinforced by new observations",
+      "locator": "README.md, Advanced Features > Confidence Decay section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval uses OpenAI embeddings (default: text-embedding-3-small, 1536 dims) with cosine similarity at a default 0.6 threshold",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/README.md",
+      "quote": "Optimized Defaults: Tuned parameters for balance between precision and recall (0.6 similarity threshold, hybrid search enabled)",
+      "locator": "README.md, Advanced Features > Semantic Search section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Scaffold layer: recommended system prompt instructs LLM to always consult the graph before answering; the LLM chooses which tools to call",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/README.md",
+      "quote": "When asked about past conversations or user information, always check the Memento MCP knowledge graph first. You should use semantic_search to find relevant information in your memory when answering questions.",
+      "locator": "README.md, Recommended System Prompts section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is curated facts stored as named entities with typed observations, not a message log or full transcript",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/KnowledgeGraphManager.ts",
+      "quote": "We are storing our memory using entities, relations, and observations in a graph structure",
+      "locator": "KnowledgeGraphManager.ts, comment above Entity interface",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write deduplication: createEntities merges rather than overwrites observations on conflict",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/KnowledgeGraphManager.ts",
+      "quote": "const updatedObservations = new Set([\n  ...existingEntity.observations,\n  ...entity.observations,\n]);\nexistingEntity.observations = Array.from(updatedObservations);",
+      "locator": "KnowledgeGraphManager.ts, createEntities",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete (forget) removes entity, its relations, and its vector atomically across storage and vector store",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/KnowledgeGraphManager.ts",
+      "quote": "await vectorStore.removeVector(entityName);\nlogger.debug(`Removed vector for entity ${entityName} from vector store`);",
+      "locator": "KnowledgeGraphManager.ts, deleteEntities",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Embeddings are kept consistent with current observations: any add or delete of observations schedules a re-embedding job",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/KnowledgeGraphManager.ts",
+      "quote": "await this.embeddingJobManager.scheduleEntityEmbedding(deletion.entityName, 1);",
+      "locator": "KnowledgeGraphManager.ts, deleteObservations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic retrieve uses configurable similarity threshold (default 0.7 in findSimilarEntities, 0.5 in semanticSearch) and limit; results are scored and sorted descending before return",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/KnowledgeGraphManager.ts",
+      "quote": "const limit = options.limit || 10;\nconst minSimilarity = options.threshold || 0.7;",
+      "locator": "KnowledgeGraphManager.ts, findSimilarEntities",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Temporal and decay features (getGraphAtTime, getDecayedGraph, getEntityHistory, getRelationHistory) are defined at the manager API but fully delegated to the StorageProvider; implementation is not present in this file",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/KnowledgeGraphManager.ts",
+      "quote": "throw new Error('Storage provider does not support temporal graph operations');",
+      "locator": "KnowledgeGraphManager.ts, getGraphAtTime",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "File-based storage is a deprecated fallback; the canonical path is a StorageProvider implementation",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/KnowledgeGraphManager.ts",
+      "quote": "WARNING: Using deprecated file-based storage. This will be removed in a future version. Please use a StorageProvider implementation instead.",
+      "locator": "KnowledgeGraphManager.ts, constructor",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Embedding service selection is environment-driven: OPENAI_API_KEY presence gates the OpenAI path; MOCK_EMBEDDINGS=true forces the default service for testing.",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/embeddings/EmbeddingServiceFactory.ts",
+      "quote": "mockEmbeddings: useMockEmbeddings, openaiKeyPresent: !!process.env.OPENAI_API_KEY, embeddingModel: process.env.OPENAI_EMBEDDING_MODEL || 'default'",
+      "locator": "EmbeddingServiceFactory.ts:createFromEnvironment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The default embedding service generates random vectors, not semantic embeddings \u2014 it is a fallback/test path, not a production memory retrieval mechanism.",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/embeddings/EmbeddingServiceFactory.ts",
+      "quote": "* Create a default embedding service that generates random vectors",
+      "locator": "EmbeddingServiceFactory.ts:createDefaultService (JSDoc)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The persistent store is a knowledge graph (backed by Neo4j) holding typed entities, typed relations, and string observations as distinct objects",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/server/handlers/listToolsHandler.ts",
+      "quote": "Create multiple new entities in your Memento MCP knowledge graph memory system",
+      "locator": "baseTools[0].description (create_entities)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory writes are curated facts (named entities + typed relations + discrete observations), not a message log or transcript",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/server/handlers/listToolsHandler.ts",
+      "quote": "required: ['name', 'entityType', 'observations']",
+      "locator": "baseTools[0].inputSchema.properties.entities.items.required (create_entities)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is a hard delete from the store (entities + their relations, or individual observations), not a retrieval-time filter",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/server/handlers/listToolsHandler.ts",
+      "quote": "Delete multiple entities and their associated relations from your Memento MCP knowledge graph memory",
+      "locator": "baseTools[3].description (delete_entities)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy exposes at least three modes: full graph read, keyword search over names/types/observations, and semantic vector search \u2014 no evidence of automatic/adaptive selection on this page",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/server/handlers/listToolsHandler.ts",
+      "quote": "Read the entire Memento MCP knowledge graph memory system",
+      "locator": "baseTools[8].description (read_graph)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic search uses a minimum similarity threshold (default 0.6) and supports filtering by entity type",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/server/handlers/listToolsHandler.ts",
+      "quote": "min_similarity: { type: 'number', description: 'Minimum similarity threshold from 0.0 to 1.0 (default: 0.6)' }",
+      "locator": "baseTools[11].inputSchema.properties.min_similarity (semantic_search)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Relations carry a confidence score (0\u20131) that is subject to time-based decay, providing a staleness signal without hard deletion",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/server/handlers/listToolsHandler.ts",
+      "quote": "confidence: { type: 'number', description: 'Optional confidence level in relation accuracy (0.0 to 1.0)' }",
+      "locator": "baseTools[1].inputSchema.properties.relations.items.properties.confidence (create_relations)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Temporal validity windows (validFrom / validTo) allow fact-level time-bounding within the graph",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/server/handlers/listToolsHandler.ts",
+      "quote": "validFrom: { type: 'number', description: 'Optional validity start timestamp' }, validTo: { type: 'number', description: 'Optional validity end timestamp' }",
+      "locator": "baseTools[0].inputSchema.properties.entities.items.properties (create_entities, temporal fields)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The underlying vector store is Neo4j (confirmed by the bypass diagnostic tool)",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/server/handlers/listToolsHandler.ts",
+      "quote": "Diagnostic tool to directly query Neo4j database for entity embeddings, bypassing application abstractions",
+      "locator": "debugTools[2].description (diagnose_vector_search)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The product names itself 'memento-mcp' at version 1.0.0 and is published by gannonh.",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/server/setup.ts",
+      "quote": "name: 'memento-mcp', version: '1.0.0', publisher: 'gannonh'",
+      "locator": "setup.ts: Server constructor, info object",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistence is backed by a knowledge graph (not a flat transcript log), as indicated by the KnowledgeGraphManager abstraction threaded through the server.",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/server/setup.ts",
+      "quote": "export function setupServer(knowledgeGraphManager: any): Server",
+      "locator": "setup.ts: setupServer function signature",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory read and write operations are exposed exclusively as MCP tools, not as direct API calls; the server registers tool-list and tool-call handlers only.",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/server/setup.ts",
+      "quote": "server.setRequestHandler(ListToolsRequestSchema, ...) ... server.setRequestHandler(CallToolRequestSchema, ...)",
+      "locator": "setup.ts: request handler registration block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistence unit is a knowledge graph of entities and relations, not a message transcript log",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/storage/StorageProvider.ts",
+      "quote": "Interface for storage providers that can load and save knowledge graphs",
+      "locator": "StorageProvider.ts, JSDoc above StorageProvider interface",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entities carry temporal metadata from the moment of creation",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/storage/StorageProvider.ts",
+      "quote": "Returns Promise resolving to array of newly created entities with temporal metadata",
+      "locator": "StorageProvider.ts, JSDoc above createEntities",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Observations are granular string facts on an entity, independently addable and deletable \u2014 not a bulk transcript replace",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/storage/StorageProvider.ts",
+      "quote": "addObservations(observations: { entityName: string; contents: string[] }[])\ndeleteObservations(deletions: { entityName: string; observations: string[] }[])",
+      "locator": "StorageProvider.ts, addObservations and deleteObservations signatures",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Full delete path exists for entities, observations, and relations, providing forget capability at each granularity level",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/storage/StorageProvider.ts",
+      "quote": "deleteEntities(entityNames: string[]): Promise<void>;\ndeleteObservations(deletions: { entityName: string; observations: string[] }[]): Promise<void>;\ndeleteRelations(relations: Relation[]): Promise<void>;",
+      "locator": "StorageProvider.ts, delete method signatures",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Relations support in-place update (supersession), not append-only",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/storage/StorageProvider.ts",
+      "quote": "Update an existing relation with new properties",
+      "locator": "StorageProvider.ts, JSDoc above updateRelation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Version history is retained for both entities and relations, enabling audit or temporal reasoning",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/storage/StorageProvider.ts",
+      "quote": "Get the history of all versions of an entity \u2026 Returns Promise resolving to an array of entity versions in chronological order",
+      "locator": "StorageProvider.ts, JSDoc above getEntityHistory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Confidence decay on relations is a first-class optional operation, reducing the effective salience of aged relational facts",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/storage/StorageProvider.ts",
+      "quote": "Get the current knowledge graph with confidence decay applied to relations based on their age and the configured decay settings",
+      "locator": "StorageProvider.ts, JSDoc above getDecayedGraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve supports both text search (with case sensitivity and entity-type filters) and semantic vector search",
+      "kind": "code",
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/storage/StorageProvider.ts",
+      "quote": "semanticSearch?(query: string, options?: SearchOptions & SemanticSearchOptions): Promise<KnowledgeGraph>",
+      "locator": "StorageProvider.ts, semanticSearch signature",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memento MCP stores a knowledge graph of entities with observations and vector embeddings in Neo4j, persisted across sessions",
+      "kind": "docs",
+      "url": "https://github.com/gannonh/memento-mcp/blob/main/README.md",
+      "quote": "Scalable, high performance knowledge graph memory system with semantic retrieval, contextual recall, and temporal awareness. Provides any LLM client that supports the model context protocol (e.g., Claude Desktop, Cursor, Github Copilot) with resilient, adaptive, and persistent long-term ontological memory.",
+      "locator": "README.md, opening description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Updates are non-destructive: every change creates a new version with timestamps rather than overwriting existing data",
+      "kind": "docs",
+      "url": "https://github.com/gannonh/memento-mcp/blob/main/README.md",
+      "quote": "Non-Destructive Updates: Updates create new versions rather than overwriting existing data",
+      "locator": "README.md, Advanced Features > Temporal Awareness",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Deletion is explicit and destructive: delete_entities removes entities and their relations; delete_observations removes specific observations; delete_relations removes specific relations",
+      "kind": "docs",
+      "url": "https://github.com/gannonh/memento-mcp/blob/main/README.md",
+      "quote": "delete_entities \u2014 Remove entities and their relations. Input: entityNames (string[])",
+      "locator": "README.md, MCP API Tools > Entity Management",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy is adaptive: system selects vector, keyword, or hybrid search based on query and available embeddings; falls back gracefully on failure",
+      "kind": "docs",
+      "url": "https://github.com/gannonh/memento-mcp/blob/main/README.md",
+      "quote": "Adaptive Search: System intelligently chooses between vector-only, keyword-only, or hybrid search based on query characteristics and available data",
+      "locator": "README.md, Advanced Features > Semantic Search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Confidence decay is time-based with a configurable half-life (default 30 days); relations regain confidence when reinforced",
+      "kind": "docs",
+      "url": "https://github.com/gannonh/memento-mcp/blob/main/README.md",
+      "quote": "Time-Based Decay: Confidence in relations naturally decreases over time if not reinforced. Configurable Half-Life: Define how quickly information becomes less certain (default: 30 days). Reinforcement Learning: Relations regain confidence when reinforced by new observations",
+      "locator": "README.md, Advanced Features > Confidence Decay",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The LLM is scaffolded via system prompt to always query the knowledge graph before answering questions about the past; retrieval is not automatic",
+      "kind": "docs",
+      "url": "https://github.com/gannonh/memento-mcp/blob/main/README.md",
+      "quote": "When asked about past conversations or user information, always check the Memento MCP knowledge graph first. You should use semantic_search to find relevant information in your memory when answering questions.",
+      "locator": "README.md, Recommended System Prompts",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No automatic extraction from conversation: the LLM (not the system) is responsible for deciding when to call create_entities or add_observations to write to the graph",
+      "kind": "docs",
+      "url": "https://github.com/gannonh/memento-mcp/blob/main/README.md",
+      "quote": "The power of this approach is that users can interact naturally, while the LLM handles the complexity of selecting and using the appropriate memory tools.",
+      "locator": "README.md, Testing Semantic Search",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is not described: the page does not specify per-user, per-session, per-agent, or per-character graph separation",
+      "kind": "docs",
+      "url": "https://github.com/gannonh/memento-mcp/blob/main/README.md",
+      "quote": "Memento MCP uses Neo4j as its storage backend, providing a unified solution for both graph storage and vector search capabilities.",
+      "locator": "README.md, Storage Backend",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memento MCP stores entities in a Neo4j knowledge graph with vector embeddings derived from entity observations",
+      "kind": "docs",
+      "url": "https://github.com/gannonh/memento-mcp/blob/main/src/cli/cli-README.md",
+      "quote": "Each entity in the knowledge graph can have an associated vector embedding generated from its observations using OpenAI's embedding models",
+      "locator": "Vector Search Implementation",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve is performed via vector similarity search (cosine or euclidean) against an indexed embedding store, returning ranked entities",
+      "kind": "docs",
+      "url": "https://github.com/gannonh/memento-mcp/blob/main/src/cli/cli-README.md",
+      "quote": "CALL db.index.vector.queryNodes(\n'entity_embeddings', // Index name\n$limit, // Number of results to return\n$embedding // Query vector\n)\nYIELD node, score\nRETURN node.name AS name, node.entityType AS entityType, score\nORDER BY score DESC",
+      "locator": "Vector Search Query Structure",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "When vector search fails, the system falls back to text-based search rather than returning nothing",
+      "kind": "docs",
+      "url": "https://github.com/gannonh/memento-mcp/blob/main/src/cli/cli-README.md",
+      "quote": "Fallback Search: If vector search fails, the system falls back to text-based search",
+      "locator": "Vector Search Diagnostics",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The store can be fully deleted and reinitialized; there is no described partial forget or per-entity delete outside of full reset",
+      "kind": "docs",
+      "url": "https://github.com/gannonh/memento-mcp/blob/main/src/cli/cli-README.md",
+      "quote": "If you need to completely reset your Neo4j database during development:\n# Delete the data directory\nrm -rf ./neo4j-data/*\n# Reinitialize the schema\nnpm run neo4j:init",
+      "locator": "Full Database Reset",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Embedding generation for an entity can be explicitly triggered via a debug-only MCP tool",
+      "kind": "docs",
+      "url": "https://github.com/gannonh/memento-mcp/blob/main/src/cli/cli-README.md",
+      "quote": "force_generate_embedding: Forces the generation and storage of an embedding for a specific entity",
+      "locator": "Debug Tools",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A user requests that the backing store be replaced with SQLite to reduce setup complexity and make the database portable",
+      "kind": "issue",
+      "url": "https://github.com/gannonh/memento-mcp/issues/103",
+      "quote": "I have seen others using SQLite to reduce the complexity a bit, could this be made such that \"login\" and \"booting\" can be reduced?",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "create_entities crashes with MCP error -32603 when existingEntity.observations is null or undefined, breaking all entity creation.",
+      "kind": "issue",
+      "url": "https://github.com/gannonh/memento-mcp/issues/118",
+      "quote": "MCP error -32603: existingEntity.observations is not iterable",
+      "locator": "Executive Summary / The Bug",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A ghost entity can survive in the vector index after its graph node is deleted, and create_entities may resolve that ghost during upsert lookup, triggering the null observations crash.",
+      "kind": "issue",
+      "url": "https://github.com/gannonh/memento-mcp/issues/118",
+      "quote": "there's a 'ghost' entity in the vector index that's being returned by vector search even though the graph node was deleted.",
+      "locator": "Root Cause / The Issue",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "add_observations receives the observations parameter as a JSON-encoded string rather than a native array, indicating an MCP tool-layer serialization bug in version 0.3.9.",
+      "kind": "issue",
+      "url": "https://github.com/gannonh/memento-mcp/issues/118",
+      "quote": "\"observations\": \"[\\\"Test observation...\\\"]\"  // String, not array!\nThis suggests the MCP tool layer is serializing array parameters as JSON strings instead of passing them as native arrays.",
+      "locator": "The Technical Issue / MCP Parameter Serialization Bug",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dropping and recreating the entity_embeddings vector index did not resolve the create_entities crash, ruling out index corruption as the sole cause.",
+      "kind": "issue",
+      "url": "https://github.com/gannonh/memento-mcp/issues/118",
+      "quote": "Dropped and recreated entity_embeddings vector index\nResult: All failed. The bug is in memento-mcp's server-side code.",
+      "locator": "Complete Troubleshooting Log / Vector Index Attempts",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memento MCP currently supports only local Docker-hosted Neo4j; cloud (Aura) support is a requested addition",
+      "kind": "issue",
+      "url": "https://github.com/gannonh/memento-mcp/issues/2",
+      "quote": "Currently, Memento MCP supports connecting to a local Docker instance of Neo4j. This feature request is to add support for Neo4j Aura, Neo4j's fully managed cloud database service.",
+      "locator": "Overview",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The storage layer is modeled as a provider class (Neo4jStorageProvider) suggesting a pluggable store abstraction",
+      "kind": "issue",
+      "url": "https://github.com/gannonh/memento-mcp/issues/2",
+      "quote": "Update `Neo4jStorageProvider` to support Aura URIs and protocols",
+      "locator": "Phase 2: Core Implementation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "OpenAI embeddings are part of the memory pipeline, configurable per deployment",
+      "kind": "issue",
+      "url": "https://github.com/gannonh/memento-mcp/issues/2",
+      "quote": "\"OPENAI_API_KEY\": \"your-openai-api-key\", \"OPENAI_EMBEDDING_MODEL\": \"text-embedding-3-small\"",
+      "locator": "Example Configuration",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Persistent memory stored as a knowledge graph in Neo4j with vector search support",
+      "kind": "blog",
+      "url": "https://thedailyworkflow.com/mcp/server/memento-mcp",
+      "quote": "It connects to Neo4j for graph storage and vector search, enabling persistent long-term ontological memory for MCP clients like Claude Desktop and Cursor.",
+      "locator": "page intro / description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory persists across sessions without model retraining",
+      "kind": "blog",
+      "url": "https://thedailyworkflow.com/mcp/server/memento-mcp",
+      "quote": "Enables AI assistants like Claude to maintain persistent memory of user interactions, preferences, and facts across sessions. Developers can integrate it to provide context-aware responses without retraining models.",
+      "locator": "Use Cases / Long-term Memory for AI Assistants",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path includes creating entities with observations and updating them with new observations or embeddings",
+      "kind": "blog",
+      "url": "https://thedailyworkflow.com/mcp/server/memento-mcp",
+      "quote": "Creates a new entity node in the knowledge graph with a unique name, type, and observations.",
+      "locator": "Tools / create_entity()",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Temporal awareness includes version history and time decay on retrieval",
+      "kind": "blog",
+      "url": "https://thedailyworkflow.com/mcp/server/memento-mcp",
+      "quote": "Retrieves entities and relations with temporal awareness, considering version history and time decay.",
+      "locator": "Tools / temporal_query()",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No built-in authentication or access control (isolation boundary is unspecified)",
+      "kind": "blog",
+      "url": "https://thedailyworkflow.com/mcp/server/memento-mcp",
+      "quote": "No built-in authentication or access control",
+      "locator": "Pros & Cons / Cons",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memento MCP is a knowledge graph memory system providing long-term memory for LLMs via Neo4j, with semantic search and temporal awareness",
+      "kind": "blog",
+      "url": "https://www.mcplane.com/mcp_servers/memento.md",
+      "quote": "Memento MCP is a robust and scalable knowledge graph memory system designed to provide advanced long-term memory capabilities for Large Language Models (LLMs). It leverages Neo4j as its unified storage backend for both graph data and vector embeddings, enabling powerful features like semantic search, contextual recall, and temporal awareness.",
+      "locator": "About section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Storage is curated facts (observations on named entities) and typed relations, not raw conversation transcripts",
+      "kind": "blog",
+      "url": "https://www.mcplane.com/mcp_servers/memento.md",
+      "quote": "Add new observations to existing entities in your Memento MCP knowledge graph memory ... An array of observation contents to add",
+      "locator": "Capabilities > Tools > add_observations, src/server/handlers/listToolsHandler.ts:104-159",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget is implemented as hard delete from the store for entities (with cascading relation delete), specific observations, and relations",
+      "kind": "blog",
+      "url": "https://www.mcplane.com/mcp_servers/memento.md",
+      "quote": "Delete multiple entities and their associated relations from your Memento MCP knowledge graph memory ... Delete specific observations from entities ... Delete multiple relations from your Memento MCP knowledge graph memory",
+      "locator": "Capabilities > Tools > delete_entities / delete_observations / delete_relations",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Temporal versioning tracks entity and relation history with validFrom/validTo timestamps and version numbers, enabling point-in-time graph queries",
+      "kind": "blog",
+      "url": "https://www.mcplane.com/mcp_servers/memento.md",
+      "quote": "validFrom: { type: 'number', description: 'Optional validity start timestamp' }, validTo: { type: 'number', description: 'Optional validity end timestamp' } ... Get your Memento MCP knowledge graph memory as it existed at a specific point in time",
+      "locator": "Capabilities > Tools > create_entities and get_graph_at_time, src/server/handlers/listToolsHandler.ts:8-48 and 447-460",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Confidence decay on relations is time-based with a configurable half-life-derived decay factor",
+      "kind": "blog",
+      "url": "https://www.mcplane.com/mcp_servers/memento.md",
+      "quote": "Get your Memento MCP knowledge graph memory with confidence values decayed based on time ... decay_factor: { type: 'number', description: 'Optional decay factor override (normally calculated from half-life)' }",
+      "locator": "Capabilities > Tools > get_decayed_graph, src/server/handlers/listToolsHandler.ts:462-479",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memento is a local-first MCP middleware providing persistent memory for AI agents via SQLite temporal graph",
+      "kind": "blog",
+      "url": "https://pypi.org/project/memento-mcp/",
+      "quote": "Memento is a local-first, open-source MCP middleware that gives your AI agents (Cursor, Claude Desktop, Trae, etc.) persistent memory, proactive goal enforcement, and autonomous intelligence \u2014 all running on a zero-cost SQLite temporal graph with Reciprocal Rank Fusion (RRF) retrieval.",
+      "locator": "Description, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval uses Reciprocal Rank Fusion combining FTS5 keyword search and cosine similarity vector embeddings",
+      "kind": "blog",
+      "url": "https://pypi.org/project/memento-mcp/",
+      "quote": "Built on SQLite FTS5 (full-text search) and cosine similarity (vector embeddings). Fuses keyword matches and semantic meaning via Reciprocal Rank Fusion.",
+      "locator": "Architecture > Temporal Graph Memory (RRF)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Workspace isolation is per-project via a dedicated .memento/ SQLite database directory",
+      "kind": "blog",
+      "url": "https://pypi.org/project/memento-mcp/",
+      "quote": "Each project gets its own .memento/ directory with an isolated SQLite database. No context bleeding between projects.",
+      "locator": "Architecture > Workspace Isolation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session state (L1 working memory: goals, context) is checkpointed every 25 tool calls and auto-resumed at session start",
+      "kind": "blog",
+      "url": "https://pypi.org/project/memento-mcp/",
+      "quote": "Auto-checkpoints every 25 tool calls with full L1 working memory snapshot. Auto-resume restores goals and context from the previous session.",
+      "locator": "Architecture > Session Continuity",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Three memory types with different decay half-lives: semantic ~200 days, episodic ~50 days, working ~14 days",
+      "kind": "blog",
+      "url": "https://pypi.org/project/memento-mcp/",
+      "quote": "Decay \u03bb for semantic memories (~200d half-life) \u2026 Decay \u03bb for episodic memories (~50d half-life) \u2026 Decay \u03bb for working memories (~14d half-life)",
+      "locator": "Environment Variables table, MEMENTO_DECAY_* rows",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Proactive injection inserts top-K relevant memories into every tool call by default",
+      "kind": "blog",
+      "url": "https://pypi.org/project/memento-mcp/",
+      "quote": "Inject relevant memories on every tool call (0 to disable)",
+      "locator": "Environment Variables table, MEMENTO_PROACTIVE_INJECT row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Background autonomous agent performs memory consolidation and knowledge graph extraction at configurable intervals",
+      "kind": "blog",
+      "url": "https://pypi.org/project/memento-mcp/",
+      "quote": "active: Consolidate memories, extract KG, warm caches, detect anomalies every 2 min.",
+      "locator": "Architecture > Autonomous Agent",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "License is AGPL-3.0; network service deployments of modified versions must release source under the same license",
+      "kind": "blog",
+      "url": "https://pypi.org/project/memento-mcp/",
+      "quote": "Memento is released under the GNU Affero General Public License v3.0 (AGPL-3.0). If you modify Memento and offer it as a network service, you must release your modified source code under the same license.",
+      "locator": "License section",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/KnowledgeGraphManager.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/server/setup.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/server/handlers/listToolsHandler.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/storage/StorageProvider.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/gannonh/memento-mcp/blob/be6dc369784ecf8e6a7eced47b551f4b1f186e75/src/embeddings/EmbeddingServiceFactory.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/gannonh/memento-mcp/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/gannonh/memento-mcp/blob/main/src/cli/cli-README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/gannonh/memento-mcp/issues/2",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/gannonh/memento-mcp/issues/103",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/gannonh/memento-mcp/issues/118",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://pypi.org/project/memento-mcp/",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://thedailyworkflow.com/mcp/server/memento-mcp",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.mcplane.com/mcp_servers/memento.md",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Write trigger policy: the page does not specify when or how the LLM decides to write new entities or observations (no automatic extraction pipeline is described)",
+      "url": "https://github.com/gannonh/memento-mcp/blob/main/README.md",
+      "kind": "docs"
+    }
+  ]
+}
