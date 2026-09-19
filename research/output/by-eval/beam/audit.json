@@ -1,0 +1,962 @@
+{
+  "identity": {
+    "id": "beam",
+    "name": "BEAM",
+    "repo": "https://github.com/mohammadtavakoli78/BEAM",
+    "docs": "https://arxiv.org/abs/2510.27246",
+    "license": "MIT",
+    "version_or_commit": "b2da22eac88bb0874c64665f13457eb99835774a",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Evaluates LLM responses across multiple task categories including abstention, contradiction resolution, event ordering, information extraction, instruction following, knowledge update, multi-session reasoning, preference following, summarization, and temporal reasoning."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Ten distinct task categories are evaluated: abstention, contradiction_resolution, event_ordering, information_extraction, instruction_following, knowledge_update, multi_session_reasoning, preference_following, summarization, temporal_reasoning"
+    },
+    {
+      "text": "Each abstention item specifies an ideal response that the judge is expected to accept as correct; the ideal response here explicitly states no relevant information exists in the chat."
+    },
+    {
+      "text": "BEAM uses an LLM-as-judge scorer that returns a 'score' field per response; nine of ten rubric evaluators accumulate scores via int() conversion, while one uses float()."
+    },
+    {
+      "text": "Dataset generation is automated via a three-stage pipeline (plan, question, answer) driven by LLM calls configured in src/llms_config.json, run via run_pipeline.sh."
+    },
+    {
+      "text": "Rubrics are stored per question type and index inside probing_questions.json files organized under a chats/{chat_size}/{dir}/probing_questions/ directory structure"
+    },
+    {
+      "text": "The standard BEAM setup feeds raw long-context input (the chat datasets) directly to the system under evaluation, rather than retrieved memory context."
+    },
+    {
+      "text": "Chat size is a configurable axis (e.g., 10M, 1M, 500K, 100K), used to select the correct probing question set and organize results"
+    },
+    {
+      "text": "Scoring is performed by an LLM-as-a-judge that assigns a numerical score per memory ability category for each generated answer."
+    },
+    {
+      "text": "Scoring functions are imported from compute_metrics module; each task type dispatches to a dedicated evaluate_* function"
+    },
+    {
+      "text": "judgeFailures is tracked as a discrete metric; zero failures were recorded in this run."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "LIGHT achieves 3.5%\u201312.69% average accuracy improvement over the strongest baselines on BEAM.",
+      "kind": "docs",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/README.md",
+      "quote": "achieving an average improvement of 3.5%\u201312.69% over the strongest baselines, depending on the backbone LLM",
+      "locator": "README.md, abstract",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Conversations span 128K, 500K, 1M, and 10M token lengths, with 20, 35, 35, and 10 chats respectively.",
+      "kind": "docs",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/README.md",
+      "quote": "BEAM consists of 100 conversations distributed as follows: 128K: 20 chats, 500K: 35 chats, 1M: 35 chats, 10M: 10 chats",
+      "locator": "README.md, Dataset Statistics section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Ten memory ability categories are evaluated: IE, MR, KU, TR, ABS, CR, EO, IF, PF, SUM.",
+      "kind": "docs",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/README.md",
+      "quote": "designed to assess ten distinct memory abilities \u2026 Abstention \u2026 Contradiction Resolution \u2026 Event Ordering \u2026 Information Extraction \u2026 Instruction Following \u2026 Knowledge Update \u2026 Multi-Session Reasoning \u2026 Preference Following \u2026 Summarization \u2026 Temporal Reasoning",
+      "locator": "README.md, BEAM Description and Probing Questions Types sections",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Scoring uses an LLM-as-a-judge that assigns a numerical score per memory ability category.",
+      "kind": "code",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/README.md",
+      "quote": "This script uses an LLM-as-a-judge model to score each generated answer against the corresponding probing question. The judging LLM assigns a numerical score for each memory ability category.",
+      "locator": "README.md, Evaluate Generated Answers section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Dataset is publicly available on Hugging Face: BEAM (128K/500K/1M) at Mohammadta/BEAM and BEAM-10M at Mohammadta/BEAM-10M.",
+      "kind": "docs",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/README.md",
+      "quote": "BEAM (128K, 500K, 1M chats) \u2013 https://huggingface.co/datasets/Mohammadta/BEAM \u2026 BEAM-10M (10M-token chats) \u2013 https://huggingface.co/datasets/Mohammadta/BEAM-10M",
+      "locator": "README.md, Hugging Face Links section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Code is MIT licensed; benchmark data is CC BY-SA 4.0 licensed.",
+      "kind": "docs",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/README.md",
+      "quote": "Code \u2026 Licensed under the MIT License \u2026 BEAM Benchmark \u2026 Licensed under the Creative Commons Attribution\u2013ShareAlike 4.0 International License (CC BY-SA 4.0)",
+      "locator": "README.md, License section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conversations span multiple domains: general, coding, mathematical, health, finance, and personal.",
+      "kind": "docs",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/README.md",
+      "quote": "Multi-domain (Coding, Math, Health, Finance, Personal, ...)",
+      "locator": "README.md, Comparison table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dataset generation is fully automated via a three-stage LLM pipeline (plan, question, answer) using run_pipeline.sh.",
+      "kind": "code",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/README.md",
+      "quote": "The dataset generation process is divided into three stages, executed with run_pipeline.sh \u2026 1. Create conversation plans \u2026 2. Create user questions \u2026 3. Create assistant answers",
+      "locator": "README.md, Dataset Generation section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "BEAM defines at least 10 evaluation task types: abstention, contradiction resolution, event ordering, information extraction, instruction following, knowledge update, multi-session reasoning, preference following, summarization, and temporal reasoning.",
+      "kind": "code",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/src/evaluation/compute_metrics.py",
+      "quote": "def evaluate_abstention ... def evaluate_contradiction_resolution ... def evaluate_event_ordering ... def evaluate_information_extraction ... def evaluate_instruction_following ... def evaluate_knowledge_update ... def evaluate_multi_session_reasoning ... def evaluate_preference_following ... def evaluate_summarization ... def evaluate_temporal_reasoning",
+      "locator": "src/evaluation/compute_metrics.py, function definitions",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "For all tasks except event ordering, the sole computed score returned is llm_judge_score: the mean of per-rubric-item LLM judge scores.",
+      "kind": "code",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/src/evaluation/compute_metrics.py",
+      "quote": "llm_judge_score = score / len(rubric)\n\n    return dict(\n        llm_judge_score=llm_judge_score,\n        llm_judge_responses=llm_judge_responses\n    )",
+      "locator": "src/evaluation/compute_metrics.py, evaluate_abstention (and identical pattern in 8 other tasks)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Rubric items are the reference for event ordering; the system output is the raw LLM response split by newline, not extracted facts (the fact-extraction call is commented out).",
+      "kind": "code",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/src/evaluation/compute_metrics.py",
+      "quote": "# system_list = extract_facts(paragraph=llm_response,\n    #                             question=probing_question,\n    #                             model=model)\n\n    system_list = llm_response.split(\"\\n\")",
+      "locator": "src/evaluation/compute_metrics.py, evaluate_event_ordering",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "JSON parsing of judge responses uses a repair fallback (json_repair.repair_json) when standard json.loads fails.",
+      "kind": "code",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/src/evaluation/compute_metrics.py",
+      "quote": "except:\n            response = json.loads(repair_json(response))",
+      "locator": "src/evaluation/compute_metrics.py, all evaluate_* functions",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic alignment uses a cosine threshold of 0.65 (default thr parameter) with all-MiniLM-L6-v2; fact-level scoring uses BAAI/bge-large-en-v1.5 with threshold 0.7.",
+      "kind": "code",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/src/evaluation/compute_metrics.py",
+      "quote": "def semantic_align(reference: List[str], \n                   system: List[str], \n                   thr: float = 0.65) ... def semantic_fact_precision_recall_f1(pred_facts: list,\n                                      ref_facts: list,\n                                      align_type: str,\n                                      llm,\n                                      threshold=0.7):",
+      "locator": "src/evaluation/compute_metrics.py, semantic_align and semantic_fact_precision_recall_f1",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "BEAM evaluates ten memory/long-dialogue ability categories: abstention, contradiction_resolution, event_ordering, information_extraction, instruction_following, knowledge_update, multi_session_reasoning, preference_following, summarization, temporal_reasoning",
+      "kind": "code",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/src/evaluation/run_evaluation.py",
+      "quote": "if key == \"abstention\": ... elif key == \"contradiction_resolution\": ... elif key == \"event_ordering\": ... elif key == \"information_extraction\": ... elif key == \"instruction_following\": ... elif key == \"knowledge_update\": ... elif key == \"multi_session_reasoning\": ... elif key == \"preference_following\": ... elif key == \"summarization\": ... elif key == \"temporal_reasoning\":",
+      "locator": "run_evaluation.py:run_evaluation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Each task type has a dedicated scoring function in src/evaluation/compute_metrics",
+      "kind": "code",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/src/evaluation/run_evaluation.py",
+      "quote": "from src.evaluation.compute_metrics import *",
+      "locator": "run_evaluation.py:line 8",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Chat size (context length) is a first-class evaluation dimension with values like 10M, 1M, 500K, 100K",
+      "kind": "code",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/src/evaluation/run_evaluation.py",
+      "quote": "--chat_size ... Chat size (e.g., 10M, 1M, 500K, 100K).",
+      "locator": "run_evaluation.py:parse_args",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Rubrics are stored per question type and index in probing_questions.json, co-located with chat data",
+      "kind": "code",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/src/evaluation/run_evaluation.py",
+      "quote": "probing_question_address = os.path.join(\"chats\", chat_size, dir, \"probing_questions\", \"probing_questions.json\")",
+      "locator": "run_evaluation.py:batch_run_evaluation:process_dir",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "event_ordering has a dedicated re-runnable evaluation function separate from the main evaluation loop, suggesting it may be computationally distinct or prone to errors requiring reruns",
+      "kind": "code",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/src/evaluation/run_evaluation.py",
+      "quote": "def run_evaluation_event_ordering(...): ... if key == \"event_ordering\":",
+      "locator": "run_evaluation.py:run_evaluation_event_ordering",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Experiments on BEAM show that LLMs with 1M token context windows, with and without retrieval-augmentation, struggle as dialogues lengthen.",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2510.27246",
+      "quote": "Our experiments on BEAM reveal that even LLMs with 1M token context windows (with and without retrieval-augmentation) struggle as dialogues lengthen.",
+      "locator": "abstract",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "LIGHT improves performance over strongest baselines by 3.5%\u201312.69% on BEAM depending on backbone LLM.",
+      "kind": "docs",
+      "url": "https://huggingface.co/datasets/Mohammadta/BEAM",
+      "quote": "LIGHT consistently improves performance across various models, achieving an average improvement of 3.5%\u201312.69% over the strongest baselines, depending on the backbone LLM",
+      "locator": "Abstract",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conversations scale to 128K, 500K, 1M, and 10M tokens.",
+      "kind": "docs",
+      "url": "https://huggingface.co/datasets/Mohammadta/BEAM",
+      "quote": "It contains multi-scale conversations (128K, 500K, 1M, and 10M tokens)",
+      "locator": "Dataset Description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The HuggingFace dataset viewer exposes three splits: 100K (20 rows), 500K (35 rows), 1M (35 rows), totaling 90 rows.",
+      "kind": "docs",
+      "url": "https://huggingface.co/datasets/Mohammadta/BEAM",
+      "quote": "default \u00b7 90 rows / 100K \u00b7 20 rows / 500K (35 rows) / 1M (35 rows)",
+      "locator": "Dataset Viewer, split selector",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The dataset is released under CC BY-SA 4.0.",
+      "kind": "docs",
+      "url": "https://huggingface.co/datasets/Mohammadta/BEAM",
+      "quote": "The BEAM dataset is released under the Creative Commons Attribution\u2013ShareAlike 4.0 International License (CC BY-SA 4.0).",
+      "locator": "License section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The associated paper is arxiv:2510.27246, titled 'Beyond a Million Tokens: Benchmarking and Enhancing Long-Term Memory in LLMs'.",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2510.27246",
+      "quote": "eprint={2510.27246}",
+      "locator": "Citation section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "BEAM contains 100 conversations and 2,000 probing questions.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2510.27246v1",
+      "quote": "we construct the BEAM dataset: 100 diverse conversations ranging from 100 K to 10 M tokens each, accompanied by 2000 probing questions to evaluate the memory capabilities of LLMs.",
+      "locator": "Section 1, Introduction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conversations span four length tiers: 128K, 500K, 1M, and 10M tokens.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2510.27246v1",
+      "quote": "BEAM (This work) \u2026 128K, 500K, 1M, 10M",
+      "locator": "Appendix A, Table 2",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Ten memory abilities are evaluated: IE, MR, KU, TR, ABS, CR, EO, IF, PF, SUM.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2510.27246v1",
+      "quote": "We measure performance across ten complementary abilities, seven drawn from prior benchmarks and three newly introduced here\u2014Instruction Following, Event Ordering, and Contradiction Resolution.",
+      "locator": "Section 2.2, Benchmark Creation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Event Ordering uses Kendall tau-b with an LLM equivalence detector to align system-response events to nuggets.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2510.27246v1",
+      "quote": "We evaluate event ordering using the Kendall tau-b coefficient (Kendall, 1945) \u2026 an LLM equivalence detector \u2026 aligns events in system responses with nuggets, outputting yes if two snippets denote the same event/topic and no otherwise. Kendall tau-b is then computed over the aligned sequences.",
+      "locator": "Section 2.4, Evaluation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Probing question candidate selection uses GPT-4.1-mini with per-ability prompts (Listings 1\u20139); question synthesis uses prompts 10\u201319.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2510.27246v1",
+      "quote": "Candidate bullet selection is performed using prompts 1\u20139, one per memory ability \u2026 Probe generation uses prompts 10\u201319 for each memory ability.",
+      "locator": "Section 2.3, Probing Questions Generation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Code, data, and evaluation scripts are publicly released at GitHub.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2510.27246v1",
+      "quote": "we release all code, data, and evaluation scripts. Available at: https://github.com/mohammadtavakoli78/BEAM",
+      "locator": "Section 1, Introduction, footnote 1",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LIGHT achieves 3.5%\u201312.69% average improvement over strongest baselines on BEAM.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2510.27246v1",
+      "quote": "LIGHT consistently improves performance across various models, achieving an average improvement of 3.5%\u201312.69% over the strongest baselines, depending on the backbone LLM.",
+      "locator": "Abstract",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval budget K=15 yields best average performance across all conversation lengths.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2510.27246v1",
+      "quote": "Performance consistently improves when increasing K from 5 to 15, with the best results at K=15 (+8.5%, +7.3%, +6.6%, and +6.1% at 100K, 500K, 1M, and 10M).",
+      "locator": "Section 4.2, Effect of Retrieval Budget",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Human quality evaluation of conversations averages 4.53 (Coherence), 4.57 (Realism), 4.64 (Complexity) on a 5-point scale.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2510.27246v1",
+      "quote": "The average scores across all conversations were 4.53, 4.57, and 4.64, respectively, indicating consistently high quality.",
+      "locator": "Section 4.2, Human Evaluation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "All methods perform strongest on Abstention and weakest on Contradiction Resolution.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2510.27246v1",
+      "quote": "all methods\u2014including ours\u2014perform strongest in abstention and weakest in contradiction resolution, indicating that contradiction detection remains a challenging open problem.",
+      "locator": "Section 4.2, Main Results",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dataset spans 19 domains with 100 total conversations.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2510.27246v1",
+      "quote": "In total, we designed 100 multi-turn chats distributed across 19 domains.",
+      "locator": "Appendix B.3.1, Domain Coverage of the Dataset",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dataset is synthetically generated (not human-authored conversations); the pipeline uses LLMs for all three stages (plan, question, answer).",
+      "kind": "docs",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/main/README.md",
+      "quote": "we present a novel framework for automatically generating long (up to 10M tokens), coherent, and topically diverse conversations, accompanied by probing questions targeting a wide range of memory abilities.",
+      "locator": "README.md, abstract paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conversations span four token-length scales: 128K, 500K, 1M, and 10M tokens.",
+      "kind": "docs",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/main/README.md",
+      "quote": "It contains multi-scale conversations (128K, 500K, 1M, and 10M tokens)",
+      "locator": "README.md, BEAM Description section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Abstention is one of the ten probing question types, explicitly testing whether a model withholds answers when evidence is missing.",
+      "kind": "docs",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/main/README.md",
+      "quote": "Abstention: Evaluates whether a model withholds answers when evidence is missing",
+      "locator": "README.md, Probing Questions Types section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Grading is performed by an LLM-as-a-judge that assigns numerical scores per memory-ability category.",
+      "kind": "docs",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/main/README.md",
+      "quote": "This script uses an LLM-as-a-judge model to score each generated answer against the corresponding probing question. The judging LLM assigns a numerical score for each memory ability category.",
+      "locator": "README.md, Evaluate Generated Answers section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Scoring code is implemented in src/answer_probing_questions/light.py for the LIGHT memory framework.",
+      "kind": "code",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/main/src/answer_probing_questions/light.py",
+      "quote": "The detailed implementation of each memory component\u2014episodic memory, working memory, and scratchpad\u2014can be found in: src/answer_probing_questions/light.py",
+      "locator": "README.md, How to Use LIGHT section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Evaluation entry point is src/evaluation/run_evaluation; reporting entry point is src/evaluation/report_results.py.",
+      "kind": "code",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/main/README.md",
+      "quote": "python -m src.evaluation.run_evaluation ... python -m src.evaluation.report_results.py",
+      "locator": "README.md, Evaluate Generated Answers and Generate and Save Reports sections",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "BEAM covers all ten memory abilities (IE, MR, KU, TR, ABS, CR, EO, IF, PF, SUM) while all prior benchmarks listed cover at most six.",
+      "kind": "docs",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/main/README.md",
+      "quote": "BEAM (This work) ... \u2705 \u2705 \u2705 \u2705",
+      "locator": "README.md, Comparison with Existing Long-Term Memory Benchmarks table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dataset download and preprocessing is automated via python src/beam/download_dataset.py.",
+      "kind": "code",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/main/src/beam/download_dataset.py",
+      "quote": "Run the following command from the root directory: python src/beam/download_dataset.py",
+      "locator": "README.md, Automatic Download and Pre-processing section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "BEAM has a 10M-token variant used for evaluation",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/12",
+      "quote": "I ran my architecture against the full BEAM 10M-token benchmark",
+      "locator": "issue #12, opening paragraph",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "BEAM has at least a 1M-token variant, referenced in comparison to Mem0's published score",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/12",
+      "quote": "Mem0 published 70.1% on BEAM 1M tokens.",
+      "locator": "issue #12, 'Why this matters' section",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "The primary metric used in BEAM is 'honest retrieval' expressed as a percentage",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/12",
+      "quote": "78.2% honest retrieval at 10M tokens",
+      "locator": "issue #12, Results section",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "BEAM evaluation can be run single-pass without answer-key leakage",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/12",
+      "quote": "No answer-key leakage. Real retrieval. Single-pass.",
+      "locator": "issue #12, Context section",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "BEAM score for the CEM Tree Architecture (branch-classified retrieval) is approximately 78%, described as not yet verified.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/13",
+      "quote": "CEM Tree Architecture | ~78% | Branch-classified retrieval (reproducing for verified results)",
+      "locator": "issue body, Results table",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "The BEAM score metric is treated as a single percentage figure representing retrieval accuracy, with the poster interpreting improvement from ~38% to ~78% as 'doubling' retrieval accuracy.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/13",
+      "quote": "Classification alone doubles retrieval accuracy.",
+      "locator": "issue body, Key Finding section",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "BEAM evaluation involves probing questions directed at a memory system, implying a question-answering task structure.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/13",
+      "quote": "Each probing question is routed to the correct branch(es), pulling only relevant context",
+      "locator": "issue body, The Architecture section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Each rubric item is scored on a ternary scale: 1.0, 0.5, or 0.0; a question's score is the mean over its items.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/14",
+      "quote": "1.0/0.5/0.0 per item, question score = mean over its items",
+      "locator": "Opening paragraph",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The paper's pipeline scores event_ordering with a rank-correlation metric, not the rubric judge.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/14",
+      "quote": "event_ordering is rubric-judged (the paper pipeline scores it with a rank-correlation metric)",
+      "locator": "Protocol and disclosures section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "BEAM covers 10 named ability categories: abstention, event_ordering, preference_following, knowledge_update, temporal_reasoning, summarization, multi_session_reasoning, contradiction_resolution, information_extraction, instruction_following.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/14",
+      "quote": "Per category (40 questions each unless noted): abstention | 0.950 \u2026 instruction_following | 0.394",
+      "locator": "Per-category results table",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Each category contains 40 questions unless noted otherwise.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/14",
+      "quote": "Per category (40 questions each unless noted)",
+      "locator": "Per-category results table header",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark tracks judgeFailures as a first-class metric in results reporting.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/14",
+      "quote": "judgeFailures | 0",
+      "locator": "Results table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "instruction_following category tests response-format compliance against rubric-required formats, not retrieval ability.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/14",
+      "quote": "the failure mode is response-format compliance against the rubric's required formats, not retrieval",
+      "locator": "Paragraph below per-category table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The BEAM benchmark repository has no explicit license specified, meaning default copyright applies and reuse is restricted.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/2",
+      "quote": "I noticed that neither the GitHub repo nor the Hugging Face dataset currently specifies an explicit license.",
+      "locator": "issue #2, body paragraph 2",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "BEAM includes both code and data as released artifacts.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/2",
+      "quote": "Thanks a lot for releasing the code, data, and the BEAM benchmark.",
+      "locator": "issue #2, body paragraph 1",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "BEAM's evaluation pipeline includes an answer generation step followed by a probing evaluation step.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/3",
+      "quote": "Adapt the existing BEAM evaluation pipeline (answer generation + probing evaluation) to work with retrieved memory context instead of raw long-context input",
+      "locator": "comment body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Gold labels include a prescribed ideal response string that the judge uses as the reference answer.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/4",
+      "quote": "Ideal response: \"Based on the provided chat, there is no information related to how user feedback influenced UI/UX improvements.\"",
+      "locator": "\u00a7Question Details",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A proposed fix involves either updating the gold label to accept behavioral engagement data as valid 'feedback', or narrowing the question text to make the intended scope unambiguous.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/4",
+      "quote": "Either: 1. Update the gold label to accept answers that reference the 15% engagement improvement as a valid form of user feedback influencing UI/UX decisions, or 2. Narrow the question text to explicitly ask about qualitative/verbal feedback",
+      "locator": "\u00a7Suggested Fix",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "At least one gold label (abstention[0] in 100K/1) is disputed due to definitional ambiguity in the question text ('user feedback') not being constrained by the hidden rubric, constituting a potential label quality issue.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/4",
+      "quote": "The gold label implicitly assumes the narrow definition, but the question text ('How did the user feedback influence...') does not restrict 'feedback' to qualitative input.",
+      "locator": "\u00a7Why This Is Ambiguous",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Gold answer for knowledge_update[1] in chat 10M/1 is explicitly supported by plan_new.txt but not by the cited messages in chat.json, representing a potential source-of-truth mismatch between question generation and evaluation inputs.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/7",
+      "quote": "the exact gold answer appears in the plan metadata [...] I do not see an explicit update to 14 tasks in that message [12196 in chat.json]",
+      "locator": "https://github.com/mohammadtavakoli78/BEAM/issues/7, sections 'What I found' points 2\u20133",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark's question generation pipeline uses both plan_new.pickle and chat.json, while the evaluation/answer generation pipeline uses chat.json only, creating an asymmetry between what informs gold answers and what is available to evaluated systems.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/7",
+      "quote": "BEAM's pipeline separates: Question generation appears to have access to both the plan and the chat. [...] Answer generation appears to load chat.json as the memory input.",
+      "locator": "https://github.com/mohammadtavakoli78/BEAM/issues/7, section 'Why this is confusing'",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The knowledge_update question category tests whether systems reflect updated numeric facts after a conversational update event; the original state is also tracked via source chat IDs.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/7",
+      "quote": "original_info: [12074], updated_info: [12196] [...] Message 12074 in chat.json clearly says: 12 tasks for load balancing, 82% sprint completion",
+      "locator": "https://github.com/mohammadtavakoli78/BEAM/issues/7, sections 'Question Details' and 'What I found, point 1'",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Nine of ten rubric evaluators in compute_metrics.py use int(response['score']), which silently truncates any 0.5 partial-credit score returned by the LLM judge.",
+      "kind": "issue",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/8",
+      "quote": "evaluate_abstention \u2014 score += int(response['score'])\n  - evaluate_contradiction_resolution \u2014 score += int(response['score'])\n  - evaluate_information_extraction \u2014 score += int(response['score'])\n  - evaluate_instruction_following \u2014 score += int(response['score'])\n  - evaluate_knowledge_update \u2014 score += int(response['score'])\n  - evaluate_multi_session_reasoning \u2014 score += int(response['score'])\n  - evaluate_preference_following \u2014 score += int(response['score'])\n  - evaluate_summarization \u2014 score += int(response['score'])\n  - evaluate_temporal_reasoning \u2014 score += int(response['score'])",
+      "locator": "https://github.com/mohammadtavakoli78/BEAM/issues/8",
+      "confidence": "high",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/src/evaluation/run_evaluation.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/src/evaluation/compute_metrics.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://arxiv.org/abs/2510.27246",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://arxiv.org/html/2510.27246v1",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://huggingface.co/datasets/Mohammadta/BEAM",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/3",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/12",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/14",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/13",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/7",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/4",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/8",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/2",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Whether a train/test split exists or all 100 conversations are evaluation-only is not stated.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "The specific LLMs used for the three-stage conversation generation pipeline in the released dataset are not named on this page.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Scoring formula and aggregation method for each evaluate_* function (e.g., binary, scalar, rubric-weighted) \u2014 implemented in compute_metrics.py, not visible here",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/src/evaluation/run_evaluation.py",
+      "kind": "code"
+    },
+    {
+      "text": "Which specific GPT model version is used as the judge (gpt_llm is imported from src.llm but not defined here)",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/b2da22eac88bb0874c64665f13457eb99835774a/src/evaluation/run_evaluation.py",
+      "kind": "code"
+    },
+    {
+      "text": "Validation procedure for the 2,000 questions (human annotation, automated, or hybrid) is not described in the abstract.",
+      "url": "https://arxiv.org/abs/2510.27246",
+      "kind": "paper"
+    },
+    {
+      "text": "Grading/scoring methodology (e.g., exact match, LLM-as-judge, rubric) is not described in the abstract.",
+      "url": "https://arxiv.org/abs/2510.27246",
+      "kind": "paper"
+    },
+    {
+      "text": "Primary metric names and formulas (e.g., accuracy, F1, aggregation method) are not specified in the abstract.",
+      "url": "https://arxiv.org/abs/2510.27246",
+      "kind": "paper"
+    },
+    {
+      "text": "Train/test splits or held-out set definitions are not mentioned in the abstract.",
+      "url": "https://arxiv.org/abs/2510.27246",
+      "kind": "paper"
+    },
+    {
+      "text": "Specific memory ability categories targeted by the probing questions (e.g., temporal reasoning, entity tracking, knowledge update) are not enumerated in the abstract.",
+      "url": "https://arxiv.org/abs/2510.27246",
+      "kind": "paper"
+    },
+    {
+      "text": "Data leakage controls and reproducibility details (version tags, random seeds, oracle retrieval settings) are not described in the abstract.",
+      "url": "https://arxiv.org/abs/2510.27246",
+      "kind": "paper"
+    },
+    {
+      "text": "Code repository or public release URL for BEAM is not provided in the abstract.",
+      "url": "https://arxiv.org/abs/2510.27246",
+      "kind": "paper"
+    },
+    {
+      "text": "The 128K split mentioned in the dataset description does not appear in the HuggingFace viewer splits (only 100K, 500K, 1M); its availability and row count are unclear.",
+      "url": "https://huggingface.co/datasets/Mohammadta/BEAM",
+      "kind": "docs"
+    },
+    {
+      "text": "The 10M split is described structurally but does not appear in the HuggingFace dataset viewer; its actual availability and row count are unspecified on this page.",
+      "url": "https://huggingface.co/datasets/Mohammadta/BEAM",
+      "kind": "docs"
+    },
+    {
+      "text": "The exact LLM judge model identity used for nugget scoring (Listing 20) is not specified in the paper text; the prompt is referenced but the scoring model name is not stated in the sections available.",
+      "url": "https://arxiv.org/html/2510.27246v1",
+      "kind": "paper"
+    },
+    {
+      "text": "Train/test split or held-out set boundaries are not defined; BEAM appears to be an evaluation-only benchmark with no training split, but this is not explicitly stated.",
+      "url": "https://arxiv.org/html/2510.27246v1",
+      "kind": "paper"
+    },
+    {
+      "text": "The LLM equivalence detector model identity used for Event Ordering alignment (Listing 21) is not specified.",
+      "url": "https://arxiv.org/html/2510.27246v1",
+      "kind": "paper"
+    },
+    {
+      "text": "Aggregation method across the 20 per-conversation ability scores into a single overall benchmark score is not explicitly defined (e.g., macro-average across abilities, then across conversations).",
+      "url": "https://arxiv.org/html/2510.27246v1",
+      "kind": "paper"
+    },
+    {
+      "text": "Leakage controls are not discussed; whether any LLM used in generation (GPT-4.1, LLaMA-3.3 70B) may have been exposed to the domains or synthetic patterns is not addressed.",
+      "url": "https://arxiv.org/html/2510.27246v1",
+      "kind": "paper"
+    },
+    {
+      "text": "The exact LLM-as-a-judge prompt template used for scoring is not specified in the README; the judge model identity, scoring rubric, and numerical score range are undocumented here.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/main/src/evaluation/run_evaluation.py",
+      "kind": "docs"
+    },
+    {
+      "text": "No explicit train/test split boundary is described; it is unclear whether any portion of the 100 conversations is reserved for development vs. test.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Aggregation method across the ten memory-ability subscores (e.g., macro average, min-of-subscores, weighted) is not defined in the README.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/main/src/evaluation/report_results.py",
+      "kind": "docs"
+    },
+    {
+      "text": "The specific LLM(s) used to generate the benchmark conversations and probing questions (and their versions) are not identified in the README.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/main/src/llms_config.json",
+      "kind": "docs"
+    },
+    {
+      "text": "Validation procedure for the '2,000 validated questions' is not described \u2014 what the validation entailed (human review, automatic filtering, inter-annotator agreement) is unspecified.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Leakage controls and oracle retrieval settings (e.g., whether any gold-passage oracle baseline is included) are not described.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No definition of 'AR memory retrieval' metric \u2014 relationship to BEAM scoring pipeline unclear",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/12",
+      "kind": "issue"
+    },
+    {
+      "text": "No grader/scorer specification \u2014 whether exact match, LLM-as-judge, or other method is used",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/12",
+      "kind": "issue"
+    },
+    {
+      "text": "Distinction between 1M-token and 10M-token variants not formally documented on this page",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/12",
+      "kind": "issue"
+    },
+    {
+      "text": "No version tag or commit hash associated with the BEAM instance used for these results",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/12",
+      "kind": "issue"
+    },
+    {
+      "text": "No definition of the BEAM scoring formula, grader type (exact match, LLM-as-judge, human eval), or rubric is present in this issue.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/13",
+      "kind": "issue"
+    },
+    {
+      "text": "No information about dataset construction (synthetic vs human, annotation process, number of episodes/turns) is provided.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/13",
+      "kind": "issue"
+    },
+    {
+      "text": "Train/test split definitions, evaluation splits, and oracle retrieval settings are not described.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/13",
+      "kind": "issue"
+    },
+    {
+      "text": "No version tag or commit hash for the BEAM benchmark is referenced; it is unclear which version of BEAM these results correspond to.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/13",
+      "kind": "issue"
+    },
+    {
+      "text": "The meaning of 'honest retrieval' qualifying the 77.2% standard retrieval result is unexplained; it is unclear whether this implies a retrieval setting defined by BEAM itself or externally imposed.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/13",
+      "kind": "issue"
+    },
+    {
+      "text": "The full text and parameter list of `unified_llm_judge_base_prompt` is not reproduced; the exact judge prompt template, including all instructions and rubric criteria, is unverifiable from this page alone.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether information_extraction's 'mixed subtypes' reflects an official BEAM sub-split definition or an ad-hoc grouping is not clarified.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM",
+      "kind": "issue"
+    },
+    {
+      "text": "No license is specified for the BEAM code or dataset; reuse terms are undefined.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/2",
+      "kind": "issue"
+    },
+    {
+      "text": "No version tag, commit hash, or license information is referenced on this page.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/3",
+      "kind": "issue"
+    },
+    {
+      "text": "The full judge prompt or rubric used to score abstention questions is not disclosed in this issue; it is described only as hidden from the evaluated system.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/4",
+      "kind": "issue"
+    },
+    {
+      "text": "The complete taxonomy of abstention types beyond 'missing_detail' is not specified in this issue.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/4",
+      "kind": "issue"
+    },
+    {
+      "text": "Primary metrics and aggregation formulas (e.g., how abstention accuracy is rolled up into an overall BEAM score) are not described in this issue.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/4",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the conversations are synthetically generated or drawn from real human dialogues is not stated in this issue.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/4",
+      "kind": "issue"
+    },
+    {
+      "text": "Train/test split boundaries and any leakage controls are not mentioned in this issue.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/4",
+      "kind": "issue"
+    },
+    {
+      "text": "The number of abstention questions per chat or total abstention set size is not given in this issue.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/4",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether int() truncation vs. floor/round was the intended behaviour, and whether any published results were computed with the buggy int() path, is not resolved on this page.",
+      "url": "https://github.com/mohammadtavakoli78/BEAM/issues/8",
+      "kind": "issue"
+    }
+  ]
+}
