@@ -1,0 +1,1404 @@
+{
+  "identity": {
+    "id": "memmachine",
+    "name": "MemMachine",
+    "repo": "https://github.com/MemMachine/MemMachine",
+    "docs": "https://docs.memmachine.ai/llms.txt",
+    "license": "Apache-2.0",
+    "version_or_commit": "843f00cd982943d45a20fe0af25ae227e7405dc8",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "MemMachine provides persistent, multi-session memory for AI agents, enabling personalized and context-rich experiences."
+    },
+    {
+      "text": "Provides episodic and profile (semantic) memory management for a specific context"
+    },
+    {
+      "text": "Open-source long-term memory layer for AI agents and LLM-powered applications"
+    },
+    {
+      "text": "MemMachine operates as an enterprise memory platform with a hosted API"
+    },
+    {
+      "text": "Persistent memory that survives restarts, sessions, and model changes"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Forget (delete) removes events by UUID: resolves segment UUIDs for those events, resolves derivative UUIDs for those segments, deletes derivatives from the vector store first, then deletes segments from the segment store."
+    },
+    {
+      "text": "MemMachine has an internal long-term memory store that uses longer field names (produced_for_id, producer_role, producer_id) for filtering, distinct from the shorter names exposed in the external API."
+    },
+    {
+      "text": "MemMachine includes an AmazonBedrockReranker component (amazon_bedrock_reranker.py) with a score() method that scores retrieved candidates against a query, using a configurable model_id"
+    },
+    {
+      "text": "The profile extraction prompt passes the prior profile state and a conversation history snippet, indicating a read-then-update write path for the profile/semantic store."
+    },
+    {
+      "text": "Episodes use created_at which conflates ingestion time with when the event occurred; proposed fix is a timestamp or time range indicating when the event occurred."
+    },
+    {
+      "text": "MemMachine distinguishes between at least two workflow types: a retrieval-agent workflow and a legacy episodic workflow, both covered by the evaluation toolset."
+    },
+    {
+      "text": "The EpisodicMemoryManager maintains a process-local cache, identified as the main scaling bottleneck for cross-replica coherence."
+    },
+    {
+      "text": "The server currently has no crash recovery guarantees; proposed fix is transactional or self-healing operations on restart."
+    },
+    {
+      "text": "Background semantic ingestion can be triggered from MCP; the reporter requests an option to disable it from that path."
+    },
+    {
+      "text": "Features can be deleted individually by feature ID, or in bulk by set_id with an optional filter expression."
+    },
+    {
+      "text": "clean command removes all services and data, implying a full store wipe rather than selective forget"
+    },
+    {
+      "text": "Memory is scoped per session via a session_key; no cross-session sharing is present in this module."
+    },
+    {
+      "text": "A project in `delete` status continues to serve search results from a process-local instance cache."
+    },
+    {
+      "text": "Influence Strip reveals which memories are shaping each response, providing retrieval transparency"
+    },
+    {
+      "text": "Retrieval is scoped exclusively to long-term memory, not the current session or a combined store"
+    },
+    {
+      "text": "Episodes record who produced them and for whom, enabling producer/role and target isolation"
+    },
+    {
+      "text": "Results are typed as a SearchResult object with an episodic_memory field, not a plain dict"
+    },
+    {
+      "text": "Isolation is per-user, per-agent, per-group, and per-session via constructor parameters"
+    },
+    {
+      "text": "This retrieval agent explicitly does not rewrite or mutate memory \u2014 it is read-only"
+    },
+    {
+      "text": "Retrieval agent uses intelligent orchestration for complex multi-hop memory queries"
+    },
+    {
+      "text": "add_memory is triggered when facts, preferences, or important context are shared"
+    },
+    {
+      "text": "Memory persists across multiple sessions, not just within a single conversation."
+    },
+    {
+      "text": "Semantic memory organized via categories, tags, sets, features, and templates"
+    },
+    {
+      "text": "Uses OpenAI API for language models and embeddings within the server"
+    },
+    {
+      "text": "Supports multiple memory types: preferences, weaknesses, commitments"
+    },
+    {
+      "text": "Persistence depends on Neo4j and PostgreSQL as backing stores"
+    },
+    {
+      "text": "Memory scoped to users, sessions, or agents via MemoryContext"
+    },
+    {
+      "text": "Persistence scoped across sessions, agents, and LLMs"
+    },
+    {
+      "text": "Projects provide isolated memory namespaces"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Memory persists across agent restarts, sessions, and model changes",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/README.md",
+      "quote": "Agent Memory Persistence: Memory that survives restarts, sessions, and even model changes",
+      "locator": "### Key Capabilities",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve path uses a natural-language search() call returning episodic long-term memory episodes",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/README.md",
+      "quote": "results = memory.search(\"What are my flight preferences?\")\nprint(results.content.episodic_memory.long_term_memory.episodes[0].content)\n# => \"I prefer aisle seats on flights\"",
+      "locator": "## Quick Start",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MemMachine maintains two separate persistent memory stores: episodic and semantic, both writable and searchable via a v2 HTTP API",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/client/src/memmachine_client/memory.py",
+      "quote": "This module provides the Memory class that handles episodic and profile memory operations for a specific context.",
+      "locator": "memory.py:module docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are isolated per-context by automatically injecting metadata-derived filters (user_id, agent_id, group_id, session_id, etc.) into every search and list request",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/client/src/memmachine_client/memory.py",
+      "quote": "built_in_filters = self.get_default_filter_dict()\n\n        # Merge built-in filters with user-provided filters\n        # User-provided filters take precedence if there are key conflicts\n        merged_filters = {**built_in_filters}\n        if filter_dict:\n            merged_filters.update(filter_dict)",
+      "locator": "memory.py:search method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Episodic memories can be deleted individually or in batch by UID; semantic memories likewise",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/client/src/memmachine_client/memory.py",
+      "quote": "episodic_id: The unique identifier of the episodic memory to delete",
+      "locator": "memory.py:delete_episodic method docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic features support citations linking them back to source episode IDs, connecting curated facts to the log entries that support them",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/client/src/memmachine_client/memory.py",
+      "quote": "citations: Optional episode IDs supporting this feature.",
+      "locator": "memory.py:add_feature method docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Episodic memory has distinct long-term and short-term sub-stores that can be enabled or disabled independently",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/client/src/memmachine_client/memory.py",
+      "quote": "long_term_memory_enabled: Whether long-term memory is enabled.\n            short_term_memory_enabled: Whether short-term memory is enabled.",
+      "locator": "memory.py:configure_episodic_memory method docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic categories are defined by prompt templates that drive feature extraction; per-set-type templates are inherited by all sets of that type",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/client/src/memmachine_client/memory.py",
+      "quote": "prompt: The prompt template used for extracting features.",
+      "locator": "memory.py:add_semantic_category method docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path: events are segmented into segments, segments produce derivatives, derivatives are embedded and upserted into a vector store, and segment-to-derivative mappings are persisted in a segment store partition.",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/episodic_memory/event_memory/event_memory.py",
+      "quote": "await self._segment_store_partition.add_segments({segment: [derivative.uuid for derivative in segment_derivatives] for segment, segment_derivatives in segments_to_derivatives.items()})\n...await self._vector_store_collection.upsert(records=derivative_records)",
+      "locator": "EventMemory._encode_events, event_memory.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve path: query is embedded, vector store searched for derivatives, results deduplicated to seed segments by best score, surrounding segments fetched from segment store to expand context, then optionally reranked.",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/episodic_memory/event_memory/event_memory.py",
+      "quote": "seed_embedding_scores: dict[UUID, float] = {}\nfor match in query_result.matches:\n    segment_uuid = UUID(...)\n    if segment_uuid not in seed_embedding_scores:\n        seed_embedding_scores[segment_uuid] = match.score",
+      "locator": "EventMemory._query, event_memory.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is a hard delete: derivatives removed from vector store, then segments removed from segment store, keyed by event UUID.",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/episodic_memory/event_memory/event_memory.py",
+      "quote": "# Delete from vector DB first, then segment store.\nif derivative_uuids:\n    await self._vector_store_collection.delete(record_uuids=derivative_uuids)\nawait self._segment_store_partition.delete_segments(segment_uuids=segment_uuids)",
+      "locator": "EventMemory._forget_events, event_memory.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The store holds curated event segments with timestamps and producer context, not a raw message log; events are explicitly encoded, not automatically logged from a transcript.",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/episodic_memory/event_memory/event_memory.py",
+      "quote": "async def encode_events(self, events: Iterable[Event], *, format_options: FormatOptions | None = None) -> None:\n    \"\"\"Encode events.\"\"\"",
+      "locator": "EventMemory.encode_events, event_memory.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per segment store partition and vector store collection; the partition/collection boundaries define the isolation unit (e.g., per user or per session) but this file does not specify the mapping policy.",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/episodic_memory/event_memory/event_memory.py",
+      "quote": "segment_store_partition: InstanceOf[SegmentStorePartition] = Field(..., description=\"Segment store partition\")\nvector_store_collection: InstanceOf[VectorStoreCollection] = Field(..., description=\"Vector store collection\")",
+      "locator": "EventMemoryParams, event_memory.py",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy is query-driven (not always-on injection): caller invokes query() explicitly with a search string; no automatic or adaptive background retrieval is implemented in this file.",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/episodic_memory/event_memory/event_memory.py",
+      "quote": "async def query(self, query: str, *, vector_search_limit: int = 20, expand_context: int = 0, property_filter: FilterExpr | None = None, format_options: FormatOptions | None = None) -> QueryResult:",
+      "locator": "EventMemory.query, event_memory.py",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Short-term memory uses a deque of Episode objects as the in-session log; eviction triggers LLM summarization, producing a curated rolling summary distinct from the raw episode log.",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/episodic_memory/short_term_memory/short_term_memory.py",
+      "quote": "It uses a deque with a fixed capacity and evicts older episodes when memory limits (message length) are reached. Evicted episodes are summarized asynchronously to maintain context over a longer conversation.",
+      "locator": "module docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The rolling summary is persisted to SessionDataManager after each successful summarization; on session creation the summary is reloaded, but raw episodes are not (TODO noted in code).",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/episodic_memory/short_term_memory/short_term_memory.py",
+      "quote": "# ToDo: Retrieve the episodes from raw data storage\n                return cls(params, summary)",
+      "locator": "ShortTermMemory.create",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is always performed (not adaptive) but is bounded by max_message_length and limit parameters, and can be filtered by episode metadata properties.",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/episodic_memory/short_term_memory/short_term_memory.py",
+      "quote": "for e in reversed(self._memory):\n                if length >= max_message_length > 0:\n                    break\n                if len(episodes) >= limit > 0:\n                    break\n                # check if should filter the message\n                if not self._check_filter(e, filters):\n                    continue",
+      "locator": "ShortTermMemory.get_short_term_memory_context",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Individual episode deletion by UID is supported; full memory clear (episodes + summary) is also supported.",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/episodic_memory/short_term_memory/short_term_memory.py",
+      "quote": "async def delete_episode(self, uid: str) -> bool:\n        \"\"\"Delete one episode by UID.\"\"\"",
+      "locator": "ShortTermMemory.delete_episode",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Summarization uses a background worker with dynamic batching to ensure sequential integrity and eventual consistency; the summary is never updated out of order.",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/episodic_memory/short_term_memory/short_term_memory.py",
+      "quote": "Background Worker with Dynamic Batching. This ensures sequential integrity (summaries are never updated out of order) and eventual consistency (the summary will eventually reflect all ingested episodes).",
+      "locator": "ShortTermMemoryConsolidator class docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per session_key; no evidence of per-user, per-agent, or per-character isolation in this file.",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/episodic_memory/short_term_memory/short_term_memory.py",
+      "quote": "session_key: str = Field(..., description=\"Session identifier\", min_length=1)",
+      "locator": "ShortTermMemoryParams.session_key",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval queries only long-term memory, not short-term or session memory",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/retrieval_agent/agents/memmachine_retriever.py",
+      "quote": "mode=EpisodicMemory.QueryMode.LONG_TERM_ONLY",
+      "locator": "do_query method, query_memory call",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Episodes carry provenance metadata (producer_id, producer_role, produced_for_id), enabling filtering by author or target",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/retrieval_agent/agents/memmachine_retriever.py",
+      "quote": "producer_id=episode.producer_id,\n                    producer_role=episode.producer_role,\n                    produced_for_id=episode.produced_for_id",
+      "locator": "do_query method, episode construction loop",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "This agent is read-only; no write, update, or delete path is present in this file",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/retrieval_agent/agents/memmachine_retriever.py",
+      "quote": "Agent that runs long-term episodic memory search without rewriting.",
+      "locator": "MemMachineAgent class docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemMachine separates a raw episode/history log from a curated semantic feature store; features are extracted from history by a language model, not stored verbatim.",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/semantic_memory/semantic_memory.py",
+      "quote": "episode_storage: InstanceOf[EpisodeStorage]\n        semantic_config_storage: InstanceOf[SemanticConfigStorage]",
+      "locator": "SemanticService.Params",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is persisted as structured features (category, feature name, value, tag, metadata, embedding, optional citations) in a vector-backed semantic store.",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/semantic_memory/semantic_memory.py",
+      "quote": "f_id = await self._semantic_storage.add_feature(\n            set_id=set_id,\n            category_name=category_name,\n            feature=feature,\n            value=value,\n            tag=tag,\n            metadata=metadata,\n            embedding=np.array(embedding),\n        )",
+      "locator": "SemanticService.add_new_feature",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval uses vector similarity search with a configurable min_distance threshold and result limit, scoped to one or more set_ids.",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/semantic_memory/semantic_memory.py",
+      "quote": "vector_search_opts=SemanticStorage.VectorSearchOpts(\n                query_embedding=np.array(embedding),\n                min_distance=min_distance,\n            ),",
+      "locator": "SemanticService._set_id_search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "After features are extracted from history rows, the ingested history rows are purged; partially-failed sets retain their rows.",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/semantic_memory/semantic_memory.py",
+      "quote": "purged = await self._semantic_storage.purge_ingested_rows(dirty_sets)\n            if purged:\n                logger.info(\n                    \"purged %d ingested rows for %d sets\", purged, len(dirty_sets)\n                )",
+      "locator": "SemanticService._background_ingestion_task",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Categories act as the schema/scaffold for feature extraction; each category has a name, prompt, and description. Default categories can be disabled per set_id and user categories added per set_id or set_type.",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/semantic_memory/semantic_memory.py",
+      "quote": "async def add_new_category_to_set_id(\n        self,\n        *,\n        set_id: SetIdT,\n        category_name: str,\n        prompt: str,\n        description: str | None,\n    ) -> CategoryIdT:",
+      "locator": "SemanticService.add_new_category_to_set_id",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Features can be deleted individually by ID or in bulk filtered by set_id and category; history episodes can be deleted separately.",
+      "kind": "code",
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/semantic_memory/semantic_memory.py",
+      "quote": "async def delete_features(self, feature_ids: Sequence[FeatureIdT]) -> None:\n        logger.info(\"Deleting features ids %s\", feature_ids)\n        await self._semantic_storage.delete_features(feature_ids)",
+      "locator": "SemanticService.delete_features",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemMachine is an open-source long-term memory layer enabling persistent cross-session memory for AI agents",
+      "kind": "docs",
+      "url": "https://github.com/MemMachine/MemMachine/blob/main/README.md",
+      "quote": "MemMachine is an open-source long-term memory layer for AI agents and LLM-powered applications. It enables your AI to learn, store, and recall information from past sessions\u2014transforming stateless chatbots into personalized, context-aware assistants.",
+      "locator": "What is MemMachine?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory survives model changes, not just session restarts",
+      "kind": "docs",
+      "url": "https://github.com/MemMachine/MemMachine/blob/main/README.md",
+      "quote": "Agent Memory Persistence : Memory that survives restarts, sessions, and even model changes",
+      "locator": "Key Capabilities",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is implemented at four dimensions: group, agent, user, and session",
+      "kind": "docs",
+      "url": "https://github.com/MemMachine/MemMachine/blob/main/README.md",
+      "quote": "memory = project . memory (\ngroup_id = \"default\" ,\nagent_id = \"travel_agent\" ,\nuser_id = \"alice\" ,\nsession_id = \"session_001\"\n)",
+      "locator": "Quick Start",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Released under Apache 2.0 License",
+      "kind": "docs",
+      "url": "https://github.com/MemMachine/MemMachine/blob/main/README.md",
+      "quote": "MemMachine is released under the Apache 2.0 License .",
+      "locator": "License",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MemMachine supports a retrieval-agent workflow and a separate legacy episodic workflow, implying the product has evolved its memory architecture.",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/getting_started/benchmarks.md",
+      "quote": "For the latest benchmark commands (retrieval-agent and legacy episodic workflows), see the Evaluation README.",
+      "locator": "Benchmark Evaluations > Benchmark Guide",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine is evaluated against LoCoMo, HotpotQA, and WikiMultiHop benchmarks.",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/getting_started/benchmarks.md",
+      "quote": "benchmark accuracy scores(LoCoMo, HotpotQA, WikiMultiHop) of your MemMachine instance",
+      "locator": "Benchmark Evaluations > intro paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory persists across multiple sessions, agents, and LLMs",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/getting_started/introduction.md",
+      "quote": "MemMachine's memory layer persists across multiple sessions, agents, and large language models",
+      "locator": "Welcome section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory layer affects agent operations and responses delivered",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/getting_started/introduction.md",
+      "quote": "providing a personalized memory layer that affects the operations of agents, and the responses that they deliver",
+      "locator": "Know the Fundamentals section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Can be installed via pip or from GitHub source",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/getting_started/introduction.md",
+      "quote": "you can run it on your own machine or in the cloud. The easiest way to get up and running is with the quickstart options above. If you want to install MemMachine yourself using pip or by downloading the code from our GitHub repo",
+      "locator": "Local Installations section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine is positioned as a personalized memory product",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/getting_started/quickstart.md",
+      "quote": "Start using MemMachine's personalized memory in minutes",
+      "locator": "Quickstart Guide \u2014 page subtitle",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Server is responsible for storage, retrieval, and processing of memories",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/getting_started/quickstart.md",
+      "quote": "The Server manages the storage, retrieval, and processing of memories",
+      "locator": "Quickstart Guide \u2014 first paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "OpenAI is used for both LLM and embedding functions inside the server",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/getting_started/quickstart.md",
+      "quote": "OpenAI API Key - For language models and embeddings (configured in the server).",
+      "locator": "Prerequisites section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A clean command wipes all services and data, suggesting no granular per-memory deletion is described on this page",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/getting_started/quickstart.md",
+      "quote": "./memmachine-compose.sh clean - Remove all services and data",
+      "locator": "Management Scripts \u2014 Common commands",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path uses add_memory tool triggered by presence of facts, preferences, or important context",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/install_guide/integrate/claude_code_mcp.md",
+      "quote": "Called automatically when you share facts, preferences, or important context",
+      "locator": "Step: Using Memory with Claude Code",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User-level isolation is enforced via a userId / MM_USER_ID parameter scoping memory sessions",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/install_guide/integrate/claude_code_mcp.md",
+      "quote": "userId: Your unique identifier for memory sessions (corresponds to MM_USER_ID)",
+      "locator": "Step: Option A: Configure for Claude Code (Docker)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Persistence backed by Neo4j and PostgreSQL databases",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/install_guide/integrate/claude_code_mcp.md",
+      "quote": "Check that your Neo4j and PostgreSQL databases are running",
+      "locator": "Step: Troubleshooting",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine separates episodic memory (chronological events) from semantic memory (extracted knowledge/facts)",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/llms.txt",
+      "quote": "EpisodicMemory: The data model representing a chronological interaction or event. SemanticMemory: The data model representing extracted knowledge or categorical facts.",
+      "locator": "TypeScript SDK interfaces section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory can be scoped per user, session, or agent",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/llms.txt",
+      "quote": "MemoryContext: Granular identifiers for scoping memories to specific users, sessions, or agents.",
+      "locator": "TypeScript SDK interfaces \u2014 MemoryContext entry",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Projects serve as isolated memory namespaces",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/llms.txt",
+      "quote": "Project API: Reference for managing isolated memory namespaces",
+      "locator": "Python API reference \u2014 Project API entry",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/delete is supported for both episodic and semantic memory stores",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/llms.txt",
+      "quote": "Delete Episodic Memory: Delete episodic memories from a project. Delete Semantic Memory: Delete semantic memories from a project.",
+      "locator": "API reference \u2014 memories section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval uses a dedicated agent with intelligent orchestration for multi-hop queries, not simple vector lookup",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/llms.txt",
+      "quote": "Retrieval Agent Architecture: How MemMachine uses intelligent orchestration to solve complex, multi-hop memory queries.",
+      "locator": "Retrieval Agent Architecture entry",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Semantic memory supports structured categorization via sets, categories, tags, and features",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/llms.txt",
+      "quote": "Add Semantic Category, Delete Semantic Category, Disable Semantic Category, Add Semantic Tag, Delete Semantic Tag, Add Semantic Category Template",
+      "locator": "API reference \u2014 semantic-memory categories section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Short-term, long-term, episodic, and semantic memory each have independent configurable parameters",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/llms.txt",
+      "quote": "Update the episodic and/or semantic memory configuration. Get Short Term Memory Config. Update Short Term Memory Config. Get Long Term Memory Config. Update Long Term Memory Config.",
+      "locator": "API reference \u2014 configuration section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MemMachine supports deployment via PIP, AWS CloudFormation, and Kubernetes Helm chart",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/llms.txt",
+      "quote": "Using PIP and Source: Your Home for Localized MemMachine Installation. AWS CloudFormation: MemMachine CloudFormation Deployment Guide. Helm Chart (Kubernetes): Deploy MemMachine to a Kubernetes cluster using the official Helm chart.",
+      "locator": "Install Guide section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "External chat history import (e.g. from OpenAI) into MemMachine's store is supported",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/llms.txt",
+      "quote": "ChatGPT2MemMachine: Import chat history from external sources like OpenAI and Locomo into MemMachine.",
+      "locator": "Tools \u2014 ChatGPT2MemMachine entry",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Episodes conflate ingestion time (created_at) with the time an event occurred, which is semantically incorrect for memory.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1297",
+      "quote": "episodes have a timestamp or a time range indicating when occurred -- created_at/ingestion time is a different system-defined concept that has no relevance to memory",
+      "locator": "Describe the solution you'd like",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine is used as a memory backend by enterprise users",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1023",
+      "quote": "The proposed integration will close a gap for enterprise FlowiseAI users already running on MemMachine.",
+      "locator": "Additional Context",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine maintains a long-term memory store with its own internal field naming convention, separate from the external API's naming convention, creating a mismatch in filter fields.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1089",
+      "quote": "Internal representation has longer names and filters by longer names in long term memory.",
+      "locator": "Bug report body, 'Describe the bug' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The external API and docs use shorter field names (produced_for, producer_role, producer) while the internal long-term memory uses longer names (produced_for_id, producer_role, producer_id).",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1089",
+      "quote": "External API and docs have the shorter names.\nInternal representation has longer names and filters by longer names in long term memory.",
+      "locator": "Bug report body, 'Steps to reproduce' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine's semantic memory uses a background ingestion task (_background_ingestion_task) that can crash and restart repeatedly, causing add_memory operations to be dropped.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1144",
+      "quote": "background task crashed, restarting",
+      "locator": "Additional context / stderr excerpt",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine has a hosted platform API accessible at a versioned base URL",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1268",
+      "quote": "The docs mention for using MemMachine hosted platform to use base url `https://api.memmachine.ai/` which did not work for me. I changed to `https://api.memmachine.ai/v2` and then it worked.",
+      "locator": "Describe the bug",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A corrupted semantic memory containing excessive whitespace characters is retrieved and injected into context even when the search query has no semantic match, producing abnormally long context.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1243",
+      "quote": "I did a search memory where I know the query 'abcdefghi' will not match anything, it returned 10 relevant semantic memories \u2026 I notice there is 1 memory that has a lot of CRs \u2026 in this reponse, this one memory had 23702 CRs in it.",
+      "locator": "Describe the bug, item 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A stored memory can be malformed at write time (excessive carriage returns), and that malformation persists and is amplified at retrieval time \u2014 the 1075 CRs in the stored memory became 23702 CRs in the search response.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1243",
+      "quote": "I notice there is 1 memory that has 1075 CRs in it \u2026 in this reponse, this one memory had 23702 CRs in it. Not sure why it multiplied the single semantic memory into this response.",
+      "locator": "Describe the bug, items 1 and 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine has an integration with OpenClaw that auto-captures memories from conversation",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1268",
+      "quote": "Expected ... `openclaw-memmachine: auto-captured 8 memories` In OpenClaw UI logs panel",
+      "locator": "Expected behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine operates as a plugin to a host application (openclaw), suggesting memory isolation is at least per-plugin-instance rather than native to the host.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1243",
+      "quote": "I have openclaw with memmachine plugin",
+      "locator": "Describe the bug, opening sentence",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write path for episodic memory does not deduplicate on insert, allowing identical memories to accumulate in the store.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1244",
+      "quote": "There are 100 episodic memories... We can see there seems to be many duplicated items.",
+      "locator": "Describe the bug / body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine exposes a list_memory API returning separate episodic_memory and semantic_memory collections.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1244",
+      "quote": "em = content.get(\"episodic_memory\", [])\nsm = content.get(\"semantic_memory\", [])",
+      "locator": "Describe the bug / code block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Episodic and Semantic are architecturally separate stores with different retrieval characteristics \u2014 Semantic returns facts directly, Episodic requires post-hoc extraction from episodes",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1246",
+      "quote": "if the agents also search Semantic Memory, they could respond immediately. However, if they search only Episodic Memory, they must first find the relevant episodes and then extract the user-related information from them to produce an answer. This approach would make the response significantly slower.",
+      "locator": "Issue body, section 1: Memory Retrieval Scope of Retrieval Agents",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SplitQueryAgent omits the original query from retrieval, relying solely on decomposed sub-queries, which risks recall gaps for high-level or summarized memories",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1246",
+      "quote": "The SplitQueryAgent uses only sub-queries when performing the Search phase\u2026 Recover high-level or summarized memories that may not be captured by individual sub-queries",
+      "locator": "Issue body, section 2: Search Queries of SplitQueryAgent",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The semantic memory write path depends on an LLM response; malformed responses from qwen3.5-plus or qwen3.5-flash cause repeated ingestion errors.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1270",
+      "quote": "Configure to use qwen3.5-plus or qwen3.5-flash in configuration.yml\nadd some memory to generate semantic memory and you will see such errors in docker logs.",
+      "locator": "Steps to reproduce",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "EpisodicMemoryManager's process-local LRU cache with no cross-instance coherence is the main horizontal scaling bottleneck.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1297",
+      "quote": "Process-local LRU cache with ref counting. No cross-instance cache coherence. Each server instance builds its own cache, wastes memory, risks stale state. This is the main scaling bottleneck.",
+      "locator": "Is your feature request related to a problem? / horizontal scalability table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Short-term and long-term memory lifecycles are tightly coupled despite long-term memory being entirely stateless; multiple agents (short-term memories) can act in one channel (long-term memory).",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1297",
+      "quote": "short-term memory and long-term memory lifecycle are tightly coupled when this reduces scalability and does not need to be the case \u2014 long-term memory is entirely stateless \u2014 there can naturally be multiple agents (short-term memories) acting in one channel (long-term memory) e.g. Slack, Discord",
+      "locator": "Is your feature request related to a problem?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The server has no crash recovery guarantees, meaning memory state may be lost or inconsistent after a crash.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1297",
+      "quote": "no guarantees on crash \u2026 operations are transactional or self-healing on restart",
+      "locator": "Is your feature request related to a problem?; Describe the solution you'd like",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The semantic/profile write path uses an OLD_PROFILE + HISTORY prompt structure, implying LLM-driven profile update rather than rule-based extraction.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1453",
+      "quote": "user prompt includes: <OLD_PROFILE>{}</OLD_PROFILE> <HISTORY>...previous assistant answer about Apple's gross margin...</HISTORY>",
+      "locator": "Describe the bug / captured single LLM request",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory ingestion is not idempotent: calling add_memory repeatedly for the same user/project re-triggers background extraction even for previously processed messages.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1453",
+      "quote": "Call add_memory repeatedly for the same user/project, passing full conversation context each time... deduplication/idempotency for already-ingested messages",
+      "locator": "Steps to reproduce / Expected behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is isolated at the user/project level, as the add_memory API accepts a user/project scope.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1453",
+      "quote": "Call add_memory repeatedly for the same user/project, passing full conversation context each time.",
+      "locator": "Steps to reproduce / Possible minimal reproduction path, step 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Background semantic ingestion can be triggered via MCP, suggesting an integration path beyond direct API calls.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1453",
+      "quote": "an option to disable automatic semantic/profile ingestion from MCP",
+      "locator": "Expected behavior / safeguards list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "After warmup (6+ executions), a single episodic segment-store read acquires locks on every child partition due to PostgreSQL generic plan caching",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1546",
+      "quote": "prepared, execution 6: 1269 locks (generic plan is built: plans all 316 children)\nprepared, execution 7+: 319 locks (cached generic plan: locks every child, then prunes)",
+      "locator": "Measurements section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Proposed fix queries child partition tables directly to reduce lock scope to one relation per episodic read, preserving SQLite compatibility",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1546",
+      "quote": "Query the child tables directly (preferred): the partition handle already owns its key; issuing DML against `segment_store_sg_p_<key>` / `segment_store_dv_ln_p_<key>` makes every plan reference exactly one relation \u2014 no 316-way planning, 1-2 locks, immune to the generic-plan flip.",
+      "locator": "Fix options section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Original store contract enforced single-process ownership per logical collection, with lifecycle ops guarded by per-process asyncio locks.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1574",
+      "quote": "safe concurrent usage on a single process\" and \"safe concurrent sharded usage (one node per logical collection) on multiple processes\". With ownership fixed per process, lifecycle operations (create, open-or-create, delete) could be read-check-write sequences guarded by per-process `asyncio` locks",
+      "locator": "section: The model the codebase was built on, and why \u2014 decision 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Per-tenant child tables in PostgreSQL caused lifecycle DDL deadlocks with writers and with each other at scale.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1574",
+      "quote": "create and delete DDL deadlocked with writers and with each other, on upstream and on every intermediate fix, in two cycle shapes",
+      "locator": "section: Why the sharded model fails them \u2014 table row: Per-tenant DDL on shared PostgreSQL parents",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Per-tenant shard keys on Qdrant caused severe admission latency and segment proliferation at even modest tenant counts.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1574",
+      "quote": "450 ms per tenant admission, 45 s for 100 tenants against 0.3 s with payload partitioning, 505 segments against 5, and cluster mode required.",
+      "locator": "section: Why the sharded model fails them \u2014 table row: Per-tenant shard keys on Qdrant",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Stale handle bug: an in-flight request could hold a handle while the same process deleted and recreated the collection, causing the handle to reach the successor tenant's data.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1574",
+      "quote": "an in-flight request holds a handle while that same process deletes and recreates the collection, and the handle reaches the successor.",
+      "locator": "section: How to read the linked issues \u2014 Handle bugs the sharded model could have fixed locally",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Multi-process session sharing caused lost updates: two processes sharing a session row with read-then-write semantics produced incorrect state.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1574",
+      "quote": "lost updates once two processes share a session",
+      "locator": "section: How to read the linked issues \u2014 Capability gaps the sharded model never had to fill",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Shared-tables layout outperforms per-tenant child tables on ingest throughput, read latency, and tenant creation cost in measured benchmarks.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1574",
+      "quote": "shared tables | 15k pairs/s | 0.21 ms | 0.006 ms | none",
+      "locator": "section: Why the sharded model fails them \u2014 comparison table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "EpisodicMemoryManager uses a process-local handle cache; cross-replica coherence of this cache is the main scaling bottleneck and is out of scope for this issue.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1574",
+      "quote": "Cross-replica coherence of the process-local `EpisodicMemoryManager` cache beyond handle eviction (#1297 rates it the main scaling bottleneck).",
+      "locator": "section: Out of scope \u2014 second bullet",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Target deletion semantics: a deleted tenant is unreachable immediately and erased in the background; synchronous erasure is an explicit deployment choice, not the default.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1574",
+      "quote": "a deleted tenant is unreachable immediately and erased in the background, so synchronous erasure is a deployment's explicit choice.",
+      "locator": "section: How to read the linked issues \u2014 Consequences of the target model",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session row status governs project lifecycle; stuck `delete` status blocks recreation and API operations.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1575",
+      "quote": "the session row stays in `delete` status forever, the project cannot be recreated (`POST /projects` returns 409), and a `POST /memories` on it raises `SessionDeletedError`",
+      "locator": "### What happened",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Semantic and episodic memory are separate stores with independent enable/disable configuration; semantic storage requires a configured database.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1575",
+      "quote": "`SemanticManager.get_semantic_storage` (`common/resource_manager/semantic_manager.py:89`) raises [ResourceNotReadyError: No database configured for semantic storage]",
+      "locator": "### What happened \u2014 code walkthrough",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Process-local instance cache is not invalidated when a project enters `delete` status, so stale memory can be served after deletion is initiated.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1575",
+      "quote": "a search on a project in `delete` status is still served from the process-local instance cache with 200 responses",
+      "locator": "### Notes",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Duplicate identical messages cause the ingestion step to create multiple distinct semantic features instead of deduplicating or merging them \u2014 a continuity failure where the same fact (user name) is stored four times separately.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/640",
+      "quote": "The ingestion step stored this feature multiple times and referenced it within the citation table to identify the episodes it was derived from. Since the feature is exactly the same, I would have expected that the citation references the same feature three times instead of extracted three distinct features.",
+      "locator": "issue body, Describe the bug / Expected behavior",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The semantic store holds four entries for feature_name=name/value=Christian and three entries for feature_name=location/value=Berlin, confirming duplication is a real observed bug rather than hypothetical.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/640",
+      "quote": "{ \"feature_name\": \"name\", \"value\": \"Christian\", \"metadata\": { \"citations\": null, \"id\": \"4\" } }, ... { \"id\": \"2\" } ... { \"id\": \"1\" } ... { \"id\": \"6\" }",
+      "locator": "issue body, search result JSON, semantic_memory array",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Episodes are typed (episode_type: message) and attributed to a producer role (user), supporting distinction between user-sourced and system-sourced memory entries.",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/640",
+      "quote": "\"episode_type\": \"message\", \"producer_id\": \"user_v1\", \"producer_role\": \"user\"",
+      "locator": "issue body, search result JSON",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is per project, user, agent, and session \u2014 scoped via org_id, project_id, agent_id, user_id, and session_id",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/690",
+      "quote": "project = self._get_project(mem.org_id, mem.project_id, mem.agent_id)\nmemory_interface = project.memory(\n    user_id=mem.user_id,\n    agent_id=mem.agent_id,\n    session_id=mem.session_id\n)",
+      "locator": "Steps to reproduce \u2014 ingest function",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Episodic memory stores raw message-level content with timestamps, preserving duplicate or near-duplicate entries without deduplication or supersession (three near-identical 'Chinese food' entries exist as separate records)",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/690",
+      "quote": "{'content': 'I can cook Chinese fodd.', ... 'uid': '557'}, {'content': 'I can cook Chinese fo0d.', ... 'uid': '558'}, {'content': 'I can cook Chinese food.', ... 'uid': '559'}",
+      "locator": "Steps to reproduce \u2014 query output, episodic_memory[11-13]",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The deployment target shown is on-premises Kubernetes, indicating MemMachine supports self-hosted operation",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/690",
+      "quote": "On-prem k8S cluster.",
+      "locator": "Environment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine has a two-stage retrieval pipeline: embedding-based search followed by a reranking step (AmazonBedrockReranker) that scores candidates",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/706",
+      "quote": "in amazon_bedrock_reranker.py, AmazonBedrockReranker.score(), it write some logs:\ne.g.\n                logger.debug(\n                    \"[call uuid: %s] \"\n                    \"Scoring %d candidates for query using %s Amazon Bedrock model\",\n                    score_call_uuid,\n                    len(candidates),\n                    self._model_id,\n                )",
+      "locator": "Describe the bug \u2014 opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory retrieval and LLM response are separate, measurable phases; retrieval took ~5 seconds in the observed run",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/706",
+      "quote": "Memory retrieval time: 5.01 seconds\nLLM response time: 5.04 seconds",
+      "locator": "Describe the bug \u2014 search test output",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine's memory search API is versioned at /api/v2/memories/search",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/706",
+      "quote": "INFO:     172.18.0.1:59718 - \"POST /api/v2/memories/search HTTP/1.1\" 200 OK",
+      "locator": "Describe the bug \u2014 docker logs excerpt",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Debug-level logs from the reranker component do not surface in either docker logs or the configured log file, indicating a logging isolation or routing bug",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/706",
+      "quote": "reranker logs not found",
+      "locator": "Describe the bug \u2014 docker logs excerpt and container log inspection",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine is evaluated against the LoCoMo episodic memory benchmark dataset",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/706",
+      "quote": "uv run python restapiv2_locomo_search.py --data-path ../locomo10.json --target-path /home/memmachine/MemMachine/evaluation/locomo/episodic_memory/mmai_gpto",
+      "locator": "Describe the bug \u2014 search test command",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine organises retrieved memory under an episodic_memory key within a SearchResult type",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/973",
+      "quote": "for idx, item in enumerate(results.get('episodic_memory', []))",
+      "locator": "issue body, stack trace",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine SDK includes an add memories operation and a search/context retrieval operation",
+      "kind": "issue",
+      "url": "https://github.com/MemMachine/MemMachine/issues/973",
+      "quote": "Adding memories...\n\nSearching for context...\nQuery: What should I suggest for dinner?",
+      "locator": "issue body, program output",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine overall LoCoMo llm_score of 0.8487 (vendor harness, interested-party result)",
+      "kind": "blog",
+      "url": "https://memmachine.ai/blog/2025/09/memmachine-reaches-new-heights-on-locomo/",
+      "quote": "With an impressive overall llm_score of 0.8487, these results validate MemMachine's Episodic Memory as a highly effective solution for creating and utilizing rich chat sessions.",
+      "locator": "section: Performance Analysis: MemMachine on the LoCoMo Benchmark",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is described as persistent across multiple sessions",
+      "kind": "blog",
+      "url": "https://memmachine.ai/blog/2025/09/memmachine-reaches-new-heights-on-locomo/",
+      "quote": "MemMachine unlocks persistent, multi-session memory for AI agents\u2014powering personalized, context-rich experiences you fully control, open-source and built for developers.",
+      "locator": "footer",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine supports a retrieval-agent workflow and a legacy episodic workflow as distinct memory/retrieval modes.",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/getting_started/benchmarks",
+      "quote": "For the latest benchmark commands (retrieval-agent and legacy episodic workflows), see the Evaluation README.",
+      "locator": "Benchmark Guide callout",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine is evaluated against LoCoMo, HotpotQA, and WikiMultiHop benchmarks.",
+      "kind": "docs",
+      "url": "https://docs.memmachine.ai/getting_started/benchmarks",
+      "quote": "benchmark accuracy scores(LoCoMo, HotpotQA, WikiMultiHop) of your MemMachine instance",
+      "locator": "Benchmark Evaluations section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine supports three named memory categories: long-term, short-term, and personalization memory.",
+      "kind": "docs",
+      "url": "https://memmachine.ai/integrations/",
+      "quote": "seamlessly inject long-term, short-term, and personalization memory into your existing workflows",
+      "locator": "Effortless Integrations section, introductory paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory persists across sessions, meaning state survives conversation boundaries.",
+      "kind": "docs",
+      "url": "https://memmachine.ai/integrations/",
+      "quote": "MemMachine unlocks persistent, multi-session memory for AI agents",
+      "locator": "footer tagline",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine uses approximately 80% fewer input tokens than Mem0 on LoCoMo memory mode.",
+      "kind": "blog",
+      "url": "https://memorypapers.org/papers/memmachine-a-ground-truth-preserving-memory-system-for-personalized-ai-agents",
+      "quote": "Mem0 comparison input tokens ~80% less MemMachine vs Mem0 on LoCoMo memory mode",
+      "locator": "RESULTS \u2014 By the Numbers",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine's Retrieval Agent with ChainOfQuery reaches 93.2% on HotpotQA hard and 92.6% on WikiMultiHop under randomized noise.",
+      "kind": "blog",
+      "url": "https://memorypapers.org/papers/memmachine-a-ground-truth-preserving-memory-system-for-personalized-ai-agents",
+      "quote": "MemMachine adds the Retrieval Agent with ToolSelectAgent, SplitQuery, and ChainOfQuery, reaching 93.2% on HotpotQA hard and 92.6% on WikiMultiHop under randomized noise.",
+      "locator": "KEY CONTRIBUTIONS \u2014 03 Retrieval Agent for multi-hop reasoning",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "GPT-5-mini outperforms GPT-5 by 2.6 percentage points on LongMemEvalS when paired with the Edwin3 prompt and tuned retrieval in MemMachine.",
+      "kind": "blog",
+      "url": "https://memorypapers.org/papers/memmachine-a-ground-truth-preserving-memory-system-for-personalized-ai-agents",
+      "quote": "MemMachine finds that GPT-5-mini beats GPT-5 by 2.6 percentage points on LongMemEvalS when paired with the Edwin3 prompt and tuned retrieval.",
+      "locator": "KEY INSIGHT \u2014 The Counterintuitive Finding",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemMachine's ground-truth-preserving design avoids per-message extraction, preserving exact conversational ground truth.",
+      "kind": "blog",
+      "url": "https://memorypapers.org/papers/memmachine-a-ground-truth-preserving-memory-system-for-personalized-ai-agents",
+      "quote": "This design lets MemMachine preserve exact conversational ground truth while selectively surfacing relevant episode clusters, something a plain context window or naive RAG cannot achieve.",
+      "locator": "HOW IT WORKS",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory types are categorized into preferences, weaknesses, and commitments",
+      "kind": "blog",
+      "url": "https://devpost.com/software/memmachine-learning-companion",
+      "quote": "Support for multiple memory types (preferences, weaknesses, commitments)",
+      "locator": "How we built it / Memory Layer (MemMachine)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory survives backend restarts, verified by E2E persistence tests",
+      "kind": "blog",
+      "url": "https://devpost.com/software/memmachine-learning-companion",
+      "quote": "Demonstrated memory survival across backend restarts - the core value proposition of MemMachine",
+      "locator": "Accomplishments that we're proud of / True Memory Persistence",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Fact extraction from conversation is performed using regex patterns before storage",
+      "kind": "blog",
+      "url": "https://devpost.com/software/memmachine-learning-companion",
+      "quote": "Sophisticated fact extraction using regex patterns",
+      "locator": "How we built it / Backend (FastAPI + Python)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Which memories influenced a given response is surfaced to the user via the Influence Strip",
+      "kind": "blog",
+      "url": "https://devpost.com/software/memmachine-learning-companion",
+      "quote": "The Influence Strip reveals exactly which memories are shaping each response",
+      "locator": "What it does / feature list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Multi-user isolation is not yet implemented; listed as future work",
+      "kind": "blog",
+      "url": "https://devpost.com/software/memmachine-learning-companion",
+      "quote": "Multi-User Support : Enable teachers and parents to view student progress while maintaining privacy controls",
+      "locator": "What's next for MemMachine Learning Companion",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/episodic_memory/event_memory/event_memory.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/semantic_memory/semantic_memory.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/retrieval_agent/agents/memmachine_retriever.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/server/src/memmachine_server/episodic_memory/short_term_memory/short_term_memory.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/blob/843f00cd982943d45a20fe0af25ae227e7405dc8/packages/client/src/memmachine_client/memory.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.memmachine.ai/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.memmachine.ai/getting_started/introduction.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.memmachine.ai/getting_started/quickstart.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.memmachine.ai/getting_started/benchmarks.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.memmachine.ai/install_guide/integrate/claude_code_mcp.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/issues/706",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/issues/1244",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/issues/1023",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/issues/1297",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/issues/690",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/issues/973",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/issues/1144",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/issues/1270",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/issues/1546",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/issues/640",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/issues/1246",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/issues/1574",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/issues/1453",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/issues/1575",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/issues/1268",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/issues/1243",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemMachine/MemMachine/issues/1089",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://memmachine.ai/blog/2025/09/memmachine-reaches-new-heights-on-locomo/",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.memmachine.ai/getting_started/benchmarks",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://memmachine.ai/integrations/",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://memorypapers.org/papers/memmachine-a-ground-truth-preserving-memory-system-for-personalized-ai-agents",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://devpost.com/software/memmachine-learning-companion",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Expected behavior for the filter field naming inconsistency is explicitly unknown per the report; canonical resolution for how long-term memory filtering should align with external API is unresolved.",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1089",
+      "kind": "issue"
+    },
+    {
+      "text": "The mechanism by which a 1075-CR memory becomes a 23702-CR payload in the search response is not explained on this page.",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1243",
+      "kind": "issue"
+    },
+    {
+      "text": "The cross-replica coherence strategy for the process-local EpisodicMemoryManager cache is explicitly deferred and not described anywhere in this issue.",
+      "url": "https://github.com/MemMachine/MemMachine/issues/1574",
+      "kind": "issue"
+    },
+    {
+      "text": "The docs page referenced as the canonical Python SDK API reference does not appear to correctly document the SearchResult return type for search, creating a gap between documented usage and actual SDK behaviour",
+      "url": "https://docs.memmachine.ai/api_reference/python/client",
+      "kind": "issue"
+    }
+  ]
+}
