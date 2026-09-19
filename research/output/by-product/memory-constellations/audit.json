@@ -1,0 +1,1096 @@
+{
+  "identity": {
+    "id": "memory-constellations",
+    "name": "Memory Constellations",
+    "repo": "https://github.com/ClaraShafiq/MemoryConstellations",
+    "docs": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/README.md",
+    "license": "MIT",
+    "version_or_commit": "2e5cdb11840236a40cda35877c4a6e3b695b90f7",
+    "observed_at": "2026-09-18"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Persistent companion memory system storing message logs, curated memory fragments, consolidated episode memories, entity profiles, and a user model across sessions in a SQLite database."
+    },
+    {
+      "text": "Memory Constellations has a distinct memory pipeline separate from chat, involving multiple named modules for extraction, classification, and user modeling."
+    },
+    {
+      "text": "A growing AI memory system that extracts fragments from chat, aggregates them into narrative episodes, and weaves them into long-term memory arcs."
+    },
+    {
+      "text": "Self-organizing memory system for AI companions that extracts facts, groups them by topic, and merges them into coherent narratives automatically."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "readUserRawMessages reads up to 150 raw user messages and calls LLM to produce a current_state impression. LLM returns action='extend' (update TTL of existing entry) or 'create' (resolve all prior deep_cycle snapshots and write new entry). Includes a retrospective audit: LLM evaluates whether the previous state prediction was confirmed, wrong, or unverifiable, and the verdict is written to evolution_history."
+    },
+    {
+      "text": "Profile integration (integrateProfileTraits) applies a stability tier gate before writing traits into the user profile. 'locked' category (basic) is never created or refined by the model. 'high' tier (personality, communication) requires source_diversity \u2265 5 and can only refine existing entries. 'medium' tier requires source_diversity \u2265 3. 'low' tier requires diversity \u2265 1."
+    },
+    {
+      "text": "Isolation: the model is per-user (single user assumed; no multi-user keying in user_model table). Entries are tagged by created_by ('chat_companion' or 'deep_cycle') to distinguish real-time companion writes from scheduled deep-cycle writes, and different resolution rules apply to each source."
+    },
+    {
+      "text": "Retrieved fragments are grouped by entity (person, place, work) before context injection to prevent cross-entity contamination in generation. A cross-person warning is appended when \u22652 person entities appear in the same injection."
+    },
+    {
+      "text": "Scribe extracts facts from new chat messages as short third-person sentences, stores them in memory_fragments table, and indexes them to ChromaDB (vector) and FTS5 (keyword). Triggered by silence \u226520 min or backlog \u2265100 messages."
+    },
+    {
+      "text": "Persisted store is a SQLite table called memory_fragments. Each fragment has type, entity, content, emotional_weight, source, source_date, source_msg_ids, is_rp, chat_mode, value_tags, priority, and content_hash columns."
+    },
+    {
+      "text": "A correction_log captures manual deletions of both memories and fragments as correction signals, with active entries accumulating until a merge threshold (10) triggers distillation into long-term guidelines"
+    },
+    {
+      "text": "Retrieval into the prompt is performed by a separate Librarian module using hybrid search; up to 15 fragments are injected into the Scribe prompt as deduplication context before new fragments are written."
+    },
+    {
+      "text": "Retrieve: /api/recall endpoint accepts a query and limit, returns a formatted field \u2014 pre-assembled text of relevant memory fragments + narrative + entity profiles \u2014 ready to inject into LLM prompt."
+    },
+    {
+      "text": "Scribe runs table tracks incremental extraction jobs: processed_until datetime, messages_processed, and fragments_written \u2014 marking the write path from message log to fragment store."
+    },
+    {
+      "text": "Stale ChromaDB entries (fragments whose status is no longer 'active' but whose chroma_id is not null) are cleaned up by deleting them from ChromaDB and nulling chroma_id in SQLite."
+    },
+    {
+      "text": "Cross-day identical content is explicitly not deduplicated, because same content on different dates is treated as source_diversity evidence for stable traits."
+    },
+    {
+      "text": "Memories are persisted in a SQLite `memories` table with fields including content, tags, status, valid_from, valid_to, layer; content is stored encrypted."
+    },
+    {
+      "text": "Sagas are cross-entity narrative arcs stored in memory_sagas, experimental and not yet consumed in production, updated every 24h or on new episodes."
+    },
+    {
+      "text": "Write path \u2014 long-term arc: Saga (memory arc) runs every 24 hours automatically, or immediately after consolidate produces a new episode."
+    },
+    {
+      "text": "Memory fragments carry a status field ('active' default) enabling soft-delete or lifecycle transitions without physical row deletion."
+    },
+    {
+      "text": "Fragment types distinguish curated memory categories: fact, state, observation, preference, event, intention, reflection, entity_new."
+    },
+    {
+      "text": "Memory sagas group related memories under a titled narrative arc with status and an emotional_axis field that drives retrieval bias."
+    },
+    {
+      "text": "Messages are stored encrypted; the scribe decrypts them at extraction time using an encryption module before formatting for the LLM."
+    },
+    {
+      "text": "Deep Cycle (Archivist) is idle-gated: only triggers after 1 hour of inactivity to avoid competing with the chat LLM for resources."
+    },
+    {
+      "text": "Deep cycle performs classify, rematch, and graduate operations, suggesting memory items are classified and promoted through tiers."
+    },
+    {
+      "text": "On update, embedding is only regenerated when title or content has actually changed; unchanged content skips vector update"
+    },
+    {
+      "text": "Vector/semantic retrieval is provided via ChromaDB; without it, retrieval degrades to keyword search."
+    },
+    {
+      "text": "All embedding runs locally with no API cost, meaning vector representations are generated on-device."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Librarian is the retrieve path: hybrid RRF fusion of FTS5 + vector + entity aggregation, with episodes weighted 1.5\u00d7 over raw fragments, and a score floor of 0.005 below which results are dropped.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/README.md",
+      "quote": "Librarian \u2500\u2500 called at chat-time\n    \u2502       \u2500\u2500 Hybrid search: FTS5 + vector + entity aggregation\n    \u2502       \u2500\u2500 RRF fusion, episodes weighted 1.5\u00d7 over raw fragments\n    \u2502       \u2500\u2500 Results tagged with recall permission level",
+      "locator": "## Architecture",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per user/companion pair via memory_config.json naming; no multi-user isolation mechanism described beyond single-instance configuration.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/README.md",
+      "quote": "\"user\": { \"name\": \"Your name\" ... }, \"ai\": { \"name\": \"Companion name\" ... }",
+      "locator": "## Configuration / memory_config.json",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/decay is implemented as a lifecycle: fragments progress from active \u2192 cooling (14 days no access, vector deleted at 30 days) \u2192 tombstone (content wiped at 90 days). Access resets the timer.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/README.md",
+      "quote": "Fragments | 14 days no access | 30 days, vector deleted | 90 days, content wiped\nAccess resets the timer \u2014 memories that get recalled stay fresh. Cooling fragments that are accessed auto-revive to active.",
+      "locator": "## Architecture / Lifecycle (automatic cleanup)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall permission level acts as a generation scaffold: associate-only memories must not be stated as fact to the user, enforcing a retrieve-without-speak policy for old or low-confidence hits.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/README.md",
+      "quote": "\u4ec5\u8054\u60f3 (associate-only) | >90 days or floated at random | Internal reference only \u2014 don't state as fact to the user",
+      "locator": "## Retrieval design",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Correction path cools the source memory and writes a corrected fragment; hallucinations are logged separately. Accumulated corrections become editing guidelines re-injected into Scribe to prevent re-extraction of known errors.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/README.md",
+      "quote": "if it did, that memory is cooled down and a corrected fragment is written; if it didn't, the mistake is logged as a hallucination and the correct version is stored as a new memory.\nOnce 10 are active they get merged into long-term \"editing guidelines\", and both the recent corrections and those guidelines are injected into Scribe's prompt \u2014 so the same mistake doesn't get re-extracted later. See services/correction.js.",
+      "locator": "## Companion tools / correct_memory",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Sagas (cross-entity narrative arcs) are experimental: clustering runs but output is not yet consumed in production.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/README.md",
+      "quote": "Sagas | memory_sagas | Cross-entity narrative arcs (experimental \u2014 clustering runs but not yet consumed in production) | Every 24h or on new episodes",
+      "locator": "## Memory layers / Core memory layers",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Star map (memory.html) is desktop-only; mobile support not yet implemented.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/README.md",
+      "quote": "The star map is currently desktop-only (mouse + keyboard). Mobile support is planned but not yet implemented.",
+      "locator": "## What you see",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Two distinct persistent stores exist: messages (full message log) and memory_fragments (curated event-level extracts). These are not the same store.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/database.js",
+      "quote": "CREATE TABLE IF NOT EXISTS messages (...)\n        CREATE TABLE IF NOT EXISTS memory_fragments (...)",
+      "locator": "createTables array",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A third store (memories) holds consolidated, episode-layer summaries produced by consolidation_runs \u2014 above the fragment layer and below the user model layer.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/database.js",
+      "quote": "layer TEXT DEFAULT 'episode'",
+      "locator": "v45 migration, memories_new CREATE TABLE",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path from messages to fragments is tracked by scribe_runs (processed_until, messages_processed, fragments_written), indicating an incremental extraction process.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/database.js",
+      "quote": "CREATE TABLE IF NOT EXISTS scribe_runs (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            run_at DATETIME DEFAULT CURRENT_TIMESTAMP,\n            processed_until DATETIME,\n            messages_processed INTEGER DEFAULT 0,\n            fragments_written INTEGER DEFAULT 0,\n            status TEXT DEFAULT 'done'\n        );",
+      "locator": "v44 migration",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Soft-delete for fragments is implemented via status field ('active' default); physical deletion is not the primary forget mechanism for fragments.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/database.js",
+      "quote": "status TEXT DEFAULT 'active',",
+      "locator": "CREATE TABLE memory_fragments, createTables array",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "User model entries support explicit supersession: a new entry can mark an old one as 'superseded' via the superseded_by FK and status field, implementing conflict resolution.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/database.js",
+      "quote": "superseded_by INTEGER DEFAULT NULL REFERENCES user_model(id),\n            contradicts_id INTEGER DEFAULT NULL REFERENCES user_model(id),\n            source_fragment_ids TEXT DEFAULT '[]',",
+      "locator": "v71 migration, user_model CREATE TABLE",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per-chat (chat_id FK on messages and chat_summaries) and per-mode (chat_mode on messages and memory_fragments distinguishes 'default' from 'roleplay').",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/database.js",
+      "quote": "chat_id INTEGER NOT NULL,\n            sender TEXT NOT NULL,\n            ...\n            FOREIGN KEY (chat_id) REFERENCES chats (id) ON DELETE CASCADE",
+      "locator": "CREATE TABLE messages, createTables array",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Fragment deduplication is content-hash-based at the fragment level; memories table also has a content_hash column for deduplication at the episode level.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/database.js",
+      "quote": "runMigration(87, 'v5.17: memory_fragments.content_hash \u2014 \u788e\u7247\u7ea7\u786e\u5b9a\u6027\u786c\u53bb\u91cd',\n        `ALTER TABLE memory_fragments ADD COLUMN content_hash TEXT;\n         CREATE INDEX IF NOT EXISTS idx_memory_fragments_hash ON memory_fragments(content_hash);`);",
+      "locator": "v87 migration",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A past FTS bug caused deleted or updated fragments to remain retrievable by old search terms ('ghost postings') due to bare DELETE/UPDATE triggers; fixed in v102 migration.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/database.js",
+      "quote": "-- v5.16: FTS \u89e6\u53d1\u5668\u4fee\u6b63\u2014\u2014\u8001\u5e93\u7684\u88f8 DELETE/UPDATE \u89e6\u53d1\u5668\u8ba9\u7d22\u5f15\u300c\u53ea\u589e\u4e0d\u51cf\u300d\uff0c\n        // \u641c\u65e7\u8bcd\u8fd8\u80fd\u547d\u4e2d\u5df2\u5220/\u5df2\u6539\u7684\u788e\u7247\u3002\u6362\u6210 external content \u7684\u6b63\u786e\u5f62\u5f0f\u3002\n        // \u6362\u5b8c\u5efa\u8bae\u518d\u8dd1\u4e00\u6b21 scripts/rebuild_fts.js\uff0c\u628a\u5386\u53f2\u79ef\u7d2f\u7684\u5e7d\u7075 posting \u6e05\u6389\u3002",
+      "locator": "v102 migration comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "entity_profiles.overview is described as an 'AI-perspective narrative', storing a synthesized textual portrait of the entity distinct from raw facts.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/database.js",
+      "quote": "runMigration(68, 'entity_profiles.overview \u2014 AI-perspective narrative',\n        `ALTER TABLE entity_profiles ADD COLUMN overview TEXT;\n         ALTER TABLE entity_profiles ADD COLUMN overview_updated_at DATETIME;`);",
+      "locator": "v68 migration",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Archivist skills table (archivist_skills) persists learned hypotheses, monitors, and lessons about the user with confidence, trigger config, observations, and self-evaluation \u2014 a meta-memory layer about what the system has learned to watch for.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/database.js",
+      "quote": "CREATE TABLE IF NOT EXISTS archivist_skills (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            type TEXT NOT NULL CHECK(type IN ('hypothesis','monitor','lesson')),\n            trigger_config TEXT NOT NULL,\n            analysis_config TEXT NOT NULL,\n            observations TEXT DEFAULT '[]',\n            confidence REAL DEFAULT 0.3,\n            entity_ids TEXT DEFAULT '[]',\n            source_pattern TEXT,\n            self_evaluation TEXT,\n            status TEXT DEFAULT 'active' CHECK(status IN ('active','verified','falsified','merged')),",
+      "locator": "v65 migration",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "User behavioral patterns (user_patterns) track contradiction_count and mismatch_count, enabling evidence-based confidence decay for inferred behavioral beliefs.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/database.js",
+      "quote": "runMigration(91, 'user_patterns.contradiction_count \u2014 \u7528\u6237\u884c\u4e3a\u6a21\u5f0f\u77db\u76fe\u8ba1\u6570',\n        'ALTER TABLE user_patterns ADD COLUMN contradiction_count INTEGER DEFAULT 0');",
+      "locator": "v91 migration",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory sagas have an emotional_axis field described as 'driving jiwen bias', suggesting retrieval or generation weighting by emotional axis is a design goal.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/database.js",
+      "quote": "runMigration(52, 'memory_sagas.emotional_axis',\n        \"ALTER TABLE memory_sagas ADD COLUMN emotional_axis TEXT DEFAULT NULL\");",
+      "locator": "v52 migration, inline comment '\u9a71\u52a8 jiwen \u504f\u7f6e'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The database file is named 'sanctuary.db' by default, suggesting the companion persona context.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/database.js",
+      "quote": "db = new Database(process.env.DB_PATH || 'sanctuary.db');",
+      "locator": "initDatabase(), database file initialization",
+      "confidence": "unknown",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are stored in SQLite with encrypted content, tags, status, and a validity window (valid_from / valid_to); a separate ChromaDB entry holds the embedding vector",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/routes/memory-api.js",
+      "quote": "INSERT INTO memories (title, content, tags, status, valid_from, valid_to, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))",
+      "locator": "routes/memory-api.js POST /api/memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path: extract title+content \u2192 encrypt \u2192 insert SQLite \u2192 generate embedding \u2192 upsert ChromaDB; on update, embedding is only regenerated if title or content changed",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/routes/memory-api.js",
+      "quote": "const contentChanged = (oldContent !== content) || (oldTitle !== title);\n... if (contentChanged) { ... await chromaDBOperation('update', ...) } else { console.log(`\u2705 Content unchanged, skipping embedding regeneration for memory ${memoryId}`); }",
+      "locator": "routes/memory-api.js PUT /api/memory/:id",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/delete: hard delete from SQLite and ChromaDB; deletion event is also written to correction_log as a correction signal",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/routes/memory-api.js",
+      "quote": "db.prepare(`DELETE FROM memories WHERE id = ?`).run(memoryId);\n... await chromaDBOperation('delete', { id: `memory_${memoryId}` });\n... INSERT INTO correction_log ... VALUES ('memory', ...)",
+      "locator": "routes/memory-api.js DELETE /api/memory/:id",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Fragment lifecycle distinguishes curated memory (entity profiles: facts, judgment, talking_points) from raw message log; fragments carry emotional_weight and decay over time",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/routes/memory-api.js",
+      "quote": "// \u26a0\ufe0f \u53d6 facts/judgment\uff0c\u4e0d\u53d6 overview\uff1av5.9 \u8d77 overview \u5217\u5df2\u9000\u5f79\uff08\u5199\u5165\u4fa7\u53ea\u5199 facts + current_status + judgment\uff09",
+      "locator": "routes/memory-api.js GET /api/memory/universe, comment above entities query",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval salience is computed per fragment using exponential time-decay weighted by emotional_weight tier, plus a log-scaled recall bonus from Librarian hit count (read_count)",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/routes/memory-api.js",
+      "quote": "const \u03bb = ewLambda(f.emotional_weight || 0.3);\nconst decay = Math.exp(-\u03bb * daysSince);\nconst recallBonus = Math.min(0.3, Math.log(1 + (f.read_count || 0)) * 0.08);\nlet brightness = Math.min(1.0, decay + recallBonus);",
+      "locator": "routes/memory-api.js GET /api/memory/universe, stars map",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "User model is typed (immutable_fact, stable_trait, current_state, active_hypothesis) and ordered by type priority then confidence; represents a separate curated layer above episodic fragments",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/routes/memory-api.js",
+      "quote": "ORDER BY CASE type WHEN 'immutable_fact' THEN 1 WHEN 'stable_trait' THEN 2 WHEN 'current_state' THEN 3 WHEN 'active_hypothesis' THEN 4 END, confidence DESC",
+      "locator": "routes/memory-api.js GET /api/memory/universe, cognitiveModel query",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Episode audit can produce a 'fabricated' verdict, indicating the system has a mechanism to detect and flag hallucinated or false memories",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/routes/memory-api.js",
+      "quote": "case 'episode_audit': { const v = detail?.verdict; ... text = `${emoji} \u8bb0\u5fc6\u5ba1\u8ba1\uff1a${v === 'fabricated' ? '\u53d1\u73b0\u7f16\u9020\u8bb0\u5fc6' : v === 'confirmed' ? '\u786e\u8ba4\u8bb0\u5fc6\u771f\u5b9e' : '\u5ba1\u8ba1'}`;",
+      "locator": "routes/memory-api.js GET /api/memory/universe, archlog map",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "AI-proposed entity merges are gated on explicit human approval; the user can reject a proposal and the rejection is stored to prevent re-proposing the same pair",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/routes/memory-api.js",
+      "quote": "if (decision === 'reject') { // rejected \u72b6\u6001\u7559\u5e95\u2014\u2014mergeDuplicateSeeds \u4e0d\u4f1a\u5bf9\u540c\u4e00\u5bf9\u91cd\u590d\u63d0\u6848\ndb.prepare(`UPDATE ontology_changelog SET status = 'rejected' WHERE id = ?`).run(proposalId);",
+      "locator": "routes/memory-api.js POST /api/memory/merge-proposal/:id",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Deleting a fragment also demotes emotional_weight of co-sourced fragments by \u00d70.5 (cascading correction), propagating the correction signal to related memories",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/routes/memory-api.js",
+      "quote": "const demote = db.prepare(\"UPDATE memory_fragments SET emotional_weight = MAX(0.1, emotional_weight * 0.5), lifecycle_updated_at = datetime('now') WHERE id = ?\");\nfor (const s of sameSource) demote.run(s.id);\nconsole.log(`[Correction] \u7ea7\u8054\u964d\u6743: ${sameSource.length}\u6761\u540c\u6e90\u788e\u7247 ew\u00d70.5`);",
+      "locator": "routes/memory-api.js DELETE /api/fragment/:id",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Correction signals accumulate in correction_log; once 10 active corrections are reached, a merge step distills them into long-term guidelines",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/routes/memory-api.js",
+      "quote": "const mergeThreshold = 10; ... needsMerge: activeCount.c >= mergeThreshold",
+      "locator": "routes/memory-api.js GET /api/corrections",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory store is per-user (all routes require authentication via requireAuth middleware); no evidence of per-session or per-character isolation in this file",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/routes/memory-api.js",
+      "quote": "router.post('/api/memory', requireAuth, async (req, res) => {",
+      "locator": "routes/memory-api.js, all route definitions",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The recall endpoint is the read side of a two-route architecture; routes/ingest.js (/api/messages) is the write side that accumulates memories",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/routes/recall.js",
+      "quote": "\u914d\u5408 routes/ingest.js\uff08\u5199\u4fa7 /api/messages\uff09\u5f62\u6210\u5b8c\u6574\u95ed\u73af",
+      "locator": "routes/recall.js:8 (file header comment)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The store contains at least three distinct memory types: fragments (\u788e\u7247), narratives (\u53d9\u4e8b), and entities (\u5b9e\u4f53), distinguishing it from a plain message log",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/routes/recall.js",
+      "quote": "\u8fd4\u56de\u76f8\u5173\u7684\u8bb0\u5fc6\u788e\u7247/\u53d9\u4e8b/\u5b9e\u4f53",
+      "locator": "routes/recall.js:5 (file header comment)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Hybrid search (searchHybrid) is used for retrieval; formatting for prompt injection is handled by formatHybridContext, both sourced from a 'librarian' service",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/routes/recall.js",
+      "quote": "const { searchHybrid, formatHybridContext } = require('../services/librarian');",
+      "locator": "routes/recall.js:3 (require statement)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "When no memories match the query, the formatted field explicitly signals an empty result rather than returning null or an empty array alone",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/routes/recall.js",
+      "quote": "'\u8bb0\u5fc6\u5e93\u4e2d\u6ca1\u6709\u627e\u5230\u76f8\u5173\u8bb0\u5fc6\u3002'",
+      "locator": "routes/recall.js:21 (router handler body)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Four-layer cognitive model persists user facts, traits, states, and hypotheses in a 'user_model' SQLite table with distinct decay rules per layer.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/cognitiveModel.js",
+      "quote": "\u7ef4\u62a4 AI \u5bf9\u7528\u6237\u7684\u5185\u90e8\u8ba4\u77e5\uff0c\u56db\u5c42\uff1a\n  immutable_fact   \u2014 \u4e0d\u53d8\u4e8b\u5b9e\uff0c\u6c38\u4e0d\u8870\u51cf\uff0c\u4ec5\u660e\u786e\u7ea0\u6b63\u4fee\u6539\n  stable_trait     \u2014 \u7a33\u5b9a\u7279\u8d28\uff0c\u8bc1\u636e\u79ef\u7d2f\u7cbe\u7ec6\u5316\uff0c\u77db\u76fe\u22653\u964d\u7ea7\u91cd\u5ba1\n  current_state    \u2014 \u5f53\u524d\u72b6\u6001\uff0c\u6307\u6570\u8870\u51cf(7\u5929\u534a\u8870\u671f)\uff0c14\u5929\u65e0\u8bc1\u636e\u81ea\u52a8 resolved\n  active_hypothesis \u2014 \u6d3b\u8dc3\u5047\u8bbe\uff0c3\u6b21\u786e\u8ba4\u2192\u5347\u7ea7\u4e3a trait\uff0c14\u5929\u65e0\u8bc1\u636e\u2192abandoned",
+      "locator": "file header comment, lines 3\u20138",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is implemented as status transition (resolved/abandoned/superseded/corrected), not physical deletion. Entries remain in the database.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/cognitiveModel.js",
+      "quote": "db.prepare(`UPDATE user_model SET status = 'resolved', resolved_at = datetime('now'),\n        resolve_reason = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(reason, id);",
+      "locator": "resolveEntry function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "current_state entries expire by category-based TTL (e.g. emotional/day = 12h, physical/days = 72h) or explicit expires_at, with a hard cap of 12 active entries.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/cognitiveModel.js",
+      "quote": "const TTL_MAP = {\n        physical:    { hours: 8, day: 24, days: 72 },\n        emotional:   { hours: 4, day: 12, days: 36 },\n        situational: { hours: 12, day: 24, days: 72 },\n        relational:  { hours: 4, day: 12, days: 72 },\n    };\n    ...\n    // \u2500\u2500 Hard cap: max 12 active current_state entries \u2500\u2500",
+      "locator": "processModelDecay function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hypothesis upgrade to stable_trait requires source_diversity \u2265 3 (independent source batches) AND confidence \u2265 0.70; LLM recommendations to upgrade with source_diversity < 3 are rejected in code.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/cognitiveModel.js",
+      "quote": "// Hard gate: source_diversity >= 3 required for upgrade\n                    if ((hyp.source_diversity || 0) < 3) {\n                        console.log(`[UserModel] \u26d4 LLM\u5efa\u8bae\u5347\u7ea7\u4f46source_diversity=${hyp.source_diversity}<3\uff0c\u62d2\u7edd: \"${hyp.content.slice(0, 60)}\"`);",
+      "locator": "validateHypotheses function, upgrade case",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Evidence independence is determined by message-ID overlap: < 30% overlap with existing evidence message IDs = independent source; date-based heuristic used as fallback when message IDs are unavailable.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/cognitiveModel.js",
+      "quote": "const overlap = sourceMsgIds.filter(mid => existingMsgIds.includes(mid));\n            // < 30% message overlap \u2192 likely independent source batch\n            if (overlap.length / Math.max(sourceMsgIds.length, 1) < 0.3) {\n                isIndependentSource = true;\n                sourceDiversity++;\n            }",
+      "locator": "addEvidence function, source diversity block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The model is per-user with no multi-user isolation in user_model schema; entries are distinguished by created_by ('chat_companion' vs 'deep_cycle') which controls resolution rules.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/cognitiveModel.js",
+      "quote": "created_by = 'deep_cycle',   // v5.0: chat_companion | deep_cycle",
+      "locator": "createEntry opts destructuring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Context injection always retrieves all active entries (no adaptive retrieval); stable_traits limited to top 10 by confidence, current_states top 8 by last_evidence_at, hypotheses top 6 by confidence. Token budget trimming removes least-confident items first.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/cognitiveModel.js",
+      "quote": "WHERE cm.type = 'stable_trait' AND cm.status = 'active'\n        ORDER BY cm.confidence DESC LIMIT 10\n    ...\n    WHERE type = 'current_state' AND status = 'active'\n        ORDER BY last_evidence_at DESC LIMIT 8\n    ...\n    WHERE type = 'active_hypothesis' AND status = 'active'\n        ORDER BY confidence DESC LIMIT 6",
+      "locator": "getModelContext function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "New trait detection (detectNewTraits) uses raw user messages as the highest-weight signal; user self-disclosure ('direct_statement') triggers stable_trait creation at confidence 0.75\u20130.85 vs LLM-inferred patterns capped at 0.65 as active_hypothesis.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/cognitiveModel.js",
+      "quote": "**\u4fe1\u53f7 6\uff08{{user.pronoun}}\u7684\u539f\u59cb\u53d1\u8a00\uff09\u7684\u6743\u91cd\u8fdc\u9ad8\u4e8e\u5176\u4ed6\u4fe1\u53f7\u3002** {{user.pronoun}}\u7684\u539f\u8bdd > Scribe \u7684\u8f6c\u8ff0 > \u4f60\u7684\u63a8\u65ad\u3002\n...\u6b64\u65f6 \u2192 source_quality = \"direct_statement\"\uff0cconfidence \u53ef\u8fbe 0.75-0.85\u3002\n\u4ea7\u751f stable_trait\uff08\u5982\u679c\u5df2\u6709\u540c\u9aa8\u67b6\u6761\u76ee\u5c31\u8d70 confirm+refine\uff09\u3002\n...\u6b64\u65f6 \u2192 source_quality = \"inferred\"\uff0cconfidence \u4e0a\u9650 0.65\u3002\n\u4f18\u5148\u7528 active_hypothesis \u800c\u4e0d\u662f stable_trait",
+      "locator": "detectNewTraits prompt, signal weighting section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "readUserRawMessages includes a Theory of Mind retrospective audit: the LLM evaluates whether the previous current_state prediction was confirmed or wrong; the verdict ('confirmed'|'wrong'|'unverifiable') is appended to the prior entry's evolution_history.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/cognitiveModel.js",
+      "quote": "// ToM \u89c2\u5bdf\u53cd\u9988\u73af\uff08v4.8\uff09\uff1a\u5ba1\u8ba1\u7ed3\u8bba\u56de\u6d41\u8bc1\u636e\u7ba1\u7ebf\n        // \u9884\u6d4b\u5bf9\u4e86 \u2192 confirm\uff1b\u9884\u6d4b\u9519\u4e86 \u2192 \u8bb0\u5165 evolution_history\uff08current_state \u5355\u6b21\u5feb\u7167\uff0c\n        // \u4e0d\u8d70 confidence \u7d2f\u79ef\uff0c\u4f46\u7559\u4e0b\u53ef\u8ffd\u6eaf\u7684\u5bf9\u9519\u8bb0\u5f55\u4f9b detectNewTraits \u4fe1\u53f7\u6e90\u4f7f\u7528\uff09",
+      "locator": "readUserRawMessages function, retro_verdict block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "stable_trait contradictions reported by readUserRawMessages are written to evolution_history as 'observation_refute' entries and add 'needs_review' tag, feeding the existing reviewFlaggedTraits pipeline.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/cognitiveModel.js",
+      "quote": "hist.push({\n                    type: 'observation_refute',\n                    observation: (c.observation || '').slice(0, 150),\n                    source: 'readUserRawMessages',\n                    at: new Date().toISOString(),\n                });\n                const tags = JSON.parse(trait.tags || '[]');\n                if (!tags.includes('needs_review')) tags.push('needs_review');",
+      "locator": "readUserRawMessages function, trait_contradictions block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Profile integration applies a tier-based gate: 'basic' category is permanently locked; 'personality'/'communication' require source_diversity \u2265 5 and cannot create new entries; 'medium' categories require diversity \u2265 3; 'low' categories require diversity \u2265 1.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/cognitiveModel.js",
+      "quote": "const PROFILE_TIERS = {\n    locked:  { categories: ['basic'],                                        minDiversity: Infinity, allowCreate: false, allowRefine: false },\n    high:    { categories: ['personality', 'communication'],                 minDiversity: 5,        allowCreate: false, allowRefine: true  },\n    medium:  { categories: ['career', 'social', 'personal_history', 'relationship_with_companion', 'creative_work'], minDiversity: 3, allowCreate: true, allowRefine: true },\n    low:     { categories: ['preference', 'lifestyle', 'health', 'finance'], minDiversity: 1,        allowCreate: true,  allowRefine: true },\n};",
+      "locator": "PROFILE_TIERS constant",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "bridgeStarMapToModel (star map \u2192 user model bridge) was retired in v4.9 because term overviews produced literary monologues rather than testable traits. The function is preserved as a stub.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/cognitiveModel.js",
+      "quote": "// v4.9 \u9000\u5f79\uff1aterm overview \u4e0d\u662f\u53ef\u6d4b\u8bd5\u7684\u5047\u8bbe/\u7279\u8d28\uff0c\u76f4\u63a5\u704c\u5165\u4ea7\u51fa\u7684\n    // \u662f\u6587\u5b66\u72ec\u767d\uff08\u89c1 #171-176 \u6559\u8bad\uff09\u3002\u661f\u56fe\u2192{{user.name}} Model \u7684\u6b63\u786e\u5173\u7cfb\u662f\n    // \u300c\u5f15\u7528\u300d\u800c\u975e\u300c\u6865\u300d\uff1atrait.entity_ids \u5305\u542b\u661f\u56fe\u5b9e\u4f53 ID\u3002\n    // \u4fdd\u7559\u51fd\u6570\u7b7e\u540d\u4ee5\u4fbf\u672a\u6765\u91cd\u8bbe\u8ba1\u65f6\u8d77\u624b\u6709\u6846\u67b6\u3002\n    return { proposed: 0 };",
+      "locator": "bridgeStarMapToModel function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "synthesizeCoreInsight (v5.0) was noted as replacing the prior CORE_INSIGHT phase (v5.4 retired), synthesizing stable_traits into a short natural-language paragraph stored in user_settings for permanent inclusion in the system prompt.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/cognitiveModel.js",
+      "quote": "// Phase 7: CORE_INSIGHT \u2014 v5.4 \u9000\u5f79\u3002\u88ab {{user.name}} Model + Intuition \u8986\u76d6\u3002\n    const insightResult = { synthesized: false };",
+      "locator": "runUserModelCycle function, Phase 7 comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory Constellations uses two distinct persistent stores: memory_fragments (curated raw fragments, active status) and memories (consolidated episodes, permanent status), not a message log.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/librarian.js",
+      "quote": "AND mf.status = 'active' ... AND m.layer = 'episode' AND m.status = 'permanent'",
+      "locator": "file:librarian.js, searchFragments function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Emotional weight governs memory persistence: high-ew memories decay 8\u00d7 slower than low-ew memories (140-day vs 17-day half-life).",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/librarian.js",
+      "quote": "ew \u2265 0.8 \u2192 \u03bb=0.005 (140\u5929\u534a\u8870\u671f)  \u91cd\u8981\u8bb0\u5fc6\u6301\u4e45 ... ew  < 0.4 \u2192 \u03bb=0.04  (17\u5929\u534a\u8870\u671f)   \u7410\u788e\u4fe1\u606f\u5feb\u901f\u6c89\u5e95",
+      "locator": "file:librarian.js, getDecayLambda comment block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is adaptive: intent is classified (fact, long_term, summary, semantic) and changes FTS5 weight, vector weight, episode boost, and time-compression applied before scoring.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/librarian.js",
+      "quote": "\u610f\u56fe\u8def\u7531\uff1a\u89c4\u5219\u5206\u7c7b\u67e5\u8be2\u610f\u56fe\uff08ebbingflow \u540c\u6b3e\u65b9\u6848\uff09 ... \u4f18\u5148\u7ea7\uff1afact > long_term > summary \u2192 \u9ed8\u8ba4 semantic",
+      "locator": "file:librarian.js, classifyIntent function header comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Fragments that score below MIN_COMBINED_SCORE (0.005) after decay \u00d7 importance \u00d7 novelty \u00d7 boosts are silently dropped; the system prefers empty return over noisy results.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/librarian.js",
+      "quote": "YantrikDB \u601d\u8def\uff1a\u53ec\u56de\u7aef\u591a\u9053\u5173\u5361\uff0c\u4fe1\u53f7\u5f31\u65f6\u5b81\u53ef\u7a7a\u8fd4\u56de\u4e5f\u4e0d\u585e\u566a\u97f3 ... .filter(item => item._rrf >= MIN_COMBINED_SCORE)",
+      "locator": "file:librarian.js, constants comment and searchHybrid decay/filter block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Fragments aged \u226590 days or with low retrieval confidence are labeled '\u4ec5\u8054\u60f3' (association only) and not presented as directly citable facts to the model.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/librarian.js",
+      "quote": "if (days >= 90) return '\u4ec5\u8054\u60f3'; if (conf === 'low') return '\u4ec5\u8054\u60f3';",
+      "locator": "file:librarian.js, computePermission function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Randomly surfaced fragments (FLOAT source) that have never been read and are older than 3 days are assigned a fixed score of 0.002 and always labeled '\u4ec5\u8054\u60f3', simulating spontaneous recall.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/librarian.js",
+      "quote": "_rrf: 0.002,  // \u6781\u4f4e\u5206\uff0c\u6392\u5728\u6700\u540e\u4f46\u4e0d\u89e6\u53d1MIN_COMBINED_SCORE\u8fc7\u6ee4 ... _isFloated: true ... if (f._isFloated) return '\u4ec5\u8054\u60f3';",
+      "locator": "file:librarian.js, searchHybrid random surfacing block and computePermission function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation appears to be per-character (AI.name referenced in context header) with entity-level grouping within a session turn; no explicit multi-user isolation is visible in this file.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/librarian.js",
+      "quote": "const { AI } = require('./nameResolver'); ... return `\u203b ${AI.name}\u7684\u8bb0\u5fc6\u788e\u7247\n${lines.join('\\n')}`;",
+      "locator": "file:librarian.js, top-level require and formatForContext function",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Episode consolidated memories are weighted higher than raw fragments in RRF fusion, reflecting the design intent that integrated episodes are higher quality than raw fragments.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/librarian.js",
+      "quote": "EbbingFlow\u601d\u8def\uff1a\u6574\u5408\u8fc7\u7684episode\u6743\u91cd\u9ad8\u4e8e\u539f\u59cb\u788e\u7247 ... const EPISODE_BOOST = 1.5;",
+      "locator": "file:librarian.js, constants block, EPISODE_BOOST comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Cross-entity contamination in generation is mitigated by grouping retrieved fragments by entity before context injection and appending an explicit model instruction when \u22652 person entities are present.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/librarian.js",
+      "quote": "v5.5: \u6309\u5b9e\u4f53\u5206\u7ec4\u788e\u7247\uff0c\u9632\u6b62\u4e0d\u540c\u4eba\u7684\u8bb0\u5fc6\u5e73\u94fa\u5728\u4e00\u8d77\u5bfc\u81f4 LLM \u4ea4\u53c9\u6c61\u67d3 ... \u26a0\ufe0f \u4ee5\u4e0a\u8bb0\u5fc6\u6d89\u53ca\u4e0d\u540c\u7684\u4eba\uff08${personEntities.join('\u3001')}\uff09\uff0c\u4e0d\u8981\u6df7\u4e3a\u4e00\u8c08\u3002",
+      "locator": "file:librarian.js, formatHybridContext function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistent store uses two SQLite tables: `memories` (with layer, status, tags, valid_from, valid_to, encrypted content) and `memory_fragments` (with status, chroma_id, encrypted content).",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/memory.js",
+      "quote": "SELECT id, content, tags, status, valid_from, valid_to FROM memories WHERE tags IS NOT NULL AND tags != '[]' AND status IN ('permanent', 'ongoing')",
+      "locator": "services/memory.js, searchMemoriesByHardTrigger",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/delete path exists for ChromaDB: stale (non-active) fragment embeddings are deleted from ChromaDB and their chroma_id nulled in SQLite via cleanupStaleChromaEntries.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/memory.js",
+      "quote": "await chromaDBOperation('delete', { id: `fragment_${s.id}` }); db.prepare('UPDATE memory_fragments SET chroma_id = NULL WHERE id = ?').run(s.id);",
+      "locator": "services/memory.js, cleanupStaleChromaEntries",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Episodes originate from a consolidation pipeline (consolidateCategory) that reads entity_profiles; this is described as producing 'constellation' output, aligning with the product name.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/memory.js",
+      "quote": "v5.3 consolidateCategory \u6539\u4e3a\u4ece entity_profiles \u661f\u5ea7\u4ea7\u51fa\uff0c\u65b0 episode \u8d28\u91cf\u53ef\u9760\u4e14\u5df2\u91cd\u65b0\u7d22\u5f15 ChromaDB",
+      "locator": "services/memory.js, searchMemoriesByVector, inline comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Vector retrieval applies a minimum similarity floor of 0.20 (1 - distance); results below this threshold are excluded by the ChromaDB service.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/memory.js",
+      "quote": "min_similarity: 0.20,",
+      "locator": "services/memory.js, searchMemoriesByVector",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory Constellations persists curated memory fragments in a SQLite memory_fragments table, distinct from the raw messages log.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/scribe.js",
+      "quote": "INSERT INTO memory_fragments (type, entity, content, emotional_weight, source, source_date, source_msg_ids, is_rp, chat_mode, value_tags, priority, content_hash)\n            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "locator": "file:services/scribe.js:runScribe/insert",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Extraction is triggered adaptively (silence, emotion, force, staleness), not on every message.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/scribe.js",
+      "quote": "const shouldRun = forceTriggered ||\n        staleTriggered ||\n        (silenceReached && count >= SCRIBE_CONFIG.MIN_MESSAGES) ||\n        (silenceReached && hasEmotion);",
+      "locator": "file:services/scribe.js:checkAndRunScribe/shouldRun",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Fragments are typed into semantic categories (fact, state, preference, event, intention, observation, reflection, entity_new) rather than stored as raw log entries.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/scribe.js",
+      "quote": "\"type\": \"state|observation|preference|event|intention|reflection|entity_new|fact\"",
+      "locator": "file:services/scribe.js:SCRIBE_SYSTEM_PROMPT/output format",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Intention fragments are semantically closed (future_hook tag removed, fulfilled added) when a later conversation implies completion, without deleting the fragment.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/scribe.js",
+      "quote": "const newTags = tags.filter(t => t !== 'future_hook');\n                if (newTags.length === 0) newTags.push('fulfilled');\n                db.prepare(`UPDATE memory_fragments SET value_tags = ? WHERE id = ?`).run(JSON.stringify(newTags), intentId);",
+      "locator": "file:services/scribe.js:runScribe/intention closure block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Cross-day identical content is intentionally not deduplicated to preserve source diversity as a signal for stable trait inference.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/scribe.js",
+      "quote": "// \u26a0\ufe0f \u5fc5\u987b\u5e26 source_date \u6761\u4ef6\uff1a\u8de8\u5929\u7684\u300c\u540c\u4e00\u53e5\u8bdd\u300d\u662f source_diversity\uff08\u72ec\u7acb\u65e5\u671f\u8bc1\u636e\uff09\u7684\u6765\u6e90\uff0c\n        //    \u662f\u8ba4\u77e5\u6a21\u578b\u5224\u65ad\u7a33\u5b9a\u7279\u8d28\uff08\u22653 \u72ec\u7acb\u65e5\u671f\uff09\u7684\u4fe1\u53f7\uff0c\u7edd\u4e0d\u80fd\u5f53\u91cd\u590d\u5408\u5e76\u3002",
+      "locator": "file:services/scribe.js:runScribe/hash dedup comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieved fragments (up to 15 via hybrid search) are injected into the Scribe extraction prompt as deduplication context before writing, not into the conversation turn shown to the user.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/scribe.js",
+      "quote": "const { searchHybrid } = require('./librarian');\n            const retrieved = await searchHybrid(userText, 15);",
+      "locator": "file:services/scribe.js:runScribe/companionMemoryContext",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Messages are stored encrypted; Scribe decrypts at extraction time.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/scribe.js",
+      "quote": "const dec = (m) => (m.is_encrypted && m.content) ? encryption.decrypt(m.content) : (m.content || '');",
+      "locator": "file:services/scribe.js:runScribe/dec",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "cinema-mode messages are skipped entirely from extraction; game-mode messages are extracted but sourced as 'game' with game-mechanical content filtered by prompt instructions.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/scribe.js",
+      "quote": "if (msgChatMode === 'cinema') {\n            console.log(`[Scribe] \u8df3\u8fc7cinema\u6d88\u606f #${msgIds.slice(0,3).join(',')}...\uff08\u7535\u5f71\u95f2\u804a\u4e0d\u8fdb\u4e66\u8bb0\u5b98\uff09`);\n            return;\n        }",
+      "locator": "file:services/scribe.js:runScribe/cinema skip",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The Scribe prompt instructs the LLM not to extract single-occurrence behavior as preference unless explicit positive/negative evaluative language is present.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/scribe.js",
+      "quote": "* **\u6b63\u9762\u504f\u597d\u5224\u5b9a\u94c1\u5f8b**\uff1a\u5fc5\u987b\u662f\u5176\u539f\u8bdd\u91cc\u6709\u300c\u559c\u6b22/\u8ba8\u538c/\u4e00\u76f4/\u6bcf\u6b21\u90fd/\u53d7\u4e0d\u4e86/\u8d85\u7231/\u4ece\u6765\u4e0d\u5403/\u597d\u5403/\u592a\u723d\u4e86\u300d\u8fd9\u7c7b**\u660e\u786e\u6b63\u9762\u8bc4\u4ef7\u8bcd**\u6216\u9891\u7387\u8bcd\u3002**\u5355\u6b21\u884c\u4e3a\u7edd\u4e0d\u7b49\u4e8e\u504f\u597d**",
+      "locator": "file:services/scribe.js:SCRIBE_SYSTEM_PROMPT/preference rules",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The Scribe prompt instructs the LLM to ban frequency-generalizing words (always/never/often) for single observed events, preventing fabricated behavioral patterns.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/scribe.js",
+      "quote": "\u2500 \u7981\u6b62\u300c\u6bcf\u6b21/\u603b\u662f/\u7ecf\u5e38/\u4ece\u4e0d\u300d\u7b49\u9891\u7387\u6cdb\u5316\u8bcd\u2014\u2014\u5355\u6b21\u884c\u4e3a\u5c31\u662f\u5355\u6b21\u3002\u6628\u5929{{user.pronoun}}\u8bf4\u51b7 \u2260 {{user.pronoun}}\u6bcf\u6b21\u90fd\u8bf4\u51b7\u3002",
+      "locator": "file:services/scribe.js:SCRIBE_SYSTEM_PROMPT/observation rules",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "processed_until timestamp validation guards against corrupt values that would cause Scribe to permanently skip all messages; fallback is full re-scan from 2000-01-01.",
+      "kind": "code",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/scribe.js",
+      "quote": "// \u9632\u62a4\uff1aprocessed_until \u5fc5\u987b\u4e3a\u6709\u6548\u65e5\u671f\uff0c\u5426\u5219\u515c\u5e95\u5230 2000-01-01\uff08\u5168\u91cf\u91cd\u626b\uff09\n    // \u5386\u53f2\u4e0a\u51fa\u73b0\u8fc7 JSON \u5bf9\u8c61\u88ab\u8bef\u5199\u5165\u6b64\u5b57\u6bb5\u5bfc\u81f4 Scribe \u6c38\u4e45\u8df3\u8fc7\uff08NaN \u65f6\u95f4\u8ba1\u7b97\uff09",
+      "locator": "file:services/scribe.js:checkAndRunScribe/processed_until guard",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory Constellations is a growing AI memory system, not keyword search, with a pipeline: fragment extraction (Scribe) \u2192 episode aggregation \u2192 Saga arcs \u2192 jiwen emotional baseline.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/OSS_SETUP.md",
+      "quote": "\u8bb0\u5fc6\u661f\u56fe\uff08Memory Constellations\uff09\u662f\u4e00\u4e2a \u4f1a\u751f\u957f\u7684 AI \u8bb0\u5fc6\u7cfb\u7edf \u3002\u5b83\u4e0d\u662f\u5173\u952e\u8bcd\u68c0\u7d22\uff0c\u800c\u662f\uff1a\u4ece\u804a\u5929\u4e2d\u81ea\u52a8\u63d0\u53d6\u788e\u7247\uff08Scribe\uff09\u628a\u788e\u7247\u805a\u5408\u6210\u53d9\u4e8b\u6bb5\u843d\uff08episode\uff09\u628a\u53d9\u4e8b\u7f16\u7ec7\u6210\u957f\u671f\u8bb0\u5fc6\u5f27\u7ebf\uff08Saga\uff09\u901a\u8fc7\u6301\u7eed\u5185\u5728\u72b6\u6001\u5f15\u64ce\uff08jiwen\uff09\u8ba9\u8bb0\u5fc6\u5f71\u54cd AI \u7684\u60c5\u7eea\u57fa\u7ebf",
+      "locator": "Section 1 \u2014 \u8fd9\u662f\u4ec0\u4e48\uff1f",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Scribe extraction is triggered by silence \u2265 20 min + backlog \u2265 60 messages, or backlog \u2265 100 messages.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/OSS_SETUP.md",
+      "quote": "Scribe \u89e6\u53d1\u6761\u4ef6\u662f\uff1a\u6c89\u9ed8 \u2265 20min + \u79ef\u538b \u2265 60 \u6761\u6d88\u606f\uff0c\u6216\u79ef\u538b \u2265 100 \u6761",
+      "locator": "Section 4 \u2014 \u5e38\u89c1\u95ee\u9898 / Q: \u6ca1\u6709\u788e\u7247\u88ab\u63d0\u53d6",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Deep Cycle (Archivist) is idle-gated to 1 hour of inactivity before triggering, to avoid competing with the chat LLM.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/OSS_SETUP.md",
+      "quote": "Deep Cycle \u53ea\u5728\u7a7a\u95f2 1 \u5c0f\u65f6\u540e\u89e6\u53d1\uff08\u6b63\u5e38\u884c\u4e3a\u2014\u2014\u4e0d\u5728\u804a\u5929\u65f6\u62a2 LLM \u8d44\u6e90\uff09",
+      "locator": "Section 4 \u2014 \u5e38\u89c1\u95ee\u9898 / Q: \u661f\u5ea7\u4e0d\u589e\u957f",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Episode (narrative segment) consolidation requires a constellation to accumulate 15+ fragments before the consolidate task runs.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/OSS_SETUP.md",
+      "quote": "\u9700\u8981\u661f\u5ea7\u79ef\u7d2f 15+ \u6761\u788e\u7247\u540e\uff0cDeep Cycle \u7684 consolidate \u4efb\u52a1\u4f1a\u81ea\u52a8\u8fd0\u884c\u3002",
+      "locator": "Section 3.3 \u2014 \u661f\u5ea7 \u2192 \u53d9\u4e8b\u7247\u6bb5\uff08episode\uff09",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Saga (memory arc) runs every 24 hours or immediately after consolidate produces a new episode.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/OSS_SETUP.md",
+      "quote": "\u6bcf 24 \u5c0f\u65f6\u81ea\u52a8\u8fd0\u884c\u4e00\u6b21\uff08\u6216\u5728 consolidate \u4ea7\u51fa\u65b0 episode \u540e\u7acb\u5373\u89e6\u53d1\uff09\u3002",
+      "locator": "Section 3.4 \u2014 \u53d9\u4e8b\u7247\u6bb5 \u2192 Saga\uff08\u8bb0\u5fc6\u5f27\u7ebf\uff09",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Fragments with status consolidated/inactive must be deleted from ChromaDB to prevent stale results from polluting retrieval.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/OSS_SETUP.md",
+      "quote": "\u786e\u8ba4 memory_fragments \u4e2d status \u4e3a consolidated / inactive \u7684\u788e\u7247\u5df2\u4ece ChromaDB \u4e2d\u5220\u9664\uff08\u5426\u5219\u4f1a\u6c61\u67d3\u641c\u7d22\u7ed3\u679c\uff09",
+      "locator": "Section 4 \u2014 \u5e38\u89c1\u95ee\u9898 / Q: \u8bb0\u5fc6\u641c\u7d22\u603b\u662f\u8fd4\u56de\u5f88\u65e9\u4e4b\u524d\u7684\u7ed3\u679c",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The /api/recall endpoint returns a pre-formatted text field combining relevant fragments, narrative, and entity profiles for direct LLM prompt injection.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/OSS_SETUP.md",
+      "quote": "\u8fd4\u56de formatted \u5b57\u6bb5\u5c31\u662f\u62fc\u597d\u7684\u3001\u53ef\u76f4\u63a5\u585e\u8fdb prompt \u7684\u6587\u672c\uff08\u76f8\u5173\u8bb0\u5fc6\u788e\u7247 + \u53d9\u4e8b + \u5b9e\u4f53\u6863\u6848\uff09\u3002",
+      "locator": "Section 7.3 \u2014 \u67e5\u8be2\u8bb0\u5fc6\uff08\u7528\u8bb0\u5fc6\u8ba9\u56de\u590d\u66f4\u61c2\u4f60\uff09",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Each memory fragment stores source_msg_ids enabling traceback to original messages via recall_memory tool.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/OSS_SETUP.md",
+      "quote": "\u6bcf\u6761\u8bb0\u5fc6\u788e\u7247\u5b58\u50a8 source_msg_ids \uff08\u539f\u59cb\u6d88\u606f ID \u5217\u8868\uff09\uff0c\u4f60\u7684\u4f34\u4fa3\u53ef\u4ee5\u901a\u8fc7 recall_memory \u5de5\u5177\u8ffd\u6eaf\u5230\u6d88\u606f\u6765\u6e90\u3002",
+      "locator": "Section 2.8 \u2014 \u6570\u636e\u5e93\u548c\u96c6\u6210",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "core-prompt.txt is the scaffold layer: it holds AI persona and behavioral rules; variables are substituted from memory_config.json. The page explicitly states this file must be written by the user because it is the AI's soul.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/OSS_SETUP.md",
+      "quote": "\u8fd9\u662f\u6700\u91cd\u8981\u7684\u6587\u4ef6\u2014\u2014\u4f60\u7684 AI \u7684\u5168\u90e8\u4eba\u683c\u548c\u884c\u4e3a\u89c4\u5219\u3002\u2026\u2026core-prompt.txt \u7684\u4eba\u683c\u63d0\u793a\u8bcd\u5fc5\u987b\u7528\u6237\u81ea\u5df1\u5199\u3002\u4f60\u53ef\u4ee5\u7ed9\u7ed3\u6784\u548c\u793a\u4f8b\uff0c\u4f46\u4e0d\u80fd\u4ee3\u7b14\u2014\u2014\u90a3\u662f\u4ed6\u4eec AI \u7684\u7075\u9b42\u3002",
+      "locator": "Section 2.5 \u2014 \u5199\u4eba\u683c\u63d0\u793a\u8bcd; Section 5 \u2014 \u7ed9 Claude Code Agent \u7684\u8f85\u52a9\u914d\u7f6e\u811a\u672c",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory Constellations is a self-organizing memory system for AI companions that extracts, organizes, and retrieves facts automatically without manual curation.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/README.md",
+      "quote": "A self-organizing memory system for AI companions. Extracts facts from chat, groups them by topic, and merges them into coherent narratives \u2014 all on autopilot.",
+      "locator": "README.md, top-level description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Episode contradiction detection occurs during deep cycle consolidation.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/README.md",
+      "quote": "Episodes: memories (layer=episode), Merged fragment narratives, 100-250 chars, with date correction and contradiction detection",
+      "locator": "README.md, Memory layers / Core memory layers table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Scribe is the write path: triggered by silence or message backlog, extracts typed facts into memory_fragments, indexes to both vector and keyword stores.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/README.md",
+      "quote": "Scribe \u2500\u2500 triggered by silence \u226520min or backlog \u2265100 messages \u2502 \u2500\u2500 extracts facts \u2192 memory_fragments table \u2502 \u2500\u2500 indexes to ChromaDB (vector) + FTS5 (keyword)",
+      "locator": "README.md, Architecture diagram",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/deprecation is implemented as a tiered lifecycle: vector deletion at 30 days no access, content wipe at 90 days. Access resets the timer.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/README.md",
+      "quote": "Fragments: Active \u2192 Cooling: 14 days no access, Cooling \u2192 Frozen: 30 days, vector deleted, Frozen \u2192 Tombstone: 90 days, content wiped \u2026 Access resets the timer \u2014 memories that get recalled stay fresh.",
+      "locator": "README.md, Lifecycle",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall permission tagging suppresses stale or low-confidence memories at generation time without deleting them: associate-only memories are not stated as fact to the user.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/README.md",
+      "quote": "\u4ec5\u8054\u60f3 (associate-only): >90 days or floated at random, Internal reference only \u2014 don't state as fact to the user.",
+      "locator": "README.md, Retrieval design / Permission table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict/correction handling: matched wrong memories are cooled (not deleted), a corrected fragment is written, and correction patterns are fed back into Scribe's extraction prompt.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/README.md",
+      "quote": "if it did, that memory is cooled down and a corrected fragment is written; if it didn't, the mistake is logged as a hallucination and the correct version is stored as a new memory \u2026 both the recent corrections and those guidelines are injected into Scribe's prompt \u2014 so the same mistake doesn't get re-extracted later.",
+      "locator": "README.md, Companion tools / correct_memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Transient user states (current_state) auto-expire by TTL; the companion can also explicitly resolve a state mid-chat.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/README.md",
+      "quote": "current_state (\u77ac\u6001): Hours to days, TTL-expiring \u2026 resolve: Mark something as ended \u2026 States auto-expire.",
+      "locator": "README.md, Memory layers / User model layers; Companion tools / manage_user_state",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Behavior pattern confidence is monotonically increasing by design \u2014 absence of recent mention does not reduce confidence.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/README.md",
+      "quote": "Behavior pattern confidence only increases \u2014 a person doesn't 'stop preferring something they have always liked' just because they haven't mentioned it in three months.",
+      "locator": "README.md, Memory layers / User model layers",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Results below combined score floor 0.005 are silently dropped at retrieval time \u2014 the system prefers silence over noisy recall.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/README.md",
+      "quote": "Results below a combined score floor (0.005) are silently dropped \u2014 better silence than noise.",
+      "locator": "README.md, Retrieval design",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is single user / single companion per deployment; multi-user or multi-agent isolation is not described.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/README.md",
+      "quote": "\"user\": {\"name\": \"Your name\", ...}, \"ai\": {\"name\": \"Companion name\", ...}",
+      "locator": "README.md, Configuration / memory_config.json",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory pipeline cost is estimated at approximately $0.22/day (~$7/month) for an active user at June 2026 flash-lite pricing, excluding chat model costs.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/README.md",
+      "quote": "Total: ~$0.22/day, ~$7/month at June 2026 flash-lite pricing. Actual cost depends on chat volume and model choice.",
+      "locator": "README.md, Cost",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory Constellations runs as a standalone Docker container service listening on port 3000, separate from the chat bot.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/deploy/README.md",
+      "quote": "\u8bb0\u5fc6\u5e93\u8dd1\u6210\u4e00\u4e2a Docker \u5bb9\u5668 \uff08\u72ec\u7acb\u670d\u52a1\uff0c\u76d1\u542c 3000 \u7aef\u53e3\uff09",
+      "locator": "\u7b2c\u4e00\u6b65 / bullet list",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A component named Scribe is responsible for extracting memory fragments from messages on the write path.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/deploy/README.md",
+      "quote": "AstrBot \u6536\u5230\u7684\u7528\u6237\u6d88\u606f \u2192 \u81ea\u52a8 POST \u7ed9\u8bb0\u5fc6\u5e93 \u2192 Scribe \u63d0\u53d6\u8bb0\u5fc6\u788e\u7247",
+      "locator": "\u5b8c\u4e8b\u540e\u7684\u6548\u679c section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic retrieval requires ChromaDB; without it the system falls back to keyword retrieval, meaning vector search is optional not core.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/deploy/README.md",
+      "quote": "\u6ca1\u6709 ChromaDB \u65f6\u8bb0\u5fc6\u5e93\u4ecd\u80fd\u8dd1\u3001\u80fd\u63d0\u53d6\u788e\u7247\uff0c\u53ea\u662f\u300c\u5411\u91cf\u8bed\u4e49\u68c0\u7d22\u300d\u964d\u7ea7\u4e3a\u300c\u5173\u952e\u8bcd\u68c0\u7d22\u300d\u3002",
+      "locator": "\u5907\u6ce8 section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The store is encrypted; deployment requires a random SANCTUARY_ENCRYPTION_KEY to be generated.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/deploy/README.md",
+      "quote": "openssl rand -hex 32 # \u586b\u5230 SANCTUARY_ENCRYPTION_KEY",
+      "locator": "\u7b2c\u4e00\u6b65 code block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory pipeline is architecturally separate from chat, with its own model calls and cost budget.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/docs/COST.md",
+      "quote": "Memory pipeline only (excluding chat)",
+      "locator": "COST.md, table heading",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Deep cycle implements a multi-stage memory lifecycle with classify, rematch, and graduate steps, running ~15 times per day.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/docs/COST.md",
+      "quote": "Deep cycle (classify/rematch/graduate)\t~15\tflash-lite\t~$0.03",
+      "locator": "COST.md, Memory pipeline table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Embeddings are generated locally using Jina and fastembed, incurring no API cost.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/docs/COST.md",
+      "quote": "All embedding runs locally (Jina + fastembed), zero API cost",
+      "locator": "COST.md, Optimization tips section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Chat responses use better models and carry full context windows, and are the main cost driver, separate from memory pipeline costs.",
+      "kind": "docs",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/docs/COST.md",
+      "quote": "Chat responses use better models (Flash or Pro) and carry full context windows. Budget ~$0.50-1.00/day for active conversation, depending on model choice and message volume.",
+      "locator": "COST.md, Chat costs section",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/database.js",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/memory.js",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/librarian.js",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/scribe.js",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/cognitiveModel.js",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/routes/recall.js",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/routes/memory-api.js",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/OSS_SETUP.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/docs/COST.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/deploy/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Scaffold / instruction layer (what prompt instructions tell the model to do with retrieved memories) is not present in this retrieval module.",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/2e5cdb11840236a40cda35877c4a6e3b695b90f7/services/memory.js",
+      "kind": "code"
+    },
+    {
+      "text": "The jiwen (\u6301\u7eed\u5185\u5728\u72b6\u6001\u5f15\u64ce) mechanism is named but not described: how it reads from the memory store, what state it persists, and how it modifies the emotional baseline are not explained in this page.",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/OSS_SETUP.md",
+      "kind": "docs"
+    },
+    {
+      "text": "correct_memory implementation details are referenced to services/correction.js but that file is not included on this page.",
+      "url": "https://github.com/ClaraShafiq/MemoryConstellations/blob/main/README.md",
+      "kind": "docs"
+    }
+  ]
+}
