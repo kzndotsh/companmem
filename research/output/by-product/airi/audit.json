@@ -1,0 +1,984 @@
+{
+  "identity": {
+    "id": "airi",
+    "name": "AIRI",
+    "repo": "https://github.com/moeru-ai/airi",
+    "docs": "https://moeru-ai-airi.mintlify.app/llms.txt",
+    "license": "MIT",
+    "version_or_commit": "cfffa9b6f3c7575097c9fb71213e84782dafb0ea",
+    "observed_at": "2026-09-18"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Multi-tier storage system for persisting conversation history, user preferences, and application data"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "AIRI distinguishes between persistent memory (hard to retrieve, requires semantic relevance and relationship traversal) and working memory (limited capacity), framing the gap as the core problem their memory system addresses."
+    },
+    {
+      "text": "Two distinct stores are maintained: activeContexts (current live messages per bucket) and contextHistory (a separate history log), distinguishing active message log from historical entries."
+    },
+    {
+      "text": "A second persistent IndexedDB-backed mount under the key 'outbox', namespaced with base 'airi-sync-queue', suggesting a queued/outbound sync store separate from primary local storage."
+    },
+    {
+      "text": "Session messages (full turn log including system, user, assistant roles) are the persisted unit \u2014 not curated facts. Each session record contains meta and the full messages array."
+    },
+    {
+      "text": "The chat-sync authority is tied to the main window's route lifecycle and is disposed when the main window leaves the stage route, causing timeouts for detached chat windows"
+    },
+    {
+      "text": "Context prompt construction is delegated to @proj-airi/core-agent, which exposes a ContextSnapshot type and functions for building and formatting a context prompt message."
+    },
+    {
+      "text": "AIRI uses Character Cards (V2/V3 JSON format) to define persistent personality, appearance, and behavior \u2014 representing lore/backstory as opposed to conversational events."
+    },
+    {
+      "text": "AIRI chose pgvector.rs as the vector database backend for the memory store, citing speed and support for higher embedding dimensions than standard pgvector."
+    },
+    {
+      "text": "Emotion scores (joy, disgust) are stored per memory entry and are intended to influence retrieval ranking, though not yet fully implemented."
+    },
+    {
+      "text": "Long-term memory is stored as RAG entries with longer half-lives; higher historical retrieval counts make them easier to recall."
+    },
+    {
+      "text": "A per-user index of sessions (keyed by userId) is persisted and retrieved separately from individual session records."
+    },
+    {
+      "text": "Companion personality, memory, and configuration are stored on user's own hardware rather than third-party servers"
+    },
+    {
+      "text": "A devlog entry references FlowChat memory experiments, indicating active memory experimentation as of early 2026."
+    },
+    {
+      "text": "Three distinct entry kinds \u2014 'note', 'diary', 'focus' \u2014 are persisted as curated records, not a raw message log"
+    },
+    {
+      "text": "Full reset of all context state is possible via resetContexts, which clears both active contexts and history."
+    },
+    {
+      "text": "Default in-memory storage layer created at module load, used as the base storage instance before any mounts."
+    },
+    {
+      "text": "Memory is grouped with Lorebook, an Alaya layer, and Time awareness as planned but not yet completed work."
+    },
+    {
+      "text": "Chat session records are stored and retrieved per sessionId under a local: namespaced key in IDB storage."
+    },
+    {
+      "text": "Memory implemented via a built-in vector database and memory module providing long-term context awareness"
+    },
+    {
+      "text": "Session index is structured per user and per character, with sessions nested under each character entry."
+    },
+    {
+      "text": "RAG and memory system are called out as sub-projects born from AIRI, alongside an embedded database."
+    },
+    {
+      "text": "Cloud sync only round-trips user and assistant roles; system, tool, and error roles are not synced."
+    },
+    {
+      "text": "A separate configuration doc covers conversation memory, context management, and database settings"
+    },
+    {
+      "text": "Memory Alaya is listed as a named WIP sub-system under the Memory roadmap item, not yet complete."
+    },
+    {
+      "text": "Each soul is a distinct AI agent configured with specific personality traits and knowledge bases"
+    },
+    {
+      "text": "Conversations are stored as full message-array logs in IndexedDB, keyed by ID, with timestamps"
+    },
+    {
+      "text": "Telegram bot requires Postgres (and by implication pgvector) as a backing store for memory"
+    },
+    {
+      "text": "All conversation logs and memory data remain on the self-hosted server"
+    },
+    {
+      "text": "The registry enforces a hard cap of 400 entries on the history log."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Memory is an in-progress capability; in-browser database (DuckDB WASM / pglite) is implemented but the overall memory feature and Memory Alaya subsystem are not complete.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/README.md",
+      "quote": "[ ] Memory\n[x] Pure in-browser database support (DuckDB WASM | `pglite`)\n[ ] Memory Alaya (WIP)",
+      "locator": "README.md, Current Progress & Roadmap",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "AIRI has a named memory subsystem called 'Memory Alaya' that is work-in-progress; no implementation details are given on this page.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/README.md",
+      "quote": "[ ] Memory Alaya (WIP)",
+      "locator": "README.md, Current Progress & Roadmap, under Memory",
+      "confidence": "unknown",
+      "label": "measured"
+    },
+    {
+      "claim": "AIRI includes or plans RAG and a memory system as distinct sub-projects under the @proj-airi organization.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/README.md",
+      "quote": "RAG, memory system, embedded database, icons, Live2D utilities, and more!",
+      "locator": "README.md, NOTE callout referencing @proj-airi organization",
+      "confidence": "unknown",
+      "label": "measured"
+    },
+    {
+      "claim": "FlowChat memory experiments were ongoing as of the January 2026 devlog, suggesting active development of memory mechanisms.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/README.md",
+      "quote": "DevLog @ 2026.01.01: AIRI Pocket and FlowChat memory experiments",
+      "locator": "README.md, Recent DevLogs & Stories",
+      "confidence": "unknown",
+      "label": "measured"
+    },
+    {
+      "claim": "AIRI has a dedicated memory module package named 'memory-pgvector' that accepts a connectionString configuration, indicating a PostgreSQL+pgvector backend for memory persistence.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/memory-pgvector/src/index.ts",
+      "quote": "const client = new Client<{ connectionString: string }>({\n    name: 'memory-pgvector',\n  })",
+      "locator": "packages/memory-pgvector/src/index.ts:main()",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Chat session records are persisted per sessionId in local IDB storage and can be saved, retrieved, and deleted.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/database/repos/chat-sessions.repo.ts",
+      "quote": "async getSession(sessionId: string) {\n    const key = `local:chat/sessions/${sessionId}`\n    return await storage.getItemRaw<ChatSessionRecord>(key)\n  }",
+      "locator": "chatSessionsRepo.getSession",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A per-user session index, separate from session records, is persisted and keyed by userId.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/database/repos/chat-sessions.repo.ts",
+      "quote": "async getIndex(userId: string) {\n    const key = `local:chat/index/${userId}`\n    return await storage.getItemRaw<ChatSessionsIndex>(key)\n  }",
+      "locator": "chatSessionsRepo.getIndex",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Tombstones prevent re-import of cloud-deleted sessions during reconciliation; they are stored independently of the index so they survive index rewrites.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/database/repos/chat-sessions.repo.ts",
+      "quote": "Stored as a flat array of `cloudChatId`s per user, keyed independently of the index so the data survives index rewrites.",
+      "locator": "chatSessionsRepo.getTombstones JSDoc",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The outbox is a durable local write buffer for messages not yet delivered to the cloud; it survives tab close and reload.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/database/repos/chat-sessions.repo.ts",
+      "quote": "Survives tab close / reload \u2014 the whole point of the outbox is to never lose a write that landed locally but never made it to the server.",
+      "locator": "chatSessionsRepo.getOutbox JSDoc",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per user and per character: the index nests sessions under character entries within a userId namespace.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/database/repos/chat-sessions.repo.ts",
+      "quote": "for (const charIndex of Object.values(index.characters)) {\n        for (const sessionId of Object.keys(charIndex.sessions)) {",
+      "locator": "chatSessionsRepo.clear",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "This file stores the full message log (ChatSessionRecord, outbox entries with role and content) rather than curated memory facts or summaries.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/database/repos/chat-sessions.repo.ts",
+      "quote": "role: 'user' | 'assistant'\n  content: string",
+      "locator": "ChatSendOutboxEntry interface",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "AIRI uses unstorage with an IndexedDB driver mounted at 'local' (base: 'airi-local') for browser-persistent cross-session storage.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/database/storage.ts",
+      "quote": "storage.mount('local', indexedDbDriver({ base: 'airi-local' }))",
+      "locator": "packages/stage-ui/src/database/storage.ts:11",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "AIRI maintains a separate outbox/sync-queue store in IndexedDB, distinct from the primary local store, implying a write-then-sync pattern rather than a single flat log.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/database/storage.ts",
+      "quote": "storage.mount('outbox', indexedDbDriver({ base: 'airi-sync-queue' }))",
+      "locator": "packages/stage-ui/src/database/storage.ts:12",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The default (unmounted) storage driver is in-memory only; persistence only exists under explicitly mounted namespaces ('local', 'outbox').",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/database/storage.ts",
+      "quote": "export const storage = createStorage({\n  driver: memoryDriver(),\n})",
+      "locator": "packages/stage-ui/src/database/storage.ts:7-9",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "AIRI persists curated character memory as typed notebook entries (note/diary/focus) separate from any raw conversation transcript",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/character/notebook.ts",
+      "quote": "export type NotebookEntryKind = 'note' | 'diary' | 'focus'",
+      "locator": "packages/stage-ui/src/stores/character/notebook.ts:line 6",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "AIRI stores scheduled tasks with temporal metadata (dueAt, nextNotifyAt) enabling time-aware proactive recall rather than passive retrieval",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/character/notebook.ts",
+      "quote": "dueAt?: number\n  createdAt: number\n  updatedAt: number\n  lastNotifiedAt?: number\n  nextNotifyAt?: number",
+      "locator": "packages/stage-ui/src/stores/character/notebook.ts:lines 27-31",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "AIRI task retrieval is adaptive: getDueTasks gates on status, a lookahead time window, and a nextNotifyAt cooldown \u2014 not unconditional recall",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/character/notebook.ts",
+      "quote": "if (task.status === 'done' || task.status === 'dropped')\n        return false\n      const dueAt = task.dueAt ?? now\n      if (dueAt > now + windowMs)\n        return false\n      if (typeof task.nextNotifyAt === 'number' && task.nextNotifyAt > now)\n        return false",
+      "locator": "packages/stage-ui/src/stores/character/notebook.ts:lines 124-130",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "AIRI has no explicit delete path for notebook entries in this store; forgetting entries is not implemented here",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/character/notebook.ts",
+      "quote": "return {\n    entries,\n    tasks,\n    partitionDiary,\n    partitionFocus,\n    addNote,\n    addDiaryEntry,\n    addFocusEntry,\n    scheduleTask,\n    markTaskDone,\n    requeueTask,\n    markTaskNotified,\n    getDueTasks,\n  }",
+      "locator": "packages/stage-ui/src/stores/character/notebook.ts:lines 134-148",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The stage-ui store re-exports ContextSnapshot, buildContextPromptMessage, and formatContextPromptText from @proj-airi/core-agent, indicating context/memory prompt assembly is handled in that core package rather than in the UI layer.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/chat/context-prompt.ts",
+      "quote": "export type { ContextSnapshot } from '@proj-airi/core-agent'\nexport { buildContextPromptMessage, formatContextPromptText } from '@proj-airi/core-agent'",
+      "locator": "packages/stage-ui/src/stores/chat/context-prompt.ts:1-2",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Context messages are bucketed by source key, isolating messages per event source.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/chat/context-store.ts",
+      "quote": "getSourceKey: getEventSourceKey,",
+      "locator": "useChatContextStore body, registry initialization",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "History is capped at 400 entries via historyLimit, not unbounded.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/chat/context-store.ts",
+      "quote": "const CONTEXT_HISTORY_LIMIT = 400",
+      "locator": "module-level constant",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Active contexts and context history are separate structures, suggesting a distinction between a running message log and a curated/historical record.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/chat/context-store.ts",
+      "quote": "const activeContextsMirror = ref<Record<string, ContextMessage[]>>({})\n  const contextHistoryMirror = ref<ContextHistoryEntry[]>([])",
+      "locator": "useChatContextStore body, mirror refs",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Reset deletes all active contexts and history in the registry; this is the only explicit forget/clear mechanism visible in this file.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/chat/context-store.ts",
+      "quote": "function resetContexts() {\n    registry.reset()\n    syncRegistrySnapshot()\n  }",
+      "locator": "useChatContextStore body, resetContexts function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The persisted unit is a full message log (system + user + assistant turns) per session, not curated facts or summaries.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/chat/session-store.ts",
+      "quote": "const record: ChatSessionRecord = {\n        meta: updatedMeta,\n        messages,\n      }\n\n      await chatSessionsRepo.saveSession(sessionId, record)",
+      "locator": "function persistSession",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session isolation is per-user and per-character; the index is keyed userId \u2192 characterId \u2192 sessionId.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/chat/session-store.ts",
+      "quote": "index.value = { userId: currentUserId, characters: {} }\n\n    const characterIndex = index.value.characters[characterId] ?? {\n      activeSessionId: sessionId,\n      sessions: {},\n    }\n    characterIndex.sessions[sessionId] = meta",
+      "locator": "function createSession",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "On account switch, all in-memory session state is cleared to prevent cross-user data leakage; rehydration happens from IDB for the new user.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/chat/session-store.ts",
+      "quote": "Drop every in-memory session for the current user. Used when the auth\n *  user changes \u2014 we must NOT keep account A's sessions visible (or\n *  exportable) when account B signs in.",
+      "locator": "JSDoc above function clearInMemoryState",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Message deletion is by stable id or by index position; the filtered array is persisted back to IDB.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/chat/session-store.ts",
+      "quote": "const nextMessages = getSessionMessages(payload.sessionId).filter((message, messageIndex) => {\n      if (payload.messageId)\n        return message.id !== payload.messageId\n      if (payload.index !== undefined)\n        return messageIndex !== payload.index\n      return true\n    })\n\n    setSessionMessages(payload.sessionId, nextMessages)",
+      "locator": "function deleteMessage",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session deletion removes IDB record, drops outbox entries, and writes a tombstone to block re-adoption from cloud on next reconcile.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/chat/session-store.ts",
+      "quote": "await enqueuePersist(() => chatSessionsRepo.deleteSession(sessionId))\n    // Drop any pending outbox sends for this session \u2014 pushing messages\n    // to a deleted chat is wasted work and may surface as a server-side\n    // 404/410 next time we drain.\n    if (isCloudUser)\n      await enqueuePersist(() => chatSessionsRepo.dropOutboxForSession(currentUserId, sessionId))\n    await persistIndex()\n    await refreshOutboxPendingCount()\n\n    if (isCloudUser) {\n      const remoteChatId = cloudChatId ?? sessionId\n      // Tombstone first: even if the cloud DELETE never reaches the server\n      // (offline, transient 5xx), the next reconcile will see the remote id\n      // here and skip the adopt branch",
+      "locator": "function deleteSession",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The scaffold/instruction (system prompt from the active card) is injected as the first message in the session's message array and kept current with card changes.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/chat/session-store.ts",
+      "quote": "watch([systemPrompt, activeSessionId], refreshActiveSessionSystemMessage)",
+      "locator": "file bottom, watch declarations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Cloud sync is local-first via an IDB outbox; messages are written to IDB before any network attempt and retried on reconnect up to OUTBOX_MAX_ATTEMPTS (5).",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/chat/session-store.ts",
+      "quote": "const OUTBOX_MAX_ATTEMPTS = 5",
+      "locator": "file top-level constant OUTBOX_MAX_ATTEMPTS",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Only user and assistant roles are cloud-synced; system/tool/error turns stay local.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/chat/session-store.ts",
+      "quote": "/**\n * Roles that are eligible to push to the cloud. Wire schema accepts more,\n *  but our v1 contract only round-trips authored turns.\n */\ntype CloudSyncableRole = Extract<MessageRole, 'user' | 'assistant'>",
+      "locator": "type CloudSyncableRole",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Messages are loaded lazily from IDB on session open; the index (session list with metadata) is loaded separately without pulling message payloads.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/chat/session-store.ts",
+      "quote": "// Hydrate `sessionMetas` from the index so consumers like the sessions\n    // drawer can list every owned session without having to `loadSession`\n    // each one (which would pull every messages payload from IndexedDB).",
+      "locator": "function loadIndexForUser",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Anonymous (local) users never open a cloud WebSocket; cloud sync is gated on a non-'local' userId.",
+      "kind": "code",
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/chat/session-store.ts",
+      "quote": "// Cloud sync state. The WS client is constructed lazily so anonymous\n  // (`userId === 'local'`) users never open a socket.",
+      "locator": "cloud sync state comment block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Store is IndexedDB (persistent) plus in-memory cache; DuckDB is used for analytical queries on conversation history in-browser.",
+      "kind": "docs",
+      "url": "https://moeru-ai-airi.mintlify.app/configuration/memory",
+      "quote": "Airi uses multiple storage backends: ... `local`: Persistent IndexedDB storage ... `memory`: In-memory cache (default)",
+      "locator": "Database Configuration / Storage Backend",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path queues persistence after every turn to avoid blocking the UI thread.",
+      "kind": "docs",
+      "url": "https://moeru-ai-airi.mintlify.app/configuration/memory",
+      "quote": "function enqueuePersist(task: () => Promise<void>) {\n  persistQueue = persistQueue.then(task, task)\n  return persistQueue\n}",
+      "locator": "Message History Management / Message Persistence",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/prune operates at two levels: (1) oldest messages dropped from context window at retrieval time; (2) sessions archived then deleted per retention policy.",
+      "kind": "docs",
+      "url": "https://moeru-ai-airi.mintlify.app/configuration/memory",
+      "quote": "// Keep recent messages, remove oldest first\nfor (let i = remainingMessages.length - 1; i >= 0; i--) {",
+      "locator": "Message History Management / Context Window Limits",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Summarization compresses old messages into a synthetic system-role message, replacing them in the context; this is configurable via summarizeOld and summaryThreshold.",
+      "kind": "docs",
+      "url": "https://moeru-ai-airi.mintlify.app/configuration/memory",
+      "quote": "const messagePolicy: MessageRetentionPolicy = {\n  keepSystemMessages: true,\n  maxMessagesPerSession: 200,\n  summarizeOld: true,\n  summaryThreshold: 50\n}",
+      "locator": "Retention Policies / Message-Level Retention",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic/vector search and cloud sync are planned but not yet implemented.",
+      "kind": "docs",
+      "url": "https://moeru-ai-airi.mintlify.app/configuration/memory",
+      "quote": "Planned feature using embeddings ... Full-text search (future) ... Vector similarity search (future)",
+      "locator": "Context Retrieval / Semantic Search (Future); DuckDB Features",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session metadata includes a pinned field, indicating the system supports pinned sessions, though pin recall behavior is not described.",
+      "kind": "docs",
+      "url": "https://moeru-ai-airi.mintlify.app/configuration/memory",
+      "quote": "pinned: boolean",
+      "locator": "Session Management / ChatSessionMeta",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Storage is browser-local (IndexedDB + localStorage); no server-side or cross-device persistent memory described",
+      "kind": "docs",
+      "url": "https://moeru-ai-airi.mintlify.app/features/memory-system",
+      "quote": "Airi uses a multi-tier storage system for persisting conversation history, user preferences, and application data. The system leverages browser storage APIs including IndexedDB for structured data and localStorage for simple key-value pairs.",
+      "locator": "Overview",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Full conversation logs (all messages) are stored, not curated facts or summaries \u2014 this is log storage, not memory distillation",
+      "kind": "docs",
+      "url": "https://moeru-ai-airi.mintlify.app/features/memory-system",
+      "quote": "interface Conversation { id: string; title: string; messages: Message[]; createdAt: number; updatedAt: number }",
+      "locator": "Conversation Storage / Storing Conversations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is mechanical key lookup or full-scan filter; no adaptive selection, ranking, or scaffold injection into the model turn is described",
+      "kind": "docs",
+      "url": "https://moeru-ai-airi.mintlify.app/features/memory-system",
+      "quote": "const keys = await storage.getKeys('local:conversation')\nconst conversations = await Promise.all(\n  keys.map(key => storage.getItem<Conversation>(`local:${key}`))\n)",
+      "locator": "Conversation Storage / Retrieving Conversations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Search is keyword/substring match only; no semantic or embedding-based retrieval mentioned",
+      "kind": "docs",
+      "url": "https://moeru-ai-airi.mintlify.app/features/memory-system",
+      "quote": "conv.title.toLowerCase().includes(query.toLowerCase()) || conv.messages.some(msg => msg.content.toLowerCase().includes(query.toLowerCase()))",
+      "locator": "Conversation Storage / Searching Conversations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is explicit delete by key or age-based batch removal; no hide-at-retrieve or omit-in-generation mechanism described",
+      "kind": "docs",
+      "url": "https://moeru-ai-airi.mintlify.app/features/memory-system",
+      "quote": "await storage.removeItem(`local:conversation:${conversationId}`)\n// Delete all conversations\nawait Promise.all(keys.map(key => storage.removeItem(`local:${key}`)))",
+      "locator": "Conversation Storage / Deleting Conversations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No isolation model described \u2014 no per-user, per-character, or per-agent partitioning mentioned; all data under a single 'local' mount",
+      "kind": "docs",
+      "url": "https://moeru-ai-airi.mintlify.app/features/memory-system",
+      "quote": "storage.mount('local', indexedDbDriver({ base: 'airi-local' }))",
+      "locator": "Storage Configuration",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No scaffold or instruction layer described \u2014 page does not describe how retrieved conversation data is injected into model context or how the model is instructed to use it",
+      "kind": "docs",
+      "url": "https://moeru-ai-airi.mintlify.app/features/memory-system",
+      "quote": "Persistent storage and retrieval of conversation history and user data using IndexedDB and unstorage",
+      "locator": "Page subtitle",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "AIRI persists conversation history and user data across sessions using IndexedDB and unstorage",
+      "kind": "docs",
+      "url": "https://moeru-ai-airi.mintlify.app/llms.txt",
+      "quote": "Persistent storage and retrieval of conversation history and user data using IndexedDB and unstorage",
+      "locator": "Docs / Memory System (features/memory-system.md)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "AIRI supports configurable context management alongside conversation memory and database settings",
+      "kind": "docs",
+      "url": "https://moeru-ai-airi.mintlify.app/llms.txt",
+      "quote": "Configure conversation memory, context management, and database settings in Airi",
+      "locator": "Docs / Memory System (configuration/memory.md)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "AIRI uses an embedded in-browser database (DuckDB WASM or pglite) as its memory store.",
+      "kind": "docs",
+      "url": "https://github.com/moeru-ai/airi/blob/main/README.md",
+      "quote": "Pure in-browser database support (DuckDB WASM | pglite)",
+      "locator": "README.md, Current Progress & Roadmap, Memory subsection",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The project's broader organization includes a RAG and memory system among its sub-projects.",
+      "kind": "docs",
+      "url": "https://github.com/moeru-ai/airi/blob/main/README.md",
+      "quote": "RAG, memory system, embedded database, icons, Live2D utilities, and more!",
+      "locator": "README.md, Note callout about @proj-airi organization",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "AIRI models memory as having a persistent store and a working memory gap, solved via RAG retrieval into context.",
+      "kind": "docs",
+      "url": "https://github.com/moeru-ai/airi/blob/main/docs/content/en/blog/DevLog-2025.04.06/index.md",
+      "quote": "So there is always a gap between persistent memory and working memory, where persistent memory is more hard to retrieval (we call it recall too) with both semantic relevance and follow the relationships (or dependency in software engineering) of the memorized events, and working memory is not big enough to hold everything essential effectively.",
+      "locator": "Memory system section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "AIRI persists chat messages as vector embeddings in a Postgres database (pgvector.rs) with HNSW indexing, supporting multiple embedding dimensions.",
+      "kind": "docs",
+      "url": "https://github.com/moeru-ai/airi/blob/main/docs/content/en/blog/DevLog-2025.04.06/index.md",
+      "quote": "We chose pgvector.rs for vector database implementation for both speed and vector dimensions compatibility (since pgvector only supports dimensions below 2000, where future bigger embedding model may provide dimensions more than the current trending.)",
+      "locator": "Vector DB section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "AIRI's retrieve policy filters by cosine similarity threshold (>0.5) and returns top 3 results, then re-ranks by combining similarity with exponential time decay (24-hour half-life).",
+      "kind": "docs",
+      "url": "https://github.com/moeru-ai/airi/blob/main/docs/content/en/blog/DevLog-2025.04.06/index.md",
+      "quote": "newer messages will have higher final scores even if their semantic similarity is slightly lower... const finalScore = similarity * calculateTimeDecayScore(message.createdAt)",
+      "locator": "How we implemented it section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "AIRI separates character lore (Character Card JSON: name, personality, scenario, backstory) from conversational memory stored in the vector database.",
+      "kind": "docs",
+      "url": "https://github.com/moeru-ai/airi/blob/main/docs/content/en/blog/DevLog-2025.04.06/index.md",
+      "quote": "Character Cards are JSON files that define the personality, appearance, and behavior of AI characters. They follow the popular V2/V3 format used by many AI character platforms.",
+      "locator": "Character Card support section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory system refinements are planned future work, indicating the current implementation described in this post is not yet final.",
+      "kind": "docs",
+      "url": "https://github.com/moeru-ai/airi/blob/main/docs/content/en/blog/DevLog-2025.04.06/index.md",
+      "quote": "Memory system refinements: Improving the recall accuracy and efficiency",
+      "locator": "What's next section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Long-term memory entries persist in the RAG store with a longer half-life; high retrieval-count history raises recall probability.",
+      "kind": "docs",
+      "url": "https://github.com/moeru-ai/airi/blob/main/docs/content/en/blog/DevLog-2025.04.14/index.md",
+      "quote": "Long-term memory is like RAG entries that are easily recalled but become fuzzy, with higher recall counts from the past being easier to recall",
+      "locator": "How Should AIRI Be Designed? section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Current reinforcement is single-dimensional (recall = reinforce) and does not yet incorporate emotional valence feedback.",
+      "kind": "docs",
+      "url": "https://github.com/moeru-ai/airi/blob/main/docs/content/en/blog/DevLog-2025.04.14/index.md",
+      "quote": "There's an implicit pitfall here: this is still single-dimensional calculation, equivalent to recalling equals reinforcing. But the real world isn't like this. Memories can be sad, happy - sadness brings negative feedback, happiness brings positive feedback. So this is the part I haven't completed yet.",
+      "locator": "Memory Layer Experimental Platform section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Emotion scores (joy, disgust) are intended to be stored per memory entry to influence future retrieval ranking, but are not yet fully implemented.",
+      "kind": "docs",
+      "url": "https://github.com/moeru-ai/airi/blob/main/docs/content/en/blog/DevLog-2025.04.14/index.md",
+      "quote": "Can store \"joy\" and \"disgust\" scores in the memory database",
+      "locator": "Emotions? section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A background dreaming/subconscious agent is planned to reprocess memories and update scores, but is not yet built.",
+      "kind": "docs",
+      "url": "https://github.com/moeru-ai/airi/blob/main/docs/content/en/blog/DevLog-2025.04.14/index.md",
+      "quote": "Create a dreaming agent or subconscious agent, similar to background tasks, processing and indexing each occurred memory one by one, and modifying various scores of past memories based on recent experiences",
+      "locator": "Still Much Work to Do... section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory store is a flat table of declarative-sentence facts, fully injected into every system prompt with no retrieval filtering.",
+      "kind": "docs",
+      "url": "https://github.com/moeru-ai/airi/blob/main/docs/content/en/blog/DevLog-2026.01.01/index.md",
+      "quote": "concatenate all memories into the system prompt",
+      "locator": "Memory Layer Experiments in FlowChat section, step 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Prompt growth from unbounded memory accumulation is an acknowledged open problem with no solution yet described.",
+      "kind": "docs",
+      "url": "https://github.com/moeru-ai/airi/blob/main/docs/content/en/blog/DevLog-2026.01.01/index.md",
+      "quote": "As memories grow, this prompt will become longer and longer. How do we optimize it? I don't know, maybe that will be the content of the next DevLog.",
+      "locator": "Memory Layer Experiments in FlowChat section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write trigger is entirely model-side: the LLM decides when to call the memory tool and what text to store.",
+      "kind": "docs",
+      "url": "https://github.com/moeru-ai/airi/blob/main/docs/content/en/blog/DevLog-2026.01.01/index.md",
+      "quote": "When it determines something needs to be remembered, it summarizes what to remember in a declarative sentence, then calls this tool function.",
+      "locator": "Memory Layer Experiments in FlowChat section, step 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "AIRI lacks long-term and short-term memory capability",
+      "kind": "issue",
+      "url": "https://github.com/moeru-ai/airi/issues/1111",
+      "quote": "\u7f3a\u5c11\u957f\u77ed\u671f\u8bb0\u5fc6\u7684\u80fd\u529b",
+      "locator": "Clear and concise description of the problem",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A vector retrieval service is suggested as a possible approach for long-term and short-term memory",
+      "kind": "issue",
+      "url": "https://github.com/moeru-ai/airi/issues/1111",
+      "quote": "\u53ef\u7528\u4e8e\u957f\u77ed\u671f\u8bb0\u5fc6\uff1f\u76ee\u524d\u963f\u91cc\u4e91\u6709\u767d\u5ad6\u7684\u5411\u91cf\u68c0\u7d22\u670d\u52a1\u3002",
+      "locator": "Suggested solution / Ideas",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "AIRI's Telegram bot deployment depends on Postgres (with pgvector) and a separate memory service component",
+      "kind": "issue",
+      "url": "https://github.com/moeru-ai/airi/issues/1676",
+      "quote": "I noticed that Telegram bot requires Postgres, and Discord / Telegram are separated into their own services",
+      "locator": "issue body, paragraph beginning 'From the docs'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Continuity failure: detached chat window loses assistant reply capability (effectively forgetting the active session) when main window navigates away",
+      "kind": "issue",
+      "url": "https://github.com/moeru-ai/airi/issues/1743",
+      "quote": "the detached Chat window could send messages but get no assistant reply until you left and came back, then you'd see an error like \"Timed out waiting for chat authority response.\"",
+      "locator": "Describe the bug",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The chat-sync authority is scoped to the main window's stage route lifecycle, not globally persistent, causing continuity failure when the route changes",
+      "kind": "issue",
+      "url": "https://github.com/moeru-ai/airi/issues/1743",
+      "quote": "chat-sync authority disposed when main window leaves the stage route",
+      "locator": "Issue title",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Model position/viewport state is not being persisted across sessions \u2014 a save/recall feature is missing or broken",
+      "kind": "issue",
+      "url": "https://github.com/moeru-ai/airi/issues/2421",
+      "quote": "\u6a21\u578bModel Position\u6ca1\u6709\u8bb0\u5f55\u529f\u80fd",
+      "locator": "Issue title and bug description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "This is a known continuity failure that was previously reported and remained unresolved",
+      "kind": "issue",
+      "url": "https://github.com/moeru-ai/airi/issues/2421",
+      "quote": "\u53c2\u8003\u6a21\u578bModel Position\u6ca1\u6709\u8bb0\u5f55\u529f\u80fd #1806 \u8fd9\u4e2abug\u8fd8\u6ca1\u4fee\uff0c\u95ee\u4e86\u6ca1\u4eba\u56de\u590d\uff0c\u6765\u50ac\u4e00\u4e0b",
+      "locator": "Describe the bug section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory (including Lorebook, an Alaya layer, and Time awareness) is a carry-over item \u2014 planned but not shipped in v0.9.",
+      "kind": "issue",
+      "url": "https://github.com/moeru-ai/airi/issues/840",
+      "quote": "Memory (Lorebook, Alaya layer, Time awareness)",
+      "locator": "## v0.9 Features & Roadmap > TODOs > Legacy / Engineering (Carry-over)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A Lorebook is planned as part of the character catalog under Services, implying a lore/backstory store separate from session events.",
+      "kind": "issue",
+      "url": "https://github.com/moeru-ai/airi/issues/840",
+      "quote": "Character catalog \u2026 Lorebook",
+      "locator": "## v0.9 Features & Roadmap > TODOs > Services",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Companion memory and personality configuration reside on user's own hardware, not cloud servers",
+      "kind": "blog",
+      "url": "https://fossy.dev/articles/airi-your-self-hosted-grok-inspired-ai-companion",
+      "quote": "your 'soul'\u2014the unique personality, memory, and configuration of your AI companion\u2014resides entirely on your own hardware",
+      "locator": "Section: Decoupling from the Cloud: Ownership and Privacy",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Robust memory management across long conversations is a stated architectural requirement, though no specific mechanism is described",
+      "kind": "blog",
+      "url": "https://fossy.dev/articles/airi-your-self-hosted-grok-inspired-ai-companion",
+      "quote": "the 'soul' needs robust memory management and an understanding of past interactions",
+      "locator": "Section: The Neuro-sama Aspiration: Beyond Basic Chatbots",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory of past streams is attributed to prompt engineering in soul configuration, not a dedicated persistence layer",
+      "kind": "blog",
+      "url": "https://fossy.dev/articles/airi-your-self-hosted-grok-inspired-ai-companion",
+      "quote": "They can fine-tune her responses, vocabulary, and even her 'memory' of past streams.",
+      "locator": "Section: A Concrete Scenario: The AI Streamer Sidekick",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Soul isolation is per-character: each soul is a distinct configured agent",
+      "kind": "blog",
+      "url": "https://fossy.dev/articles/airi-your-self-hosted-grok-inspired-ai-companion",
+      "quote": "Each 'soul' likely represents a distinct AI agent, configured with specific personality traits, knowledge bases, and perhaps even specialized skills.",
+      "locator": "Section: Modular Souls and Cyber Livings: The Architecture's Flexibility",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "AIRI uses RAG (retrieval-augmented generation) with a vector database for persistent memory across sessions",
+      "kind": "blog",
+      "url": "https://www.besthub.dev/articles/self-hosted-ai-companion-airi-real-time-voice-interaction-and-game-integration-5c364ff875d1",
+      "quote": "Memory and RAG System : Built\u2011in vector database and memory module provide long\u2011term context awareness.",
+      "locator": "section: Key Features",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory management is architecturally isolated as its own micro-service component",
+      "kind": "blog",
+      "url": "https://www.besthub.dev/articles/self-hosted-ai-companion-airi-real-time-voice-interaction-and-game-integration-5c364ff875d1",
+      "quote": "Its architecture follows micro\u2011service principles, separating chat, voice, game proxy, and memory management into independent components that can be swapped",
+      "locator": "section: Core Technical Highlights and Architecture",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User data including conversation logs and memory is stored locally on the self-hosted server, not sent to third parties",
+      "kind": "blog",
+      "url": "https://www.besthub.dev/articles/self-hosted-ai-companion-airi-real-time-voice-interaction-and-game-integration-5c364ff875d1",
+      "quote": "All data stays on the self\u2011hosted server, giving full control over conversation logs and memory.",
+      "locator": "section: Applicable Scenarios and Target Audience",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/database/storage.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/database/repos/chat-sessions.repo.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/chat/session-store.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/chat/context-store.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/chat/context-prompt.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/stage-ui/src/stores/character/notebook.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/moeru-ai/airi/blob/cfffa9b6f3c7575097c9fb71213e84782dafb0ea/packages/memory-pgvector/src/index.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://moeru-ai-airi.mintlify.app/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://moeru-ai-airi.mintlify.app/features/memory-system",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://moeru-ai-airi.mintlify.app/configuration/memory",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/moeru-ai/airi/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/moeru-ai/airi/blob/main/docs/content/en/blog/DevLog-2025.04.14/index.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/moeru-ai/airi/blob/main/docs/content/en/blog/DevLog-2025.04.06/index.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/moeru-ai/airi/blob/main/docs/content/en/blog/DevLog-2026.01.01/index.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/moeru-ai/airi/issues/840",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/moeru-ai/airi/issues/1676",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/moeru-ai/airi/issues/1111",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/moeru-ai/airi/issues/1743",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/moeru-ai/airi/issues/2421",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.besthub.dev/articles/self-hosted-ai-companion-airi-real-time-voice-interaction-and-game-integration-5c364ff875d1",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://fossy.dev/articles/airi-your-self-hosted-grok-inspired-ai-companion",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Conflict/supersession policy for stored facts is not described; the page covers context-source replacement (ReplaceSelf) but not cross-session or cross-character knowledge conflict resolution.",
+      "url": "https://moeru-ai-airi.mintlify.app/configuration/memory",
+      "kind": "docs"
+    },
+    {
+      "text": "pinned session behavior at retrieval time is not described \u2014 it is unclear whether pinned sessions or their contents are always injected into context.",
+      "url": "https://moeru-ai-airi.mintlify.app/configuration/memory",
+      "kind": "docs"
+    },
+    {
+      "text": "No conflict or supersession policy described \u2014 the page does not state what happens when contradictory facts exist across stored conversations.",
+      "url": "https://moeru-ai-airi.mintlify.app/features/memory-system",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession policy is not described: no mechanism is given for updating or overriding a memory entry when a newer fact contradicts an older one.",
+      "url": "https://github.com/moeru-ai/airi/blob/main/docs/content/en/blog/DevLog-2025.04.14/index.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Model Position persistence mechanism: this issue reports that saving of Model Position settings was present in some v0.9 version and is now missing, but the page does not describe how persistence was or should be implemented",
+      "url": "https://github.com/moeru-ai/airi/issues/1806",
+      "kind": "issue"
+    },
+    {
+      "text": "No detail on what persistence store is used for model position, whether other UI/session state is persisted, or why the fix did not land after issue #1806",
+      "url": "https://github.com/moeru-ai/airi/issues/2421",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how memory is persisted across sessions \u2014 whether via a database, log, vector store, or other mechanism. The page asserts 'robust memory management' as a requirement but names no concrete implementation.",
+      "url": "https://fossy.dev/articles/airi-your-self-hosted-grok-inspired-ai-companion",
+      "kind": "blog"
+    }
+  ]
+}
