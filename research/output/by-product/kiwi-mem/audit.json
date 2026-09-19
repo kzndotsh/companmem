@@ -1,0 +1,811 @@
+{
+  "identity": {
+    "id": "kiwi-mem",
+    "name": "kiwi-mem",
+    "repo": "https://github.com/LucieEveille/kiwi-mem",
+    "docs": "https://github.com/LucieEveille/kiwi-mem/blob/main/README.md",
+    "license": "AGPL-3.0",
+    "version_or_commit": "b01a0c506f4f10f90f30d408c0291f16720f0718",
+    "observed_at": "2026-09-18"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Defines canonical calendar-period identities shared by every write/selection boundary"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "User profile is a curated text document stored in config key 'user_profile', updated incrementally each day from the day page; structured into four sections: basic info, helpful insights, recent topics, long-term preferences"
+    },
+    {
+      "text": "Lock mechanism: memories can be permanently locked (is_permanent=true); auto/dream locks are retired (is_permanent set to false) after configurable lock_retire_days of inactivity; importance is floored at 8 on retire"
+    },
+    {
+      "text": "Calendar system auto-compresses chat history into hierarchical summaries (day \u2192 week \u2192 month \u2192 quarter \u2192 year). Injection is Matryoshka-style: recent days get full detail, older periods get high-level overviews."
+    },
+    {
+      "text": "Write path for digest: LLM merges fragment texts into event entries; each entry is inserted with memory_type='daily_digest', an embedding vector, importance score, category_id, and date-prefixed content"
+    },
+    {
+      "text": "The product exposes a /debug/memories endpoint that returns stored memory data, and an /admin interface for browsing memories, suggesting a persistent memory store with at least two read surfaces."
+    },
+    {
+      "text": "Tombstone rows act as a delete/forget signal; survivor buckets are rows that remain after a matching session, turn, or message tombstone, and their presence is treated as anomalous."
+    },
+    {
+      "text": "A period page is rejected at write time if its created_at timestamp falls on or before the period's end date, requiring explicit regeneration after the period closes"
+    },
+    {
+      "text": "Dream background processing auto-trigger thresholds (5/7/3) are hardcoded in dream.py ~784, inconsistent with the configurable dream_drowsy_threshold (default 30)"
+    },
+    {
+      "text": "Named memory tools (search_memory, save_memory, get_recent, lock_memory, unlock_memory) are quarantined \u2014 blocked from execution in quarantined_project scope."
+    },
+    {
+      "text": "A selection (retrieval) filter discards pages whose stored key is not canonical or whose period is not fully completed, enforcing read-time validity gating"
+    },
+    {
+      "text": "A user profile field is persisted and updated via a dedicated prompt, representing a curated user model separate from raw conversation logs"
+    },
+    {
+      "text": "After digest entries are saved, original fragment records are marked 'digested' in bulk so they no longer participate in daily injection"
+    },
+    {
+      "text": "Memory metabolism: automatic softening of old memories is time-gated (minimum age, cooldown, daily limit)"
+    },
+    {
+      "text": "Contradiction detection: new memory conflicting with an old one auto-invalidates the outdated version."
+    },
+    {
+      "text": "Memories can be auto-locked based on recall count, topic diversity, and emotional recall thresholds"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Memory heat decays over time and warms on recall; emotional intensity slows decay; cold memories are deleted by cleanup threshold.",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/README_EN.md",
+      "quote": "Every memory has a \"heat\" score. Time makes it naturally decay, but if you keep bringing up the same topic, it warms back up. High-emotion memories decay slower\u2026 only the cold and old get cleaned up, by heat.",
+      "locator": "### \ud83d\udd25 Fades and strengthens",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall is defined as actual injection into the prompt, not merely retrieval from the store; injected low-resolution memories gain a 30-day heat extension.",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/README_EN.md",
+      "quote": "Only memories actually written into the conversation count as \"recalled\" \u2014 only the cold and old get cleaned up, by heat\u2026 Only memories actually injected into the prompt count as recalled; recalled low-resolution memories are extended by 30 days",
+      "locator": "### \ud83d\udd25 Fades and strengthens / ### \ud83d\udd25 Memory heat system (Full feature list)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Dream consolidation is a three-layer pipeline (cleanup \u2192 merge into MemScenes \u2192 foresight inference). Output MemScenes are indexed and re-injected by vector similarity in subsequent conversations.",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/README_EN.md",
+      "quote": "It works in three layers: first cleans up outdated and duplicate fragments, then merges related fragments into coherent \"memory scenes\", and finally infers things you never explicitly said but your AI should understand\u2026 consolidated scenes carry vector indexes, so when a related topic comes up during the day, they get found and flow back into the conversation.",
+      "locator": "### \ud83c\udf19 Sleeps and wakes up smarter",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Calendar hierarchy auto-compresses chat history into day/week/month/quarter/year summaries; injection is tiered so recent periods are detailed and older periods are summarized.",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/README_EN.md",
+      "quote": "The calendar system auto-compresses chat history into hierarchical summaries: day \u2192 week \u2192 month \u2192 quarter \u2192 year. When injecting into conversation, recent days get full detail, last week gets abbreviated, older periods get high-level overviews.",
+      "locator": "### \ud83d\udcc5 Recent is vivid, distant is hazy",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "User-locked memories are permanent (no decay, no auto-delete). Auto-locks and Dream-promoted locks retire after 90 days without recall by demotion, not deletion.",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/README_EN.md",
+      "quote": "Memories you lock by hand are sacred \u2014 they never decay, never retire, never auto-delete. Machine-locked memories (auto-locks and Dream promotions) have an exit path instead: if nobody asks about them for 90 days, they get demoted from \"permanent\" back to high-importance regular memories (reversible, never deleted)",
+      "locator": "### \ud83e\udde9 Contradictions update, important things stick",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Project isolation is automatic; global memories, calendar, and Dream scenes are shared; each project adds a private layer that never leaks to global or other projects.",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/README_EN.md",
+      "quote": "global memories, calendar pages, and Dream scenes form a shared base for every chat. Each project adds a private layer of instructions, files, project memories, and project conversations. Private project content never flows into global chats or another project. No setup needed \u2014 isolation is automatic.",
+      "locator": "### \ud83d\udd12 A shared base with private project layers",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval uses RRF hybrid search (vector + keyword in parallel, merged via Reciprocal Rank Fusion) with synonym expansion and semantic deduplication.",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/README_EN.md",
+      "quote": "RRF hybrid search: Vector + keyword search in parallel, Reciprocal Rank Fusion merge\u2026 Synonym expansion: \"medication\" finds \"prescription\", \"drugs\", \"medicine\"\u2026 Semantic deduplication: Similar memories auto-detected",
+      "locator": "### \ud83e\udde0 Memory extraction & retrieval (Full feature list)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Static prompt content (persona, profile, locked memories, calendar) is injected first to maximize cache hits; dynamic content (search results, drowsiness hints) is appended per turn.",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/README_EN.md",
+      "quote": "All static content (persona, profile, locked memories, calendar summaries) is ordered first in the prompt to hit cache, dynamic content (search results, drowsiness hints) comes after. This injection order can save up to 90% on API input costs.",
+      "locator": "### \u26a1 Budget and context aware",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory store is PostgreSQL with pgvector; core memory CRUD, RRF search, and heat logic live in database.py.",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/README_EN.md",
+      "quote": "database.py \u2014 Database (memory CRUD, RRF search, heat)",
+      "locator": "## File structure",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory growth is bounded: heat system phases out cold memories, Dream consolidates fragments, calendar compresses long-term content, and injection count is capped by MAX_MEMORIES_INJECT.",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/README_EN.md",
+      "quote": "No. The heat system naturally phases out cold memories, Dream consolidates fragments, calendar compression handles long-term content, and injection has a configurable cap. These mechanisms together keep memory size manageable.",
+      "locator": "## FAQ \u2014 Will memories grow forever?",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "kiwi-mem structures persistent memory as calendar-period pages with strict canonical key validation at both write and selection boundaries",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/calendar_periods.py",
+      "quote": "Canonical calendar-period identities shared by every write/selection boundary.",
+      "locator": "calendar_periods.py module docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Week, month, quarter, and year summary pages cannot be written or selected until their full period has elapsed (completeness gate)",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/calendar_periods.py",
+      "quote": "if page_type != \"day\" and expected_end >= today:\n            raise CalendarPeriodValidationError(\n                f\"{page_type} \u53ea\u5141\u8bb8\u5df2\u7ecf\u7ed3\u675f\u7684\u5b8c\u6574\u5468\u671f\uff08\u672c\u5468\u671f\u7ed3\u675f\u4e8e {expected_end.isoformat()}\uff09\")",
+      "locator": "calendar_periods.py:validate_calendar_period_identity, lines ~87-90",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Pages authored before a period ends are invalid and must be explicitly regenerated post-period, guarding against stale summaries entering the memory store",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/calendar_periods.py",
+      "quote": "if page_type != \"day\" and created_at is not None and _authored_date(created_at) <= expected_end:\n            raise CalendarPeriodValidationError(\n                f\"{page_type} \u9875\u9762\u5728\u5468\u671f\u7ed3\u675f\u524d\u6210\u6587\uff0c\u9700\u6309\u5b8c\u6574\u5468\u671f\u660e\u786e\u91cd\u65b0\u751f\u6210\")",
+      "locator": "calendar_periods.py:validate_calendar_period_identity, lines ~93-96",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval filters out pages that fail canonical period validation, meaning non-canonical or incomplete-period pages are hidden at read time rather than deleted",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/calendar_periods.py",
+      "quote": "Return only pages whose stored key is canonical and fully completed.",
+      "locator": "calendar_periods.py:filter_valid_calendar_period_pages docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Injection is bounded at 15 items per turn by default, with 20% reserved for locked/pinned memories",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/config.py",
+      "quote": "\"max_inject\": (\"MAX_MEMORIES_INJECT\", \"15\", \"\u6bcf\u6b21\u6ce8\u5165\u6761\u6570\", \"int\"),\n\"locked_inject_ratio\": (\"\", \"0.2\", \"\u9501\u5b9a\u4fdd\u5e95\u5360\u6bd4\", \"float\")",
+      "locator": "CONFIG_SCHEMA definition",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Heat level determines injection format: high heat (\u22650.7) injects full text, medium heat (\u22650.3) injects truncated summary (default 60 chars), below cleanup threshold (0.15) triggers deletion",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/config.py",
+      "quote": "\"heat_threshold_high\": (\"\", \"0.7\", \"\u9ad8\u70ed\u5ea6\u9608\u503c\uff08\u5168\u6587\u6ce8\u5165\uff09\", \"float\"),\n\"heat_threshold_medium\": (\"\", \"0.3\", \"\u4e2d\u70ed\u5ea6\u9608\u503c\uff08\u6458\u8981\u6ce8\u5165\uff09\", \"float\"),\n\"heat_medium_truncate\": (\"\", \"60\", \"\u4e2d\u70ed\u5ea6\u6458\u8981\u622a\u65ad\u5b57\u6570\", \"int\"),\n\"cleanup_heat_threshold\": (\"CLEANUP_HEAT_THRESHOLD\", \"0.15\", \"\u6e05\u7406\u4f4e\u70ed\u5ea6\u9608\u503c\", \"float\")",
+      "locator": "CONFIG_SCHEMA definition, comment: v5.4\uff1a\u70ed\u5ea6\u7cfb\u7edf\u53c2\u6570",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory softening (metabolism) automatically degrades memories older than 5 days, up to 10 per day, with a 21-day cooldown between softenings of the same memory",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/config.py",
+      "quote": "\"auto_soften_enabled\": (\"AUTO_SOFTEN_ENABLED\", \"true\", \"\u81ea\u52a8\u8f6f\u5316\u5f00\u5173\", \"bool\"),\n\"auto_soften_daily_limit\": (\"AUTO_SOFTEN_DAILY_LIMIT\", \"10\", \"\u6bcf\u65e5\u8f6f\u5316\u4e0a\u9650\", \"int\"),\n\"auto_soften_min_age\": (\"AUTO_SOFTEN_MIN_AGE\", \"5\", \"\u81ea\u52a8\u8f6f\u5316\u6700\u5c0f\u5929\u6570\", \"int\"),\n\"soften_cooldown_days\": (\"SOFTEN_COOLDOWN_DAYS\", \"21\", \"\u8f6f\u5316\u51b7\u5374\u5929\u6570\", \"int\")",
+      "locator": "CONFIG_SCHEMA definition, comment: v5.9\uff1a\u8bb0\u5fc6\u65b0\u9648\u4ee3\u8c22",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are auto-locked based on recall frequency (\u226510 recalls), topic diversity (\u22655), or high-emotion recalls (\u22656 with diversity \u22653)",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/config.py",
+      "quote": "\"autolock_access_count\": (\"\", \"10\", \"\u81ea\u52a8\u9501\u5b9a\uff1a\u53ec\u56de\u6b21\u6570\u9608\u503c\", \"int\"),\n\"autolock_diversity\": (\"\", \"5\", \"\u81ea\u52a8\u9501\u5b9a\uff1a\u8bdd\u9898\u591a\u6837\u6027\u9608\u503c\", \"int\"),\n\"autolock_emo_access\": (\"\", \"6\", \"\u81ea\u52a8\u9501\u5b9a\uff1a\u9ad8\u60c5\u7eea\u53ec\u56de\u9608\u503c\", \"int\"),\n\"autolock_emo_diversity\": (\"\", \"3\", \"\u81ea\u52a8\u9501\u5b9a\uff1a\u9ad8\u60c5\u7eea\u591a\u6837\u6027\u9608\u503c\", \"int\")",
+      "locator": "CONFIG_SCHEMA definition, comment: v5.4\uff1a\u8bb0\u5fc6\u81ea\u52a8\u9501\u5b9a",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dream consolidation system periodically merges memory fragments into day/week/month/period summaries using a dedicated model and prompts",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/config.py",
+      "quote": "\"dream_enabled\": (\"\", \"true\", \"\u68a6\u5883\u7cfb\u7edf\", \"bool\"),\n\"prompt_daily_digest_page\": (\"\", \"\", \"\u65e5\u9875\u9762\u751f\u6210\u63d0\u793a\u8bcd\", \"text\"),\n\"prompt_weekly_summary\": (\"\", \"\", \"\u5468\u603b\u7ed3\u63d0\u793a\u8bcd\", \"text\"),\n\"prompt_monthly_summary\": (\"\", \"\", \"\u6708\u603b\u7ed3\u63d0\u793a\u8bcd\", \"text\"),\n\"prompt_period_summary\": (\"\", \"\", \"\u5b63\u5ea6/\u5e74\u603b\u7ed3\u63d0\u793a\u8bcd\", \"text\")",
+      "locator": "CONFIG_SCHEMA definition, comment: Dream \u8bb0\u5fc6\u6574\u5408\uff08v5.1\uff09",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Handoff bridges sessions: on new conversation start, a full summary of the previous conversation plus the last 6 verbatim messages are injected",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/config.py",
+      "quote": "\"handoff_enabled\": (\"\", \"true\", \"\u65e0\u7f1d\u6362\u7a97\u5f00\u5173\", \"bool\"),\n\"handoff_tail_count\": (\"\", \"6\", \"\u8854\u63a5\u7ed3\u5c3e\u539f\u6587\u6761\u6570\", \"int\"),\ncomment: v6.1\uff1a\u65e0\u7f1d\u6362\u7a97 v2\uff08\u65b0\u5bf9\u8bdd\u8854\u63a5\u4e0a\u4e00\u4e2a\u5bf9\u8bdd\u7684\u5168\u7a0b\u6982\u8981 + \u7ed3\u5c3e\u539f\u6587\uff09",
+      "locator": "CONFIG_SCHEMA definition, comment: v6.1",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "User profile is a persisted curated text field updated by a dedicated prompt, distinct from the conversation log",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/config.py",
+      "quote": "\"user_profile\": (\"\", \"\", \"\u7528\u6237\u753b\u50cf\", \"text\"),\n\"prompt_user_profile\": (\"\", \"\", \"\u753b\u50cf\u66f4\u65b0\u63d0\u793a\u8bcd\", \"text\")",
+      "locator": "CONFIG_SCHEMA definition, comment: \u7528\u6237\u753b\u50cf\uff08v4.0\uff09",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Auto context compression triggers at 40 messages or 30000 tokens, then compresses the context while keeping the last 4 messages verbatim \u2014 distinguishing the message log from the compressed scaffold",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/config.py",
+      "quote": "\"auto_compress_msg_limit\": (\"\", \"40\", \"\u538b\u7f29\u89e6\u53d1\u6761\u6570\", \"int\"),\n\"auto_compress_token_limit\": (\"\", \"30000\", \"\u538b\u7f29\u89e6\u53d1 token \u4e0a\u9650\", \"int\"),\n\"auto_compress_keep_last\": (\"\", \"4\", \"\u538b\u7f29\u540e\u4fdd\u7559\u539f\u6587\u6761\u6570\", \"int\")",
+      "locator": "CONFIG_SCHEMA definition, comment: \u81ea\u52a8\u4e0a\u4e0b\u6587\u538b\u7f29\uff08v6.1\uff09",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "All configuration is stored in a single database table (gateway_config) created by database.py init_tables(); there is no per-user or per-session isolation described on this page",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/config.py",
+      "quote": "\u914d\u7f6e\u8868 gateway_config \u7684\u5efa\u8868\u7531 database.py \u7684 init_tables() \u8d1f\u8d23",
+      "locator": "file header comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Fragment memories (memory_type='fragment') are the raw write unit; they are selected from the memories table by date and type for daily digest processing",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/daily_digest.py",
+      "quote": "WHERE COALESCE(memory_type, 'fragment') = 'fragment'\n              AND (created_at AT TIME ZONE 'Asia/Shanghai')::date = $1",
+      "locator": "_run_daily_digest_impl, step 1 SQL",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "After LLM merging, fragment records are bulk-updated to memory_type='digested' so they no longer participate in daily injection",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/daily_digest.py",
+      "quote": "UPDATE memories SET memory_type = 'digested' \n            WHERE id = ANY($1::int[])",
+      "locator": "_run_daily_digest_impl, step 5",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Digest entries are inserted with source='ai_digest' and memory_type='daily_digest', with an embedding and date-prefixed content",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/daily_digest.py",
+      "quote": "INSERT INTO memories (content, importance, source_session, embedding, title, memory_type, created_at, category_id, source)\n                VALUES ($1, $2, $3, $4, $5, 'daily_digest', $6::timestamptz, $7, 'ai_digest')",
+      "locator": "_run_daily_digest_impl, step 4 SQL INSERT",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Normal fragments deleted after 7 days; important (importance >= 8) after 30 days; precondition: dream_processed_at IS NOT NULL and a calendar_pages day entry exists for that date",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/daily_digest.py",
+      "quote": "AND dream_processed_at IS NOT NULL\n              AND project_id IS NULL\n              AND (\n                    (memory_type = 'fragment'\n                     AND importance < 8\n                     AND created_at < NOW() - INTERVAL '7 days'\n                     AND EXISTS (SELECT 1 FROM calendar_pages\n                                 WHERE date = (memories.created_at AT TIME ZONE 'Asia/Shanghai')::date\n                                   AND type = 'day'))",
+      "locator": "cleanup_expired_fragments, candidates SELECT SQL",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories with zero access_count are deleted unconditionally by age; memories with access_count > 0 require heat score below threshold",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/daily_digest.py",
+      "quote": "if access_count == 0:\n                    should_delete = True\n                    heat = 0.0\n                else:\n                    heat = calculate_heat(r, heat_params)\n                    should_delete = heat < threshold",
+      "locator": "cleanup_expired_fragments, heat check block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Auto-soften compresses aging memory content to ~40% via LLM; decrements resolution field (1.0\u21920.5\u21920.3); extends valid_until by 30 days",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/daily_digest.py",
+      "quote": "target_resolution = 0.3 if current_resolution <= 0.5 else 0.5\n                ok = await soften_memory(\n                    mem_id,\n                    softened_content,\n                    target_resolution=target_resolution,\n                    extend_days=30,\n                )",
+      "locator": "auto_soften_aging_memories, softening loop",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Auto/dream locks are retired (is_permanent\u2192false) after configurable inactivity period; importance floored at 8 on retire",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/daily_digest.py",
+      "quote": "UPDATE memories\n                    SET is_permanent = FALSE,\n                        lock_source = NULL,\n                        importance = GREATEST(importance, 8),\n                        dream_processed_at = NULL\n                    WHERE id = ANY($1::int[])",
+      "locator": "retire_stale_locks, UPDATE SQL",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "User profile is a curated text stored in config key 'user_profile'; updated incrementally each day; structured into four named sections",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/daily_digest.py",
+      "quote": "current_profile = await get_config(\"user_profile\") or \"\"\n    ... await set_config(\"user_profile\", new_profile)",
+      "locator": "update_user_profile, steps 1 and 6",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Day page generation is version-gated against concurrent chat message changes; if sources change during generation the result is discarded (max 2 retries)",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/daily_digest.py",
+      "quote": "status, page_id = await database.save_calendar_page_if_sources_unchanged(\n            snapshot, ... )\n        if status != \"saved\":\n            print(f\"   \u267b\ufe0f {date_str} \u7684\u804a\u5929\u7d20\u6750\u5728\u751f\u6210\u671f\u95f4\u53d8\u4e86\uff0c\u4e22\u5f03\u8fd9\u7248\u91cd\u6765\uff08\u7b2c {attempt} \u6b21\uff09\")",
+      "locator": "_generate_day_page_impl, attempt loop",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Month summary generation is deferred if any day in the month has chat messages but no day page, preventing gaps from being silently omitted",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/daily_digest.py",
+      "quote": "if missing_days:\n        ... return {\n            \"status\": \"skipped\",\n            \"reason\": \"missing_day_pages\",\n            \"missing_dates\": [d.isoformat() for d in missing_days],\n        }",
+      "locator": "generate_month_summary, missing_days guard",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are stored as fragments with content, title, importance score, and auto-generated vectors for semantic retrieval",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/mcp_server.py",
+      "quote": "\u8bb0\u5fc6\u4fdd\u5b58\u540e\u4f1a\u81ea\u52a8\u751f\u6210\u5411\u91cf\uff0c\u53ef\u4ee5\u88ab\u8bed\u4e49\u641c\u7d22\u627e\u5230\u3002",
+      "locator": "save_memory docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories have a heat/decay score; unlocked memories decay along a forgetting curve; locked memories hold heat at 1.0 permanently",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/mcp_server.py",
+      "quote": "\u9501\u5b9a\u540e\u70ed\u5ea6\u6c38\u8fdc\u4e3a 1.0\uff0c\u4e0d\u4f1a\u8870\u51cf\u9057\u5fd8\uff0c\u6bcf\u6b21\u804a\u5929\u90fd\u4f1a\u6ce8\u5165\u3002",
+      "locator": "lock_memory docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Daily digest merges fragment memories into discrete event entries; scheduled nightly, also manually triggerable",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/mcp_server.py",
+      "quote": "\u624b\u52a8\u89e6\u53d1\u6bcf\u65e5\u8bb0\u5fc6\u6574\u7406 \u2014 \u628a\u5f53\u5929\u7684\u788e\u7247\u8bb0\u5fc6\u5408\u5e76\u6210\u72ec\u7acb\u4e8b\u4ef6\u6761\u76ee\u3002\n\u901a\u5e38\u4e0d\u9700\u8981\u624b\u52a8\u8c03\u7528\uff0c\u7cfb\u7edf\u6bcf\u5929\u51cc\u6668\u81ea\u52a8\u6267\u884c\u3002",
+      "locator": "trigger_digest docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Dream consolidation deletes and merges fragment memories and creates MemScene narrative objects with Foresight signals",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/mcp_server.py",
+      "quote": "\u5220\u9664\uff1a{last.get('memories_deleted', 0)} | \u5408\u5e76\uff1a{last.get('memories_merged', 0)}\n\u65b0\u5efa\u573a\u666f\uff1a{last.get('scenes_created', 0)} | \u524d\u77bb\u4fe1\u53f7\uff1a{last.get('foresights_generated', 0)}",
+      "locator": "get_dream_status function body",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "User profile is a structured four-section document (basic profile, insights, recent focus, long-term preferences) updated by the daily digest",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/mcp_server.py",
+      "quote": "\u753b\u50cf\u5305\u542b\u56db\u4e2a\u677f\u5757\uff1a\u57fa\u672c\u6863\u6848\u3001\u6d1e\u5bdf\u3001\u8fd1\u671f\u91cd\u70b9\u3001\u957f\u671f\u504f\u597d\u3002\n\u7531\u6bcf\u65e5\u6574\u7406\u81ea\u52a8\u66f4\u65b0\uff0c\u4e5f\u53ef\u624b\u52a8\u89e6\u53d1\u66f4\u65b0\u3002",
+      "locator": "get_user_profile docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MCP modules are split by domain so clients load only needed tools, avoiding unnecessary token consumption",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/mcp_server.py",
+      "quote": "\u6309\u529f\u80fd\u57df\u62c6\u5206\u4e3a\u72ec\u7acb\u6a21\u5757\uff0c\u5ba2\u6237\u7aef\u53ea\u8fde\u9700\u8981\u7684\u6a21\u5757\uff0c\u4e0d\u7528\u7684\u4e0d\u5360 token\u3002",
+      "locator": "module docstring, top of file",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory tools include save_memory, search_memory, get_recent, lock_memory, unlock_memory \u2014 named explicitly in the quarantine set, indicating these are the persisted memory write/read operations.",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/tool_drawer.py",
+      "quote": "_QUARANTINED_TOOL_NAMES = {\n    \"search_memory\", \"save_memory\", \"get_recent\", \"lock_memory\", \"unlock_memory\",\n    \"_gateway_search_conversations\", \"gateway_search_conversations\",\n}",
+      "locator": "_QUARANTINED_TOOL_NAMES",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Tool routing is adaptive per turn: only categories with cosine similarity above threshold (0.45 internal, 0.40 external default) are expanded into the active tool set.",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/tool_drawer.py",
+      "quote": "SIMILARITY_THRESHOLD = 0.45 ... threshold = ext_threshold if is_external else SIMILARITY_THRESHOLD\nif score >= threshold:\n    matched_categories.add(cat_id)",
+      "locator": "SIMILARITY_THRESHOLD constant and route_tools()",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Session-level memory of which tool drawers have been expanded persists across turns within a session (7200s TTL), not just for a single turn.",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/tool_drawer.py",
+      "quote": "_SESSION_TTL = 7200 ... _sessions[session_id] = {\"expanded\": [], \"rounds_no_use\": 0, \"last_active\": now}",
+      "locator": "_SESSION_TTL and _get_session()",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory and conversation tools are scope-isolated: quarantined_project scope disables them at both routing and execution layers.",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/tool_drawer.py",
+      "quote": "def _scope_disabled_categories(scope):\n    return {\"memory\", \"conversation\"} if _scope_mode(scope) == \"quarantined_project\" else set()",
+      "locator": "_scope_disabled_categories()",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The category description for 'memory' mentions extracting summaries (\u63d0\u53d6\u6458\u8981) as a memory operation, suggesting a summarization write path exists.",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/tool_drawer.py",
+      "quote": "\u8bb0\u5fc6\u641c\u7d22\u3001\u4fdd\u5b58\u8bb0\u5fc6\u3001\u67e5\u770b\u6700\u8fd1\u8bb0\u5fc6\u3001\u9501\u5b9a\u89e3\u9501\u8bb0\u5fc6\u3001\u63d0\u53d6\u6458\u8981\u3002",
+      "locator": "CATEGORY_META['memory']['description']",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The 'dream' flow is a distinct memory consolidation process separate from per-turn memory save, triggered by user intent phrases.",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/tool_drawer.py",
+      "quote": "\u505a\u68a6\u3001\u6574\u7406\u8bb0\u5fc6\u3001\u89e6\u53d1Dream\u6d41\u7a0b\u3001\u67e5\u770b\u68a6\u5883\u72b6\u6001\u548c\u5386\u53f2\u3001\u67e5\u770b\u8bb0\u5fc6\u573a\u666f\u3002",
+      "locator": "CATEGORY_META['dream']['description']",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Conversation search (_gateway_search_conversations) is a separate retrieval path from curated memory search, operating over raw conversation logs scoped by project/session context.",
+      "kind": "code",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/tool_drawer.py",
+      "quote": "\"_gateway_search_conversations\": {\"type\":\"function\",\"function\":{\"name\":\"_gateway_search_conversations\",\"description\":\"\u641c\u7d22\u8fc7\u53bb\u7684\u5bf9\u8bdd\u8bb0\u5f55\u3002\u5f53\u7528\u6237\u63d0\u5230\u4e4b\u524d\u804a\u8fc7\u3001\u4e0a\u6b21\u8bf4\u7684\u65f6\u8c03\u7528\u3002\"",
+      "locator": "GATEWAY_TOOL_SCHEMAS['_gateway_search_conversations']",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The service identity is enforced in main.py as 'Kiwi-Mem'",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/AGENTS.md",
+      "quote": "Before pushing, confirm main.py still identifies the service as Kiwi-Mem.",
+      "locator": "AGENTS.md > Repository role and boundaries",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "PostgreSQL is used as a backing store (behavioral guards exist for it)",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/AGENTS.md",
+      "quote": "Run the existing regression scripts, PostgreSQL behavior guards, and all tests related to the changed area.",
+      "locator": "AGENTS.md > Normal change workflow",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Contradiction detection uses character-overlap and fails on numeric/single-word fact updates (e.g. daughter age five\u2192six), scoring them as near-duplicate rather than contradiction",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/KNOWN_ISSUES.md",
+      "quote": "\u77db\u76fe\u68c0\u6d4b\u6f0f\u300c\u7eaf\u6570\u5b57/\u5355\u5b57\u4e8b\u5b9e\u66f4\u65b0\u300d\uff08database.py detect_contradictions\uff09\u3002\u5b57\u7b26\u91cd\u53e0\u515c\u5e95\u5bf9\u300c\u6211\u5973\u513f\u4e94\u5c81 \u2192 \u516d\u5c81\u300d\u8fd9\u7c7b\u6574\u53e5\u51e0\u4e4e\u76f8\u540c\u3001\u53ea\u6539\u4e00\u4e2a\u5b57\u7684\u66f4\u65b0\uff0c\u4f1a\u7b97\u6210\u8fd1\u91cd\u590d\uff08>0.85\uff09\u800c\u6f0f\u5224\u3002tests/test_logic.py \u6709 INFO \u6807\u6ce8\u5f53\u524d\u884c\u4e3a\u3002",
+      "locator": "KNOWN_ISSUES.md \u00a7 \u4e8c\u3001\u4e2d\u5371 \u2014 \u77db\u76fe\u68c0\u6d4b",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Scope isolation: per-project memory is enforced via a per-turn scope snapshot; metadata wins on conflict; deleted/unverified projects get isolation state (shared base only); new projects before sync get scope_unverified",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/KNOWN_ISSUES.md",
+      "quote": "scope \u6bcf\u8f6e\u53ea\u751f\u6210\u4e00\u4efd\u5feb\u7167\uff1ametadata \u4e0e payload \u4e0d\u4e00\u81f4\u65f6\u6309 metadata \u8bfb\u53d6\u5e76\u8bb0 scope_mismatch \uff1b\u5df2\u5220\u6216\u672a\u9a8c\u8bc1\u9879\u76ee\u8fdb\u5165\u9694\u79bb\u6001\uff0c\u53ea\u7ed9\u5171\u4eab\u5e95\u5ea7\u3002\u65b0\u9879\u76ee\u5c1a\u672a\u540c\u6b65\u5b8c\u6210\u7684\u9996\u8f6e\u4f1a\u8bb0 scope_unverified \u3002",
+      "locator": "KNOWN_ISSUES.md \u00a7 W2-05",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory save from within a project may persist as global; global recent-memory list may surface project-scoped items \u2014 known scope leak in write and retrieve paths",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/KNOWN_ISSUES.md",
+      "quote": "\u9879\u76ee\u5185\u4fdd\u5b58\u53ef\u80fd\u843d\u6210\u5168\u5c40\u3001\u5168\u5c40 recent \u53ef\u80fd\u5217\u51fa\u9879\u76ee\u9879\u3002W2-05b \u5fc5\u987b\u5728 W2-06a \u524d\u5173\u95ed\u8fd9\u7b14\u503a\u3002",
+      "locator": "KNOWN_ISSUES.md \u00a7 W2-05b",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dream background processing (cognitive consolidation) has split threshold logic: hardcoded 5/7/3 triggers in dream.py vs configurable dream_drowsy_threshold defaulting to 30",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/KNOWN_ISSUES.md",
+      "quote": "Dream \u81ea\u52a8\u89e6\u53d1 should_dream \u7684 5/7/3 \u9608\u503c\u786c\u7f16\u7801\uff08dream.py ~784\uff09\uff0c\u4e0e\u53ef\u914d\u7684 dream_drowsy_threshold\uff08\u9ed8\u8ba4 30\uff09\u4e24\u5957\u6807\u51c6\u4e0d\u4e00\u81f4\u3002",
+      "locator": "KNOWN_ISSUES.md \u00a7 \u4f4e\u5371 \u2014 Dream \u81ea\u52a8\u89e6\u53d1",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory heat decays over time and is raised by recall frequency and emotional intensity",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/README_EN.md",
+      "quote": "Every memory has a \"heat\" score. Time makes it naturally decay, but if you keep bringing up the same topic, it warms back up. High-emotion memories decay slower",
+      "locator": "Fades and strengthens",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Only memories actually injected into the prompt count as recalled; a recalled low-resolution memory earns a 30-day extension",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/README_EN.md",
+      "quote": "Only memories actually written into the conversation count as \"recalled\" \u2014 only the cold and old get cleaned up, by heat [...] recalled low-resolution memories are extended by 30 days",
+      "locator": "Fades and strengthens / Memory heat system (full feature list)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Nightly softening compresses aging memories with a 21-day cooldown; old embeddings preserved on regeneration failure",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/README_EN.md",
+      "quote": "Nightly softening can progressively compress old memories, with a 21-day cooldown by default; old embeddings are kept if regeneration fails",
+      "locator": "Memory heat system (full feature list)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dream consolidation has three layers: cleanup, consolidation into MemScenes, and foresight inference",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/README_EN.md",
+      "quote": "Cleanup layer (remove outdated / duplicate / contradictory fragments) Consolidation layer (fragments \u2192 MemScenes) Growth layer (Foresight \u2014 infer implications)",
+      "locator": "Dream consolidation (full feature list)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Calendar compresses chat history hierarchically; injection is recency-weighted (Matryoshka injection)",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/README_EN.md",
+      "quote": "Auto-generated day pages \u00b7 day \u2192 week \u2192 month \u2192 quarter \u2192 year compression. Matryoshka injection (recent = detailed, distant = summarized)",
+      "locator": "Calendar hierarchy (full feature list)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conflict resolution auto-invalidates outdated memory when a new memory contradicts it",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/README_EN.md",
+      "quote": "When a new memory conflicts with an old one (you changed jobs, moved cities), the system auto-invalidates the outdated version.",
+      "locator": "Contradictions update, important things stick",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Static prompt content ordered before dynamic content to maximize cache hits, saving up to 90% on API input costs",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/README_EN.md",
+      "quote": "All static content (persona, profile, locked memories, calendar summaries) is ordered first in the prompt to hit cache, dynamic content (search results, drowsiness hints) comes after. This injection order can save up to 90% on API input costs.",
+      "locator": "Budget and context aware",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Project-level isolation: private project memories never cross into global or other project contexts; isolation is automatic",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/README_EN.md",
+      "quote": "Private project content never flows into global chats or another project. No setup needed \u2014 isolation is automatic.",
+      "locator": "A shared base with private project layers",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cold memories below heat threshold 0.15 are cleaned up",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/README_EN.md",
+      "quote": "CLEANUP_HEAT_THRESHOLD \u2014 Low-heat cleanup threshold \u2014 0.15",
+      "locator": "Environment variables (Optional)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Schema migrations run automatically on startup via idempotent init_tables(); new columns appear without manual intervention",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/README_EN.md",
+      "quote": "Schema migrations run automatically on startup ( init_tables() is idempotent), so new columns appear on their own",
+      "locator": "Staying up to date",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Version 1.7.0 previews MCP address registration without enabling access controls",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/docs/UPGRADING.md",
+      "quote": "1.7.0 previews MCP address registration without enabling access controls.",
+      "locator": "English: 2.0 notice",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Observation data records only whether a remote domain name was seen and the most recent time; addresses are not stored",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/docs/UPGRADING.md",
+      "quote": "\u89c2\u5bdf\u6570\u636e\u53ea\u8bb0\u5f55\u662f\u5426\u89c1\u8fc7\u8fdc\u7a0b\u57df\u540d\u4e0e\u6700\u8fd1\u65f6\u95f4\uff0c\u4e0d\u5b58\u5730\u5740",
+      "locator": "1.7.0 \u51c6\u5907\u7248\u4e0e 2.0 \u5347\u7ea7\u9884\u544a",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The shared base includes named memory categories: global semantic memories, locked memories, calendar pages, and Dream scenes.",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/docs/event-ledger-scope-and-reconciliation.md",
+      "quote": "Global semantic memories, locked memories, calendar pages, and Dream scenes form a shared base.",
+      "locator": "Shared base and private project layer",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Quarantined scope hides memory/conversation drawer categories and disables automatic extraction, effectively suppressing memory for deleted or unverified projects.",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/docs/event-ledger-scope-and-reconciliation.md",
+      "quote": "quarantined_project : used for deleted or unverified project identities. It preserves any provable historical ledger attribution, reads only the shared base, hides memory/conversation drawer categories, disables project handoff, and skips automatic extraction with skip_unverified .",
+      "locator": "Request scope modes",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Historical rows with unresolved scope (scope_known = FALSE) are excluded from scope-aware reads rather than backfilled or deleted.",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/docs/event-ledger-scope-and-reconciliation.md",
+      "quote": "Rows with scope_known = FALSE remain a historical archive and are excluded from future scope-aware readers.",
+      "locator": "Historical rows",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Tombstones are the mechanism for deleting/forgetting sessions, turns, or messages from active ledger consideration; orphaned rows surviving tombstones are treated as anomalies.",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/docs/event-ledger-scope-and-reconciliation.md",
+      "quote": "Three survivor buckets have priority over every benign explanation: rows that remain after a matching session, turn, or message tombstone.",
+      "locator": "Reconciliation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The reconciliation tool is read-only and never rewrites ledger history; audit does not modify the database.",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/docs/event-ledger-scope-and-reconciliation.md",
+      "quote": "how operators audit the event ledger without rewriting history \u2026 A non-zero unexplained bucket blocks a consumer cutover; it does not modify the database.",
+      "locator": "Event ledger scope and read-only reconciliation / Reconciliation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Scope-aware drawer memory tools are not yet available for quarantined scope; this is a known gap pending W2-05b.",
+      "kind": "docs",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/docs/event-ledger-scope-and-reconciliation.md",
+      "quote": "W2-05b will add a private scope-aware executor for the five chat-drawer memory tools. Until that follow-up lands, quarantine fails closed.",
+      "locator": "Known follow-up",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The /debug/memories endpoint returns memory data while the /admin memory browser shows empty \u2014 a discrepancy suggesting the admin read path differs from the debug read path, a potential continuity failure where the browse UI fails to surface stored memories.",
+      "kind": "issue",
+      "url": "https://github.com/LucieEveille/kiwi-mem/issues/2",
+      "quote": "/debug/memories \u6709\u6570\u636e\uff0c\u4f46 /admin \u8bb0\u5fc6\u6d4f\u89c8\u4e3a\u7a7a",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/README_EN.md",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/tool_drawer.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/daily_digest.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/mcp_server.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/config.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/calendar_periods.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/README_EN.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/AGENTS.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/KNOWN_ISSUES.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/docs/UPGRADING.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/docs/event-ledger-scope-and-reconciliation.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/main/docs/acceptance/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/LucieEveille/kiwi-mem/issues/2",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "The foresight (Growth) layer of Dream \u2014 what it infers and how those inferences are stored or distinguished from user-stated facts \u2014 is not detailed on this page.",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/README_EN.md",
+      "kind": "code"
+    },
+    {
+      "text": "The actual retrieval injection policy for non-locked memories is not described here: which memories are selected into a turn, by what score threshold or top-k, and whether selection is adaptive or always-on",
+      "url": "https://github.com/LucieEveille/kiwi-mem/blob/b01a0c506f4f10f90f30d408c0291f16720f0718/mcp_server.py",
+      "kind": "code"
+    },
+    {
+      "text": "The /admin memory browser returns empty despite /debug/memories having data and memory_count showing 12 \u2014 the cause of this read path discrepancy is not explained on this page.",
+      "url": "https://github.com/LucieEveille/kiwi-mem/issues/2",
+      "kind": "issue"
+    }
+  ]
+}
