@@ -1,0 +1,608 @@
+{
+  "identity": {
+    "id": "omemo",
+    "name": "OmniDimen omemo",
+    "repo": "https://github.com/OmniDimen/omemo",
+    "docs": "https://omemo.pages.dev/",
+    "license": "Apache-2.0",
+    "version_or_commit": "5e6db375a19aea491b9b0a88111e829f222f0b07",
+    "observed_at": "2026-09-18"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Omni Memory acts as a middleware proxy between a chat bot and the LLM, automatically injecting and extracting memory on every turn."
+    },
+    {
+      "text": "An agent service that provides long-term memory capability for LLMs, compatible with OpenAI API format."
+    },
+    {
+      "text": "API proxy service that gives LLMs long-term memory, sitting between the application and the LLM"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Curated memory items are persisted to a JSON file (memories.json) on disk, not a raw message log. Each item has an id, content, created_at, updated_at, source, and metadata field."
+    },
+    {
+      "text": "Two injection modes: full injection (all memories injected into system prompt) and RAG injection (intelligently filters memories relevant to the current conversation)."
+    },
+    {
+      "text": "In external mode, a separate model summarizes the conversation and generates memory operations every N turns (configurable via summary_interval)."
+    },
+    {
+      "text": "Storage is initialised from a data directory at startup via MemoryStorage; a MemoryManager wraps it with memory settings"
+    },
+    {
+      "text": "Memory store is a single shared file (data/memories.json); no per-user or per-session isolation is described"
+    },
+    {
+      "text": "Memory extraction skips reasoning_content (chain-of-thought) and only processes final content"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "omemo is an agent proxy service that provides long-term memory for LLMs by intercepting OpenAI-compatible API calls.",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/README.md",
+      "quote": "\u4e00\u4e2a\u4e3a LLM \u63d0\u4f9b\u957f\u671f\u8bb0\u5fc6\u80fd\u529b\u7684\u4ee3\u7406\u670d\u52a1\u3002\u517c\u5bb9 OpenAI API \u683c\u5f0f\uff0c\u53ef\u65e0\u7f1d\u63a5\u5165\u4efb\u4f55\u652f\u6301 OpenAI API \u7684\u5e94\u7528\u3002",
+      "locator": "README.md, opening description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory store is curated facts, not a full conversation log; each record has id, content, timestamps, and source field.",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/README.md",
+      "quote": "\u8bb0\u5fc6\u6570\u636e\u5b58\u50a8\u5728 `data/memories.json` \u6587\u4ef6\u4e2d\uff0c\u683c\u5f0f\uff1a\n{\n  \"id\": \"mem_xxx\",\n  \"content\": \"\u7528\u6237\u59d3\u540d\u662f\u5c0f\u660e\",\n  \"created_at\": \"2026-02-28T10:30:00\",\n  \"updated_at\": \"2026-02-28T10:30:00\",\n  \"source\": \"builtin_extraction\"\n}",
+      "locator": "README.md, \u6570\u636e\u5b58\u50a8",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path in builtin mode is model-driven: the model emits structured tags for add, update, or delete; the proxy parses and applies them.",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/README.md",
+      "quote": "\u6a21\u578b\u5728\u56de\u590d\u672b\u5c3e\u6dfb\u52a0\u8bb0\u5fc6\u6807\u7b7e\uff0c\u4ee3\u7406\u81ea\u52a8\u89e3\u6790\uff1a\n**\u65b0\u589e**\uff1a`- [\u65e5\u671f]\u8bb0\u5fc6\u5185\u5bb9`\n**\u66f4\u65b0**\uff1a`- [\u65e5\u671f][UPDATE:\u7f16\u53f7]\u65b0\u5185\u5bb9`\n**\u5220\u9664**\uff1a`- [\u65e5\u671f][DELETE:\u7f16\u53f7]`",
+      "locator": "README.md, \u8bb0\u5fc6\u6a21\u5f0f\u8be6\u89e3 > \u5185\u7f6e\u6a21\u5f0f (builtin)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path in external mode is periodic summarization: a separate model runs every N conversation turns to extract and write memories.",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/README.md",
+      "quote": "\u6bcf\u9694 N \u8f6e\u5bf9\u8bdd\uff0c\u4f7f\u7528\u72ec\u7acb\u6a21\u578b\u603b\u7ed3\u5bf9\u8bdd\u5e76\u751f\u6210\u8bb0\u5fc6\u64cd\u4f5c\u3002\u9002\u7528\u4e8e\u4e0d\u652f\u6301\u590d\u6742\u6307\u4ee4\u7684\u6a21\u578b\u3002",
+      "locator": "README.md, \u8bb0\u5fc6\u6a21\u5f0f\u8be6\u89e3 > \u5916\u63a5\u6a21\u578b\u6a21\u5f0f (external)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy: full mode injects all memories into system prompt; RAG mode selects relevant memories up to rag_max_memories (default 10).",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/README.md",
+      "quote": "**\u5168\u91cf\u6ce8\u5165 (full)**\uff1a\u5c06\u6240\u6709\u8bb0\u5fc6\u6ce8\u5165\u5230\u7cfb\u7edf\u63d0\u793a\u8bcd\u4e2d\n**RAG \u6ce8\u5165 (rag)**\uff1a\u667a\u80fd\u7b5b\u9009\u4e0e\u5f53\u524d\u5bf9\u8bdd\u76f8\u5173\u7684\u8bb0\u5fc6\nrag_max_memories | RAG \u6a21\u5f0f\u6700\u5927\u8bb0\u5fc6\u6570 | 10",
+      "locator": "README.md, \u529f\u80fd\u7279\u6027 > \u591a\u79cd\u6ce8\u5165\u65b9\u5f0f; \u914d\u7f6e\u8bf4\u660e > memory_settings.json",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is supported via explicit DELETE API and via model-issued DELETE tags in builtin mode; no mention of automatic expiry or hide-at-retrieve.",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/README.md",
+      "quote": "`DELETE /memories/{memory_id}` - \u5220\u9664\u8bb0\u5fc6\n**\u5220\u9664**\uff1a`- [\u65e5\u671f][DELETE:\u7f16\u53f7]`",
+      "locator": "README.md, API \u63a5\u53e3 > \u8bb0\u5fc6\u7ba1\u7406\u63a5\u53e3; \u8bb0\u5fc6\u6a21\u5f0f\u8be6\u89e3 > \u5185\u7f6e\u6a21\u5f0f (builtin)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "In full injection mode, accumulating too many memories increases token consumption; user is advised to periodically clean up.",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/README.md",
+      "quote": "\u5168\u91cf\u6ce8\u5165\u6a21\u5f0f\u4e0b\uff0c\u8bb0\u5fc6\u8fc7\u591a\u4f1a\u589e\u52a0 token \u6d88\u8017\uff0c\u5efa\u8bae\u5b9a\u671f\u6e05\u7406",
+      "locator": "README.md, \u6ce8\u610f\u4e8b\u9879",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "This file is a thin HTTP adapter that forwards a pre-built message list to an OpenAI-compatible endpoint; it performs no persist, retrieve, update, or delete operations on any memory store.",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/api/openai_adapter.py",
+      "quote": "messages = []\n        for msg in request.messages:\n            ...\n        payload = {\n            \"model\": request.model,\n            \"messages\": messages,\n            \"temperature\": request.temperature,\n            \"stream\": request.stream\n        }",
+      "locator": "_build_payload method",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Two injection modes exist: 'full' injects all stored memories into every turn; 'rag' injects a capped subset (up to rag_max_memories) via a retrieval step",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/config.py",
+      "quote": "injection_mode: str = Field(default=\"full\", description=\"\u6ce8\u5165\u65b9\u5f0f\")",
+      "locator": "class MemorySettings, field injection_mode",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory summarization occurs on a fixed interval (every n turns), not on every turn or on demand",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/config.py",
+      "quote": "summary_interval: int = Field(default=5, description=\"\u6bcfn\u8f6e\u5bf9\u8bdd\u603b\u7ed3\u4e00\u6b21\u8bb0\u5fc6\")",
+      "locator": "class MemorySettings, field summary_interval",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory settings (mode, injection style, intervals, format template) are durably persisted to ./config/settings.json across sessions",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/config.py",
+      "quote": "with open(file_path, \"w\", encoding=\"utf-8\") as f:\n    json.dump(\n        self.memory_settings.model_dump(),\n        f,\n        ensure_ascii=False,\n        indent=2\n    )",
+      "locator": "class ConfigManager, method save_memory_settings",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session authentication (login_enabled, session_key_hash) is stored as part of memory settings, gating access to the memory system",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/config.py",
+      "quote": "login_enabled: bool = Field(default=False, description=\"\u662f\u5426\u542f\u7528\u767b\u5f55\u8ba4\u8bc1\")\nsession_key_hash: Optional[str] = Field(default=None, description=\"Session key\u7684SHA256\u54c8\u5e0c\u503c\")",
+      "locator": "class MemorySettings, fields login_enabled and session_key_hash",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "omemo is an API proxy with persistent memory, not a standalone model; memory persists across sessions via MemoryStorage backed by a data directory",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/main.py",
+      "quote": "storage = MemoryStorage(config.settings.data_dir)\nmanager = MemoryManager(storage, config.memory_settings)",
+      "locator": "lifespan(), startup block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Three memory modes exist: 'builtin' (model writes memories inside tags, proxy extracts them), 'external' (a separate model summarises at a configured interval), and an implied 'full' (all memories injected without filtering)",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/main.py",
+      "quote": "logger.info(\"\ud83e\udde0 \u8bb0\u5fc6\u6a21\u5f0f: %s\", ms.memory_mode)\n...\nif config.memory_settings.memory_mode == \"builtin\":\n...\nif config.memory_settings.memory_mode == \"external\":",
+      "locator": "lifespan() and chat_completions() post-response blocks",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "RAG injection mode selects a relevant subset of memories per request rather than always injecting all of them; 'full' mode always injects all memories",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/main.py",
+      "quote": "if config.memory_settings.injection_mode == \"rag\" and config.memory_settings.memory_mode != \"builtin\":\n        selected_memories = await manager.select_memories_for_rag(messages)\n        messages = manager.prepare_messages_with_memories(messages, \"rag\", selected_memories)",
+      "locator": "chat_completions(), memory injection block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "In 'builtin' mode, memory extraction happens post-generation by parsing <memory> tags from the model's response; the tags are stripped before the response reaches the client",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/main.py",
+      "quote": "await manager.process_builtin_memory_extraction(full_response)\n                                    memory_processed = True",
+      "locator": "anthropic_stream_generator() and openai_stream_generator(), post-stream",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "In 'external' mode, summarisation (the write path) is triggered by a conversation counter reaching a configurable summary_interval, not on every turn",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/main.py",
+      "quote": "manager.conversation_counter += 1\n                    if manager.conversation_counter >= config.memory_settings.summary_interval:\n                        await manager.external_summarize_memory(openai_request.messages)\n                        manager.conversation_counter = 0",
+      "locator": "chat_completions(), post-response external mode block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Individual memories can be deleted by ID via the management API, providing an explicit forget path",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/main.py",
+      "quote": "if not manager.delete_memory(memory_id):\n        raise HTTPException(\n            status_code=status.HTTP_404_NOT_FOUND,\n            detail=\"\u8bb0\u5fc6\u4e0d\u5b58\u5728\"\n        )\n    return {\"success\": True}",
+      "locator": "delete_memory() route handler",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories carry a 'source' field; manual writes are tagged source='manual', implying automated writes carry a different source value",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/main.py",
+      "quote": "memory = manager.add_memory(content, source=\"manual\")",
+      "locator": "add_memory() route handler",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "There is no per-user or per-session isolation visible in this file; all memories are shared across all requests through a single global manager instance",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/main.py",
+      "quote": "storage: MemoryStorage\nmanager: MemoryManager\nsummarizer: Optional[MemorySummarizer] = None",
+      "locator": "module-level globals",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MemoryStorage is the persistence layer; MemoryManager delegates all reads and writes to it",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/manager.py",
+      "quote": "from memory.storage import MemoryStorage",
+      "locator": "manager.py:import block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Three operating modes exist: 'builtin' (model self-writes memory tags), 'full' (all memories injected), and 'rag' (adaptive selection by summarizer)",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/manager.py",
+      "quote": "if self.settings.memory_mode == \"builtin\":\n            new_system = self.build_builtin_system_prompt(original_system, memories)\n        else:\n            new_system = self.build_system_prompt_with_memories(original_system, memories, injection_mode)",
+      "locator": "manager.py:prepare_messages_with_memories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "In builtin mode, the model controls its own memory writes by embedding structured tags in responses; the manager parses and applies them",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/manager.py",
+      "quote": "if \"<memory>\" in response_text:\n            logger.debug(\"[\u8bb0\u5fc6\u63d0\u53d6] \u53d1\u73b0<memory>\u6807\u7b7e\")",
+      "locator": "manager.py:process_builtin_memory_extraction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories carry a creation timestamp stored at write time and displayed as YYYY-MM-DD on injection",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/manager.py",
+      "quote": "time_str = mem.created_at[:10] if mem.created_at and len(mem.created_at) >= 10 else \"\u672a\u77e5\"",
+      "locator": "manager.py:format_memories_for_system",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is implemented as hard delete from the storage layer; no soft-hide or omit-only path is present in this file",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/manager.py",
+      "quote": "elif action.action == MemoryAction.DELETE:\n                    if action.id:\n                        if self.storage.delete(action.id):\n                            results[\"deleted\"] += 1",
+      "locator": "manager.py:apply_memory_actions",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "RAG retrieve policy is adaptive: a summarizer selects up to rag_max_memories relevant items from the full store rather than injecting all memories",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/manager.py",
+      "quote": "return await self.summarizer.select_relevant_memories(\n            conversation=conversation_text,\n            available_memories=all_memories,\n            max_memories=self.settings.rag_max_memories,\n        )",
+      "locator": "manager.py:select_memories_for_rag",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation scope is not defined in this file; no per-user, per-session, or per-character partitioning logic appears",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/manager.py",
+      "quote": "self.storage = storage",
+      "locator": "manager.py:__init__",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is stored as curated discrete items (MemoryItem records) in a flat JSON file, not as a full conversation transcript log.",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/storage.py",
+      "quote": "memory = MemoryItem(\n            id=str(uuid.uuid4()),\n            content=content,\n            created_at=now,\n            updated_at=now,\n            source=source,\n            metadata=metadata or {}\n        )",
+      "locator": "memory/storage.py:add()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Each memory item carries an optional source field and a metadata dict, allowing callers to tag the origin of a memory entry.",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/storage.py",
+      "quote": "def add(self, content: str, source: Optional[str] = None, metadata: Optional[Dict] = None) -> MemoryItem:",
+      "locator": "memory/storage.py:add() signature",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "All store mutations (load and save) are protected by a threading Lock, making the store safe for concurrent access within a single process.",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/storage.py",
+      "quote": "self._lock = Lock()\n        ...with self._lock:",
+      "locator": "memory/storage.py:__init__() and _load_all()/_save_all()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No per-user or per-session isolation is implemented in this file; the store is a single flat list with no namespace or user-id partitioning.",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/storage.py",
+      "quote": "self.memories_file = self.data_dir / \"memories.json\"",
+      "locator": "memory/storage.py:__init__()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is purely lexical keyword matching; there is no vector embedding or semantic similarity retrieval in this module.",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/storage.py",
+      "quote": "keyword_lower = keyword.lower()\n        for item in memories:\n            content = item.get(\"content\", \"\").lower()\n            if keyword_lower in content:",
+      "locator": "memory/storage.py:search()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The module logger is namespaced as omemo.storage, confirming the product/package name.",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/storage.py",
+      "quote": "logger = logging.getLogger(\"omemo.storage\")",
+      "locator": "memory/storage.py:module level",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "omemo uses an external LLM via an OpenAI-compatible chat completions endpoint to summarize conversations into discrete memory actions (add/update/delete) rather than storing raw transcripts",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/summarizer.py",
+      "quote": "\u4f7f\u7528\u5916\u63a5\u6a21\u578b\u603b\u7ed3\u5bf9\u8bdd\uff0c\u751f\u6210\u8bb0\u5fc6\u64cd\u4f5c",
+      "locator": "memory/summarizer.py:MemorySummarizer.summarize_conversation docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path distinguishes add, update, and delete actions on individual memory items, each identified by id",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/summarizer.py",
+      "quote": "action_type == \"add\" ... action_type == \"update\" ... action_type == \"delete\"",
+      "locator": "memory/summarizer.py:MemorySummarizer._parse_memory_actions",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is adaptive via RAG: an LLM selects which stored memory IDs are relevant to the current conversation before injection",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/summarizer.py",
+      "quote": "\u4f7f\u7528RAG\u6a21\u5f0f\u7b5b\u9009\u76f8\u5173\u8bb0\u5fc6",
+      "locator": "memory/summarizer.py:MemorySummarizer.select_relevant_memories docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Existing memories are passed to the summarizer with created_at timestamps, making temporal ordering available during the summarization/conflict step",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/summarizer.py",
+      "quote": "{\"id\": m.id, \"content\": m.content, \"created_at\": m.created_at}",
+      "locator": "memory/summarizer.py:MemorySummarizer.summarize_conversation, memories_text construction",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The actual persistence layer and prompt templates are delegated to MemoryManager and memory.prompts respectively; this file is the summarizer scaffold only",
+      "kind": "code",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/summarizer.py",
+      "quote": "from memory.prompts import get_external_summary_prompt, get_rag_injection_prompt\nfrom memory.manager import MemoryManager",
+      "locator": "memory/summarizer.py:imports",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "omemo is an API proxy that sits between the application and the LLM to provide long-term memory",
+      "kind": "docs",
+      "url": "https://github.com/OmniDimen/omemo/blob/main/QUICKSTART.md",
+      "quote": "Omni Memory\uff08omemo\uff09\u662f\u4e00\u4e2a API \u4ee3\u7406\u670d\u52a1 \uff0c\u67b6\u5728\u4f60\u7684\u5e94\u7528\u548c LLM \u4e4b\u95f4\uff0c\u8ba9\u6a21\u578b\u62e5\u6709\u957f\u671f\u8bb0\u5fc6\u80fd\u529b\u3002",
+      "locator": "\u8fd9\u662f\u4ec0\u4e48\uff1f",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are persisted in a local JSON file (data/memories.json)",
+      "kind": "docs",
+      "url": "https://github.com/OmniDimen/omemo/blob/main/QUICKSTART.md",
+      "quote": "\u8bb0\u5fc6\u6570\u636e\u5b58\u50a8\u5728 data/memories.json",
+      "locator": "\u6570\u636e\u5b58\u50a8",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path uses three in-band operations embedded in model output: add, UPDATE:<id>, DELETE:<id>",
+      "kind": "docs",
+      "url": "https://github.com/OmniDimen/omemo/blob/main/QUICKSTART.md",
+      "quote": "\u65b0\u589e: - [\u65e5\u671f]\u8bb0\u5fc6\u5185\u5bb9 / \u66f4\u65b0: - [\u65e5\u671f][UPDATE:\u7f16\u53f7]\u65b0\u5185\u5bb9 / \u5220\u9664: - [\u65e5\u671f][DELETE:\u7f16\u53f7]",
+      "locator": "\u5185\u7f6e\u6a21\u5f0f (builtin) \u2014 \u63a8\u8350 / \u8bb0\u5fc6\u64cd\u4f5c\u683c\u5f0f",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "In builtin mode the proxy strips the <memory> block before returning the response to the caller",
+      "kind": "docs",
+      "url": "https://github.com/OmniDimen/omemo/blob/main/QUICKSTART.md",
+      "quote": "\u4ee3\u7406\u81ea\u52a8\u89e3\u6790\u3001\u81ea\u52a8\u622a\u65ad\uff08\u4e0d\u4f1a\u8fd4\u56de\u7ed9\u7528\u6237\uff09",
+      "locator": "\u5185\u7f6e\u6a21\u5f0f (builtin) \u2014 \u63a8\u8350",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Two injection modes exist: full (all memories) and rag (relevance-filtered subset capped by rag_max_memories)",
+      "kind": "docs",
+      "url": "https://github.com/OmniDimen/omemo/blob/main/QUICKSTART.md",
+      "quote": "full\uff08\u5168\u91cf\uff09: \u6240\u6709\u8bb0\u5fc6\u6ce8\u5165\u5230\u7cfb\u7edf\u63d0\u793a\u8bcd / rag\uff08\u667a\u80fd\u7b5b\u9009\uff09: \u53ea\u6ce8\u5165\u4e0e\u5f53\u524d\u5bf9\u8bdd\u76f8\u5173\u7684\u8bb0\u5fc6",
+      "locator": "\u6ce8\u5165\u65b9\u5f0f",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "External mode delegates memory extraction to a separate model on a configurable interval (summary_interval turns)",
+      "kind": "docs",
+      "url": "https://github.com/OmniDimen/omemo/blob/main/QUICKSTART.md",
+      "quote": "\u6bcf\u9694 N \u8f6e\u5bf9\u8bdd\uff0c\u4f7f\u7528\u72ec\u7acb\u7684\u6a21\u578b\u603b\u7ed3\u5bf9\u8bdd\u5e76\u751f\u6210\u8bb0\u5fc6\u64cd\u4f5c\u3002",
+      "locator": "\u5916\u63a5\u6a21\u578b\u6a21\u5f0f (external)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Reasoning/chain-of-thought content is excluded from memory extraction; only final content is processed",
+      "kind": "docs",
+      "url": "https://github.com/OmniDimen/omemo/blob/main/QUICKSTART.md",
+      "quote": "omemo \u81ea\u52a8\u8bc6\u522b reasoning_content\uff08\u601d\u7ef4\u94fe\u5185\u5bb9\uff09\uff0c\u53ea\u5bf9\u6700\u7ec8 content \u8fdb\u884c\u8bb0\u5fc6\u63d0\u53d6\u3002",
+      "locator": "\u5e38\u89c1\u95ee\u9898 / Q: \u601d\u7ef4\u94fe\u6a21\u578b\u2026",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No per-user or per-session memory isolation is described; a single memories.json appears to be shared globally",
+      "kind": "docs",
+      "url": "https://github.com/OmniDimen/omemo/blob/main/QUICKSTART.md",
+      "quote": "\u6570\u636e\u5b58\u50a8\uff08\u88ab .gitignore\uff09\u2514\u2500\u2500 memories.json # \u8bb0\u5fc6\u6570\u636e",
+      "locator": "\u9879\u76ee\u7ed3\u6784\u901f\u89c8",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "omemo is an agent proxy service that adds long-term memory to any OpenAI-compatible LLM application.",
+      "kind": "docs",
+      "url": "https://github.com/OmniDimen/omemo/blob/main/README.md",
+      "quote": "\u4e00\u4e2a\u4e3a LLM \u63d0\u4f9b\u957f\u671f\u8bb0\u5fc6\u80fd\u529b\u7684\u4ee3\u7406\u670d\u52a1\u3002\u517c\u5bb9 OpenAI API \u683c\u5f0f\uff0c\u53ef\u65e0\u7f1d\u63a5\u5165\u4efb\u4f55\u652f\u6301 OpenAI API \u7684\u5e94\u7528\u3002",
+      "locator": "README.md, opening description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Builtin mode: the model itself writes curated memory facts (not a full transcript) into a structured tag block appended to its reply; the agent strips and stores them.",
+      "kind": "docs",
+      "url": "https://github.com/OmniDimen/omemo/blob/main/README.md",
+      "quote": "\u6a21\u578b\u5728\u56de\u590d\u672b\u5c3e\u6dfb\u52a0\u8bb0\u5fc6\u6807\u7b7e\uff0c\u4ee3\u7406\u81ea\u52a8\u89e3\u6790\uff1a\n\u4f60\u597d\u5c0f\u660e\uff01\u5f88\u9ad8\u5174\u8ba4\u8bc6\u4f60\uff01\n\n<memory>\n- [2026-02-28]\u7528\u6237\u59d3\u540d\u662f\u5c0f\u660e\n</memory>",
+      "locator": "README.md, \u8bb0\u5fc6\u6a21\u5f0f\u8be6\u89e3 > \u5185\u7f6e\u6a21\u5f0f (builtin)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Full injection mode injects all stored memories into the system prompt every turn; RAG mode selects a subset (default max 10) relevant to the current conversation.",
+      "kind": "docs",
+      "url": "https://github.com/OmniDimen/omemo/blob/main/README.md",
+      "quote": "\u5168\u91cf\u6ce8\u5165 (full) \uff1a\u5c06\u6240\u6709\u8bb0\u5fc6\u6ce8\u5165\u5230\u7cfb\u7edf\u63d0\u793a\u8bcd\u4e2d\nRAG \u6ce8\u5165 (rag) \uff1a\u667a\u80fd\u7b5b\u9009\u4e0e\u5f53\u524d\u5bf9\u8bdd\u76f8\u5173\u7684\u8bb0\u5fc6",
+      "locator": "README.md, \u529f\u80fd\u7279\u6027 > \u591a\u79cd\u6ce8\u5165\u65b9\u5f0f",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Store is a local flat file (data/memories.json); no database backend is described. Isolation granularity (per-user, per-session, per-character) is not stated on this page.",
+      "kind": "docs",
+      "url": "https://github.com/OmniDimen/omemo/blob/main/README.md",
+      "quote": "\u8bb0\u5fc6\u6570\u636e\u5b58\u50a8\u5728 data/memories.json \u6587\u4ef6\u4e2d",
+      "locator": "README.md, \u6570\u636e\u5b58\u50a8",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Full injection mode increases token consumption as memory count grows; users are advised to periodically clean up memories.",
+      "kind": "docs",
+      "url": "https://github.com/OmniDimen/omemo/blob/main/README.md",
+      "quote": "\u5168\u91cf\u6ce8\u5165\u6a21\u5f0f\u4e0b\uff0c\u8bb0\u5fc6\u8fc7\u591a\u4f1a\u589e\u52a0 token \u6d88\u8017\uff0c\u5efa\u8bae\u5b9a\u671f\u6e05\u7406",
+      "locator": "README.md, \u6ce8\u610f\u4e8b\u9879",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Omni Memory proxies all LLM calls and performs memory injection and extraction automatically on every request.",
+      "kind": "docs",
+      "url": "https://github.com/OmniDimen/omemo/blob/main/docs/ASTRBOT_GUIDE.md",
+      "quote": "AstrBot \u4e0d\u518d\u76f4\u8fde LLM\uff0c\u800c\u662f\u901a\u8fc7 Omni Memory \u4e2d\u8f6c\uff0c\u8bb0\u5fc6\u7684\u6ce8\u5165\u548c\u63d0\u53d6\u5168\u90e8\u81ea\u52a8\u5b8c\u6210\u3002",
+      "locator": "\u67b6\u6784\u8bf4\u660e",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The persistent store is a single file, memories.json, shared across all users and sessions.",
+      "kind": "docs",
+      "url": "https://github.com/OmniDimen/omemo/blob/main/docs/ASTRBOT_GUIDE.md",
+      "quote": "\u5f53\u524d\u7248\u672c\u7684 Omni Memory \u6240\u6709\u5bf9\u8bdd\u5171\u4eab\u4e00\u4e2a memories.json",
+      "locator": "\u5df2\u77e5\u9650\u5236 / \u5355\u7528\u6237\u8bb0\u5fc6",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A Web UI exists for inspecting the memory store (memory management page).",
+      "kind": "docs",
+      "url": "https://github.com/OmniDimen/omemo/blob/main/docs/ASTRBOT_GUIDE.md",
+      "quote": "\u6253\u5f00 Omni Memory \u7684 Web UI\uff08\u9ed8\u8ba4 http://localhost:8080\uff09\uff0c\u8fdb\u5165\u300c\u8bb0\u5fc6\u7ba1\u7406\u300d\u9875\u9762",
+      "locator": "\u7b2c\u4e09\u6b65\uff1a\u6d4b\u8bd5",
+      "confidence": "high",
+      "label": "measured"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/main.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/manager.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/storage.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/memory/summarizer.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/api/openai_adapter.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/config.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/OmniDimen/omemo/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/OmniDimen/omemo/blob/main/QUICKSTART.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/OmniDimen/omemo/blob/main/docs/ASTRBOT_GUIDE.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "RAG retrieval mechanism is not specified: the page states memories are 'intelligently filtered' but does not describe the embedding model, similarity metric, or retrieval algorithm used.",
+      "url": "https://github.com/OmniDimen/omemo/blob/5e6db375a19aea491b9b0a88111e829f222f0b07/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "RAG retrieval mechanism not described: the page states RAG mode 'intelligently filters' relevant memories but does not describe the retrieval method (embedding similarity, keyword, etc.).",
+      "url": "https://github.com/OmniDimen/omemo/blob/main/README.md",
+      "kind": "docs"
+    }
+  ]
+}
