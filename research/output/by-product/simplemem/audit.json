@@ -1,0 +1,1431 @@
+{
+  "identity": {
+    "id": "simplemem",
+    "name": "SimpleMem",
+    "repo": "https://github.com/aiming-lab/SimpleMem",
+    "docs": "https://github.com/aiming-lab/SimpleMem/blob/main/README.md",
+    "license": "MIT",
+    "version_or_commit": "db80b6a7c591e0ea730a058e9f5fc4eb06572299",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "SimpleMem compresses dialogues into atomic, timestamped memory units using an LLM-driven approach"
+    },
+    {
+      "text": "SQLiteStorage manages a SQLite database specifically for cross-session memory persistence."
+    },
+    {
+      "text": "Stores conversations as atomic, self-contained facts rather than raw transcripts"
+    },
+    {
+      "text": "Described as a lifelong memory system for LLM agents"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Retrieve policy: intent-aware, adaptive-depth retrieval planning \u2014 the LLM generates a retrieval plan inferring latent search intent to dynamically determine retrieval scope and depth, rather than fixed-depth retrieval"
+    },
+    {
+      "text": "Session finalization (write path): extracts observations from recorded events, optionally runs SimpleMem 3-stage pipeline to produce rich memory entries, generates a session summary, and persists everything to storage"
+    },
+    {
+      "text": "The HTTP server is implemented in MCP/server/http_server.py and uses FastAPI/Starlette with CORS middleware; allowed methods include GET, POST, DELETE \u2014 suggesting memories can be created, read, and deleted via HTTP"
+    },
+    {
+      "text": "Curated memory write via structured compression, not raw log accumulation: interactions are distilled into compact, self-contained facts with resolved coreferences and absolute timestamps"
+    },
+    {
+      "text": "Online deduplication during write path: related context within a session is merged into unified abstract representations, removing redundancy as memory is built rather than at query time"
+    },
+    {
+      "text": "ON DELETE CASCADE on all child tables (session_events, observations, session_summaries) means deleting a session record removes all its associated events, observations, and summaries."
+    },
+    {
+      "text": "The store records are scoped with a persons field (array) and an entities field (array), implying per-entity or per-person isolation within the store."
+    },
+    {
+      "text": "Storage layer combines dense vector search, full-text search, and structured metadata handling built around LanceDB, Tantivy, and SQL metadata"
+    },
+    {
+      "text": "Reflection can be disabled per-query via an override parameter, documented as useful for adversarial questions that should not use reflection"
+    },
+    {
+      "text": "Memory entries are written to a vector store via add_entries; the write path goes dialogue buffer \u2192 LLM extraction \u2192 VectorStore.add_entries."
+    },
+    {
+      "text": "Each distinct memory is isolated by a separate table_name, allowing multiple independent memory stores within one LanceDB database."
+    },
+    {
+      "text": "SimpleMem involves a memory generation phase and a memory search/retrieval phase, both of which contribute to token consumption."
+    },
+    {
+      "text": "MemoryBuilder uses a sliding-window approach over input dialogues (window_size, overlap_size settings) before storing"
+    },
+    {
+      "text": "The MCP server stores API keys in encrypted form, with an encryption key configurable via environment variable."
+    },
+    {
+      "text": "Omni-SimpleMem uses selective ingestion (entropy-driven filtering per modality) to control what is persisted"
+    },
+    {
+      "text": "Entries carry a valid_from timestamp and an importance score used to drive decay and prune decisions."
+    },
+    {
+      "text": "Multi-tenant isolation: each tenant's memories are stored and retrieved independently via tenant_id."
+    },
+    {
+      "text": "MCP server enforces per-user data isolation via per-user data tables and token authentication"
+    },
+    {
+      "text": "All deletions are soft: entries are marked as superseded rather than physically removed."
+    },
+    {
+      "text": "Two persistent stores: SQLite for structured records and LanceDB for vector embeddings"
+    },
+    {
+      "text": "v3 introduces Online Semantic Synthesis as an architectural change"
+    },
+    {
+      "text": "Retrieval is described as an intent-aware 3-stage pipeline"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Stored facts are atomic and self-contained with no pronouns and absolute timestamps \u2014 curated memory entries, not a raw message log",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/MCP/server/mcp_handler.py",
+      "quote": "Stores conversations as atomic, self-contained facts (no pronouns, absolute timestamps)",
+      "locator": "_handle_tools_list > memory_add description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path processes input immediately via LLM (no deferred flush); coreference and temporal resolution happen at write time",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/MCP/server/mcp_handler.py",
+      "quote": "Memories are stored immediately - no manual flush needed.",
+      "locator": "_handle_initialize > instructions",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is hybrid: semantic + keyword + metadata filtering",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/MCP/server/mcp_handler.py",
+      "quote": "hybrid retrieval (semantic + keyword + metadata filtering)",
+      "locator": "_handle_tools_list > memory_query description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retriever supports optional multi-round reflection for complex queries, controlled per call",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/MCP/server/mcp_handler.py",
+      "quote": "max_reflection_rounds=self.settings.max_reflection_rounds",
+      "locator": "_get_retriever",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is a hard delete of all entries in the user's table; no per-entry delete or soft-hide mechanism is exposed",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/MCP/server/mcp_handler.py",
+      "quote": "This removes all stored memory entries from the vector database.",
+      "locator": "_handle_tools_list > memory_clear description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per user via dedicated vector store table",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/MCP/server/mcp_handler.py",
+      "quote": "success = await self.vector_store.clear_table(self.user.table_name)",
+      "locator": "_tool_memory_clear",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieved entry exposes lossless_restatement field as the stored content unit",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/MCP/server/mcp_handler.py",
+      "quote": "\"content\": e.lossless_restatement,",
+      "locator": "_tool_memory_retrieve",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemoryBuilder uses windowed chunking over dialogue input (window_size + overlap_size) before LLM processing and storage",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/MCP/server/mcp_handler.py",
+      "quote": "window_size=self.settings.window_size,\noverlap_size=self.settings.overlap_size,",
+      "locator": "_get_memory_builder",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "SimpleMem converts raw dialogues into curated atomic memory units (not a raw transcript log), with coreference resolution and absolute timestamps, distinguishing it from log-based systems",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/README.md",
+      "quote": "Distills unstructured interactions into compact memory units (self-contained facts with resolved coreferences and absolute timestamps), each indexed through multiple complementary views for flexible retrieval.",
+      "locator": "Overview \u2014 Stage 1: Semantic Structured Compression",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path merges redundant context during ingestion (online), not at query time \u2014 deduplication is a write-path operation",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/README.md",
+      "quote": "Merges related context within a session into unified abstract representations, removing redundancy as memory is built rather than at query time.",
+      "locator": "Overview \u2014 Stage 2: Online Semantic Synthesis",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is intent-driven, not always-retrieve: the system infers what to retrieve per query rather than bulk-dumping stored memory",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/README.md",
+      "quote": "Infers the search intent behind a query to decide what to retrieve and assemble a precise, compact context.",
+      "locator": "Overview \u2014 Stage 3: Intent-Aware Retrieval Planning",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Omni-SimpleMem filters what is persisted before storage using entropy-driven selective ingestion, not storing all input",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/README.md",
+      "quote": "Selective Ingestion (entropy-driven filtering per modality)",
+      "locator": "Overview \u2014 Omni-SimpleMem: multimodal memory",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MCP server provides per-user isolation via per-user data tables and bearer-token authentication",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/README.md",
+      "quote": "Multi-tenant Isolation \u2014 Per-user data tables with token authentication",
+      "locator": "MCP Server \u2014 Key Features table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "SimpleMem achieves 26.4% average F1 gain on LoCoMo over prior systems while reducing inference-time token consumption by ~30x",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/README.md",
+      "quote": "On the LoCoMo benchmark this delivers a 26.4% average F1 gain over prior systems while cutting inference-time token consumption by roughly 30x.",
+      "locator": "Overview \u2014 SimpleMem: the efficiency core (text)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "EvolveMem outperforms strongest baseline by +25.7% relative on LoCoMo and +18.9% on MemBench",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/README.md",
+      "quote": "On LoCoMo, EvolveMem outperforms the strongest baseline by +25.7% relative; on MemBench, by +18.9% relative.",
+      "locator": "News \u2014 05/14/2026 EvolveMem entry",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Omni-SimpleMem achieves SOTA on LoCoMo (F1=0.613, +47%) and Mem-Gallery (F1=0.810, +51%)",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/README.md",
+      "quote": "Achieving new SOTA on LoCoMo (F1=0.613, +47%) and Mem-Gallery (F1=0.810, +51%) over previous best.",
+      "locator": "News \u2014 04/02/2026 Omni-SimpleMem entry",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cross-session memory is a supported capability, outperforming Claude-Mem by 64% per a news entry",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/README.md",
+      "quote": "Cross-Session Memory \u2014 Outperforming Claude-Mem by 64%!",
+      "locator": "News \u2014 02/09/2026 entry",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "EvolveMem's evolved retrieval configurations transfer positively across benchmarks",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/README.md",
+      "quote": "its evolved configurations transfer positively across benchmarks",
+      "locator": "Overview \u2014 EvolveMem: self-evolving retrieval",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "SimpleMem uses a dual-backend store: LanceDB for vector entries (cross-session) and SQLite for consolidation run metadata.",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/consolidation.py",
+      "quote": "from cross.storage_lancedb import CrossSessionVectorStore\nfrom cross.storage_sqlite import SQLiteStorage",
+      "locator": "imports",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "All forget operations are soft deletes via supersession, not physical removal; a '__pruned__' sentinel distinguishes consolidation deletion from entry replacement.",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/consolidation.py",
+      "quote": "All deletions are soft: entries are marked as superseded rather than removed.",
+      "locator": "module docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per tenant: consolidation fetches and operates only on entries scoped to a tenant_id.",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/consolidation.py",
+      "quote": "all_entries = self.vector_store.get_all_entries(tenant_id=tenant_id)\n            entries = [e for e in all_entries if not e.superseded_by]",
+      "locator": "ConsolidationWorker.run, fetch step",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Merge deduplication operates on a lossless_restatement field in the stored entry, suggesting entries carry a canonical text restatement alongside embeddings.",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/consolidation.py",
+      "quote": "texts = [e.lossless_restatement for e in entries]",
+      "locator": "ConsolidationWorker._merge_similar_entries, embedding block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Importance decay is time-based (valid_from age against max_age_days) and multiplicative, not event-driven.",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/consolidation.py",
+      "quote": "age_days = (now - valid_from_dt).total_seconds() / 86400.0\n            if age_days <= self.policy.max_age_days:\n                continue\n\n            new_importance = entry.importance * self.policy.decay_factor",
+      "locator": "ConsolidationWorker._decay_old_entries",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "SQLite is used for structured session records and LanceDB for vector search; both are persisted to user-local paths by default",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/orchestrator.py",
+      "quote": "self.sqlite_storage = SQLiteStorage(db_path=db_path or _DEFAULT_DB_PATH)\nself.vector_store = CrossSessionVectorStore(\n    db_path=lancedb_path or _DEFAULT_LANCEDB_PATH,\n)",
+      "locator": "CrossMemOrchestrator.__init__, storage layer block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session start retrieves and injects context from previous sessions into the system prompt before the new session begins",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/orchestrator.py",
+      "quote": "context_bundle = await asyncio.to_thread(\n    self._build_context_safe, user_prompt\n)\nrendered_context = self._render_context_safe(context_bundle)",
+      "locator": "start_session method body",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Finalization (stop_session) is the curated memory write path: it extracts observations and optionally runs a 3-stage pipeline, distinct from the raw message/tool-use log",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/orchestrator.py",
+      "quote": "Finalization extracts observations from recorded events, optionally\nruns the SimpleMem 3-stage pipeline to produce rich memory entries,\ngenerates a session summary, and persists everything to storage.",
+      "locator": "stop_session docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is enforced by project and tenant_id scoping throughout the orchestrator",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/orchestrator.py",
+      "quote": "project:\n    Project name or path used to scope memories.\ntenant_id:\n    Tenant identifier for multi-tenant isolation.",
+      "locator": "CrossMemOrchestrator.__init__ docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Context injection renders memories inside <cross_session_memory> XML tags for insertion into the agent system prompt",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/orchestrator.py",
+      "quote": "renders it into a\nstring wrapped in ``<cross_session_memory>`` tags.",
+      "locator": "get_context_for_prompt docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy at session start is adaptive: semantic search is only triggered when a user_prompt is provided",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/orchestrator.py",
+      "quote": "When\nprovided, semantic search is used to surface relevant\nlong-term memories in the context bundle.",
+      "locator": "start_session docstring, user_prompt parameter",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "SQLiteStorage is the persistence layer for cross-session memory, storing a raw event log and curated observation/summary writes in separate tables.",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/storage_sqlite.py",
+      "quote": "\"Manages SQLite database for cross-session memory.\"",
+      "locator": "class SQLiteStorage docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The event log (session_events) is a full per-session message/tool/file/note log, distinct from the curated observations and summaries tables that represent extracted memory.",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/storage_sqlite.py",
+      "quote": "\"kind TEXT CHECK(kind IN ('message', 'tool_use', 'file_change', 'note', 'system')) NOT NULL\"",
+      "locator": "_run_migrations, session_events CREATE TABLE statement",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Observations are typed curated writes (decision, bugfix, feature, refactor, discovery, change) with structured fields for facts, narrative, concepts, and files \u2014 not raw transcript rows.",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/storage_sqlite.py",
+      "quote": "\"type TEXT CHECK(type IN ('decision', 'bugfix', 'feature', 'refactor', 'discovery', 'change')) NOT NULL\"",
+      "locator": "_run_migrations, observations CREATE TABLE statement",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is by tenant_id and project; all cross-session retrieval queries scope by project via JOIN on sessions.",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/storage_sqlite.py",
+      "quote": "\"WHERE sessions.project = ?\"",
+      "locator": "get_recent_observations, get_recent_summaries",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget at the session level is implemented via ON DELETE CASCADE: deleting a session removes all child events, observations, and summaries. No row-level delete API is present in this file.",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/storage_sqlite.py",
+      "quote": "\"FOREIGN KEY(memory_session_id) REFERENCES sessions(memory_session_id) ON DELETE CASCADE\"",
+      "locator": "_run_migrations, session_events / observations / session_summaries CREATE TABLE statements",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "observations and session_summaries carry a vector_ref column, indicating the SQLite store is paired with an external vector store; memory_links table links memory_entry_id (vector store key) back to SQLite source rows with a score.",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/storage_sqlite.py",
+      "quote": "\"vector_ref TEXT\" ... \"memory_entry_id TEXT NOT NULL,\\n                source_kind TEXT NOT NULL,\\n                source_id INTEGER NOT NULL,\\n                score REAL DEFAULT 0.0\"",
+      "locator": "_run_migrations, observations / session_summaries / memory_links CREATE TABLE statements",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Consolidation runs are recorded per tenant with policy and stats JSON, indicating a policy-driven compaction process exists, but its implementation is not in this file.",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/storage_sqlite.py",
+      "quote": "\"INSERT INTO consolidation_runs (\\n                    tenant_id, timestamp, policy_json, stats_json\\n                ) VALUES (?, ?, ?, ?)\"",
+      "locator": "record_consolidation_run",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is planned via LLM analysis of query intent before any vector or keyword search is issued (retrieval planning P(q,H))",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/simplemem/core/hybrid_retriever.py",
+      "quote": "Retrieval planning P(q, H) \u2192 {q_sem, q_lex, q_sym, d}",
+      "locator": "file:simplemem/core/hybrid_retriever.py, module docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "An LLM-driven reflection loop checks adequacy of retrieved results and issues additional targeted queries, up to a configurable number of rounds",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/simplemem/core/hybrid_retriever.py",
+      "quote": "for round_num in range(self.max_reflection_rounds):\n            print(f\"\\n[Intelligent Reflection Round {round_num + 1}] Analyzing information completeness...\")",
+      "locator": "file:simplemem/core/hybrid_retriever.py, _retrieve_with_intelligent_reflection",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Reflection can be selectively disabled per query, e.g. for adversarial inputs",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/simplemem/core/hybrid_retriever.py",
+      "quote": "enable_reflection: Override the global reflection setting for this query\n                           (useful for adversarial questions that shouldn't use reflection)",
+      "locator": "file:simplemem/core/hybrid_retriever.py, retrieve docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Symbolic search filters on persons, location, entities, and timestamp ranges parsed from natural-language time expressions",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/simplemem/core/hybrid_retriever.py",
+      "quote": "Execute structured search\n        return self.vector_store.structured_search(\n            persons=persons if persons else None,\n            location=location,\n            entities=entities if entities else None,\n            timestamp_range=timestamp_range,\n            top_k=self.structured_top_k\n        )",
+      "locator": "file:simplemem/core/hybrid_retriever.py, _structured_search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path: dialogues are segmented into windows, LLM extracts structured MemoryEntry objects, entries are written to VectorStore \u2014 not a raw message log.",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/simplemem/core/memory_builder.py",
+      "quote": "entries = self._generate_memory_entries(window) \u2026 if entries: self.vector_store.add_entries(entries)",
+      "locator": "process_window",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic density gating (\u03a6_gate) filters low-information windows before memory entries are created; the LLM is the gate mechanism.",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/simplemem/core/memory_builder.py",
+      "quote": "Implicit Semantic Density Gating (Section 3.1) \u03a6_gate(W) \u2192 {m_k}, generates compact memory units from dialogue window",
+      "locator": "_generate_memory_entries docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory entries are curated facts with resolved coreferences, not verbatim transcript segments; pronoun use is forbidden in the write prompt.",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/simplemem/core/memory_builder.py",
+      "quote": "Force Disambiguation: Absolutely PROHIBIT using pronouns (he, she, it, they, this, that) and relative time (yesterday, today, last week, tomorrow)",
+      "locator": "_build_extraction_prompt, [Requirements] section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Intra-session deduplication is handled via context injection: prior window entries are shown to the LLM during extraction to avoid redundant writes.",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/simplemem/core/memory_builder.py",
+      "quote": "[Previous Window Memory Entries (for reference to avoid duplication)]",
+      "locator": "_build_extraction_prompt, context block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No delete or forget path is implemented in this file; the store appears append-only at this layer.",
+      "kind": "code",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/simplemem/core/memory_builder.py",
+      "quote": "self.vector_store.add_entries(entries)",
+      "locator": "process_window and _process_windows_parallel",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "SimpleMem MCP Server is a cloud-hosted long-term memory service for LLM agents",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/MCP/README.md",
+      "quote": "SimpleMem MCP Server is a cloud-hosted long-term memory service for LLM agents, implementing the Streamable HTTP transport (MCP 2025-03-26 spec).",
+      "locator": "SimpleMem MCP Server section, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Relative temporal expressions are converted to absolute timestamps before storage",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/MCP/README.md",
+      "quote": "Temporal Anchoring : Converts relative times (tomorrow, next week) to absolute timestamps",
+      "locator": "Features section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Storage backend is LanceDB vector store; embedding model is qwen/qwen3-embed-4b",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/MCP/README.md",
+      "quote": "LanceDB Vector Store ... Embedding (qwen3-embed-4b)",
+      "locator": "How It Works > Write Flow diagram",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "memory_query generates an LLM-synthesized answer from retrieved context; memory_retrieve returns raw entries",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/MCP/README.md",
+      "quote": "memory_query : Query memories and generate AI-synthesized answers (with planning + hybrid retrieval + reflection)\nmemory_retrieve : Retrieve relevant memory entries (returns raw data)",
+      "locator": "MCP Tools table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-user via separate LanceDB tables and JWT/AES-256 token authentication",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/MCP/README.md",
+      "quote": "Multi-tenant Isolation : Per-user data tables with token authentication ... Token Authentication (JWT + AES-256 Encrypted API Keys)",
+      "locator": "Features section; Architecture diagram",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "This is a production-optimized refactor of a research implementation",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/MCP/README.md",
+      "quote": "Built upon SimpleMem research implementation, refactored and optimized for production deployment with multi-tenant support, faster processing, and comprehensive user isolation.",
+      "locator": "Note section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SimpleMem compresses dialogue into atomic memory units with resolved coreferences and absolute timestamps indexed via multiple complementary views",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/README.md",
+      "quote": "Distills unstructured interactions into compact memory units (self-contained facts with resolved coreferences and absolute timestamps), each indexed through multiple complementary views for flexible retrieval.",
+      "locator": "Overview > SimpleMem: the efficiency core (text) section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "EvolveMem outperforms strongest baseline by +25.7% relative on LoCoMo and +18.9% relative on MemBench",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/README.md",
+      "quote": "On LoCoMo, EvolveMem outperforms the strongest baseline by +25.7% relative; on MemBench, by +18.9% relative.",
+      "locator": "News > [05/14/2026] EvolveMem entry",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cross-session memory outperforms Claude-Mem by 64% (vendor claim, no harness details on this page)",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/README.md",
+      "quote": "Cross-Session Memory \u2014 Outperforming Claude-Mem by 64%!",
+      "locator": "News > [02/09/2026] entry",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MCP server enforces per-user isolation via per-user data tables and token authentication",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/README.md",
+      "quote": "Multi-tenant Isolation \u2014 Per-user data tables with token authentication",
+      "locator": "MCP Server section > Key Features table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "EvolveMem retrieval config covers roughly 10 dimensions; the MCP server currently only honors semantic_top_k and keyword_top_k of those dimensions \u2014 remaining knobs not yet exposed via MCP",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/README.md",
+      "quote": "the MCP retriever currently honors only semantic_top_k / keyword_top_k of the ~10 dimensions EvolveMem evolves. Requires extending the MCP retriever to support the remaining knobs (structured top_k, fusion mode/weights, entity swap, query decomposition, answer verification)",
+      "locator": "Roadmap section > EvolveMem over MCP paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Multimodal memory over MCP is not yet supported; planned future work",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/README.md",
+      "quote": "Multimodal (image / audio / video) \u2014 \u2b1c planned",
+      "locator": "Roadmap section > capability table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "SimpleMem-Cross achieves a LoCoMo Score of 48, versus Claude-Mem at 29.3 (+64%).",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/cross/README.md",
+      "quote": "System | LoCoMo Score | vs SimpleMem\nSimpleMem | 48 | \u2014\nClaude-Mem | 29.3 | +64%",
+      "locator": "Performance table",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session lifecycle is hook-based: SessionStart \u2192 UserMessage/ToolUse \u2192 Stop \u2192 End, implemented as abstract async lifecycle methods.",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/cross/README.md",
+      "quote": "Hook-based lifecycle \u2014 SessionStart \u2192 UserMessage/ToolUse \u2192 Stop \u2192 End",
+      "locator": "Architecture \u2014 Design Principles table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Context injection is token-budgeted, with a default budget of 2000 tokens configurable via max_context_tokens.",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/cross/README.md",
+      "quote": "Max context tokens: 2000 \u2014 Token budget for context injection",
+      "locator": "Configuration \u2014 Default Paths table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "SQLite schema covers 6 tables: sessions, events, observations, summaries (and at least two others implied by the line count of storage_sqlite.py).",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/cross/README.md",
+      "quote": "SQLite backend \u2014 6 tables (sessions, events, observations, summaries)",
+      "locator": "Module Reference \u2014 storage_sqlite.py",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/prune is implemented as importance-threshold pruning and age-based decay inside ConsolidationWorker, not as explicit user-facing delete calls.",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/cross/README.md",
+      "quote": "min_importance = 0.05,  # \ud83d\uddd1\ufe0f Prune below this threshold",
+      "locator": "Consolidation section \u2014 code example",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory entries are isolated per tenant_id at both store and retrieve levels.",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/cross/README.md",
+      "quote": "Pass tenant_id to isolate memory across tenants. Each tenant's memories are stored and retrieved independently.",
+      "locator": "Configuration \u2014 Multi-Tenant Support",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "finalize() compresses buffered dialogues into atomic MemoryEntry units before they can be queried; skipping it causes retrieval failure",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/docs/PACKAGE_USAGE.md",
+      "quote": "Process any remaining dialogues in the buffer. Always call this after adding all dialogues and before querying. \u2026 Solution: Ensure finalize() is called after adding all dialogues",
+      "locator": "Core API Reference > finalize(); Troubleshooting > Memory Not Found in Query",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The embedding model defaults to Qwen/Qwen3-Embedding-0.6B with dimension 1024",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/docs/PACKAGE_USAGE.md",
+      "quote": "EMBEDDING_MODEL: Embedding model, \"Qwen/Qwen3-Embedding-0.6B\"\nEMBEDDING_DIMENSION: Embedding dimension, 1024",
+      "locator": "Environment Variables",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-user isolation is achieved by assigning distinct table_name values, not by a built-in user-ID concept",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/docs/PACKAGE_USAGE.md",
+      "quote": "Use separate tables for different users or contexts:\nsystem_a = create(mode=\"text\", table_name=\"user_alice_memories\", clear_db=False)",
+      "locator": "Advanced Usage > Multi-tenant Memory Tables",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval can be enhanced with multi-query planning and iterative reflection; number of reflection rounds is configurable",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/docs/PACKAGE_USAGE.md",
+      "quote": "enable_planning: bool, None, Multi-query retrieval planning\nenable_reflection: bool, None, Reflection-based retrieval\nmax_reflection_rounds: int, None, Max reflection iterations",
+      "locator": "Configuration > Constructor Parameters (text backend)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Cross-session persistence requires the caller to reuse the same db_path with clear_db=False; SimpleMem does not auto-resume a prior session",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/docs/PACKAGE_USAGE.md",
+      "quote": "# Session 2: Query previously stored information\nmem = create(mode=\"text\", db_path=\"./persistent_memory\", clear_db=False)\nanswer = mem.ask(\"When is the user's birthday?\")\nprint(answer)  # \"The user's birthday is March 15th\"",
+      "locator": "Examples > Multi-Session Memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "optimize() runs an offline EvolveMem diagnosis loop against developer-supplied (question, ground_truth) pairs to tune retrieval hyperparameters",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/docs/PACKAGE_USAGE.md",
+      "quote": "Runs EvolveMem's offline diagnosis loop over dev_questions (a list of (question, ground_truth) tuples) and returns an optimized Config.",
+      "locator": "Core API Reference > optimize(mem, dev_questions, max_rounds=7)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory units are self-contained facts with resolved coreferences and absolute timestamps, produced by an implicit semantic density gating mechanism that filters redundant content during LLM generation",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/docs/text-memory.md",
+      "quote": "SimpleMem applies an implicit semantic density gating mechanism integrated into the LLM generation process to filter redundant interaction content. The system reformulates raw dialogue streams into compact memory units , self-contained facts with resolved coreferences and absolute timestamps.",
+      "locator": "Section 1. Semantic Structured Compression",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Three-layer indexing: 1024-d vector embeddings for semantic similarity, BM25-style sparse index for lexical matching, and metadata (timestamps, entities, persons) for symbolic filtering",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/docs/text-memory.md",
+      "quote": "Semantic / Dense / Conceptual similarity / Vector embeddings (1024-d); Lexical / Sparse / Exact term matching / BM25-style keyword index; Symbolic / Metadata / Structured filtering / Timestamps, entities, persons",
+      "locator": "Section 1. Semantic Structured Compression, table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Synthesis (conflict/supersession) happens on-the-fly during the write phase, not asynchronously; current session scope only is stated",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/docs/text-memory.md",
+      "quote": "Unlike traditional systems that rely on asynchronous background maintenance, SimpleMem performs synthesis on-the-fly during the write phase . Related memory units are synthesized into higher-level abstract representations within the current session scope",
+      "locator": "Section 2. Online Semantic Synthesis",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is intent-aware and adaptive-depth, using LLM reasoning to plan queries across semantic, lexical, and symbolic indexes with ID-based deduplication of results",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/docs/text-memory.md",
+      "quote": "Instead of fixed-depth retrieval, SimpleMem leverages the reasoning capabilities of the LLM to generate a comprehensive retrieval plan . Given a query, the planning module infers latent search intent to dynamically determine retrieval scope and depth",
+      "locator": "Section 3. Intent-Aware Retrieval Planning",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Claimed retrieval quality: 43.24% F1 score with 30x fewer tokens than full-context methods",
+      "kind": "docs",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/docs/text-memory.md",
+      "quote": "Result: 43.24% F1 score with 30x fewer tokens than full-context methods.",
+      "locator": "Section 3. Intent-Aware Retrieval Planning, closing line",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SimpleMem has a memory generation step distinct from a memory search/retrieval step, and the paper reports token consumption figures (e.g., 572 on the LoCoMo dataset with qwen2.5-3b) whose scope \u2014 total vs. retrieval-only \u2014 is ambiguous to users.",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/31",
+      "quote": "if the token consumption mentioned in your paper (for example, 572 on the LOCOMO dataset, qwen2.5-3b) refers to the total consumption, including both memory generation and searching for memories based on the memory store to answer questions, or if it only refers to the consumption associated with searching for memories and answering questions based on the memory store",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SimpleMem uses recursive consolidation as part of its memory mechanism",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/3",
+      "quote": "recursive consolidation for agent memory",
+      "locator": "issue body, description of SimpleMem",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SimpleMem employs adaptive retrieval/selection over structured representations",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/3",
+      "quote": "Both structure information for adaptive retrieval/selection",
+      "locator": "issue body, 'Some interesting convergences' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SimpleMem is positioned as an efficient lifelong memory system for LLM agents",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/37",
+      "quote": "SimpleMem: Efficient Lifelong Memory for LLM Agents",
+      "locator": "issue body, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The architecture evolved across paper versions, with v3 moving to Online Semantic Synthesis",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/37",
+      "quote": "v3 introduces significant architectural changes, particularly with the transition to Online Semantic Synthesis",
+      "locator": "issue body, question 1 preamble",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cross-Session Memory (persistence across sessions) is a feature that was recently completed in the codebase",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/37",
+      "quote": "I see that 'Cross-Session Memory' is one of the latest completed features. Is the current implementation in your codebase already based on the v3 framework?",
+      "locator": "issue body, question 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Evaluation metrics in v3 appear consistent with v1, raising questions about whether benchmarks were re-run for the v3 architecture",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/37",
+      "quote": "the evaluation metrics in v3 seem consistent with the v1 version. Were the benchmarks re-run for the v3 architecture, or is the performance gap between v1 and v3 relatively marginal",
+      "locator": "issue body, question 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "JWT tokens for SimpleMem encode user_id, table_name, created_at, and an expiry, and are verified server-side before granting memory access.",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/50",
+      "quote": "jwt.encode({\"user_id\": \"target-user\", \"table_name\": \"simplemem_target-user\", \"created_at\": \"2025-01-01T00:00:00\", \"exp\": ...}, secret, algorithm=\"HS256\")",
+      "locator": "Reproduction code block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Stored API keys are encrypted at rest using a configurable encryption key (ENCRYPTION_KEY env var), defaulting to a hardcoded value.",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/50",
+      "quote": "The default encryption key (`simplemem-encryption-key-32bytes!` on line 47) allows decrypting all stored API keys",
+      "locator": "Impact section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Default JWT secret is hardcoded as 'simplemem-secret-key-change-in-production' in MCP/config/settings.py line 39, overridable via JWT_SECRET_KEY env var.",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/50",
+      "quote": "Default from settings.py line 39 \u2014 secret = \"simplemem-secret-key-change-in-production\"",
+      "locator": "Reproduction code block comment, MCP/config/settings.py:39",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "SimpleMem uses a VectorStore class (database/vector_store.py) backed by LanceDB to persist memories with structured metadata fields: persons, entities, location, and timestamp.",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/53",
+      "quote": "The `structured_search` method in `database/vector_store.py` constructs LanceDB `.where()` filter clauses by directly interpolating user-derived values (persons, entities, timestamps) into query strings using f-strings.",
+      "locator": "Bug Description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The store appears to be multi-tenant or multi-user: a filter injection can expose memories across tenants, implying per-user or per-character isolation is enforced only at the filter layer.",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/53",
+      "quote": "**Data exfiltration**: Bypass filters to read all stored memories across tenants",
+      "locator": "Impact",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The server tracks total_users, suggesting memory isolation is per-user",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/51",
+      "quote": "Attacker can see active_sessions, total_users, etc.",
+      "locator": "Reproduction / inline comment",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "DELETE is an allowed HTTP method on the memory API, suggesting memories can be deleted",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/51",
+      "quote": "allow_methods=[\"GET\", \"POST\", \"DELETE\"]",
+      "locator": "Suggested Fix / code block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval from the store is filtered by persons (array), entities (array), location (string), and timestamp range \u2014 indicating memories are tagged with relational metadata at write time.",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/53",
+      "quote": "if persons:\n    values = \", \".join([f\"'{p}'\" for p in persons])\n    conditions.append(f\"array_has_any(persons, make_array({values}))\")\n\n# Line 214-216: Same issue with entities\nif entities:\n    values = \", \".join([f\"'{e}'\" for e in entities])\n    conditions.append(f\"array_has_any(entities, make_array({values}))\")",
+      "locator": "Reproduction / vulnerable code block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The location field has basic quote-escaping in structured_search, but persons and entities fields do not, indicating inconsistent sanitization of the write/retrieve path.",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/53",
+      "quote": "Note: The `location` field (line 211) does have basic `replace(\"'\", \"''\")` escaping, but `persons` and `entities` do not.",
+      "locator": "Reproduction / Note",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory in SimpleMem is isolated per authenticated user, with sessions bound to a specific user object.",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/54",
+      "quote": "handler = session.handler\n    user = session.user",
+      "locator": "Vulnerable code path block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SimpleMem's hybrid retriever contains an Intent-Aware Retrieval Planning module with ReAct-style iterative reasoning at lines 75\u2013127",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/55",
+      "quote": "I wonder if it means that the framework of ReAct is in the Intent-Aware Retrieval Planning module?",
+      "locator": "issue body, referencing core/hybrid_retriever.py#L75-L127 at commit 94ef7d7",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SimpleMem compresses dialogue into atomic, timestamped memory units via LLM-driven encoding",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/62",
+      "quote": "SimpleMem's core strength is semantic lossless compression of dialogue into atomic memory units",
+      "locator": "Section: The complementarity, table row Focus",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SimpleMem uses an intent-aware 3-stage retrieval pipeline",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/62",
+      "quote": "Retrieval: Intent-aware 3-stage pipeline",
+      "locator": "Section: The complementarity, comparison table, row Retrieval",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SimpleMem depends on an LLM API (no zero-dependency path)",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/62",
+      "quote": "Dependencies: LLM API",
+      "locator": "Section: The complementarity, comparison table, row Dependencies",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SimpleMem may have a DB layer that could be replaced with a pluggable storage interface; current coupling is unknown",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/62",
+      "quote": "does SimpleMem currently have a pluggable storage interface, or is it tightly coupled to the current DB layer?",
+      "locator": "Section: Question",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Omni-SimpleMem adapter routes retrieval differently per task category using oracle labels (FR, TR, KR, etc.) present on questions at test time",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/68",
+      "quote": "Questions carry oracle labels such as `[FR]`, `[TR]`, `[KR]` (or equivalent category metadata). Adapters parse these labels and apply **hard-coded, category-specific retrieval rules** on top of the memory backend.",
+      "locator": "issue body, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The category-conditioned routing behavior is implemented in benchmarks/memgallery/adapter.py in the Omni-SimpleMem adapter",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/68",
+      "quote": "example: Omni-SimpleMem `benchmarks/memgallery/adapter.py`",
+      "locator": "issue body, table caption",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SimpleMem's VectorStore layer combines dense vector search, full-text search, and structured metadata handling using LanceDB, Tantivy, and SQL metadata",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/72",
+      "quote": "the current `VectorStore` path appears to combine dense vector search, full-text search, and structured metadata handling around LanceDB / Tantivy / SQL metadata",
+      "locator": "issue body, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The current storage design may be tightly coupled to LanceDB and Tantivy rather than built around a pluggable backend contract",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/72",
+      "quote": "is the current storage design intended to stay tightly coupled to LanceDB/Tantivy?",
+      "locator": "issue body, closing question",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The higher-level memory and search logic is architecturally separable from the dense vector backend in the proposer's framing",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/72",
+      "quote": "Split a narrow dense-vector backend contract from the higher-level memory/search logic",
+      "locator": "issue body, proposed shape item 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Structured metadata and FTS behavior are treated as product semantics that should be preserved across backend changes",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/72",
+      "quote": "Keep structured metadata and FTS behavior aligned with the current product semantics",
+      "locator": "issue body, proposed shape item 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "keyword_search cannot see entries inserted after the first batch because the Tantivy full-text index is built only once and never refreshed",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/78",
+      "quote": "`LanceDBVectorStoreBackend` builds its Tantivy full text index exactly once, on the first insert, and never rebuilds or refreshes it. Entries written by any later insert are stored and are retrievable through semantic and structured search, but `keyword_search` cannot see them.",
+      "locator": "## What is wrong",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conversations longer than one sliding window cause multiple inserts, meaning only the first window's entries are in the lexical index \u2014 a continuity failure where stored memories are not retrieved",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/78",
+      "quote": "So any conversation longer than one window performs several inserts, and only the first window's entries end up in the lexical index.",
+      "locator": "## How it manifests",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "keyword_search returns no hit for a term present only in a later window, while semantic_search finds it \u2014 retrieval diverges silently with no error to the caller",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/78",
+      "quote": "build a memory store from a conversation spanning several windows, then call `keyword_search` with an exact term that appears only in a later window. It returns no hit, while `semantic_search` finds the entry.",
+      "locator": "## Failure scenario",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The bug is not covered by existing tests because all fixtures insert a single batch before querying; no test exercises a second write",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/78",
+      "quote": "The behavior is not covered by tests because every existing fixture inserts a single batch before querying, so no test exercises a second write.",
+      "locator": "## Notes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SimpleMem isolates memories per named table within LanceDB; each table_name corresponds to a distinct memory store.",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/85",
+      "quote": "Create more than 10 SimpleMem memories with different `table_name` values.",
+      "locator": "Reproduction / step 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SimpleMem's table existence check in LanceDBVectorStoreBackend._init_table() fails silently when more than 10 tables exist, causing it to attempt re-creating an existing table \u2014 a continuity failure where a previously persisted memory store becomes inaccessible.",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/85",
+      "quote": "once the database contains more than 10 tables, an existing table that is not included in the first page may be incorrectly treated as nonexistent. SimpleMem then calls `create_table()`, which fails because the table actually already exists.",
+      "locator": "Bug Description / prose",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory persistence survives process restarts via reopening the named LanceDB table; the bug breaks this reopen path at scale.",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/85",
+      "quote": "Removing the other memory tables so that fewer than 10 tables remain makes the same reopen operation work correctly.",
+      "locator": "Reproduction / final note",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The fix replaces table_names() pagination-limited check with the in operator on the connection object, which iterates all pages and restores correct persist/reopen behavior.",
+      "kind": "issue",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/85",
+      "quote": "if self.table_name not in self.db:\nThe latter iterates through all table-list pages instead of checking only the first 10 tables.",
+      "locator": "Suggested Fix",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "43.24% F1 on LoCoMo-10 benchmark, a 26.4% improvement over Mem0",
+      "kind": "blog",
+      "url": "https://www.blog.brightcoding.dev/2026/03/simplemem-the-revolutionary-memory-system-every-ai-agent-needs",
+      "quote": "This architecture delivers 43.24% F1 scores on the LoCoMo-10 benchmark\u2014a 26.4% improvement over Mem0\u2014while using only 531 tokens per query compared to 16,000+ for naive methods.",
+      "locator": "What Is SimpleMem? The Memory Framework That Never Forgets",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "98% token reduction versus naive full-history methods",
+      "kind": "blog",
+      "url": "https://www.blog.brightcoding.dev/2026/03/03/simplemem-the-revolutionary-memory-system-every-ai-agent-needs",
+      "quote": "semantic lossless compression that achieves 43% F1 scores on long-context benchmarks while slashing token usage by 98%",
+      "locator": "Introduction paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "30\u00d7 token savings and 50% faster retrieval compared to Mem0",
+      "kind": "blog",
+      "url": "https://www.blog.brightcoding.dev/2026/03/03/simplemem-the-revolutionary-memory-system-every-ai-agent-needs",
+      "quote": "SimpleMem's three-stage pipeline\u2014Semantic Structured Compression, Online Semantic Synthesis, and Intent-Aware Retrieval Planning\u2014delivers 30\u00d7 token savings and 50% faster retrieval than leading alternatives like Mem0.",
+      "locator": "Introduction paragraph / TL;DR",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Compression produces atomic, coreference-resolved, absolute-timestamp memory units from ambiguous dialogue",
+      "kind": "blog",
+      "url": "https://www.blog.brightcoding.dev/2026/03/03/simplemem-the-revolutionary-memory-system-every-ai-agent-needs",
+      "quote": "Each memory unit represents a self-contained atomic fact with resolved coreferences, absolute timestamps, and eliminated ambiguity.",
+      "locator": "Semantic Structured Compression with Implicit Density Gating",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Online synthesis consolidates related fragments within session scope during the write phase, not as a background job",
+      "kind": "blog",
+      "url": "https://www.blog.brightcoding.dev/2026/03/03/simplemem-the-revolutionary-memory-system-every-ai-agent-needs",
+      "quote": "This proactive denoising eliminates redundancy immediately, maintaining a compact memory topology without periodic cleanup jobs.",
+      "locator": "Online Semantic Synthesis: Proactive Memory Consolidation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Intent-Aware Retrieval Planning uses few-shot LLM prompting to generate three parallel index queries; results merge via reciprocal rank fusion",
+      "kind": "blog",
+      "url": "https://www.blog.brightcoding.dev/2026/03/03/simplemem-the-revolutionary-memory-system-every-ai-agent-needs",
+      "quote": "The IntentAwarePlanner uses few-shot prompting to make the LLM infer search intent from natural language queries \u2026 Results merge through reciprocal rank fusion, ensuring comprehensive yet efficient retrieval.",
+      "locator": "Example 3: Intent-Aware Retrieval Planning \u2014 Architecture Insight",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cloud MCP server provides multi-tenant per-user isolation with end-to-end encryption and SOC 2 Type II compliance",
+      "kind": "blog",
+      "url": "https://www.blog.brightcoding.dev/2026/03/03/simplemem-the-revolutionary-memory-system-every-ai-agent-needs",
+      "quote": "The MCP implementation at mcp.simplemem.cloud features end-to-end encryption, per-user isolation, and SOC 2 Type II compliance. Tokens expire automatically, and audit logs track all memory operations.",
+      "locator": "FAQ: Is the cloud MCP server secure for enterprise data?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Compression runs in a single LLM forward pass; density gating is integrated into LLM generation, not a separate post-processing step",
+      "kind": "blog",
+      "url": "https://www.blog.brightcoding.dev/2026/03/03/simplemem-the-revolutionary-memory-system-every-ai-agent-needs",
+      "quote": "This happens in a single forward pass, ensuring no information loss while achieving 98% token reduction.",
+      "locator": "FAQ: How does semantic lossless compression actually work?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LanceDB sharding supports retrieval at 10M memory scale with <500ms latency on A100 GPUs",
+      "kind": "blog",
+      "url": "https://www.blog.brightcoding.dev/2026/03/03/simplemem-the-revolutionary-memory-system-every-ai-agent-needs",
+      "quote": "Benchmarks show <500ms retrieval at 10M memory scale on A100 GPUs.",
+      "locator": "FAQ: How does LanceDB scaling work in practice?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SimpleMem achieves 26.4% F1 improvement over Mem0 on the LoCoMo benchmark at 531 tokens per query \u2014 a 30x token reduction vs full-context baselines.",
+      "kind": "blog",
+      "url": "https://labnotes.tech/blog/simplemem-gives-llm-agents-30x-cheaper-memory-with-26-better-recall",
+      "quote": "a 26.4% F1 improvement over Mem0 on the LoCoMo benchmark while consuming just 531 tokens per query, a 30x reduction compared to full-context baselines.",
+      "locator": "Introduction",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Temporal normalization during compression yields particularly strong gains on temporal reasoning tasks (58.62 vs 48.91 F1 on LoCoMo).",
+      "kind": "blog",
+      "url": "https://labnotes.tech/blog/simplemem-gives-llm-agents-30x-cheaper-memory-with-26-better-recall",
+      "quote": "The gains are particularly striking in temporal reasoning (58.62 vs 48.91 F1), validating the effectiveness of temporal normalization during compression.",
+      "locator": "Benchmark Results",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Removing semantic structured compression causes a 56.7% drop in temporal reasoning F1; disabling recursive consolidation reduces multi-hop performance by 31.3%; removing adaptive retrieval degrades open-domain and single-hop tasks by 26.6% and 19.4%.",
+      "kind": "blog",
+      "url": "https://labnotes.tech/blog/simplemem-gives-llm-agents-30x-cheaper-memory-with-26-better-recall",
+      "quote": "Removing semantic structured compression causes a 56.7% drop in temporal reasoning F1 (from 58.62 to 25.40). Disabling recursive consolidation reduces multi-hop performance by 31.3%. Removing adaptive retrieval degrades open-domain and single-hop tasks by 26.6% and 19.4% respectively.",
+      "locator": "Ablation Analysis",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Open question: consolidation quality may degrade as memory grows to thousands of entries.",
+      "kind": "blog",
+      "url": "https://labnotes.tech/blog/simplemem-gives-llm-agents-30x-cheaper-memory-with-26-better-recall",
+      "quote": "Open questions remain around long-term scalability: does consolidation quality degrade as memory grows to thousands of entries?",
+      "locator": "Research Context",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SimpleMem is a cloud-hosted shared memory layer exposing one MCP endpoint for AI assistants.",
+      "kind": "blog",
+      "url": "https://simplemem.com/docs",
+      "quote": "simplemem is a shared memory layer for AI assistants. It exposes one authenticated MCP endpoint, stores memories in the cloud",
+      "locator": "What simplemem does",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Access isolation is per access key, not explicitly per user or per agent.",
+      "kind": "blog",
+      "url": "https://simplemem.com/docs",
+      "quote": "Generate an access key from the dashboard. Send Authorization: Bearer YOUR_ACCESS_KEY with each request.",
+      "locator": "Quick start",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/simplemem/core/memory_builder.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/simplemem/core/hybrid_retriever.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/orchestrator.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/consolidation.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/cross/storage_sqlite.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/db80b6a7c591e0ea730a058e9f5fc4eb06572299/MCP/server/mcp_handler.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/docs/text-memory.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/docs/PACKAGE_USAGE.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/cross/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/MCP/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/31",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/85",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/37",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/68",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/55",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/72",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/62",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/54",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/53",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/51",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/3",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/78",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/50",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://labnotes.tech/blog/simplemem-gives-llm-agents-30x-cheaper-memory-with-26-better-recall",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://simplemem.com/docs",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.blog.brightcoding.dev/2026/03/03/simplemem-the-revolutionary-memory-system-every-ai-agent-needs",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Cross-session persistence: synthesis is described as occurring 'within the current session scope'; whether synthesised units persist across sessions is not addressed.",
+      "url": "https://github.com/aiming-lab/SimpleMem/blob/main/docs/text-memory.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The paper's token consumption figures (e.g., 572 on LoCoMo) are not clarified on this page as covering memory generation alone, retrieval alone, or both combined \u2014 a core architectural distinction left unresolved here.",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/31",
+      "kind": "issue"
+    },
+    {
+      "text": "The issue asks whether SimpleMem can operate as an MCP-Server but receives no answer on this page, leaving the serve/integration architecture undocumented.",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/4",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the paper's characterization of SimpleMem as non-iterative was corrected or addressed by maintainers is not answered on this page",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/55",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether SimpleMem has a pluggable storage interface or is tightly coupled to its DB layer is explicitly raised as an open question on this page and not answered",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/62",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether category-conditioned retrieval routing is an intentional part of the Omni-SimpleMem design or an undocumented artifact; the issue author explicitly flags this as unanswered",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/68",
+      "kind": "issue"
+    },
+    {
+      "text": "No response or explanation on this page for how audio and video memory components were validated or optimized; the issue is an open question with no answer shown",
+      "url": "https://github.com/aiming-lab/SimpleMem/issues/69",
+      "kind": "issue"
+    }
+  ]
+}
