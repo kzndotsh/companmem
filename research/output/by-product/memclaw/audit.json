@@ -1,0 +1,572 @@
+{
+  "identity": {
+    "id": "memclaw",
+    "name": "MemClaw (Caura)",
+    "repo": "https://github.com/caura-ai/caura-memclaw",
+    "docs": "https://github.com/caura-ai/caura-memclaw/blob/main/README.md",
+    "license": "Apache-2.0",
+    "version_or_commit": "6fe9fdb926f39ef4c7e374d0448d084d301fdb8e",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Rail SDK is positioned as giving an agent memory around every turn: fetch rules and relevant facts before the agent runs, then extract and store what the turn taught."
+    },
+    {
+      "text": "Share and manage knowledge among AI agents, allowing them to learn from each other and improve over time"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Supersession / conflict: contradiction detection via RDF triple comparison plus LLM semantic analysis automatically supersedes conflicting memories with full contradiction chain tracking. Stale rows can surface in results but are always ranked below their replacement."
+    },
+    {
+      "text": "Delete a document by doc_id and collection, scoped to tenant_id. An optional require_status guard folds a status check atomically into the DELETE; a non-matching row 404s rather than silently succeeding."
+    },
+    {
+      "text": "Forget via lifecycle: an 8-status lifecycle automation retires stale data through crystallization; near-duplicate memories are merged into canonical atomic facts with full provenance."
+    },
+    {
+      "text": "Governance rules (keystones): caura_keystones retrieves mandatory governance rules for the current scope; the result overrides conflicting user instructions. Called once per session."
+    },
+    {
+      "text": "Relations between entities are inferred from co-occurrence ('related_to'), with reinforcement on existing relations weighted by a configurable delta and cap."
+    },
+    {
+      "text": "Entities are persisted to a Postgres store with create, read, update, and bulk-upsert operations, scoped by tenant_id and optionally fleet_id."
+    },
+    {
+      "text": "Entity deduplication (merge) runs as a full resolve_entities step in one atomic transaction with a SAVEPOINT per duplicate cluster."
+    },
+    {
+      "text": "The store is backed by PostgreSQL (via PostgresService); documents carry a data jsonb field and an optional embedding vector."
+    },
+    {
+      "text": "caura_recall excludes superseded memories by default; passing the status parameter explicitly is required to retrieve history"
+    },
+    {
+      "text": "In-production scale: 300+ agents, 26,500+ memories, 1,372 shared skills, 23 ms p50 search latency at eToro"
+    },
+    {
+      "text": "Write path: agents write plain text; MemClaw transforms it into searchable, governed memory"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Caura achieves 92.2% accuracy on LongMemEval (LLM-judge, 2026-09-15 run, GPT-4o reference judge)",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/BENCHMARKS.md",
+      "quote": "461 of 500 under the benchmark's reference judge, GPT-4o with the official prompts; 90.2% under a stricter second judge, Gemini 3.5 Flash-Lite",
+      "locator": "## Results",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Supersession-aware recall scoring: contradiction detector marks older memories outdated/conflicted, chains supersedes_id, and present-state search excludes retired rows; a false-regression signature from this fired in three 2026-08-27 sessions",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/BENCHMARKS.md",
+      "quote": "The product deliberately retires the older side of an update \u2014 the contradiction detector marks it `outdated`/`conflicted` and chains `supersedes_id` from the newer row, and present-state search excludes retired rows \u2014 so a status-blind recall counts every *correct* supersession of a gold memory as a miss. That false-regression signature (category recall drops while its accuracy holds or rises) fired three times in the 2026-08-27 A63 sessions (#1023, #1025).",
+      "locator": "## Regression sample: comparing a run to the golden",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The accuracy pipeline is retrieval-then-answer: the whole pipeline (not just retrieval) gets the credit against benchmark questions",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/BENCHMARKS.md",
+      "quote": "an LLM judge scores the answer the retrieval-then-answer pipeline produces against each benchmark's question, rather than `recall@k` over a fixed gold set. The whole pipeline gets the credit, because that's what maps to product behavior.",
+      "locator": "## What we measure, and how",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The FTS keyword weight formula changed at PR #687 (FTS_RANK_SCALE), and k=1 reproduces the pre-#687 historical arm",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/BENCHMARKS.md",
+      "quote": "Since #687 shipped `FTS_RANK_SCALE`, `k=1` is a *historical* arm: an A/B from it measures the delta since before that change, not a delta against what production runs today.",
+      "locator": "### First-stage retrieval, specifically",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict/supersession: contradicting memories are automatically superseded and ranked below their replacement in results; full contradiction chain tracked.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/README.md",
+      "quote": "Contradiction detection \u2014 RDF triple comparison + LLM semantic analysis detects conflicting memories and automatically supersedes them, with full contradiction chain tracking. When a result set holds both a superseded memory and the memory that replaced it, the replacement is always ranked immediately above it \u2014 a stale row can surface, but never above its own correction.",
+      "locator": "Section: Features > Memory Pipeline",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is hybrid (semantic + keyword + graph), not always-on full context; Rail SDK fetches only rules and relevant facts before each turn, not the full memory log.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/README.md",
+      "quote": "Rail fetches the governance rules and the facts relevant to the current message before your agent runs, hands you prompt-ready context, then extracts and stores what the turn taught.",
+      "locator": "Section: Rail SDK",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/retirement: 8-status lifecycle retires stale memories; crystallization merges near-duplicates; explicit delete and bulk_delete available via caura_manage.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/README.md",
+      "quote": "Crystallization \u2014 LLM merges near-duplicate memories into canonical atomic facts with full provenance; 8-status lifecycle automation retires stale data.",
+      "locator": "Section: Features > Self-Improving Memory",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-tenant (row-level DB separation) and per-memory (scope_agent / scope_team / scope_org stamped at write time); cross-fleet recall is permissioned.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/README.md",
+      "quote": "Tenant isolation \u2014 row-level database separation per tenant \u2026 Visibility scopes \u2014 every memory is stamped at write time: scope_agent (private), scope_team (fleet-wide, default), or scope_org (cross-fleet). Cross-fleet recall is permissioned, not open.",
+      "locator": "Section: Features > Governance",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The Interviewer is a third write path that synthesizes typed memories from an agent's existing work trail/transcript, distinct from realtime caura_write calls and bulk ingestion. Memories are labeled as approximations, not verbatim records.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/README.md",
+      "quote": "It's a third way memories enter Caura, alongside realtime writes and ingestion \u2026 LLM synthesis can still mis-read or overstate, so treat Interviewer memories as a useful approximation, not a verbatim record.",
+      "locator": "Section: MCP (Model Context Protocol) > The Interviewer",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Governance keystones are mandatory rules retrieved per session that override conflicting user instructions, functioning as a scaffold/instruction layer separate from factual memories.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/README.md",
+      "quote": "caura_keystones \u2014 Read mandatory governance rules for the current scope. Call once per session \u2014 the result overrides conflicting user instructions.",
+      "locator": "Section: MCP (Model Context Protocol) > tool table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "eToro production deployment: 300+ agents, 26,500+ memories, 1,372 shared skills, 23 ms p50 search latency.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/README.md",
+      "quote": "In production at eToro (NASDAQ: ETOR): 300+ AI agents on one governed memory \u2014 26,500+ memories, 1,372 shared skills, 23 ms p50 search.",
+      "locator": "Section: Caura (formerly MemClaw) \u2014 the shared governed memory layer for AI agent fleets",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LoCoMo accuracy 77.6%, LongMemEval accuracy 92.2%, token savings 96.6% and 79.2% respectively vs full context, search latency 23 ms p50 / 27 ms p95.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/README.md",
+      "quote": "Accuracy (LLM-judge) 77.6% [LoCoMo] 92.2% [LongMemEval] \u2014 Token savings vs full context 96.6% 79.2% \u2014 Latency 23 ms p50 \u00b7 27 ms p95.",
+      "locator": "Section: Performance > benchmark table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Documents are upserted (insert-or-update) by (tenant_id, collection, doc_id); a catastrophic-shrink guard prevents unintended data loss unless force=true is passed explicitly.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/documents.py",
+      "quote": "# C34 \u2014 explicit opt-out of the catastrophic-shrink guard.\n            force=bool(body.get(\"force\")),",
+      "locator": "file:documents.py, upsert_document",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Embedding is opt-in per document; passing None on a rewrite intentionally clears the stored vector, removing that document from future vector search results.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/documents.py",
+      "quote": "``embedding`` is opt-in; passing ``None``\n    on a re-write clears a previously-indexed doc's vector (intentional).",
+      "locator": "file:documents.py, upsert_document_xmax docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is embedding-based vector search with optional status and collection filters; top_k defaults to 5.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/documents.py",
+      "quote": "top_k=body.get(\"top_k\", 5),\n        fleet_id=body.get(\"fleet_id\"),\n        readable_tenant_ids=body.get(\"readable_tenant_ids\"),\n        status=body.get(\"status\"),",
+      "locator": "file:documents.py, search_documents",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete is hard-delete by (tenant_id, collection, doc_id); an optional status guard makes deletion conditional, 404ing on mismatch rather than silently succeeding.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/documents.py",
+      "quote": "Delete one document. ``require_status`` (optional) folds a\n    ``data->>'status' = :status`` guard into the DELETE atomically \u2014 a\n    non-matching/missing row deletes zero rows and 404s, indistinguishable\n    from a missing one (the MCP skills active-only delete gate).",
+      "locator": "file:documents.py, delete_document docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Storage is isolated per tenant_id, with fleet_id as a secondary scope, and cross-tenant read access is explicitly granted via readable_tenant_ids.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/documents.py",
+      "quote": "tenant_id=tenant_id,\n        collection=collection,\n        status=status,\n        fleet_id=fleet_id,\n        readable_tenant_ids=readable_tenant_ids,",
+      "locator": "file:documents.py, collection_count",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Documents carry a data jsonb field (for structured metadata including status) and an optional embedding vector; the store is PostgreSQL-backed.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/documents.py",
+      "quote": "from core_storage_api.services.postgres_service import PostgresService\n\n_svc = PostgresService()",
+      "locator": "file:documents.py, module-level imports",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entities are stored in Postgres, scoped by tenant_id and fleet_id, with CRUD and bulk-upsert operations.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/entities.py",
+      "quote": "\"Per-item shape: {\\\"input_idx\\\", \\\"action\\\": \\\"create\\\"|\\\"update\\\", \\\"entity_id\\\"?, \\\"tenant_id\\\", \\\"fleet_id\\\", \\\"entity_type\\\", \\\"canonical_name\\\", \\\"attributes\\\", \\\"name_embedding\\\"?}\"",
+      "locator": "file:entities.py, bulk_upsert_entities docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per tenant; cross-tenant reads and writes were previously possible via bare UUID access and have been patched with explicit tenant_id requirements.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/entities.py",
+      "quote": "\"knowing two UUIDs was enough to create a graph edge across a tenant boundary (#1124)\"",
+      "locator": "file:entities.py, create_memory_entity_link",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity resolution deduplicates by exact name, normalised name, then embedding cosine similarity above a caller-supplied threshold; matched_by field distinguishes the path taken.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/entities.py",
+      "quote": "\"each element is either null (no match) or {\\\"entity_id\\\", \\\"canonical_name\\\", \\\"attributes\\\", \\\"matched_by\\\": \\\"exact\\\" | \\\"normalized\\\" | \\\"similarity\\\", \\\"similarity\\\": float}\"",
+      "locator": "file:entities.py, bulk_resolve_entities docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory-entity link role is preserved on duplicate upsert; the write path never overwrites an existing role.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/entities.py",
+      "quote": "\"its prior role is preserved (matches today's find-then-create flow which never overwrites role)\"",
+      "locator": "file:entities.py, bulk_upsert_memory_entity_links docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity merge on duplicate detection uses SAVEPOINTs per cluster for partial-failure isolation within one transaction.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/entities.py",
+      "quote": "\"Merge duplicate entities (the full resolve_entities step) in ONE atomic txn with a SAVEPOINT per duplicate.\"",
+      "locator": "file:entities.py, resolve_entities docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Relations between entities can be inferred automatically from memory co-occurrence, with configurable minimum co-occurrence threshold and weight reinforcement on existing edges.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/entities.py",
+      "quote": "\"Infer 'related_to' relations from co-occurrence (the infer_relations step), ONE atomic txn. Body {tenant_id, fleet_id?, batch_size, min_cooccurrence, reinforce_delta, max_relation_weight}.\"",
+      "locator": "file:entities.py, infer_relations docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No router-level authentication; security relies on VPC-internal deployment and upstream auth at core-api.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/tenant_suppression.py",
+      "quote": "no router-level authentication; the deployment runs storage on a VPC-internal endpoint and trusts upstream auth at core-api",
+      "locator": "module docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory retrieval (scope filter) is isolated by tenant, agent, or fleet; the caller_agent_id and optional fleet_id determine which IDs are accessible.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/evolve.py",
+      "quote": "Body ``{tenant_id, caller_agent_id, scope, ids:[...], fleet_id?}``. Returns ``{allowed_ids:[str,...]}``.",
+      "locator": "evolve_filter_by_scope docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory weights are updated via a bulk clamp CTE (delta/floor/cap) atomically with a rule\u2192outcome backfill, supporting a reinforcement/scoring mechanism on stored memories.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/evolve.py",
+      "quote": "Clamp-and-adjust weights and (atomically) backfill the rule\u2192outcome link. Body ``{tenant_id, ids:[...], delta, floor, cap, rule_id?, outcome_id?, mark_used?}``",
+      "locator": "evolve_apply_weights docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory store is PostgreSQL; the storage API is a FastAPI service with no auth middleware",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/memories.py",
+      "quote": "from core_storage_api.services.postgres_service import (\n    MISSING_PROVENANCE_PREDICATE_SQL,\n    BulkValidationError,\n    PostgresService,\n)",
+      "locator": "imports, top of file",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are isolated per tenant; fleet and agent provide sub-tenant scoping; scope_agent visibility tier makes memories private to the owning agent",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/memories.py",
+      "quote": "``exclude_scope_agent`` applies the list route's visibility scoping; ``caller_agent_id`` is the identity applied within it, so the caller's own private rows stay counted while its peers' do not. Defaults keep every existing caller's numbers identical",
+      "locator": "count_active_memories docstring, GET /memories/count-active",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Soft-delete sets deleted_at IS NOT NULL; hard purge removes those rows after a retention window (default 30 days, range bounded by MEMORY_RETENTION_MIN_DAYS / MEMORY_RETENTION_MAX_DAYS)",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/memories.py",
+      "quote": "retention_days = body.get(\"retention_days\", MEMORY_RETENTION_MAX_DAYS)\n    if (\n        not isinstance(retention_days, int)\n        or isinstance(retention_days, bool)\n        or not (MEMORY_RETENTION_MIN_DAYS <= retention_days <= MEMORY_RETENTION_MAX_DAYS)\n    ):",
+      "locator": "purge_soft_deleted, POST /memories/purge-soft-deleted",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Supersession chain records which memory supersedes another; status and supersedes_id are updated atomically with CAS to prevent concurrent conflicts",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/memories.py",
+      "quote": "# Status + pointer update must be atomic \u2014 a partial update\n        # (status advances but pointer clear is rejected) would leave\n        # the row in an invalid state.",
+      "locator": "update_memory_status, PATCH /{memory_id}/status",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall count and last_recalled_at are tracked per memory row and factor into recall_boost in scored search",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/memories.py",
+      "quote": "recall_boost_enabled=body.get(\"recall_boost_enabled\", True),",
+      "locator": "scored_search, POST /memories/scored-search",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Stale memories (\u226590 days without recall, weight \u22640.3) are lifecycle-archived in batches",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/memories.py",
+      "quote": "stale_days=body.get(\"stale_days\", 90),\n        max_weight=body.get(\"max_weight\", 0.3),",
+      "locator": "archive_stale_low_weight, POST /memories/archive-stale",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Embeddings are stored per memory row; embedding coverage (missing, stale, unknown provenance) is tracked; stale embeddings are those where the vector was computed from text the row no longer holds",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/memories.py",
+      "quote": "# Vectors computed from text the row no longer holds. Reported\n        # separately from ``missing`` because the repair differs: a missing\n        # vector is swept automatically, a stale one is invisible to that\n        # sweep and needs a re-embed of the row as it stands now.",
+      "locator": "get_embedding_coverage_all, GET /memories/embedding-coverage-all",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "RDF triple structure (subject_entity_id, predicate, object_value) is stored on memory rows and used for conflict detection",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/memories.py",
+      "quote": "memories = await _svc.memory_find_rdf_conflicts(\n        tenant_id=tenant_id,\n        subject_entity_id=UUID(subject_entity_id),\n        predicate=predicate,\n        object_value=object_value or \"\",",
+      "locator": "find_rdf_conflicts, GET /memories/rdf-conflicts",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "This is a storage API with no authentication middleware; tenant_id in the request body is the sole access control boundary",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/memories.py",
+      "quote": "**Defence-in-depth.** The OSS storage API has no auth middleware (see ``app.py``); a successful GET on this endpoint must not leak every memory's content in a single response.",
+      "locator": "list_null_embedding_ids docstring, GET /memories/null-embedding-ids",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Upsert (suppress/restore) is the write path; the SQL source of truth lives in the service layer's set_tenant_suppression method.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/tenant_suppression.py",
+      "quote": "The service-layer ``set_tenant_suppression`` is the single SQL source of truth for the ``suppress`` / ``restore`` semantics",
+      "locator": "upsert_tenant_suppression docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve path is intentionally shallow (is_suppressed boolean only) to protect a cache invariant; full row is not exposed on GET.",
+      "kind": "code",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/tenant_suppression.py",
+      "quote": "surfacing the full row here would invite consumers to start depending on ``updated_at`` and erode the cache invariant",
+      "locator": "get_tenant_suppression docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Skill Factory mines memory and outcome signals server-side to produce skill candidates that go through a governed lifecycle",
+      "kind": "blog",
+      "url": "https://docsearch.algolia.com/mcp/docs/repo/caura-ai/caura-memclaw",
+      "quote": "The Forge (a server-side component) also mines memory and outcome signals to create skill candidates . Governance : Skills follow a lifecycle: candidate \u2192 staged \u2192 active (with exits like rejected , quarantined , stale , or deprecated ).",
+      "locator": "README.md",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieve policy filters out superseded (outdated/conflicted) memories by default; history requires explicit status parameter",
+      "kind": "blog",
+      "url": "https://docsearch.algolia.com/mcp/docs/repo/caura-ai/caura-memclaw",
+      "quote": "By default, caura_recall excludes memories that have been superseded (where status is outdated or conflicted ). If you need to walk the history of a fact or see previous versions, you must pass the status parameter explicitly.",
+      "locator": "plugin/skills/caura/SKILL.md",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Long-content write path: LLM splits content over 2,000 characters into atomic facts; togglable per tenant",
+      "kind": "blog",
+      "url": "https://docsearch.algolia.com/mcp/docs/repo/caura-ai/caura-memclaw",
+      "quote": "When content exceeds 2,000 characters, Caura automatically splits it into atomic facts using an LLM. This behavior can be toggled per tenant via the auto_chunk_enabled setting.",
+      "locator": "static/docs/integration-guide.md",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Token savings 79.2%\u201396.6% versus full-context baseline",
+      "kind": "blog",
+      "url": "https://docsearch.algolia.com/mcp/docs/repo/caura-ai/caura-memclaw",
+      "quote": "Token Savings: 79.2% to 96.6% compared to sending full context to an LLM.",
+      "locator": "docs/performance.md",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Product is designed for multi-agent shared memory with governance controls including trust tiers and policies",
+      "kind": "blog",
+      "url": "https://olud.ai/project/caura-ai-caura-memclaw.html",
+      "quote": "Caura (formerly MemClaw) \u2014 governed shared memory for AI agent fleets. Multi-agent, multi-tenant, MCP-native. Trust tiers, keystone policies, audit trails, knowledge graph, self-improving retrieval.",
+      "locator": "About section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agents learn from each other via shared knowledge",
+      "kind": "blog",
+      "url": "https://olud.ai/project/caura-ai-caura.html",
+      "quote": "Share and manage knowledge among AI agents, allowing them to learn from each other and improve over time.",
+      "locator": "In plain words section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path accepts plain text from agents and converts it into structured, searchable memory",
+      "kind": "blog",
+      "url": "https://www.mcpstack.dev/servers/caura-memclaw",
+      "quote": "Agents write plain text. MemClaw turns it into searchable, governed, self-improving memory.",
+      "locator": "MemClaw \u2014 Fleet memory for AI agents section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Public single-agent benchmarks (LoCoMo, LongMemEval) do not reflect MemClaw's target deployment shape",
+      "kind": "blog",
+      "url": "https://www.mcpstack.dev/servers/caura-memclaw",
+      "quote": "Public agent-memory benchmarks (LoCoMo, LongMemEval) measure one agent, one user, one long conversation \u2014 the single-chatbot shape. The deployment shape we see in production is the opposite",
+      "locator": "Built for fleets, not single agents section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval uses semantic search backed by pgvector; requires an AI provider key for embeddings",
+      "kind": "blog",
+      "url": "https://www.mcpstack.dev/servers/caura-memclaw",
+      "quote": "add an AI provider key for semantic search",
+      "locator": "Quick Start section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Production deployment at eToro with 300+ agents sharing 26,500+ memories and 1,372 skills at 23 ms p50 search latency",
+      "kind": "blog",
+      "url": "https://www.mcpstack.dev/servers/caura-memclaw",
+      "quote": "In production at eToro (NASDAQ: ETOR): 300+ AI agents on one governed memory \u2014 26,500+ memories, 1,372 shared skills, 23 ms p50 search.",
+      "locator": "In production callout block",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/memories.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/entities.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/evolve.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/tenant_suppression.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/documents.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/BENCHMARKS.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://www.mcpstack.dev/servers/caura-memclaw",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://docsearch.algolia.com/mcp/docs/repo/caura-ai/caura-memclaw",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://olud.ai/project/caura-ai-caura-memclaw.html",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://olud.ai/project/caura-ai-caura.html",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "The 8-status memory lifecycle states are named but not enumerated on this page; the full state machine (which statuses exist, valid transitions, and what triggers each) is not described here.",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "No write-path logic for memory extraction or summarization is present: this is a raw CRUD/search layer; how conversational events become curated document writes is not described here.",
+      "url": "https://github.com/caura-ai/caura-memclaw/blob/6fe9fdb926f39ef4c7e374d0448d084d301fdb8e/core-storage-api/src/core_storage_api/routers/documents.py",
+      "kind": "code"
+    }
+  ]
+}
