@@ -1,0 +1,1290 @@
+{
+  "identity": {
+    "id": "memvid",
+    "name": "Memvid",
+    "repo": "https://github.com/memvid/memvid",
+    "docs": "https://github.com/memvid/memvid/blob/main/README.md",
+    "license": "Apache-2.0",
+    "version_or_commit": "e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "The product exposes memory card types for structured memory extraction and storage."
+    },
+    {
+      "text": "Portable AI memory system giving users control over persistent knowledge"
+    },
+    {
+      "text": "Memvid is described as providing portable, single-file AI memory"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "commit() is a public method on the Memvid wrapper intended to flush pending writes to disk, but the internal _MemvidCore delegation target does not implement it, causing silent data loss"
+    },
+    {
+      "text": "Frames (units of stored content) are written via put_bytes / put_bytes_with_options / put_with_embedding and committed to a .mv2 file; the store persists across open/close cycles."
+    },
+    {
+      "text": "MemoryCards are curated per-entity slot/value pairs (not a message log); each card has a slot name, a value, and a source_frame_id \u2014 these are the persisted memory unit"
+    },
+    {
+      "text": "get_current_memory retrieves the single current value for a named slot on a named entity, implying supersession: only one value per (entity, slot) is 'current'"
+    },
+    {
+      "text": "Memory persisted in a single portable file format (.mv2) containing raw data, embeddings, hybrid search indexes, and a crash-safe write-ahead log"
+    },
+    {
+      "text": "The stats command reads and displays ticket metadata and capacity usage, but ticket enforcement at write time may follow a different code path."
+    },
+    {
+      "text": "Unverified tickets are flagged in stats output, suggesting a cloud verification step may be required for tickets to be honoured at write time."
+    },
+    {
+      "text": "The WAL corruption is durable on disk, not an in-memory artifact \u2014 reopening the store hits the same checksum mismatch while scanning records."
+    },
+    {
+      "text": "Model binding is persistent: index is locked to a specific embedding model; mismatches fail fast to prevent mixing embeddings across sessions"
+    },
+    {
+      "text": "ACL types include tenant_id, principal, role, and resource_id keys, indicating per-tenant and per-principal isolation at the frame level."
+    },
+    {
+      "text": "frame_context performs keyword match counting by lowercasing document content and matching query words against it, used during retrieval"
+    },
+    {
+      "text": "Memory is stored as append-only, immutable Smart Frames with timestamps, checksums, and metadata; existing frames are never modified"
+    },
+    {
+      "text": "EnrichmentEngine extracts memory cards from frames during ingestion; EnrichmentRecord and EnrichmentManifest track enrichment state."
+    },
+    {
+      "text": "SearchRequest carries optional temporal and as_of_frame / as_of_ts fields, indicating the store supports point-in-time retrieval"
+    },
+    {
+      "text": "Frames are the unit of indexed storage; each frame stores content text, timestamp, frame_id, tags, labels, track, and uri fields"
+    },
+    {
+      "text": "The current write path is limited to a single writer at a time, blocking concurrent multi-agent writes to the same memory file."
+    },
+    {
+      "text": "MemoryCard and associated builder types represent curated, structured memory extraction distinct from the raw frame/WAL log."
+    },
+    {
+      "text": "Memory is stored in a single mv2 file containing an index and a time index, with configurable byte size limits for each"
+    },
+    {
+      "text": "All agent sessions (main agent, subagents, background processes) share a single memory file for both reads and writes."
+    },
+    {
+      "text": "Hybrid retrieval combines graph traversal and vector/lex search via GraphMatcher, QueryPlanner, and hybrid_search."
+    },
+    {
+      "text": "Automatic Subject-Predicate-Object (SPO) triplet extraction is performed during ingestion via TripletExtractor."
+    },
+    {
+      "text": "Vector documents are stored as (frame_id, embedding) pairs and serialized to bytes via bincode for persistence."
+    },
+    {
+      "text": "retrieve: SearchRequest with query, top_k, and snippet_chars fields; returns ranked hits with text and title"
+    },
+    {
+      "text": "Isolation is at the capsule (file) level; capsules are self-contained with rules and expiry (.mv2 format)"
+    },
+    {
+      "text": "Adaptive retrieval provides dynamic result-set sizing with configurable cutoff strategies."
+    },
+    {
+      "text": "Single portable file that code can read, append to, and update across interactions"
+    },
+    {
+      "text": "The put() API writes a memory frame with title, label, text, and tags fields."
+    },
+    {
+      "text": "Smart Recall targets sub-5ms local memory access with predictive caching"
+    },
+    {
+      "text": "create() and use() are the open/reopen API surface for .mv2 store files"
+    },
+    {
+      "text": "Append-only frame architecture for crash safety and time-travel queries"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Memvid stores memory as append-only immutable Smart Frames; no in-place modification of existing frames",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/README.md",
+      "quote": "A Smart Frame is an immutable unit that stores content along with timestamps, checksums and basic metadata. \u2026 Append-only writes without modifying or corrupting existing data",
+      "locator": "## What are Smart Frames?",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve uses SearchRequest with query, top_k, snippet_chars; returns ranked hits",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/README.md",
+      "quote": "let response = mem.search(SearchRequest {\n    query: \"planning\".into(),\n    top_k: 10,\n    snippet_chars: 200,\n    ..Default::default()\n})?;",
+      "locator": "## Quick Start (code example)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistence is cross-session and portable; the single .mv2 file carries all memory with no external database",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/README.md",
+      "quote": "Persistent, versioned, and portable memory, without databases.",
+      "locator": "page subtitle",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is at the capsule/file level; capsules are self-contained and can include rules and expiry",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/README.md",
+      "quote": "Capsule Context (`.mv2`) \u2014 Self-contained, shareable memory capsules with rules and expiry.",
+      "locator": "## Core Concepts",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Crash recovery is handled by an embedded WAL inside the .mv2 file; no external WAL sidecar",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/README.md",
+      "quote": "Embedded WAL (1-64MB) \u2014 Crash recovery \u2026 No `.wal`, `.lock`, `.shm`, or sidecar files. Ever.",
+      "locator": "## File Format",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Embedding model is bound persistently to the index; mismatched model on query returns ModelMismatch error",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/README.md",
+      "quote": "This binding is persistent. Once set, future attempts to use a different model name will fail fast with a `ModelMismatch` error.",
+      "locator": "### Model Consistency",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LoCoMo benchmark: +35% SOTA, +76% multi-hop, +56% temporal vs industry average; P50 latency 0.025ms, P99 0.075ms, 1372x throughput",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/README.md",
+      "quote": "+35% SOTA on LoCoMo, best-in-class long-horizon conversational recall & reasoning \u2026 +76% multi-hop, +56% temporal vs. the industry average \u2026 0.025ms P50 and 0.075ms P99, with 1,372\u00d7 higher throughput than standard",
+      "locator": "## Benchmark Highlights",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory timeline supports querying over past states and time-travel (rewind, replay, branch) of any memory state",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/README.md",
+      "quote": "Queries over past memory states \u2026 Time-Travel Debugging \u2014 Rewind, replay, or branch any memory state.",
+      "locator": "## What are Smart Frames? / ## Core Concepts",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MemoryCards are the persisted curated-memory unit, storing entity/slot/value triples with a back-reference to source frames \u2014 distinct from a raw message log",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/graph_search.rs",
+      "quote": "let cards = self.memvid.get_entity_memories(&entity);\n                    for card in cards {\n                        if card.slot.to_lowercase() == *slot\n                            && card.value.to_lowercase().contains(&value.to_lowercase())",
+      "locator": "file:src/graph_search.rs, GraphMatcher::match_triple",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "get_current_memory returns a single card per (entity, slot), implying the store enforces or surfaces only the current/superseding value for each slot",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/graph_search.rs",
+      "quote": "if let Some(card) = self.memvid.get_current_memory(entity, slot) {",
+      "locator": "file:src/graph_search.rs, GraphMatcher::match_triple, Literal/Literal/Variable arm",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is adaptive: relational queries trigger a hybrid graph+vector plan; all other queries fall back to vector/lexical-only search",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/graph_search.rs",
+      "quote": "if pattern.triples.is_empty() {\n                // No specific pattern found, use vector search\n                QueryPlan::vector_only ... } else {\n                // Found relational pattern - use hybrid search\n                QueryPlan::hybrid",
+      "locator": "file:src/graph_search.rs, QueryPlanner::plan",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The store supports temporal / point-in-time retrieval as an optional feature (temporal_track), with as_of_frame and as_of_ts parameters on search",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/graph_search.rs",
+      "quote": "#[cfg(feature = \"temporal_track\")]\n                    temporal: None,\n                    as_of_frame: None,\n                    as_of_ts: None,",
+      "locator": "file:src/graph_search.rs, SearchRequest construction in hybrid_search",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Frames are the atomic persistence unit; put_bytes/put_bytes_with_options write a frame, commit flushes it to the .mv2 file, and the store survives close/reopen.",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/lib.rs",
+      "quote": "let mut mem = Memvid::create(&path).expect(\"create\");\nlet seq = mem.put_bytes(b\"hello\").expect(\"put\");\nassert_eq!(seq, 1);\nmem.commit().expect(\"commit\");\ndrop(mem);\nlet mut reopened = Memvid::open(&path).expect(\"open\");\nlet stats = reopened.stats().expect(\"stats\");\nassert_eq!(stats.frame_count, 1);",
+      "locator": "lib.rs, test: create_put_commit_reopen",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemoryCard is a distinct, curated memory type separate from the raw frame log, typed with MemoryKind, Polarity, SlotIndex, and VersionRelation.",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/lib.rs",
+      "quote": "// Memory card types for structured memory extraction and storage\npub use types::{\n    EngineStamp, EnrichmentManifest, EnrichmentRecord, MEMORIES_TRACK_MAGIC,\n    MEMORIES_TRACK_VERSION, MemoriesStats, MemoriesTrack, MemoryCard, MemoryCardBuilder,\n    MemoryCardBuilderError, MemoryCardId, MemoryKind, Polarity, SlotIndex, VersionRelation,\n};",
+      "locator": "lib.rs, re-export block: 'Memory card types'",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "EnrichmentEngine extracts MemoryCards from frames at ingestion time using a RulesEngine.",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/lib.rs",
+      "quote": "// Enrichment engine types for extracting memory cards from frames\npub use enrich::{EnrichmentContext, EnrichmentEngine, EnrichmentResult, RulesEngine};",
+      "locator": "lib.rs, re-export block: 'Enrichment engine types'",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "SPO triplets are automatically extracted during ingestion and stored, enabling graph traversal at retrieval time.",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/lib.rs",
+      "quote": "// Triplet extraction module for automatic SPO extraction during ingestion\npub mod triplet;\n...\n// Triplet extraction types for automatic SPO extraction\npub use triplet::{ExtractionMode, ExtractionStats, TripletExtractor};",
+      "locator": "lib.rs, module declarations and re-export block: 'Triplet extraction types'",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval supports hybrid search combining graph (Logic-Mesh) traversal with vector/lex ranking.",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/lib.rs",
+      "quote": "// Graph-aware search for hybrid retrieval\npub use graph_search::{GraphMatcher, QueryPlanner, hybrid_search};",
+      "locator": "lib.rs, re-export block: 'Graph-aware search'",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Tantivy is the primary lexical search engine; the legacy LexFallback path is deprecated.",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/lib.rs",
+      "quote": "// This test verifies that Tantivy is the primary search engine\n// The LexFallback path is deprecated, so we'll just verify Tantivy works",
+      "locator": "lib.rs, test: search_falls_back_when_tantivy_missing",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval isolation is supported per ACL principal, group, role, and tenant via AclContext on each SearchRequest.",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/lib.rs",
+      "quote": "ACL_POLICY_VERSION_KEY, ACL_READ_GROUPS_KEY, ACL_READ_PRINCIPALS_KEY, ACL_READ_ROLES_KEY,\n    ACL_RESOURCE_ID_KEY, ACL_TENANT_ID_KEY, ACL_VISIBILITY_KEY, AclContext, AclEnforcementMode,",
+      "locator": "lib.rs, re-export block: types",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Auto-tagging and date extraction enrich frame metadata at write time and are persisted with the frame.",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/lib.rs",
+      "quote": "let options = PutOptions::builder()\n    .search_text(\"Neural networks planning session 2024-10-08\")\n    .auto_tag(true)\n    .extract_dates(true)\n    .build();\n...\nlet frame = mem.toc.frames.first().expect(\"frame present\");\nassert!(!frame.tags.is_empty());\nassert!(frame.content_dates.iter().any(|date| date.contains(\"2024\")));",
+      "locator": "lib.rs, test: auto_tag_populates_frame_metadata",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The Doctor subsystem can rebuild corrupted indexes (time-index, lex-index) without data loss.",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/lib.rs",
+      "quote": "let report = Memvid::doctor(\n    &path,\n    DoctorOptions {\n        rebuild_time_index: true,\n        rebuild_lex_index: false,\n        ..DoctorOptions::default()\n    },\n)\n.expect(\"doctor\");\n...\nassert!(\n    reopened.toc.time_index.is_some(),\n    \"time index should exist after doctor\"\n);",
+      "locator": "lib.rs, test: doctor_rebuilds_time_index",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Replay sessions store agent ActionType, Checkpoint, StateSnapshot, and ReplayAction records enabling time-travel comparison of model outputs.",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/lib.rs",
+      "quote": "pub use replay::{\n    ActionType, Checkpoint, REPLAY_SEGMENT_MAGIC, REPLAY_SEGMENT_VERSION, ReplayAction,\n    ReplayManifest, ReplaySession, SessionSummary, StateSnapshot,\n};\n#[cfg(feature = \"replay\")]\npub use replay::{\n    ActiveSession, ComparisonReport, ComparisonSummary, Divergence, DivergenceType, ModelResult,\n    ReplayConfig, ReplayOptions, ReplayResult,\n};",
+      "locator": "lib.rs, re-export block: replay",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Adaptive retrieval uses configurable CutoffStrategy to dynamically size result sets rather than returning a fixed top-k.",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/lib.rs",
+      "quote": "// Adaptive retrieval for dynamic result set sizing\npub use types::adaptive::{\n    AdaptiveConfig, AdaptiveResult, AdaptiveStats, CutoffStrategy, find_adaptive_cutoff,\n    normalize_scores,\n};",
+      "locator": "lib.rs, re-export block: 'Adaptive retrieval'",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The persistent unit is a Frame, carrying structured metadata (uri, track, tags, labels, timestamp, content_dates) used to filter at retrieval time",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/search/mod.rs",
+      "quote": "FieldTerm::Uri(value) => ctx.frame.uri.as_deref().is_some_and(|uri| uri.eq_ignore_ascii_case(value))",
+      "locator": "src/search/mod.rs, impl FieldTerm",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is query-driven boolean matching against frame fields and content; no evidence on this page of always-retrieve or adaptive/ranked retrieval policy",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/search/mod.rs",
+      "quote": "pub fn evaluate(&self, ctx: &EvaluationContext<'_>) -> bool { self.expr.evaluate(ctx) }",
+      "locator": "src/search/mod.rs, impl ParsedQuery",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Temporal filtering is a first-class retrieval dimension; frames carry multiple timestamp candidates and date ranges can be composed via intersection",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/search/mod.rs",
+      "quote": "candidates.push(frame.timestamp); #[cfg(feature = \"temporal_track\")] if let Some(anchor_ts) = frame.anchor_ts { candidates.push(anchor_ts); }",
+      "locator": "src/search/mod.rs, impl DateRange::matches",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "An optional Tantivy-backed full-text index (EmbeddedLexStorage, LexWalBatch, TantivySnapshot) exists as an alternative or complement to linear frame scanning",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/search/mod.rs",
+      "quote": "pub(crate) use tantivy::{ EmbeddedLexSegment, EmbeddedLexStorage, LexWalBatch, TantivyEngine, TantivySnapshot, };",
+      "locator": "src/search/mod.rs, top-level feature gates",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Frames indexed with content, timestamp, frame_id, tags, labels, track, and uri fields",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/search/tantivy/engine.rs",
+      "quote": "let mut document = doc!(\n            self.content => content,\n            self.timestamp => frame.timestamp,\n            self.frame_id => frame.id,\n        );",
+      "locator": "TantivyEngine::add_frame",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete path operates at frame_id granularity via Tantivy term deletion",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/search/tantivy/engine.rs",
+      "quote": "let term = Term::from_field_u64(self.frame_id, frame_id);\n        if let Some(writer) = self.index_writer.as_mut() {\n            writer.delete_term(term);\n        }",
+      "locator": "TantivyEngine::delete_frame",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Full index wipe (reset) is available, deleting all documents and committing",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/search/tantivy/engine.rs",
+      "quote": "writer.delete_all_documents()",
+      "locator": "TantivyEngine::reset",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve path supports filtering by uri, scope, and a set of frame ids in addition to full-text query",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/search/tantivy/engine.rs",
+      "quote": "uri_filter: Option<&str>,\n        scope_filter: Option<&str>,\n        frame_filter: Option<&[u64]>,",
+      "locator": "TantivyEngine::search_documents",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve returns frame_id and score; content is debug-only and not used for evaluation logic",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/search/tantivy/engine.rs",
+      "quote": "#[allow(dead_code)] // Content preserved for debugging; evaluation uses frame metadata",
+      "locator": "TantivyDocHit struct",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Index is stored in a TempDir (ephemeral on-disk), not a persistent named directory; persistence across sessions depends on snapshot/restore path",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/search/tantivy/engine.rs",
+      "quote": "pub(super) work_dir: TempDir,",
+      "locator": "TantivyEngine struct",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Snapshot serialises all non-lock segment files to bytes with per-segment and aggregate blake3 checksums",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/search/tantivy/engine.rs",
+      "quote": "let checksum = *hash(&bytes).as_bytes();\n            index_hasher.update(&checksum);\n            index_hasher.update(name.as_bytes());",
+      "locator": "TantivyEngine::snapshot_segments",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Windows-specific bug with TempDir and open writer lock (issue #215) required careful field drop ordering",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/search/tantivy/engine.rs",
+      "quote": "See https://github.com/memvid/memvid/issues/215.",
+      "locator": "TantivyEngine struct doc comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Persisted unit is a VecDocument pairing a FrameId with an f32 embedding vector, serialized via bincode with fixed-int, little-endian encoding.",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/vec.rs",
+      "quote": "pub struct VecDocument {\n    pub frame_id: FrameId,\n    pub embedding: Vec<f32>,\n}",
+      "locator": "src/vec.rs: VecDocument struct",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Index build automatically selects HNSW over brute-force at the 1000-vector threshold to trade exact recall for scalable approximate search.",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/vec.rs",
+      "quote": "const HNSW_THRESHOLD: usize = 1000;",
+      "locator": "src/vec.rs: HNSW_THRESHOLD constant",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Removal (forget) is only effective in the uncompressed index; PQ and HNSW variants silently no-op on remove.",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/vec.rs",
+      "quote": "VecIndex::Compressed(_quantized) => {\n    // Compressed indices are immutable\n}\n\u2026 VecIndex::Hnsw(_) => {\n    // HNSW indices are immutable in this implementation\n}",
+      "locator": "src/vec.rs: VecIndex::remove",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A hard decode limit (MAX_INDEX_BYTES) caps how many bytes can be deserialized from a stored index, bounding memory use at read time.",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/vec.rs",
+      "quote": "const VEC_DECODE_LIMIT: usize = crate::MAX_INDEX_BYTES as usize;",
+      "locator": "src/vec.rs: VEC_DECODE_LIMIT constant",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "HNSW distance is computed as scaled integer (f32 L2 \u00d7 100,000) to satisfy the unsigned-unit constraint of the space::Metric trait, with ~1e-5 precision.",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/vec.rs",
+      "quote": "/// 100,000.0 gives 1e-5 precision and max distance ~42,000 (enough for high-dim embeddings).\nconst HNSW_DISTANCE_SCALE: f32 = 100_000.0;",
+      "locator": "src/vec.rs: HNSW_DISTANCE_SCALE constant",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "ef_search is fixed at 50 for HNSW queries, balancing recall quality against query latency; the comment notes it could be exposed as a configurable option.",
+      "kind": "code",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/vec.rs",
+      "quote": "// ef_search: query-time search width. Higher = better recall, slower search.\n// Default: 50 as per maintainer specification. Can be exposed as option later.\nlet ef_search = 50;",
+      "locator": "src/vec.rs: HnswVecIndex::search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Agents forget everything without constant manual management \u2014 positioned as the core problem Memvid solves",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=46502628",
+      "quote": "agents still forget everything unless you babysit them",
+      "locator": "Some background section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory persists across sessions as a portable file, not tied to any model or infrastructure",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=46502628",
+      "quote": "Memvid stores everything your agent knows inside a single portable file, that your code can read, append to, and update across interactions.",
+      "locator": "What is Memvid section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hybrid search with sub-5ms retrieval claimed in TL;DR, but 17ms figure cited in performance section \u2014 inconsistency on the same page",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=46502628",
+      "quote": "Hybrid search with sub-5ms retrieval ... Search Latency: <17ms retrieval for 50,000 documents",
+      "locator": "TL;DR and Performance & Compatibility sections",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A community reader found the video-encoding-to-AI-memory connection unclear even after reading the post and the GitHub",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=46502628",
+      "quote": "I have no idea how video relates to AI memory and I'm more confused after reading the above and the GitHub.",
+      "locator": "Comment by ifh-hn",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval accuracy claimed to beat leading RAG pipelines by over 60%, but no harness or dataset described",
+      "kind": "community",
+      "url": "https://news.ycombinator.com/item?id=46502628",
+      "quote": "Retrieval Accuracy: beating leading RAG pipelines by over 60%",
+      "locator": "Performance & Compatibility section",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memvid claims +35% SOTA on LoCoMo benchmark for long-horizon conversational recall and reasoning",
+      "kind": "docs",
+      "url": "https://github.com/memvid/memvid/blob/main/README.md",
+      "quote": "+35% SOTA on LoCoMo, best-in-class long-horizon conversational recall & reasoning",
+      "locator": "Benchmark Highlights",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is persisted in a single portable .mv2 file containing data segments, indexes, and WAL \u2014 no sidecar files",
+      "kind": "docs",
+      "url": "https://github.com/memvid/memvid/blob/main/README.md",
+      "quote": "No .wal, .lock, .shm, or sidecar files. Ever.",
+      "locator": "File Format",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path is append-only; past frames are immutable and never modified",
+      "kind": "docs",
+      "url": "https://github.com/memvid/memvid/blob/main/README.md",
+      "quote": "Append-only writes without modifying or corrupting existing data",
+      "locator": "What are Smart Frames?",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Sub-5ms local memory access with predictive caching",
+      "kind": "docs",
+      "url": "https://github.com/memvid/memvid/blob/main/README.md",
+      "quote": "Smart Recall \u2014 Sub-5ms local memory access with predictive caching.",
+      "locator": "Core Concepts",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memvid v1 (QR-based memory) is deprecated; any references to QR codes reflect outdated information",
+      "kind": "docs",
+      "url": "https://github.com/memvid/memvid/blob/main/README.md",
+      "quote": "Memvid v1 (QR-based memory) is deprecated. If you are referencing QR codes, you are using outdated information.",
+      "locator": "Memvid v1 deprecation notice",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memvid's stated goals include portable, single-file AI memory",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/168",
+      "quote": "This feature aligns with Memvid's goals (portable, single-file AI memory)",
+      "locator": "Checklist section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memvid version 0.1.3 is the latest affected version and uses google.generativeai via memvid/llm_client.py",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/168",
+      "quote": "Current memvid version affected: 0.1.3 (latest)\n- The warning originates from memvid/llm_client.py:20",
+      "locator": "Additional Context section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "WAL size is used to determine storage tier (free/dev/enterprise) which sets the capacity ceiling enforced during writes.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/171",
+      "quote": "Based on reading the source code, we noticed that the tier is determined by WAL size:\n- WAL < 4MB \u2192 Free tier (50MB limit)\n- WAL 4-16MB \u2192 Dev tier (2GB limit)\n- WAL \u2265 16MB \u2192 Enterprise tier (10GB limit)",
+      "locator": "## Our Hypothesis",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Self-hosted tickets are recognised by the stats command but not enforced by the put command, indicating a split in ticket validation logic between read and write paths.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/171",
+      "quote": "The ticket seems to be recognized by `stats` but ignored by `put`.",
+      "locator": "## The Confusion",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The free tier hard limit is 50MB; exceeding it blocks further writes regardless of ticket capacity.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/171",
+      "quote": "Free tier limit: 50.0 MB\n\nTo store more than 1GB, you need a paid plan.",
+      "locator": "### 5. Tried to add more content / Result",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Tickets carry an 'unverified' status when issued locally without cloud validation, which may be the cause of the enforcement bypass.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/171",
+      "quote": "Ticket: seq=20 issuer=locale (\u26a0 unverified)",
+      "locator": "### 4. Verified stats / Capacity",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Official documentation describes an enterprise self-hosted ticket workflow intended for offline/local use with large capacities.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/171",
+      "quote": "Enterprise Self-Hosting\nmemvid tickets issue project.mv2 \\\n  --issuer \"internal.company.com\" \\\n  --seq 1 \\\n  --expires-in 31536000 \\\n  --capacity 107374182400  # 100 GB",
+      "locator": "## Documentation Reference",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Current vector search is O(n) brute force; at 100k vectors, 100k distances are computed per query.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/183",
+      "quote": "This is O(n) per query. At 100k vectors, we compute 100k distances just to return 10 results.",
+      "locator": "## Problem",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieve index is segment-aware; segment building may need updates when switching index variants.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/183",
+      "quote": "src/memvid/segments.rs - May need updates for segment building",
+      "locator": "## Files to modify",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Proposed acceptance criterion requires brute-force fallback for small indices to preserve exact (non-approximate) results.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/183",
+      "quote": "Brute force fallback for small indices (preserves exact results)",
+      "locator": "## Acceptance criteria",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The README Quick Start code uses ..Default::default() spread syntax for SearchRequest, indicating the API was intended or previously supported default field values.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/221",
+      "quote": "The Quick Start example in the README fails to compile. The example uses the record update syntax ..Default::default() for the SearchRequest struct, but SearchRequest does not implement the Default trait in memvid-core v2.0.83",
+      "locator": "Bug Description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Bug first observed in memvid-sdk 2.0.153 and persists in 2.0.156",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/194",
+      "quote": "This was first observed in memvid-sdk 2.0.153 and persists in 2.0.156.",
+      "locator": "Additional Context",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "commit() is a discoverable public API method that silently fails to persist data due to missing implementation in _MemvidCore",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/204",
+      "quote": "commit() is a public method on the Memvid wrapper class and appears in dir() output, giving the reasonable expectation that it flushes pending writes to disk. Calling it raises: AttributeError: 'memvid_sdk._MemvidCore' object has no attribute 'commit'",
+      "locator": "Summary",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "close() is the only confirmed flush-to-disk mechanism; session_checkpoint() exists but has no documented persistence guarantee",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/204",
+      "quote": "close() flushes to disk correctly... session_checkpoint() is also present in the method list and does not raise, though its persistence guarantee relative to close() is not documented.",
+      "locator": "Observed Behaviour / Workaround",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The store format is a .mv2 single file, opened via create() and reopened via use()",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/204",
+      "quote": "mv = memvid_sdk.create(\"test.mv2\", enable_lex=True, enable_vec=False) ... mv = memvid_sdk.use(\"basic\", \"test.mv2\")",
+      "locator": "Workaround / Minimal Reproduction",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memvid's stated goals include portable, single-file AI memory",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/207",
+      "quote": "This feature aligns with Memvid's goals (portable, single-file AI memory)",
+      "locator": "Checklist",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memvid currently enforces a single-writer constraint, preventing concurrent writes from multiple agent sessions to the same memory file.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/218",
+      "quote": "the current limitation of single writer only creates challenges for multi-agent systems where multiple sessions need to write to the same memory file",
+      "locator": "Problem section, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memvid's persistence model is a single file, which all agent sessions read from.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/218",
+      "quote": "All sessions need to read from the same memory file",
+      "locator": "Use Case section, item 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write path supports memories, reflections, and insights written by a main agent session.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/218",
+      "quote": "Main agent session (Cass) writes memories, reflections, insights",
+      "locator": "Use Case section, item 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Background processes performing dreaming and consolidation are an expected write-path use case against the same memory file.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/218",
+      "quote": "Background processes (dreaming, consolidation) write periodically",
+      "locator": "Use Case section, item 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A PostgreSQL + Memvid hybrid is considered as a workaround, where PostgreSQL handles concurrent writes and Memvid provides periodic snapshots for time-travel; this is described as losing Memvid's single-file elegance.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/218",
+      "quote": "PostgreSQL handles concurrent writes / Memvid snapshots generated periodically for time-travel / But this loses the elegance of Memvid's single-file approach",
+      "locator": "Current Workaround section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SearchRequest does not implement the Default trait in memvid-core v2.0.83 and v2.0.139, making the README Quick Start example fail to compile.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/221",
+      "quote": "error[E0277]: the trait bound `SearchRequest: Default` is not satisfied",
+      "locator": "Error Output",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memvid persists memory to a file with a .mv2 extension, committed explicitly by the caller.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/221",
+      "quote": "let mut mem = Memvid::create(\"knowledge.mv2\")?;\n    ...mem.commit()?;",
+      "locator": "Minimal Reproducible Example",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memvid stores personal assistant memories (facts, events, learnings, decisions) as frames in a .mv2 file with semantic search.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/225",
+      "quote": "Our PA stores facts, events, learnings, decisions, and personal knowledge as memories in a `.mv2` file \u2014 semantic search over a person's life context.",
+      "locator": "Use Case",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cross-version file opening (2.0.152 \u2192 2.0.159) causes use() to hang indefinitely on low-memory systems, a continuity failure preventing access to accumulated memory.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/225",
+      "quote": "Opening a `.mv2` file created with `memvid-sdk==2.0.152` using `memvid-sdk==2.0.159` causes the `use()` call to hang indefinitely (tested up to 3+ hours) on resource-constrained hardware.",
+      "locator": "Description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The lex index is not reliably persisted: it silently becomes disabled when re-opening a file, requiring manual re-enabling after every session open.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/225",
+      "quote": "the lex index also gets disabled when re-opening files created with 2.0.159 itself, requiring `enable_lex()` after each `use()` call.",
+      "locator": "Additional Notes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The old .mv2 file format carried significant overhead; after export/import the same 145 frames shrank from 42MB to 2.1MB, a 20x reduction.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/225",
+      "quote": "The fresh file was **20x smaller** (2.1MB vs 42MB for 145 frames) and opens instantly.",
+      "locator": "Workaround",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory frames carry structured metadata: title, label, text, and tags.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/225",
+      "quote": "mem.put(\n        title=memory.get('title', ''),\n        label=memory.get('label', 'note'),\n        text=memory.get('text', ''),\n        tags=memory.get('tags', []),\n    )",
+      "locator": "Workaround > Step 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "WAL corruption from put_bytes_with_options + commit persists to disk and is re-encountered on store reopen, meaning the failure affects future retrieval.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/230",
+      "quote": "reopening the store hit the same checksum mismatch while scanning records, so the failure is durable on disk rather than an in-memory reader artifact",
+      "locator": "Observed section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The expected behavior is that a failed put either commits cleanly or returns a typed error without corrupting the WAL, implying atomic write semantics are intended.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/230",
+      "quote": "put_bytes_with_options either appends and commits the frame, or returns a typed error without leaving the embedded WAL in a checksum-invalid state",
+      "locator": "Expected section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The mv2 format uses a separate time index alongside the main index, both capped at 512MiB by default via compile-time constants",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/240",
+      "quote": "For larger mv2 indexes, 512MiB is not a sufficient max for `MAX_INDEX_BYTES` and `MAX_TIME_INDEX_BYTES` while maintaining a single mv2 file.",
+      "locator": "Problem Statement section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Index size limits are encoded as const generics consumed by bincode, making them non-configurable at runtime without a builder pattern refactor",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/240",
+      "quote": "If the const generic via bincode is *required* (that is, there's no way to switch to a builder that allows the caller to configure index sizes)",
+      "locator": "Proposed Solution section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Switching from const-generic limits to a dynamic builder would require re-benchmarking due to potential performance impact on bincode serialization",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/240",
+      "quote": "This would require adjusting `bincode`'s `with_limit` away from the const generic, which may have an impact on performance and would require additional benchmarking.",
+      "locator": "Alternatives Considered section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memvid-core 2.0.140 is the latest release on crates.io as of 2026-05-27",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/242",
+      "quote": "`memvid-core` 2.0.140 (latest on crates.io, 2026-05-27)",
+      "locator": "Issue body, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The .mv2 format is the persisted store artifact; parsing (PDF, XML, spreadsheet ingestion) is a write-path concern separate from retrieval",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/242",
+      "quote": "the parser code paths aren't reached at serving time (we open a pre-built `.mv2` read-only)",
+      "locator": "Context section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval scoring in frame_context counts per-word keyword matches between a lowercased document and lowercased query words",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/247",
+      "quote": ".map(|needle| content.to_lowercase().matches(&needle).count())",
+      "locator": "Bug Description, src/memvid/frame.rs around line 386",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agents built on Memvid hit a wall where memory between sessions is missing or too expensive to include fully on every request",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/252",
+      "quote": "agents built on it often hit the same wall: memory between sessions is missing or too expensive to include fully on every request",
+      "locator": "issue body, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Text chunks of 200-500 tokens can overflow QR code capacity (version > 40), causing a hard ValueError with no documented chunk-size limit",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/50",
+      "quote": "for some text chunks, I get the QR error ... ValueError: Invalid version (was 41, expected 1 to 40)",
+      "locator": "issue body / traceback: memvid/utils.py:184",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "There is no documented limitation on chunk size for the encode path",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/50",
+      "quote": "As there is nothing written about the limitations of this package, I have text chunks that are 200-300, or even 500, tokens.",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Stored text differs from original input due to chunking and overlap transformation",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/51",
+      "quote": "An input text of 4471 bytes resulted in a retrieved canonical text of 4599 bytes.",
+      "locator": "issue body, Preliminary Key Observations, Text Transformation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Storage overhead for plain text is substantially larger than uncompressed or gzipped text",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/51",
+      "quote": "For a 16KB text file, the total MemVid storage was approximately 655KB.",
+      "locator": "issue body, Preliminary Key Observations, Storage Overhead",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Multiple video codecs are supported for encoding (mp4v, h265, h264)",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/51",
+      "quote": "various MemVid encoder codecs (e.g., mp4v, h265, h264)",
+      "locator": "issue body, Preliminary Key Observations, Processing Speed",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memvid exposes a Python SDK (`memvid_sdk`) with a `use()` API to open or create a named persistent memory file.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/97",
+      "quote": "from memvid_sdk import use\nmem = use(\"basic\", \"knowledge.mv2\")",
+      "locator": "Steps to Reproduce, code block, issue #97",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The documented write-then-search flow (put \u2192 find) produced zero hits in a reproducible bug report, representing a continuity failure where stored facts are not retrievable.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/97",
+      "quote": "I also tried the cli-equivelent example 'alice's ai jobs...' and it still did not return any hits.",
+      "locator": "Bug Description, issue #97",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The version in use at the time of the bug report is CLI 2.0.131 on macOS 14.5.",
+      "kind": "issue",
+      "url": "https://github.com/memvid/memvid/issues/97",
+      "quote": "Memvid Version: CLI version 2.0.131",
+      "locator": "Environment, issue #97",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memvid stores AI memory in a single portable file (.mv2) containing raw data, embeddings, hybrid search indexes, and a crash-safe write-ahead log",
+      "kind": "blog",
+      "url": "https://memvid.com/blog/memory-loss-and-its-hidden-costs-in-long-running-ai-workflows",
+      "quote": "storing AI memory in a deterministic, portable file containing raw data, embeddings, hybrid search indexes, and a crash-safe write-ahead log",
+      "locator": "section: Memory Must Be Designed, Not Simulated",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memvid is open-source and provides both a CLI and SDK",
+      "kind": "blog",
+      "url": "https://memvid.com/blog/memory-loss-and-its-hidden-costs-in-long-running-ai-workflows",
+      "quote": "Memvid's open-source CLI and SDK let you replace forgetting with persistent, deterministic memory",
+      "locator": "section: When Forgetting Is Acceptable",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memvid supports multi-agent workflows through shared persistent memory",
+      "kind": "blog",
+      "url": "https://memvid.com/blog/memory-loss-and-its-hidden-costs-in-long-running-ai-workflows",
+      "quote": "Without shared, persistent memory: Agents disagree on facts / Decisions diverge / Output quality collapses",
+      "locator": "section: Multi-Agent Workflows Amplify Forgetting",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Determinism is a core design property: same memory produces same behavior and enables replayable failures",
+      "kind": "blog",
+      "url": "https://memvid.com/blog/memory-loss-and-its-hidden-costs-in-long-running-ai-workflows",
+      "quote": "Same memory \u2192 same behavior / Replayable failures / Fixes that persist / This stabilizes long-running systems.",
+      "locator": "section: Why Determinism Matters Over Time",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The product argues retrieval alone (search, re-inject, rebuild) cannot substitute for continuity because it loses temporal order and hides what is missing",
+      "kind": "blog",
+      "url": "https://memvid.com/blog/memory-loss-and-its-hidden-costs-in-long-running-ai-workflows",
+      "quote": "Retrieval: Loses temporal order / Returns approximations / Varies over time / Hides what's missing / Long-running workflows need continuity, not relevance.",
+      "locator": "section: Why Retrieval Can't Fix This",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memvid is a portable AI memory system with a single-file architecture (.mv2)",
+      "kind": "docs",
+      "url": "https://docs.memvid.com/introduction/welcome",
+      "quote": "Welcome to Memvid, the portable AI memory system that puts you in control.",
+      "locator": "Getting Started / intro paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The .mv2 store persists documents, vector embeddings, BM25 and vector indices, a time index, and a WAL in a single file",
+      "kind": "docs",
+      "url": "https://docs.memvid.com/introduction/welcome",
+      "quote": "Every `.mv2` file is completely self-contained: Your data: Documents, text, images, audio, videos; Embeddings: Vector representations for semantic search; Indices: BM25 lexical index and vector index; Time index: Temporal ordering for timeline queries; Write-ahead log: Crash-safe transaction logging",
+      "locator": "What Makes Memvid Different / Single-File Architecture",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval supports three modes: hybrid (auto), lexical (BM25), and semantic (vector)",
+      "kind": "docs",
+      "url": "https://docs.memvid.com/introduction/welcome",
+      "quote": "# Hybrid search (recommended)\nmemvid find knowledge.mv2 --query \"user authentication\" --mode auto\n# Lexical search - exact keyword matching\nmemvid find knowledge.mv2 --query \"authentication\" --mode lex\n# Semantic search - conceptual understanding\nmemvid find knowledge.mv2 --query \"how do users log in\" --mode sem",
+      "locator": "What Makes Memvid Different / Hybrid Search Engine",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Storage uses append-only frame architecture inspired by video formats, enabling time-travel queries",
+      "kind": "docs",
+      "url": "https://docs.memvid.com/introduction/welcome",
+      "quote": "Frame Architecture: Video-inspired append-only storage for crash safety and time-travel queries",
+      "locator": "Key Features in v2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Search over 50K documents completes in under 20ms; bulk ingestion exceeds 150 docs/sec; frame append is under 0.1ms",
+      "kind": "docs",
+      "url": "https://docs.memvid.com/introduction/welcome",
+      "quote": "Search (50K docs) < 20ms; Bulk ingestion 150+ docs/sec; Frame append < 0.1ms",
+      "locator": "What Makes Memvid Different / Lightning Performance",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/lib.rs",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/graph_search.rs",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/search/mod.rs",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/vec.rs",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/src/search/tantivy/engine.rs",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/issues/218",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/issues/230",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/issues/50",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/issues/51",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/issues/183",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/issues/97",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/issues/247",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/issues/207",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/issues/171",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/issues/240",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/issues/204",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/issues/194",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/issues/168",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/issues/252",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/issues/242",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/issues/225",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memvid/memvid/issues/221",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://memvid.com/blog/memory-loss-and-its-hidden-costs-in-long-running-ai-workflows",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://docs.memvid.com/introduction/welcome",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://news.ycombinator.com/item?id=46502628",
+      "kind": "community",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Capsule rules and expiry: README names 'rules and expiry' on capsules but does not specify what rules govern or how expiry triggers deletion or suppression",
+      "url": "https://github.com/memvid/memvid/blob/e6bd9f7b9c38cd8d5370fa0fc936ac1dcd751813/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Conflict / supersession: append-only model is stated but no conflict resolution or supersession policy for contradictory facts is described",
+      "url": "https://github.com/memvid/memvid/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Whether self-hosted tickets require a cloud API key or network verification to be honoured at write time \u2014 the page raises the question but receives no authoritative answer.",
+      "url": "https://github.com/memvid/memvid/issues/171",
+      "kind": "issue"
+    },
+    {
+      "text": "No information on conflict or supersession behavior when re-opening a store with different enable_lex/enable_vec flags than the original creation",
+      "url": "https://github.com/memvid/memvid/issues/194",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of conflict/supersession behavior when correct() or enrich() are called on an existing frame \u2014 how the store resolves duplicate or contradictory facts is not stated.",
+      "url": "https://github.com/memvid/memvid/issues/225",
+      "kind": "issue"
+    },
+    {
+      "text": "No documentation on how the WAL is read back into retrieval context \u2014 whether scanning is sequential, indexed, or filtered \u2014 is present on this page.",
+      "url": "https://github.com/memvid/memvid/issues/230",
+      "kind": "issue"
+    },
+    {
+      "text": "Recovery or repair behavior after WAL checksum corruption is explicitly out of scope for this issue and not described.",
+      "url": "https://github.com/memvid/memvid/issues/230",
+      "kind": "issue"
+    },
+    {
+      "text": "How retrieval/query is performed against the mv2 index \u2014 the page does not describe the read path or how memories are selected into a turn",
+      "url": "https://github.com/memvid/memvid/issues/240",
+      "kind": "issue"
+    },
+    {
+      "text": "No response or resolution is present on this page; it is unknown whether the zero-hit bug is a known defect, a seal/flush ordering issue, or a configuration gap.",
+      "url": "https://github.com/memvid/memvid/issues/97",
+      "kind": "issue"
+    },
+    {
+      "text": "Conflict / supersession: no description of how duplicate or contradicting entries are handled on write",
+      "url": "https://docs.memvid.com/introduction/welcome",
+      "kind": "blog"
+    }
+  ]
+}
