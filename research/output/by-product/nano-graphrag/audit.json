@@ -1,0 +1,645 @@
+{
+  "identity": {
+    "id": "nano-graphrag",
+    "name": "nano-graphrag",
+    "repo": "https://github.com/gusye1234/nano-graphrag",
+    "docs": "https://github.com/gusye1234/nano-graphrag/blob/main/readme.md",
+    "license": "MIT",
+    "version_or_commit": "acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [],
+  "mechanisms": [
+    {
+      "text": "Inserted documents are chunked, entities and relations extracted, and persisted to a working directory; the graph and all contexts are reloaded from that directory on next initialization"
+    },
+    {
+      "text": "Local query mode retrieves top-K community reports and entity context into prompt; global mode uses top-K important and central communities up to a configurable cap"
+    },
+    {
+      "text": "Entity extraction converts raw text into structured knowledge by identifying entities and relationships, then stores results in both graph and vector databases."
+    },
+    {
+      "text": "Three distinct storage backend abstractions are defined: key-value storage, vector storage, and graph storage, each scoped to a named namespace."
+    },
+    {
+      "text": "Documents are split into overlapping token-sized chunks, each keyed by an MD5 hash of content with a 'chunk-' prefix, and stored in a KV store."
+    },
+    {
+      "text": "Retrieve-only mode available: query can return only the retrieved context rather than a generated answer, for integration into custom prompts"
+    },
+    {
+      "text": "working_dir is per-instantiation (defaults to timestamped directory), providing implicit session-level isolation of all storage namespaces."
+    },
+    {
+      "text": "LLM calls support a hashing KV cache, allowing repeated LLM prompts to be served from storage rather than re-called"
+    },
+    {
+      "text": "Entity names and descriptions are upserted into a vector store (entity_vdb) to enable similarity-based retrieval."
+    },
+    {
+      "text": "Global search uses only top-K communities by importance rather than filling all communities into context"
+    },
+    {
+      "text": "Local retrieval enforces separate token ceilings for text units, local context, and community reports."
+    },
+    {
+      "text": "Incremental insertion with MD5-hash-based deduplication for content-based duplicate detection"
+    },
+    {
+      "text": "nano-graphrag indexes a corpus; indexing time is reported as a benchmark metric."
+    },
+    {
+      "text": "LLM response caching is supported via a hashing KV storage passed through kwargs"
+    },
+    {
+      "text": "nano-graphrag supports NetworkX (in-memory) and Neo4j as graph storage backends"
+    },
+    {
+      "text": "LLM function signature supports a hashing KV cache for memoizing LLM calls"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Text chunks are persisted as keyed records in a KV store, identified by MD5 hash of content with 'chunk-' prefix.",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/_op.py",
+      "quote": "inserting_chunks.update(\n            {compute_mdhash_id(chunk[\"content\"], prefix=\"chunk-\"): chunk}\n        )",
+      "locator": "get_chunks function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity extraction uses iterative LLM gleaning: the model is re-prompted to continue extracting until it signals completion or a max iteration count is reached.",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/_op.py",
+      "quote": "for now_glean_index in range(entity_extract_max_gleaning):\n            glean_result = await use_llm_func(continue_prompt, history_messages=history)",
+      "locator": "_process_single_content inner function inside extract_entities",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Node merge conflict resolution: entity type is chosen by majority vote across all extracted instances; descriptions are deduplicated, concatenated, then LLM-summarized if over token limit.",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/_op.py",
+      "quote": "entity_type = sorted(\n        Counter(\n            [dp[\"entity_type\"] for dp in nodes_data] + already_entitiy_types\n        ).items(),\n        key=lambda x: x[1],\n        reverse=True,\n    )[0][0]",
+      "locator": "_merge_nodes_then_upsert function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Edge merge conflict resolution: weights are summed, descriptions deduplicated and joined, source IDs unioned, and the result upserted.",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/_op.py",
+      "quote": "weight = sum([dp[\"weight\"] for dp in edges_data] + already_weights)\n    description = GRAPH_FIELD_SEP.join(\n        sorted(set([dp[\"description\"] for dp in edges_data] + already_description))\n    )",
+      "locator": "_merge_edges_then_upsert function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity descriptions and names are stored in a vector store for similarity-based retrieval at query time.",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/_op.py",
+      "quote": "data_for_vdb = {\n            compute_mdhash_id(dp[\"entity_name\"], prefix=\"ent-\"): {\n                \"content\": dp[\"entity_name\"] + dp[\"description\"],\n                \"entity_name\": dp[\"entity_name\"],\n            }\n            for dp in all_entities_data\n        }\n        await entity_vdb.upsert(data_for_vdb)",
+      "locator": "extract_entities function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Community reports are persisted to a KV store after hierarchical generation, level-by-level from deepest to shallowest.",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/_op.py",
+      "quote": "levels = sorted(set([c[\"level\"] for c in community_values]), reverse=True)\n    logger.info(f\"Generating by levels: {levels}\")",
+      "locator": "generate_community_report function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "At query time, community reports are filtered by level and minimum rating before retrieval, making retrieval policy conditional rather than always-retrieve.",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/_op.py",
+      "quote": "community_datas = [\n        c\n        for c in community_datas\n        if c[\"report_json\"].get(\"rating\", 0) >= query_param.global_min_community_rating\n    ]",
+      "locator": "global_query function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No session or user isolation is implemented in this file; all storage instances are passed in as shared parameters with no per-user or per-session scoping visible here.",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/_op.py",
+      "quote": "async def extract_entities(\n    chunks: dict[str, TextChunkSchema],\n    knwoledge_graph_inst: BaseGraphStorage,\n    entity_vdb: BaseVectorStorage,\n    tokenizer_wrapper,\n    global_config: dict,",
+      "locator": "extract_entities function signature",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The store contains curated graph facts (entity nodes, relationship edges, community reports), not a raw message log or full conversation transcript.",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/_op.py",
+      "quote": "maybe_nodes = defaultdict(list)\n    maybe_edges = defaultdict(list)\n    for m_nodes, m_edges in results:\n        for k, v in m_nodes.items():\n            maybe_nodes[k].extend(v)\n        for k, v in m_edges.items():\n            maybe_edges[tuple(sorted(k))].extend(v)",
+      "locator": "extract_entities function, post-gather merge block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Three storage abstractions (KV, vector, graph) are namespaced, enabling per-namespace isolation of persisted data.",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/base.py",
+      "quote": "@dataclass\nclass StorageNameSpace:\n    namespace: str\n    global_config: dict",
+      "locator": "class StorageNameSpace",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Upsert (not append) is the write primitive for all three stores, meaning re-ingesting the same id overwrites rather than duplicates.",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/base.py",
+      "quote": "async def upsert(self, data: dict[str, T]):\n        raise NotImplementedError",
+      "locator": "class BaseKVStorage",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Community reports attach to graph communities and are a persisted field (report_string, report_json) beyond the raw schema.",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/base.py",
+      "quote": "class CommunitySchema(SingleCommunitySchema):\n    report_string: str\n    report_json: dict",
+      "locator": "class CommunitySchema",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval into context is token-budget-gated per content type (text units, local context, community reports), not a flat top-k.",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/base.py",
+      "quote": "local_max_token_for_text_unit: int = 4000  # 12000 * 0.33\n    local_max_token_for_local_context: int = 4800  # 12000 * 0.4\n    local_max_token_for_community_report: int = 3200  # 12000 * 0.27",
+      "locator": "class QueryParam",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path persists curated facts (named entities and typed relationships with descriptions) into a graph store and a vector store \u2014 not a raw message log.",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/entity_extraction/extract.py",
+      "quote": "maybe_nodes = defaultdict(list)\n    maybe_edges = defaultdict(list)\n    for m_nodes, m_edges in results:\n        for k, v in m_nodes.items():\n            maybe_nodes[k].extend(v)\n        for k, v in m_edges.items():\n            maybe_edges[k].extend(v)",
+      "locator": "extract_entities_dspy function",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Documents are deduplicated at insert time via content hash; already-stored docs are silently skipped.",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/graphrag.py",
+      "quote": "_add_doc_keys = await self.full_docs.filter_keys(list(new_docs.keys()))\n            new_docs = {k: v for k, v in new_docs.items() if k in _add_doc_keys}\n            if not len(new_docs):\n                logger.warning(f\"All docs are already in the storage\")\n                return",
+      "locator": "graphrag.py:ainsert",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "There is no conversation-level message log; the store contains document chunks, entity graphs, and community reports \u2014 not a dialogue transcript.",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/graphrag.py",
+      "quote": "self.full_docs = self.key_string_value_json_storage_cls(\n            namespace=\"full_docs\", global_config=asdict(self)\n        )\n        self.text_chunks = self.key_string_value_json_storage_cls(\n            namespace=\"text_chunks\", global_config=asdict(self)\n        )\n        ...self.community_reports = self.key_string_value_json_storage_cls(\n            namespace=\"community_reports\", global_config=asdict(self)\n        )\n        self.chunk_entity_relation_graph = self.graph_storage_cls(\n            namespace=\"chunk_entity_relation\", global_config=asdict(self)\n        )",
+      "locator": "graphrag.py:__post_init__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Storage isolation is at the working_dir level; no per-user or per-character isolation mechanism is present in this file.",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/graphrag.py",
+      "quote": "working_dir: str = field(\n        default_factory=lambda: f\"./nano_graphrag_cache_{datetime.now().strftime('%Y-%m-%d-%H:%M:%S')}\"\n    )",
+      "locator": "graphrag.py:GraphRAG.working_dir",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Working directory persists all graph contexts and is reloaded automatically on re-initialization",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/readme.md",
+      "quote": "Next time you initialize a GraphRAG from the same working_dir, it will reload all the contexts automatically.",
+      "locator": "Quick Start section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Community structure in the stored graph is fully recomputed on every insert, not incrementally updated",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/readme.md",
+      "quote": "each time you insert, the communities of graph will be re-computed and the community reports will be re-generated",
+      "locator": "Incremental Insert section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Storage layer is fully swappable: KV, vector, and graph backends can each be replaced with custom implementations",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/readme.md",
+      "quote": "You can replace all storage-related components to your own implementation, nano-graphrag mainly uses three kinds of storage",
+      "locator": "Storage Component section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LLM responses can be cached in a KV store keyed by hashed prompt to avoid redundant calls",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/readme.md",
+      "quote": "hashing_kv: BaseKVStorage = kwargs.pop(\"hashing_kv\", None)",
+      "locator": "LLM Function section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The covariates feature from the original GraphRAG is not implemented",
+      "kind": "code",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/readme.md",
+      "quote": "nano-graphrag didn't implement the covariates feature of GraphRAG",
+      "locator": "Issues section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "nano-graphrag builds a graph store by extracting entities and relations via LLM; an empty extraction result leaves the graph empty and causes community detection to fail.",
+      "kind": "docs",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/main/docs/FAQ.md",
+      "quote": "This error is caused by nano-graphrag tries to compute communities on an empty network. In most cases, this is caused by the LLM model you're using, it fails to extract any entities or relations, so the graph is empty.",
+      "locator": "FAQ.md \u00a7 Leiden.EmptyNetworkError:EmptyNetworkError",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Entity extraction processes text in chunks; the log line 'Processed 42 chunks, 0 entities(duplicated), 0 relations(duplicated)' confirms chunk-level processing before graph storage.",
+      "kind": "docs",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/main/docs/FAQ.md",
+      "quote": "One possible reason of 'Processed 42 chunks,0 entities(duplicated),0 relations(duplicated)WARNING:nano-graphrag:Didn't extract any entities, maybe your LLM is not working WARNING:nano-graphrag:No new entities found'",
+      "locator": "FAQ.md \u00a7 One possible reason of\u2026",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "nano-graphrag completes corpus indexing in under 4 minutes, faster than GraphRAG's 5+ minutes.",
+      "kind": "docs",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/main/docs/benchmark-en.md",
+      "quote": "nano-graphrag index time : less than 4 minutes",
+      "locator": "benchmark-en.md, Index Benchmark section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "nano-graphrag local search retrieves entities and relationships into context and passes them to the model for answer generation.",
+      "kind": "docs",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/main/docs/benchmark-en.md",
+      "quote": "[ Data: Reports (0); Entities (1); Relationships (0, 3, 5, 14, 45, +more) ]",
+      "locator": "benchmark-en.md, Local Search Results / nano-graphrag section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "nano-graphrag global search retrieves community reports into context and passes them to the model for answer generation.",
+      "kind": "docs",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/main/docs/benchmark-en.md",
+      "quote": "[ Data: Reports (0, 1, 2, 3, 4, 5, 6, 12, 23, 14, +more) ]",
+      "locator": "benchmark-en.md, Global Search Results / nano-graghrag section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "nano-graphrag uses OpenAI Embedding and gpt-4o for both indexing and search.",
+      "kind": "docs",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/main/docs/benchmark-en.md",
+      "quote": "Both GraphRAG and nano-graphrag use OpenAI Embedding and gpt-4o .",
+      "locator": "benchmark-en.md, preamble section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "nano-graphrag's GraphRAG class accepts a configurable graph storage backend; Neo4jStorage is one such backend requiring Neo4j 5.x with the GDS plugin",
+      "kind": "docs",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/main/docs/use_neo4j_for_graphrag.md",
+      "quote": "from nano_graphrag._storage import Neo4jStorage\n...GraphRAG(\n    graph_storage_cls=Neo4jStorage,\n    addon_params=neo4j_config,\n)",
+      "locator": "code block, use_neo4j_for_graphrag.md",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Persisted state reloads automatically when GraphRAG is re-initialized from the same working directory",
+      "kind": "docs",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/main/readme.md",
+      "quote": "Next time you initialize a GraphRAG from the same working_dir, it will reload all the contexts automatically.",
+      "locator": "readme.md, Quick Start section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph community index is fully recomputed on every insert, meaning the stored community reports are not incrementally updated but regenerated",
+      "kind": "docs",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/main/readme.md",
+      "quote": "However, each time you insert, the communities of graph will be re-computed and the community reports will be re-generated",
+      "locator": "readme.md, Incremental Insert section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "All three storage layers (KV, vector, graph) are replaceable via constructor arguments, making persistence backend pluggable",
+      "kind": "docs",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/main/readme.md",
+      "quote": "You can replace all storage-related components to your own implementation, nano-graphrag mainly uses three kinds of storage",
+      "locator": "readme.md, Storage Component section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve-then-prompt path is explicitly exposed: only_need_context=True returns raw retrieved context without generation",
+      "kind": "docs",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/main/readme.md",
+      "quote": "you can use param=QueryParam(..., only_need_context=True,...), which will only return the retrieved context from graph",
+      "locator": "readme.md, Only query the related context section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Global search retrieve policy limits candidates to top-K communities by importance/centrality, not full community set",
+      "kind": "docs",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/main/readme.md",
+      "quote": "nano-graphrag only use the top-K important and central communites (use QueryParam.global_max_consider_community to control, default to 512 communities).",
+      "locator": "readme.md, Issues section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LLM calls support a hashing KV cache layer to avoid redundant LLM requests",
+      "kind": "docs",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/main/readme.md",
+      "quote": "# pop cache KV database if any\nhashing_kv: BaseKVStorage = kwargs.pop(\"hashing_kv\", None)",
+      "locator": "readme.md, LLM Function section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph backend configuration is supplied via global_config[\"addon_params\"]",
+      "kind": "issue",
+      "url": "https://github.com/gusye1234/nano-graphrag/issues/173",
+      "quote": "Config would follow the existing pattern via `global_config[\"addon_params\"]` with `arcadedb_url` and `arcadedb_auth` keys.",
+      "locator": "Implementation section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "nano-graphrag supports an in-memory graph backend (NetworkX) as one storage option",
+      "kind": "issue",
+      "url": "https://github.com/gusye1234/nano-graphrag/issues/173",
+      "quote": "nano-graphrag currently supports NetworkX (in-memory) and Neo4j as graph backends.",
+      "locator": "Feature Request, first sentence",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "nano-graphrag's local_rag_response prompt scaffold contains duplicate Goal and Target response length and format sections, which the issue author flags as possibly unintentional repetition.",
+      "kind": "issue",
+      "url": "https://github.com/gusye1234/nano-graphrag/issues/56",
+      "quote": "Is this intentional repetition or some kind of error?",
+      "locator": "issue body, question following prompt display",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Core functionality delivered in approximately 1100 lines of Python code",
+      "kind": "blog",
+      "url": "https://dev.co/ai/rag/nano-graphrag",
+      "quote": "It provides core functionality for building knowledge graphs and performing retrieval-augmented queries in approximately 1100 lines of code",
+      "locator": "What nano-graphrag is",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Persistence uses local storage backends (nano-vectordb, NetworkX) that lack cryptographic protections",
+      "kind": "blog",
+      "url": "https://dev.co/ai/rag/nano-graphrag",
+      "quote": "No cryptographic protections mentioned for local storage (NetworkX, nano-vectordb) or inter-component communication.",
+      "locator": "Security considerations",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Deduplication is content-based (MD5 hash), not semantic",
+      "kind": "blog",
+      "url": "https://dev.co/ai/rag/nano-graphrag",
+      "quote": "Incremental insertion uses MD5-hash for deduplication; duplicate detection is content-based, not semantic.",
+      "locator": "Implementation considerations",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No multi-user or multi-tenant architecture; isolation is per working directory only",
+      "kind": "blog",
+      "url": "https://dev.co/ai/rag/nano-graphrag",
+      "quote": "The architecture is single-user, working from a local working_dir. Multi-tenancy would require custom application-layer separation.",
+      "locator": "nano-graphrag FAQ / Does nano-graphrag support multi-user or multi-tenant deployments?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Local query mode described as better and more scalable but algorithmic difference not detailed on this page",
+      "kind": "blog",
+      "url": "https://dev.co/ai/rag/nano-graphrag",
+      "quote": "README mentions local mode is 'better and more scalable' but does not detail the algorithmic difference.",
+      "locator": "nano-graphrag FAQ / What is the difference between local and global query modes?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "nano-graphrag persists extracted entities and relationships into both graph and vector databases after chunking and LLM-based extraction.",
+      "kind": "blog",
+      "url": "https://gonamlui.com/blog/brief-breakdown-of-nano-graphrag-a-lightweight-alternative-to-graphrag",
+      "quote": "Storage: The structured data populates both graph and vector databases",
+      "locator": "Entity Extraction",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval at query time uses vector similarity as the entry point for both naive and local modes; local mode additionally traverses the knowledge graph.",
+      "kind": "blog",
+      "url": "https://gonamlui.com/blog/brief-breakdown-of-nano-graphrag-a-lightweight-alternative-to-graphrag",
+      "quote": "First, it identifies entities in the query using vector similarity search. It then explores the neighborhood of these entities in the knowledge graph",
+      "locator": "Query processing \u2013 Local Search",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Global search selects from stored community reports, filtered and sorted, rather than raw entity lookup.",
+      "kind": "blog",
+      "url": "https://gonamlui.com/blog/brief-breakdown-of-nano-graphrag-a-lightweight-alternative-to-graphrag",
+      "quote": "It retrieves community schemas from the knowledge graph. Communities are sorted by occurrence and filtered by level. The system extracts the most relevant points from community reports",
+      "locator": "Query processing \u2013 Global Search",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Importance score on entities (0\u20131) is part of the stored data model, implying weight-based retrieval selection is possible.",
+      "kind": "blog",
+      "url": "https://gonamlui.com/blog/brief-breakdown-of-nano-graphrag-a-lightweight-alternative-to-graphrag",
+      "quote": "importance_score: A value (0-1) indicating significance",
+      "locator": "Entity Model",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "State persisted to working_dir is reloaded automatically on next initialization",
+      "kind": "blog",
+      "url": "https://pypi.org/project/nano-graphrag/",
+      "quote": "Next time you initialize a GraphRAG from the same working_dir, it will reload all the contexts automatically.",
+      "locator": "Project description, Quick Start section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Communities and community reports are regenerated on every insert, not incrementally updated",
+      "kind": "blog",
+      "url": "https://pypi.org/project/nano-graphrag/",
+      "quote": "each time you insert, the communities of graph will be re-computed and the community reports will be re-generated",
+      "locator": "Project description, Incremental Insert section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Global search retrieves only top-K central communities, not the full community set as in original GraphRAG",
+      "kind": "blog",
+      "url": "https://pypi.org/project/nano-graphrag/",
+      "quote": "nano-graphrag only use the top-K important and central communites (use QueryParam.global_max_consider_community to control, default to 512 communities)",
+      "locator": "Project description, Issues section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Default KV storage backend is disk file; default vector storage is nano-vectordb; default graph storage is networkx",
+      "kind": "blog",
+      "url": "https://pypi.org/project/nano-graphrag/",
+      "quote": "By default we use disk file storage as the backend ... By default we use nano-vectordb as the backend ... By default we use networkx as the backend.",
+      "locator": "Project description, Storage Component section",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/readme.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/graphrag.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/_op.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/entity_extraction/extract.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/base.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/main/readme.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/main/docs/FAQ.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/main/docs/use_neo4j_for_graphrag.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/main/docs/benchmark-en.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/gusye1234/nano-graphrag/issues/173",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/gusye1234/nano-graphrag/issues/56",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://pypi.org/project/nano-graphrag/",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://gonamlui.com/blog/brief-breakdown-of-nano-graphrag-a-lightweight-alternative-to-graphrag",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://dev.co/ai/rag/nano-graphrag",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "No per-record delete or forget operation is defined for vector or graph storage; only KV has drop() which removes the entire namespace. Whether selective forgetting is possible is not addressed.",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/nano_graphrag/base.py",
+      "kind": "code"
+    },
+    {
+      "text": "No delete or forget API is described; it is unclear whether stored entities, relations, or chunks can be removed from the working directory short of manual file deletion.",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/acb35c065614eb5a2f5f1be9a56b235f5a2e0a7a/readme.md",
+      "kind": "code"
+    },
+    {
+      "text": "No description of forget or delete: the page does not describe any API or mechanism for removing stored entities, chunks, or community reports from the persistent store",
+      "url": "https://github.com/gusye1234/nano-graphrag/blob/main/readme.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Whether the prompt duplication is intentional (a known LLM emphasis technique) or a template authoring bug is not resolved on this page.",
+      "url": "https://github.com/gusye1234/nano-graphrag/issues/56",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of delete or forget mechanisms for removing entities, relationships, or chunks from the store.",
+      "url": "https://gonamlui.com/blog/brief-breakdown-of-nano-graphrag-a-lightweight-alternative-to-graphrag",
+      "kind": "blog"
+    },
+    {
+      "text": "No description of forget/delete behavior: whether stored entities, chunks, or community reports can be removed from the working_dir store",
+      "url": "https://pypi.org/project/nano-graphrag/",
+      "kind": "blog"
+    }
+  ]
+}
