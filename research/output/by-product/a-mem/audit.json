@@ -1,0 +1,1013 @@
+{
+  "identity": {
+    "id": "a-mem",
+    "name": "A-MEM",
+    "repo": "https://github.com/agiresearch/A-mem",
+    "docs": "https://github.com/agiresearch/A-mem/blob/main/README.md",
+    "license": "MIT",
+    "version_or_commit": "ceffb860f0712bbae97b184d440df62bc910ca8d",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "A self-organizing, Zettelkasten-inspired dynamic memory system for LLM agents that eschews rigid schemas in favor of flexible, content-driven organization"
+    },
+    {
+      "text": "Designed for coding agents; memories organize into a Zettelkasten-style graph with dynamic relationships"
+    },
+    {
+      "text": "Persistent retrieval to facilitate sharing of memory from multiple agents across sessions"
+    },
+    {
+      "text": "Implements concepts from academic paper on agentic memory for LLM agents"
+    },
+    {
+      "text": "LLMController is used for memory metadata generation"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Collections are created via get_or_create_collection; the distance metric (defaulting to L2 instead of cosine) is set at collection creation time and cannot be changed afterward, requiring export-delete-recreate-reimport to migrate existing persistent stores"
+    },
+    {
+      "text": "The bug can cause a memory's content field to describe one entity (e.g. Apartment/Convenient Store) while its context and tags become overwritten with unrelated data (e.g. Hospital-related), a direct continuity corruption."
+    },
+    {
+      "text": "When a new memory is added, the system generates comprehensive notes, creates contextual descriptions and tags, analyzes historical memories for relevant connections, and establishes meaningful links."
+    },
+    {
+      "text": "Notes are persisted in two stores simultaneously: an in-process dict (self.memories) and ChromaDB (via ChromaRetriever). Both are updated on every add, update, and delete operation."
+    },
+    {
+      "text": "Retrieval uses self.retriever.search(query, k) called at least twice in the same code path, potentially intended to use different embedding retrieval methods at each call site."
+    },
+    {
+      "text": "When a new note is added, the system can alter contextual representations or metadata in existing notes by querying the LLM, supporting evolution of the knowledge graph"
+    },
+    {
+      "text": "All memory operations including summarization, linking, and evolution are performed by the LLM itself, avoiding hand-crafted workflows or static graph operations"
+    },
+    {
+      "text": "A-MEM exposes an `add` method that accepts a summary string and tags including agent_id and session_id, indicating per-agent and per-session isolation metadata."
+    },
+    {
+      "text": "Each memory note is a structured tuple capturing content, time, LLM-generated keywords/tags/context, dense embedding, and links"
+    },
+    {
+      "text": "Two-phase retrieve policy: breadth-first metadata peek, then depth-first drill into specific memories to minimize token usage"
+    },
+    {
+      "text": "Agents write memories by explicitly calling A-MEM memory APIs during a session; no call means nothing is stored."
+    },
+    {
+      "text": "Project-specific isolation stores memory in ./chroma_db; global option shares across projects via CHROMA_DB_PATH"
+    },
+    {
+      "text": "The memory vector interface encompasses insert, update, delete, search, and metadata handling operations"
+    },
+    {
+      "text": "Session-start hook scaffolds the model to use memory tools at the start of each session"
+    },
+    {
+      "text": "ChromaDB provides persistent vector embedding storage backing the memory store."
+    },
+    {
+      "text": "Delete removes the note from both ChromaDB and the in-memory dict."
+    },
+    {
+      "text": "Retrieved memories can be filtered or re-ranked by score threshold"
+    },
+    {
+      "text": "Embedding model is configurable; default is all-MiniLM-L6-v2"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Memories are persisted as structured notes in ChromaDB with vector embeddings, supporting add, read, search, update, and delete operations across sessions.",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/README.md",
+      "quote": "Efficient vector embedding storage and retrieval\n   - Fast semantic similarity search\n   - Automatic metadata handling\n   - Persistent memory storage",
+      "locator": "Advanced Features \u2014 ChromaDB Vector Storage",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path on add includes LLM-driven note generation (structured attributes, context, keywords, tags) and automatic linking to existing memories via semantic similarity before persisting.",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/README.md",
+      "quote": "When a new memory is added to the system:\n1. Generates comprehensive notes with structured attributes\n2. Creates contextual descriptions and tags\n3. Analyzes historical memories for relevant connections\n4. Establishes meaningful links based on similarities\n5. Enables dynamic memory evolution and updates",
+      "locator": "How It Works section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Deletion from the store is explicit via delete(memory_id); no eviction or hiding policy is described on this page.",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/README.md",
+      "quote": "memory_system.delete(memory_id)",
+      "locator": "Usage Examples \u2014 Delete Memories",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "This is a curated memory store, not a message log: content is stored as notes with extracted keywords, context, tags, and category rather than raw conversation transcripts.",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/README.md",
+      "quote": "memory_id = memory_system.add_note(\n    content=\"Machine learning project notes\",\n    tags=[\"ml\", \"project\"],\n    category=\"Research\",\n    timestamp=\"202503021500\"\n)",
+      "locator": "Usage Examples \u2014 Add Memories",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory evolution (re-linking, metadata update) happens automatically on add or update, not only at retrieval time.",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/README.md",
+      "quote": "This happens automatically when adding or updating memories!",
+      "locator": "Usage Examples \u2014 Memory Evolution comment block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A-MEM uses an LLM controller to generate metadata for memory entries, not raw transcript storage",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/llm_controller.py",
+      "quote": "LLM-based controller for memory metadata generation",
+      "locator": "class LLMController docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The LLM is prompted to return structured JSON, suggesting memory writes involve structured/curated fields rather than raw log entries",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/llm_controller.py",
+      "quote": "response_format=response_format",
+      "locator": "OpenAIController.get_completion, line calling client.chat.completions.create",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Supported LLM backends for metadata generation are OpenAI and Ollama",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/llm_controller.py",
+      "quote": "Backend must be one of: 'openai', 'ollama'",
+      "locator": "LLMController.__init__, ValueError message",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "MemoryNote is the atomic unit of memory storage; it is a curated record with semantic metadata, not a raw log line.",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/memory_system.py",
+      "quote": "A memory note that represents a single unit of information in the memory system.",
+      "locator": "class MemoryNote docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are stored in both an in-process Python dict and ChromaDB; both stores are kept in sync on every write, update, and delete.",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/memory_system.py",
+      "quote": "self.memories[note.id] = note ... self.retriever.add_document(note.content, metadata, note.id)",
+      "locator": "AgenticMemorySystem.add_note",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "An LLM extracts keywords, context, and tags from raw content before a note is stored, making every write a curated memory rather than a verbatim transcript entry.",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/memory_system.py",
+      "quote": "Identifying the most salient keywords ... Extracting core themes and contextual elements ... Creating relevant categorical tags",
+      "locator": "AgenticMemorySystem.analyze_content, prompt string",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A second LLM pass (evolution agent) runs on each new note to decide whether to strengthen links or update context/tags on neighboring notes.",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/memory_system.py",
+      "quote": "You are an AI memory evolution agent responsible for managing and evolving a knowledge base. Analyze the the new memory note according to keywords and context, also with their several nearest neighbors memory. Make decisions about its evolution.",
+      "locator": "AgenticMemorySystem._evolution_system_prompt",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hard delete removes a note from both ChromaDB and the in-memory dict; no soft-delete or hide-at-retrieve path is present in this file.",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/memory_system.py",
+      "quote": "self.retriever.delete_document(memory_id)\n            # Delete from local storage\n            del self.memories[memory_id]",
+      "locator": "AgenticMemorySystem.delete",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "ChromaDB is reset at every new instantiation of AgenticMemorySystem, so persistence across process restarts depends entirely on whether the caller reloads memories externally.",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/memory_system.py",
+      "quote": "temp_retriever = ChromaRetriever(collection_name=\"memories\",model_name=self.model_name)\n            temp_retriever.client.reset()",
+      "locator": "AgenticMemorySystem.__init__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval returns timestamp, content, context, keywords, and tags \u2014 the full curated metadata \u2014 rather than raw text alone.",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/memory_system.py",
+      "quote": "memory_str += f\"memory index:{i}\\ttalk start time:{metadata.get('timestamp', '')}\\tmemory content: {metadata.get('content', '')}\\tmemory context: {metadata.get('context', '')}\\tmemory keywords: {str(metadata.get('keywords', []))}\\tmemory tags: {str(metadata.get('tags', []))}\\n\"",
+      "locator": "AgenticMemorySystem.find_related_memories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "evolution_history field is carried on every MemoryNote and written to ChromaDB metadata, but nothing in this file writes to it; the field is always the initial empty list unless passed in by the caller.",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/memory_system.py",
+      "quote": "evolution_history (Optional[List]): Record of how the memory has evolved ... self.evolution_history = evolution_history or []",
+      "locator": "class MemoryNote.__init__",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Default ChromaRetriever is in-process only; memories are lost when the process exits",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/retrievers.py",
+      "quote": "self.client = chromadb.Client(Settings(allow_reset=True))",
+      "locator": "ChromaRetriever.__init__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "PersistentChromaRetriever enables cross-session memory sharing across multiple agents by writing to disk",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/retrievers.py",
+      "quote": "Persistent ChromaDB client/retriever to facilitate sharing of memory from multiple agents across sessions.",
+      "locator": "PersistentChromaRetriever docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete is a first-class operation on the store, enabling explicit forgetting by ID",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/retrievers.py",
+      "quote": "self.collection.delete(ids=[doc_id])",
+      "locator": "ChromaRetriever.delete_document",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is top-k vector similarity; no adaptive or conditional retrieval policy is implemented at this layer",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/retrievers.py",
+      "quote": "def search(self, query: str, k: int = 5):\n        results = self.collection.query(query_texts=[query], n_results=k)",
+      "locator": "ChromaRetriever.search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "CopiedChromaRetriever provides per-agent isolation by cloning a shared base collection into an ephemeral temp store",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/retrievers.py",
+      "quote": "Useful for creating isolated copies of shared starting memory collections.",
+      "locator": "CopiedChromaRetriever docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Ephemeral clone is automatically destroyed at process exit, so it does not accumulate across sessions",
+      "kind": "code",
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/retrievers.py",
+      "quote": "atexit.register(self.close)",
+      "locator": "CopiedChromaRetriever.__init__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are persisted in ChromaDB as vectors with metadata, surviving across sessions",
+      "kind": "docs",
+      "url": "https://github.com/agiresearch/A-mem/blob/main/README.md",
+      "quote": "Persistent memory storage",
+      "locator": "README.md, Advanced Features, ChromaDB Vector Storage section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path includes LLM-driven note generation, tagging, keyword extraction, and linking to related memories at add/update time",
+      "kind": "docs",
+      "url": "https://github.com/agiresearch/A-mem/blob/main/README.md",
+      "quote": "When a new memory is added to the system:\nGenerates comprehensive notes with structured attributes\nCreates contextual descriptions and tags\nAnalyzes historical memories for relevant connections\nEstablishes meaningful links based on similarities\nEnables dynamic memory evolution and updates",
+      "locator": "README.md, How It Works section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete operation removes a memory from the store by ID",
+      "kind": "docs",
+      "url": "https://github.com/agiresearch/A-mem/blob/main/README.md",
+      "quote": "memory_system.delete(memory_id)",
+      "locator": "README.md, Usage Examples section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is semantic/similarity-based (not always-retrieve); caller controls k results returned",
+      "kind": "docs",
+      "url": "https://github.com/agiresearch/A-mem/blob/main/README.md",
+      "quote": "Use specific search queries\nAdjust 'k' parameter based on needed results\nConsider both exact and semantic matches",
+      "locator": "README.md, Best Practices, Memory Retrieval section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory evolution (relationship discovery, metadata update, cross-memory linking) triggers automatically on add and update",
+      "kind": "docs",
+      "url": "https://github.com/agiresearch/A-mem/blob/main/README.md",
+      "quote": "This happens automatically when adding or updating memories!",
+      "locator": "README.md, Usage Examples section, Memory Evolution comment block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "process_memory does not validate LLM-suggested IDs against the memory store, allowing references to non-existent memories to be persisted in MemoryNote.links",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/11",
+      "quote": "`process_memory` does not validate whether IDs suggested by the LLM (via `suggested_connections`) exist in the memory store. As a result, invalid IDs like \"0\" can be stored in MemoryNote.links, leading to downstream errors.",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write path for memory connections involves an LLM proposing IDs to link, which are then stored without existence checks \u2014 a continuity failure where the graph of memories can contain dangling/invalid links",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/11",
+      "quote": "Add ID validation in `process_memory` to ensure all LLM-suggested IDs are valid.",
+      "locator": "Suggested Fix section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A-MEM's memory_system.py contains a duplicated retriever search call at lines 473 and 489 that would return identical results, suggesting a second distinct embedding retrieval method was intended but not implemented.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/14",
+      "quote": "in memory_system.py line 473 and 489 there are duplicated call for self.retriever.search(query, k) and they should return the same results. Thus the later process should be useless. I think from your comments you should use another embedding retrieve methods in 489?",
+      "locator": "memory_system.py:473,489",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A-MEM supports RAG operations where the same passages are fed repeatedly across users.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/15",
+      "quote": "Same passages fed repeatedly across users",
+      "locator": "### Key Use Cases for A-mem / RAG Operations",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A-MEM handles multi-turn memory processing with reuse of prompts across sessions and replicas.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/15",
+      "quote": "Reuse big fixed prompts across sessions and replicas",
+      "locator": "### Key Use Cases for A-mem / Multi-turn Memory Processing",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A-MEM exposes an AgenticMemorySystem class with configurable LLM backend and embedding model.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/15",
+      "quote": "from agentic_memory.memory_system import AgenticMemorySystem",
+      "locator": "### Proposed User Interface",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A-MEM stores memories retrievable via search_memories, backed by ChromaDB with L2 distance metric",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/23",
+      "quote": "memory_dict['score'] = results['distances'][0][i]\n\nChromaDB's `distances` is ascending L2 distance \u2014 0.0 means identical, higher means less similar.",
+      "locator": "memory_system.py, search_agentic() line 595 and search() line 493",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The score field as currently implemented inverts relevance semantics: callers treating higher score as better will retrieve least relevant memories",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/23",
+      "quote": "Any caller who filters by score threshold (`score > 0.5`) or sorts by score descending will retrieve the **least** relevant memories",
+      "locator": "Issue #23, Impact section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A-MEM has two ChromaDB-backed retriever classes: ChromaRetriever (in-memory, session-scoped) and PersistentChromaRetriever (persistent across sessions), both defined in retrievers.py",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/24",
+      "quote": "ChromaRetriever (line 59) and PersistentChromaRetriever (line 203)",
+      "locator": "bug report body, 'Where it happens'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A-MEM's persistent store uses HNSW indexing via ChromaDB; the distance metric is locked at collection creation and migrating requires full export-delete-recreate-reimport",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/24",
+      "quote": "The hnsw:space setting is locked at collection creation time and cannot be changed on an existing collection. Any existing persistent ChromaDB collection will need to be recreated (export documents \u2192 delete collection \u2192 recreate with cosine \u2192 re-import).",
+      "locator": "bug report body, 'Migration note'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A bug causes degraded semantic retrieval quality in A-MEM because collections default to L2 distance rather than cosine, mismatching the embedding model's training objective",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/24",
+      "quote": "All ChromaDB collections are created without specifying a distance metric, so they default to L2 (squared Euclidean). Sentence embedding models (including the all-MiniLM-L6-v2 used here) are trained to produce vectors where cosine similarity is the meaningful distance measure. Using L2 treats vector magnitude as significant when it isn't, producing lower-quality nearest-neighbour retrieval.",
+      "locator": "bug report body, 'Problem'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieve failure: a semantic query will not match a memory whose relevant terms appear only in LLM-extracted tags, not in the raw content string \u2014 the LLM's extraction work is wasted at search time.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/25",
+      "quote": "This means a query like `\"ollama GPU setup\"` won't match a memory whose content is `\"NVIDIA driver 590.48.01 is compatible with kernel 6.17\"` even though it has tags `[\"ollama\", \"gpu\", \"nvidia\"]`. The LLM's extraction work is wasted at search time.",
+      "locator": "## Problem",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A-MEM's write path stores both a raw content field and processed metadata (including tags and keywords) per memory document in ChromaDB.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/25",
+      "quote": "Pass `searchable_text` as the `document` to ChromaDB while keeping `content` as the stored field in metadata.",
+      "locator": "## Proposed fix",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Default embedding model is all-MiniLM-L6-v2, hardcoded in retrievers.py",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/26",
+      "quote": "The system uses `all-MiniLM-L6-v2` as its embedding model (hardcoded default in `retrievers.py`).",
+      "locator": "Problem",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Persistent memory collection requires index rebuild when embedding model is changed, creating a migration burden",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/26",
+      "quote": "Switching models on an existing persistent collection requires rebuilding the index (same migration caveat as #24).",
+      "locator": "Note",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Embedding model name is already a constructor parameter in the codebase but not yet exposed via environment variable",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/26",
+      "quote": "it's already a constructor parameter \u2014 just needs wiring to the env",
+      "locator": "Suggested approach",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A-MEM requires explicit agent API calls to write memories; passive or non-compliant agents produce no memory records.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/29",
+      "quote": "A-MEM assumes the agent actively calls memory APIs during a session. In practice, many agent deployments -- particularly those using non-Claude CLIs (Gemini CLI, Codex, shell-based agents) -- complete work without issuing any memory write calls. The session ends, and nothing is captured.",
+      "locator": "Problem section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Proposed isolation unit is the project field, orthogonal to the existing category field",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/27",
+      "quote": "`project` is orthogonal \u2014 a memory can be `category=\"debugging\"` in `project=\"A-mem\"` or `category=\"debugging\"` in `project=\"mcp-stuff\"`. They should vary independently.",
+      "locator": "Why not category? section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory tagging on write uses a project string argument to add_memory",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/27",
+      "quote": "`add_memory(content, project=\"A-mem\")` \u2014 tags memory to that project",
+      "locator": "Behaviour section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "consolidate_memories is a named code path that also carries project metadata",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/27",
+      "quote": "All metadata dicts in `AgenticMemorySystem` (add_note, update, consolidate_memories, _load_memories_from_chromadb)",
+      "locator": "Solution section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write path requires the agent (or orchestrator) to invoke amem.add() with a summary and tags; there is no automatic passive capture.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/29",
+      "quote": "amem.add(summary, tags=[\"session-harvest\", agent_id, session_id])",
+      "locator": "Proposed: git-diff harvest at session end section, pseudocode",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A-MEM's memory store is organized as a knowledge graph with zettelkasten-inspired linking between memory nodes.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/29",
+      "quote": "A-MEM's zettelkasten-inspired linking is most valuable when memories are rich and complete. Sessions where nothing is captured create gaps in the knowledge graph.",
+      "locator": "Why this matters for A-MEM specifically section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "There is a gap between the paper's described link generation mechanism and the actual code implementation.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/3",
+      "quote": "There appears to be an inconsistency between your code implementation and the methodology described in your paper.",
+      "locator": "issue title",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A-MEM is a Zettelkasten-inspired memory system featuring link generation and memory evolution, presented at NeurIPS 2025.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/30",
+      "quote": "Really impressive work on the Zettelkasten-inspired memory system \u2014 the NeurIPS 2025 paper is one of the most cited in the memory space this year. The link generation + memory evolution mechanism is elegant.",
+      "locator": "issue body, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A-MEM's evaluation pipeline is tightly coupled to specific benchmark datasets, making community reproduction and extension difficult.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/30",
+      "quote": "there's currently no easy way for the community to reproduce and extend these evaluations with new test data. The evaluation pipeline seems tightly coupled to specific benchmark datasets.",
+      "locator": "issue body, second paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A-MEM link generation quality is proposed to be testable via clustering-dimension evaluation \u2014 implying generated links are expected to connect semantically related memories.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/30",
+      "quote": "Link generation evaluation: Do generated links actually connect semantically related memories? MemTest's clustering dimension tests exactly this.",
+      "locator": "issue body, bullet list under 'For A-MEM specifically'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A-MEM requires ChromaDB as its vector storage backend",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/31",
+      "quote": "A-Mem currently requires ChromaDB for vector storage and an embedding model for indexing.",
+      "locator": "issue body, section 'The problem I observed in A-Mem'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "An LLM drives note generation, producing keywords, context, and links during the write path",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/31",
+      "quote": "A-Mem's LLM-driven note generation (keywords, context, links) would still run \u2014 only the storage and retrieval layer would change. No change to A-Mem's core logic.",
+      "locator": "issue body, section 'Proposed integration'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "It is unclear whether ChromaDB is tightly integrated or abstracted behind a swappable storage interface",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/31",
+      "quote": "Does A-Mem have a storage abstraction layer that could be swapped out, or is ChromaDB tightly integrated?",
+      "locator": "issue body, section 'Questions for the team', question 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write/update path (process_memory) is vulnerable to overwriting wrong memories due to index/ID confusion, corrupting content, context, and tags fields with data from unrelated memories.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/32",
+      "quote": "It can overwrite unrelated notes, causing `content` to describe Apartment/Convenient Store while `context` and `tags` become Hospital-related.",
+      "locator": "issue body, Description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A-MEM maintains a suggested_connections field on memory notes, which may reference neighbor memory IDs.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/32",
+      "quote": "Also consider storing real memory IDs in `suggested_connections`.",
+      "locator": "issue body, Suggested fix",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Chroma is described as suitable for local deployments but potentially limiting at scale, implying A-MEM's current memory backend is local-only by default",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/33",
+      "quote": "Chroma is a good local default, but a small vector backend abstraction could let users keep the same memory API while choosing a different vector store for larger deployments",
+      "locator": "issue body, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A-MEM's memory store supports insert, update, and delete operations on memory vectors",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/33",
+      "quote": "Introduce a narrow interface for memory vector insert/update/delete/search and metadata handling",
+      "locator": "issue body, numbered list item 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "After update_neighbor evolution, in-memory state (self.memories) holds the new context/tags but the Chroma store retains the old context/tags, causing read/search to disagree with find_related_memories_raw and find_related_memories.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/35",
+      "quote": "primary_context: new-context-marker\nchroma_context: old-context-marker\nraw_search / evolution_neighbors: old-context-marker",
+      "locator": "Relevant output",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "consolidate_memories() does not upsert or delete-then-add evolved notes in Chroma, so the consolidation step fails to propagate evolution changes to the retrieval store.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/35",
+      "quote": "Updating/upserting existing rows during consolidation, or explicitly rebuilding the intended collection, looks sufficient for this case.",
+      "locator": "Likely cause",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Stale Chroma metadata fed to find_related_memories() means the next evolution prompt receives old context for neighbors, creating a continuity failure where the model acts on superseded facts.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/35",
+      "quote": "The latter also supplies neighbors to the next evolution prompt.",
+      "locator": "Summary",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Calling update() with the evolved context repairs Chroma retrieval by deleting and re-adding the note, confirming the write path is correct when invoked directly.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/35",
+      "quote": "assert system.update(\"target\", context=NEW, tags=[NEW])\nrepaired = system.find_related_memories_raw(\"target content\", k=1)\nassert NEW in repaired and OLD not in repaired",
+      "locator": "Complete standalone script",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The package under test is agentic-memory==0.0.1 at commit ceffb860 with chromadb==0.5.23.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/35",
+      "quote": "Tested unmodified revision `ceffb860f0712bbae97b184d440df62bc910ca8d`, Python 3.12.13, `agentic-memory==0.0.1`, `chromadb==0.5.23`.",
+      "locator": "Reproduction and result",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory records carry metadata fields: content, context, keywords, and score",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/7",
+      "quote": "'content': memory.content,\n                    'context': memory.context,\n                    'keywords': memory.keywords,\n                    'score': chroma_results['distances'][0][i]",
+      "locator": "issue body, search method code",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The hybrid retrieval path (ChromaDB + embedding retriever) contains a bug where both calls invoke the same retriever.search, making deduplication a no-op and the second pass non-functional",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/7",
+      "quote": "the two internal retrieval calls are identical. Is that intentional or a bug?",
+      "locator": "issue body, question",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "AgenticMemorySystem accepts a model_name parameter intended to configure the embedding model used for memory retrieval, but the parameter is silently ignored.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/9",
+      "quote": "`model_name` is accepted as an argument but never passed into the underlying retriever or embedding mechanism.",
+      "locator": "Likely Cause section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The actual embedding model used by A-MEM's retrieval store is hardcoded to all-MiniLM-L6-v2 inside ChromaRetriever, regardless of constructor arguments.",
+      "kind": "issue",
+      "url": "https://github.com/agiresearch/A-mem/issues/9",
+      "quote": "the system still downloads and uses `all-MiniLM-L6-v2`",
+      "locator": "To Reproduce / observed log output",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A-MEM is a self-evolving memory system for coding agents organized as a Zettelkasten-style knowledge graph",
+      "kind": "blog",
+      "url": "https://pypi.org/project/a-mem/",
+      "quote": "A-MEM is a self-evolving memory system for coding agents. Unlike simple vector stores, A-MEM automatically organizes knowledge into a Zettelkasten-style graph with dynamic relationships. Memories don't just get stored\u2014they evolve and connect over time.",
+      "locator": "Description section, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path uses LLM to extract keywords, context, and tags, then searches for similar memories and evolves connections before persisting to ChromaDB",
+      "kind": "blog",
+      "url": "https://pypi.org/project/a-mem/",
+      "quote": "Add a memory \u2192 A-MEM extracts keywords, context, and tags via LLM\nFind neighbors \u2192 Searches for semantically similar existing memories\nEvolve \u2192 Decides whether to link, strengthen connections, or update related memories\nStore \u2192 Persists to ChromaDB with full metadata and relationships",
+      "locator": "How It Works section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval combines vector similarity with graph traversal; a two-phase peek-then-drill policy minimizes token usage",
+      "kind": "blog",
+      "url": "https://pypi.org/project/a-mem/",
+      "quote": "Start with breadth-first search to capture relevant memories via lightweight metadata (id, context, keywords, tags). Then drill depth-first into specific memories with read_memory_note for full content. This minimizes token usage while maximizing recall.",
+      "locator": "Features section, Peek and Drill",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Add operation is asynchronous and returns a task_id immediately; completion can be checked via check_task_status",
+      "kind": "blog",
+      "url": "https://pypi.org/project/a-mem/",
+      "quote": "add_memory_note \u2014 Store new knowledge (async, returns immediately) \u2026 check_task_status \u2014 Check async task completion",
+      "locator": "MCP Tools section, tools table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is per-project by default; global sharing across projects is opt-in via CHROMA_DB_PATH",
+      "kind": "blog",
+      "url": "https://pypi.org/project/a-mem/",
+      "quote": "Project-specific (default): Each project gets isolated memory in ./chroma_db\nGlobal: Share across projects by setting CHROMA_DB_PATH=~/.local/share/a-mem/chroma_db",
+      "locator": "Memory Scope section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A session-start hook scaffolds the model to use memory tools, acting as the instruction layer",
+      "kind": "blog",
+      "url": "https://pypi.org/project/a-mem/",
+      "quote": "A session-start hook installs automatically to remind Claude to use memory.",
+      "locator": "Quick Start section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Default embedding model is all-MiniLM-L6-v2 (sentence transformer)",
+      "kind": "blog",
+      "url": "https://pypi.org/project/a-mem/",
+      "quote": "EMBEDDING_MODEL \u2014 Sentence transformer model \u2014 all-MiniLM-L6-v2",
+      "locator": "Environment Variables table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Implements concepts from Xu et al. 2025 arXiv:2502.12110",
+      "kind": "blog",
+      "url": "https://pypi.org/project/a-mem/",
+      "quote": "A-MEM implements concepts from the paper: A-MEM: Agentic Memory for LLM Agents Xu et al., 2025 arXiv:2502.12110",
+      "locator": "Research section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A-Mem is a self-organizing, Zettelkasten-inspired dynamic memory system for LLM agents using flexible, content-driven organization",
+      "kind": "blog",
+      "url": "https://www.emergentmind.com/topics/a-mem",
+      "quote": "A-Mem for LLM agents implements a self-organizing, Zettelkasten-inspired dynamic memory system that eschews rigid schemas in favor of flexible, content-driven organization",
+      "locator": "Section 2: Agentic Memory Engines for LLM Agents",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory notes are structured tuples with content, timestamps, LLM-generated keywords/tags/context, dense embeddings, and inter-note links",
+      "kind": "blog",
+      "url": "https://www.emergentmind.com/topics/a-mem",
+      "quote": "Each memory note $m_i = (c_i, t_i, K_i, G_i, X_i, e_i, L_i)$ captures content, time, LLM-generated keywords/tags/context, dense embedding, and links.",
+      "locator": "Section 2: Agentic Memory Engines for LLM Agents, Structured Note Construction",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory evolution allows existing notes' contextual representations or metadata to be updated when new notes are added",
+      "kind": "blog",
+      "url": "https://www.emergentmind.com/topics/a-mem",
+      "quote": "When a new note is added, the system can alter contextual representations or metadata in existing notes by querying the LLM with prompt $P_{s3}$, supporting evolution of the knowledge graph.",
+      "locator": "Section 2: Agentic Memory Engines for LLM Agents, Memory Evolution",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval is embedding-based top-k search expanded via note links",
+      "kind": "blog",
+      "url": "https://www.emergentmind.com/topics/a-mem",
+      "quote": "Uses embedding-based top-$k$ search, with expansion via note links, for context retrieval during inference.",
+      "locator": "Section 2: Agentic Memory Engines for LLM Agents, Retrieval",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "All memory operations are performed by the LLM itself rather than hand-crafted workflows",
+      "kind": "blog",
+      "url": "https://www.emergentmind.com/topics/a-mem",
+      "quote": "All memory operations\u2014including summarization, linking, and evolution\u2014are performed by the LLM itself, avoiding hand-crafted workflows or static graph operations.",
+      "locator": "Section 2: Agentic Memory Engines for LLM Agents, Agentic Decision-Making",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LoCoMo multi-hop F1 improved from 18.4 (baseline) to 45.9; token consumption reduced 85\u201393% versus prior memory agents",
+      "kind": "blog",
+      "url": "https://www.emergentmind.com/topics/a-mem",
+      "quote": "multi-hop LoCoMo F1 improved from 18.4 (baseline) to 45.9, and token consumption per operation was reduced by 85\u201393% versus prior memory agents.",
+      "locator": "Section 2: Agentic Memory Engines for LLM Agents, Experiments",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Multimodal and hierarchical agentic memory is an open future direction",
+      "kind": "blog",
+      "url": "https://www.emergentmind.com/topics/a-mem",
+      "quote": "Multimodal and hierarchical agentic memory ([2502.12110])",
+      "locator": "Section 7: Open Challenges and Future Directions",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/memory_system.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/retrievers.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/blob/ceffb860f0712bbae97b184d440df62bc910ca8d/agentic_memory/llm_controller.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/issues/3",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/issues/7",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/issues/11",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/issues/26",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/issues/27",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/issues/9",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/issues/35",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/issues/33",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/issues/32",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/issues/31",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/issues/30",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/issues/29",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/issues/25",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/issues/24",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/issues/23",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/issues/15",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agiresearch/A-mem/issues/14",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://pypi.org/project/a-mem/",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "It is unclear whether A-MEM's reported token cost metric includes memory retrieval/update operations or only the final answer generation step",
+      "url": "https://github.com/agiresearch/A-mem/issues/19",
+      "kind": "issue"
+    },
+    {
+      "text": "memory_system.py does not document whether score/distance threshold filtering is applied internally before results are returned to callers, leaving it unclear whether wrong memories can already surface in practice",
+      "url": "https://github.com/agiresearch/A-mem/issues/23",
+      "kind": "issue"
+    },
+    {
+      "text": "What effect, if any, the `links` field has on memory retrieval, context selection, or response generation is not explained on this page and is a gap in the canonical repo's architecture.",
+      "url": "https://github.com/agiresearch/A-mem/issues/3",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether A-MEM has a storage abstraction layer permitting backend replacement \u2014 this is a canonical architecture question for a memory system and is explicitly unresolved on this page",
+      "url": "https://github.com/agiresearch/A-mem/issues/31",
+      "kind": "issue"
+    },
+    {
+      "text": "The issue asks how to reproduce visualization results of memory shown in the paper, and notes the corresponding code cannot be found. It is unclear whether memory visualization code exists in the repository.",
+      "url": "https://github.com/agiresearch/A-mem/issues/5",
+      "kind": "issue"
+    }
+  ]
+}
