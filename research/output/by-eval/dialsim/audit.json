@@ -1,0 +1,547 @@
+{
+  "identity": {
+    "id": "dialsim",
+    "name": "DialSim",
+    "repo": "https://github.com/jiho283/DialSim",
+    "docs": "https://arxiv.org/abs/2406.13144",
+    "license": "MIT License",
+    "version_or_commit": "0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [],
+  "mechanisms": [
+    {
+      "text": "Grading is performed by judge_eq, which takes the gold answer option, the model's raw output, the question prompt, and the OpenAI client (suggesting LLM-as-judge for ambiguous cases); it returns a (result, is_ambiguous) tuple."
+    },
+    {
+      "text": "Three TV-show scripts are supported as separate evaluation targets: Friends, The Big Bang Theory, and The Office, with a named chatbot character per script."
+    },
+    {
+      "text": "Experiments are run three times (due to randomized question selection per run) and accuracy with standard deviation is reported."
+    },
+    {
+      "text": "Retrieval methods include BM25, OpenAI embeddings, no retrieval, and oracle retrieval."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "GPT-4o-mini is used as the LLM judge for multi_choice_unstructured and open_ended answer formats.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/README.md",
+      "quote": "we use gpt-4o-mini as a judge when answer_format is \"multi_choice_unstructured\" or \"open_ended\"",
+      "locator": "README.md, Arguments, openai_api_key",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Oracle retrieval is available as a setting, providing an upper-bound retrieval condition.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/README.md",
+      "quote": "Options include \"openai-emb\", \"bm25\", \"no_ret\", and \"oracle\".",
+      "locator": "README.md, Arguments, ret_method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The number of retrieved history segments is configurable and requires modifying simulator.py lines 180-198 and 222-236.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/README.md",
+      "quote": "num_ret_history: Number of retrieved histories to use. Modify lines 180-198, 222-236 in simulator.py to change this number.",
+      "locator": "README.md, Arguments, num_ret_history",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LongDialQA is described as a novel, high-quality QA dataset used for randomized questioning within DialSim.",
+      "kind": "docs",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/README.md",
+      "quote": "evaluating performance under randomized questioning with LongDialQA, a novel, high-quality question-answering dataset",
+      "locator": "README.md, Introduction",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "DialSim evaluates three TV-show scripts: Friends (chatbot=Ross), The Big Bang Theory (chatbot=Sheldon), The Office (chatbot=Michael).",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/pseudo_simulator.py",
+      "quote": "if script_name == 'friends':\n        chatbot = 'Ross'\n    elif script_name == 'bigbang':\n        chatbot = 'Sheldon'\n    elif script_name == 'theoffice':\n        chatbot = 'Michael'",
+      "locator": "pseudo_simulator.py, simulator(), chatbot assignment block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Two question difficulty tiers exist: 'hard_q' (TKG/knowledge-graph-based) and 'easy_q' (fan-quiz-based, including unanswerable variants).",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/pseudo_simulator.py",
+      "quote": "question_dict = epi_data[sc_num]['hard_q']\n                ...\n                question_dict = epi_data[sc_num]['easy_q']",
+      "locator": "pseudo_simulator.py, simulator(), Question Selection block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The primary score is raw accuracy (Correct / total); a secondary calibrated_score applies the same formula after ambiguity post-processing.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/pseudo_simulator.py",
+      "quote": "score_total = result_list.count('Correct') / len(result_list)\n    ...\n    calibrated_score = calibrated_result_list.count('Correct') / len(calibrated_result_list)",
+      "locator": "pseudo_simulator.py, simulator(), scoring block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Grading delegates ambiguous cases to an LLM judge via judge_eq, which receives the OpenAI client as a parameter.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/pseudo_simulator.py",
+      "quote": "result, is_ambiguous = judge_eq(true_answer_op, answer, question_part_prompt_sh, client, answer_format=answer_format)",
+      "locator": "pseudo_simulator.py, simulator(), grading block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A per-utterance time budget (sleep_time) enforces real-time constraints; exceeding it in any pipeline stage (save, retrieve, answer) counts as Wrong.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/pseudo_simulator.py",
+      "quote": "if result_time >= sleep_time:\n                            result = \"Wrong (Timeout)\"",
+      "locator": "pseudo_simulator.py, simulator(), timeout handling blocks",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Oracle retrieval mode provides ground-truth relevant sessions as retrieved context, serving as an upper-bound retrieval condition.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/pseudo_simulator.py",
+      "quote": "elif ret_method == 'oracle':\n        ret_histories = gt_sessions",
+      "locator": "pseudo_simulator.py, retrieve_history()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Name shuffling (original / shuffle / new_name) is implemented via name_change() applied to all displayed text, testing robustness to character name changes.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/pseudo_simulator.py",
+      "quote": "temp_script = name_change(script_name, script, name_shuffle)",
+      "locator": "pseudo_simulator.py, simulator(), session processing loop",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Questions are asked at a specific utterance in each session (when the chatbot's utterance appears), ensuring the question is posed mid-stream rather than at session end.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/pseudo_simulator.py",
+      "quote": "if random_chatbot_utter.lower() in utter_post.lower() and len(characters) > 0 and target_question_list[0] != 'cannot ask':",
+      "locator": "pseudo_simulator.py, simulator(), utterance loop question trigger",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Primary metric is accuracy: count of 'Correct' results divided by total number of questions evaluated.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/simulator.py",
+      "quote": "if 'Correct' in result_list: score_total = result_list.count('Correct') / len(result_list) else: score_total = 0",
+      "locator": "simulator(), score computation, simulator.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A second 'calibrated score' metric is also computed, applying the same formula to calibrated_result_list rather than raw result_list.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/simulator.py",
+      "quote": "if 'Correct' in calibrated_result_list: calibrated_score = calibrated_result_list.count('Correct') / len(calibrated_result_list) else: calibrated_score = 0",
+      "locator": "simulator(), calibrated score computation, simulator.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Mean response time across non-timeout questions is tracked as a secondary metric.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/simulator.py",
+      "quote": "valid_result_time_list = [] for result_time in result_time_list: if isinstance(result_time, float): valid_result_time_list.append(result_time) ... result_time_mean = sum(valid_result_time_list) / len(valid_result_time_list)",
+      "locator": "simulator(), timing metric computation, simulator.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Timeout failures are recorded with distinct labels ('Wrong (Timeout in saving history)', 'Wrong (Timeout in searching history)', 'Wrong (Timeout in answering)', 'Wrong (Timeout)') and contribute to the denominator of score_total.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/simulator.py",
+      "quote": "result = 'Wrong (Timeout in saving history)' ... result = 'Wrong (Timeout in searching history)' ... result = 'Wrong (Timeout in answering)' ... if result_time >= sleep_time: result = 'Wrong (Timeout)'",
+      "locator": "simulator(), various timeout branches, simulator.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Ambiguous model outputs are flagged separately and logged with their indices, model answers, and gold answers, but are not excluded from scoring by default.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/simulator.py",
+      "quote": "if is_ambiguous: ambiguous_idx_list.append((epi, sc_num, question_part_prompt_sh)) ambiguous_answer_list.append(answer) ambiguous_gold_answer_list.append(true_answer_op)",
+      "locator": "simulator(), ambiguity logging block, simulator.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-question type granularity is tracked via target_level_list storing the current_type (e.g. tkg subtype or fan subtype) for each evaluated question.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/simulator.py",
+      "quote": "target_level_list.append({'current_type' : current_type})",
+      "locator": "simulator(), result logging block, simulator.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The simulator asks exactly one question per session (already_asked flag prevents re-asking); questions are inserted at the utterance position matching the chatbot's chosen utterance.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/simulator.py",
+      "quote": "if already_asked == 1: continue ... already_asked = 1",
+      "locator": "simulator(), question gating logic, simulator.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The question asker character (char_ask) is chosen randomly from characters appearing within a \u00b13 utterance window around a randomly selected chatbot utterance, excluding the chatbot itself.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/simulator.py",
+      "quote": "range_indices = [i for i in range(max(0, bot_indices[0]-3), min(len(post_utterances), bot_indices[0]+3))] ... for char_ in close_chars: if chatbot.lower() in char_.lower() or 'all' == char_.lower(): characters.remove(char_)",
+      "locator": "simulator(), character selection block, simulator.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "For session-entire and session-summary history types, the current in-progress session is popped from history after each utterance (except the last), so only completed sessions are retained.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/simulator.py",
+      "quote": "if not already_pop and 'session' in history_type and un < len(post_utterances) - 1: ... data_dict['history'].pop()",
+      "locator": "simulator(), history pop block, simulator.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Number of retrieved history items is model-dependent: llama models get 3 (bm25: 1), tulu/gemma get 5 (bm25: 2), others get 10, under session-entire history type.",
+      "kind": "code",
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/simulator.py",
+      "quote": "elif history_type == 'session-entire': if 'llama' in model_name.lower(): num_ret_history = 3 if ret_method == 'bm25': num_ret_history = 1 elif 'tulu' in model_name.lower() or 'gemma' in model_name.lower(): if ret_method == 'bm25': num_ret_history = 2 else: num_ret_history = 5 else: num_ret_history = 10",
+      "locator": "simulator(), hyperparameter block, simulator.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Evaluated agents include state-of-the-art LLM-based conversational agents with large context windows or RAG capabilities.",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2406.13144",
+      "quote": "Our evaluation of state-of-the-art LLM-based conversational agents using DialSim reveals that even models with large context windows or RAG capabilities struggle",
+      "locator": "abstract",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark was submitted June 2024 and revised through September 2025 (v6).",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2406.13144",
+      "quote": "[v1] Wed, 19 Jun 2024 \u2026 [v6] Fri, 26 Sep 2025",
+      "locator": "submission history",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Primary metric is accuracy (CorrectAnswers / TotalQuestions) computed over randomly sampled questions across sessions.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "quote": "CorrectAnswers / TotalQuestions",
+      "locator": "Algorithm 1, Section 3.1.2",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Experiments are run three times per condition; accuracy and standard deviation are reported.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "quote": "We conducted experiments three times and reported the accuracy and standard deviations.",
+      "locator": "Section 4.3, Table 3 caption",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Unanswerable questions comprise 20% of total questions per session.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "quote": "Since each question has five choices, unanswerable questions were set to comprise 20% of the total to fairly stratify the correct answers.",
+      "locator": "Section 4.1",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The Big Bang Theory: 805 sessions, average 1196.9 question candidates per session (1011.0 answerable / 185.9 unanswerable), 367,636 total tokens.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "quote": "The Big Bang Theory: Total Number of Tokens 367636, Total Number of Sessions 805, Average Question Candidates per Session 1196.9 (1011.0 / 185.9)",
+      "locator": "Table 2, Section 4.1",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dialogue average length is ~350k tokens, described as the longest among existing long-term dialogue datasets.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "quote": "DialSim includes multi-party dialogues with an average length of 350k tokens, making it the longest among existing long-term dialogue datasets.",
+      "locator": "Section 1, Introduction, Evaluating Long-Term Multi-Party Dialogue Understanding bullet",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "All baselines scored below 40% accuracy, indicating poor LLM performance on the benchmark.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "quote": "the performances of all baselines were below 40%, suggesting that current LLMs function poorly as conversational agents for multi-party long-term complex dialogues.",
+      "locator": "Section 4.3, Results",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Oracle upper bound: Claude-3 Opus achieved 69.64% accuracy without time limit, exceeding best RAG-based method by 23.21%.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "quote": "Claude-3 Opus achieved the best performance of 69.64% in a setting with unlimited time, highlighting the challenging nature of our task. This result surpasses the best RAG-based method, Session Entire-BM25 setting, by 23.21%.",
+      "locator": "Section 4.3, Oracle Setting",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Fan quiz-based questions are easier than TKG-based questions: Mixtral scored 53.75% vs 41.14%; one-hop TKG 54.46% vs two-hop 17.92%.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "quote": "comparing the performance of fan quiz-based questions and TKG-based questions, the results were 53.75% and 41.14% respectively... one-hop questions had a performance of 54.46%, whereas two-hop questions had a performance of 17.92%",
+      "locator": "Section 4.3, Error Analysis by Question Type",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Adversarial name modification caused 5\u201310% performance drop under unlimited time conditions.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "quote": "when we experimented under unlimited time conditions, performance dropped by 5% to 10%.",
+      "locator": "Section 4.3, Adversarial Test",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Scripts sourced from 5 consecutive seasons per TV show downloaded from Kaggle; fan quizzes from FunTrivia.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "quote": "DialSim was developed using scripts from five consecutive seasons of popular TV shows (i.e., Friends, The Big Bang Theory, and The Office). The scripts were downloaded from the website Kaggle (https://www.kaggle.com/).",
+      "locator": "Section 3.2",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "TKG uses 32 relations derived from DialogRE; triples extracted by ChatGPT-4 and manually verified by authors.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "quote": "We employed 32 relations (e.g., girlfriend) derived from DialogRE... These triples were then refined by the authors.",
+      "locator": "Section 3.2.3",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dataset released under MIT License via GitHub and HuggingFace.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "quote": "The dataset is released under MIT License... The dataset and the code will be released at https://github.com/jiho283/Simulator.",
+      "locator": "Appendix A.6",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No recommended train/dev/test splits exist for DialSim.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "quote": "Are there recommended data splits (e.g., training, development/validation, testing)? N/A.",
+      "locator": "Appendix A.2",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The simulator is claimed to be the first work evaluating conversational agent performance in a time-constrained environment.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "quote": "To the best of our knowledge, this is the first work that evaluates the performance of a conversational agent in a time-constrained environment.",
+      "locator": "Section 1, Introduction, Real-Time Simulator bullet",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "30% of questions per simulation run are drawn from fan quiz pool to balance fan quiz vs TKG question proportions.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "quote": "The number of questions based on fan quizzes was significantly smaller than the questions based on the TKG. Thus, 30% of the questions were intentionally extracted from the fan quiz-based during the simulation.",
+      "locator": "Appendix H.3",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The agent must distinguish between known and unknown information, implying abstention or unanswerable question handling is evaluated.",
+      "kind": "docs",
+      "url": "https://github.com/jiho283/DialSim/blob/main/README.md",
+      "quote": "requiring it to respond to spontaneous questions using past dialogue information and to distinguish between known and unknown information",
+      "locator": "README.md, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "v1.0 is the dataset version described in the paper; v1.1 adds unanswerable multi-hop questions.",
+      "kind": "docs",
+      "url": "https://github.com/jiho283/DialSim/blob/main/README.md",
+      "quote": "v1.0: This version includes the dataset as described in the paper. v1.1: To incorporate more diverse and challenging data, this version has been updated to include unanswerable multi-hop questions.",
+      "locator": "README.md, Dataset section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Scoring for multi_choice_unstructured and open_ended formats is performed by GPT-4o-mini as an LLM judge.",
+      "kind": "docs",
+      "url": "https://github.com/jiho283/DialSim/blob/main/README.md",
+      "quote": "we use gpt-4o-mini as a judge when answer_format is \"multi_choice_unstructured\" or \"open_ended\"",
+      "locator": "README.md, Arguments section, openai_api_key",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Oracle retrieval is available as a retrieval setting, enabling upper-bound retrieval experiments.",
+      "kind": "docs",
+      "url": "https://github.com/jiho283/DialSim/blob/main/README.md",
+      "quote": "ret_method : Retrieval method, default is \"bm25\". Options include \"openai-emb\", \"bm25\", \"no_ret\", and \"oracle\".",
+      "locator": "README.md, Arguments section, ret_method",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark tests agents on three TV show corpora: Friends, The Big Bang Theory, and The Office.",
+      "kind": "docs",
+      "url": "https://github.com/jiho283/DialSim/blob/main/README.md",
+      "quote": "script_name : TV show script for the simulation, default is \"friends\". Options include \"friends\", \"bigbang\", and \"theoffice\".",
+      "locator": "README.md, Arguments section, script_name",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "An adversarial evaluation mode shuffles or replaces character names to test robustness.",
+      "kind": "docs",
+      "url": "https://github.com/jiho283/DialSim/blob/main/README.md",
+      "quote": "name_shuffle : Type of adversarial test, default is \"original\". Options include \"original\", \"shuffle\", and \"new_name\". \"shuffle\" means an adversarial setting, and \"new_name\" means placing generic names.",
+      "locator": "README.md, Arguments section, name_shuffle",
+      "confidence": "high",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/simulator.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jiho283/DialSim/blob/0dd4db4db90740dbcf047f18a8e8adc83e7ba0f0/pseudo_simulator.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://arxiv.org/abs/2406.13144",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jiho283/DialSim/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Judge prompt or rubric used to evaluate agent responses to spontaneous questions is not disclosed on this page.",
+      "url": "https://arxiv.org/abs/2406.13144",
+      "kind": "paper"
+    },
+    {
+      "text": "Code repository or implementation details for the scoring pipeline are not linked on this page.",
+      "url": "https://arxiv.org/abs/2406.13144",
+      "kind": "paper"
+    },
+    {
+      "text": "Specific TV shows used as source material for LongDialQA are not named on this page.",
+      "url": "https://arxiv.org/abs/2406.13144",
+      "kind": "paper"
+    },
+    {
+      "text": "The exact ChatGPT-4 prompt used for filtering fan quiz questions and annotating evidence scenes is not provided in the paper.",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "kind": "paper"
+    },
+    {
+      "text": "The exact ChatGPT-4 prompt used for TKG triple extraction is not specified.",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "kind": "paper"
+    },
+    {
+      "text": "The paper does not specify a versioned release or commit tag for the dataset or simulator code.",
+      "url": "https://github.com/jiho283/Simulator",
+      "kind": "paper"
+    },
+    {
+      "text": "The scoring procedure for open-ended (non-multiple-choice) responses is explicitly acknowledged as unsupported and not defined.",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "kind": "paper"
+    },
+    {
+      "text": "The paper does not define how ties or identical accuracy across repeated runs are aggregated beyond reporting mean and standard deviation.",
+      "url": "https://arxiv.org/html/2406.13144v1",
+      "kind": "paper"
+    },
+    {
+      "text": "The judge prompt used when GPT-4o-mini evaluates open_ended and multi_choice_unstructured answers is not defined in the README.",
+      "url": "https://github.com/jiho283/DialSim/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Primary metrics (e.g., accuracy, F1, exact match) and their aggregation formulas are not stated in the README.",
+      "url": "https://github.com/jiho283/DialSim/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Train/test splits and the total size of the LongDialQA dataset are not described in the README.",
+      "url": "https://github.com/jiho283/DialSim/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Dataset construction methodology for LongDialQA (synthetic vs human annotation, question generation process) is not described in the README.",
+      "url": "https://github.com/jiho283/DialSim/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The rule-based evaluation logic for multi_choice_structured answers is not described in the README.",
+      "url": "https://github.com/jiho283/DialSim/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The number of retrieved histories used by default and its effect on scoring is deferred to simulator.py line references without explanation in the README.",
+      "url": "https://github.com/jiho283/DialSim/blob/main/README.md",
+      "kind": "docs"
+    }
+  ]
+}
