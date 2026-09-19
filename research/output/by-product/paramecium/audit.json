@@ -1,0 +1,510 @@
+{
+  "identity": {
+    "id": "paramecium",
+    "name": "Shitsuten Paramecium",
+    "repo": "https://github.com/Shitsuten/paramecium",
+    "docs": "https://github.com/Shitsuten/paramecium/blob/main/README.md",
+    "license": null,
+    "version_or_commit": "7695d520e60bdbecc15086168d64321f2d1e039a",
+    "observed_at": "2026-09-18"
+  },
+  "claimed_purpose": [
+    {
+      "text": "The tool corrects a prior pipeline (split-memories.mjs) whose AI-generated splits were 36% paraphrase rather than verbatim, and replaces them with mechanically windowed archive entries and quote-verified extracts."
+    },
+    {
+      "text": "Embedding component for a memory system called Raffaello"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Message log vs curated memory: raw conversation messages are read from per-conversation JSON files and used as source material; only LLM-selected, quote-verified facts are written to the memory store \u2014 not the full transcript"
+    },
+    {
+      "text": "Two storage layers are distinguished: 'archive' (chat_archive) for mechanical sliding-window slices of raw vault text, and 'vault-extract' for curated, AI-extracted facts with verbatim quote citations."
+    },
+    {
+      "text": "The assistant's reply is scanned for <mem> tags after each turn; if found, the text is posted to a local ingest endpoint at port 3800 to write curated facts into the memory store."
+    },
+    {
+      "text": "Uses BAAI/bge-small-zh-v1.5 via fastembed to produce vector embeddings, backed by ChromaDB's EmbeddingFunction interface, suggesting chromadb as the vector store layer"
+    },
+    {
+      "text": "Archive windows are written by posting to /archive-ingest with replace_conv, enabling idempotent replacement of all windows belonging to a vault document."
+    },
+    {
+      "text": "Certain chat-dir files are explicitly excluded from ingestion by filename (settings.json, memory.json, gateway-stats.json, any backup file)"
+    },
+    {
+      "text": "Inject applies a relative distance filter: results are kept only if within 0.15 of the best hit and below a hard 0.65 junk cutoff."
+    },
+    {
+      "text": "Memories are stored to ChromaDB via a local memory-gateway; this script only writes, not reads \u2014 retrieval is handled elsewhere"
+    },
+    {
+      "text": "Vault entries are identified by an 'id' prefix of 'vault:', distinguishing them from other memory types in the same collection."
+    },
+    {
+      "text": "Canonical tag state is stored in meta.db, not in ChromaDB metadata; this was discovered as a discrepancy during development."
+    },
+    {
+      "text": "Isolation is per conversation: state tracks extractedUpTo per convId, and stored memories carry conversation_id"
+    },
+    {
+      "text": "Delete path: POST /delete removes a memory by id from both ChromaDB and SQLite"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Full conversation transcript is persisted to disk as a JSON file per conversation and never deleted during normal operation; compression advances a read pointer rather than removing records.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/chat-api/gateway.mjs",
+      "quote": "// 2026-06-11: anchor-based window \u2014 don't delete old messages (keeps\n// raw archive intact). Just advance cycleStart past summarized msgs.",
+      "locator": "Cycle Engine / checkCycle",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session summary (BP3) is a curated compression of older turns, separate from the raw log, and is what the model receives as 'conversation context' once the window advances.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/chat-api/gateway.mjs",
+      "quote": "// BP3: Session context \u2014 compression summary only (stable, cacheable)\nconst summary = conv.instantSummary || conv.compressionSummary || '';\nif (summary) {\n  const block = { type: 'text', text: `<conversation_context>\\n${summary}\\n</conversation_context>` };",
+      "locator": "Context Builder / buildSystemBlocks",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory injection uses a two-query-lane strategy: the user's recent context and the assistant's previous reply are both sent to the memory gateway, so what the AI just said influences what is retrieved next turn.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/chat-api/gateway.mjs",
+      "quote": "// 2026-06-12: echo = the assistant's previous reply, sent as a second query\n// lane (\"\u56de\u590d\u7684\u4f59\u5473\") \u2014 what the AI just said shapes what surfaces next turn.",
+      "locator": "Memory Injection / getMemoryInjection",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Curated memory write path is triggered by <mem> tags in the assistant's output; the text is posted to an ingest service, making extraction model-side and tag-driven rather than automatic.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/chat-api/gateway.mjs",
+      "quote": "// Auto-ingest <mem> tags\nif (state.fullText.includes('<mem')) {\n  try {\n    await fetch('http://127.0.0.1:3800/ingest', {\n      method: 'POST', headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify({ text: state.fullText })\n    });\n  } catch {}\n}",
+      "locator": "proxyStream / proxyRes.on('end')",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Vault diary/memo entries are filtered by category and recency (last 2 days) and truncated before injection; the injected form is lossy (800-char cap for diaries, 400-char for memos).",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/chat-api/gateway.mjs",
+      "quote": "const content = d.content.length > 800 ? d.content.slice(0, 800) + '\u2026' : d.content;\n...\nconst content = m.content.length > 400 ? m.content.slice(0, 400) + '\u2026' : m.content;",
+      "locator": "Recent Diary / getRecentDiaries",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall tool provides on-demand retrieval from both vault (curated facts) and archive (verbatim transcripts) layers, with exact/semantic modes and date/conv_id scoping.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/chat-api/gateway.mjs",
+      "quote": "description: '\u641c\u7d22\u4f60\u4eec\u7684\u957f\u671f\u8bb0\u5fc6\u5e76\u8fd4\u56de\u539f\u6587\u3002\u4e24\u5c42\u6570\u636e\uff1avault\uff08\u7cbe\u9009\u8bb0\u5fc6\u6761\u76ee\uff09+ archive\uff08\u5168\u90e8\u804a\u5929\u539f\u6587\u7684\u9010\u5b57\u5b58\u6863\uff09\uff0c\u8bed\u4e49\u68c0\u7d22\u9ed8\u8ba4\u4e24\u5c42\u90fd\u641c\u3002'",
+      "locator": "BUILTIN_TOOLS / recall description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Edit operations that truncate the message log reset the cycleStart anchor and clear instantSummary, preventing a stale summary from being served for a now-shorter history.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/chat-api/gateway.mjs",
+      "quote": "// 2026-06-11 fix: editing before the cycle anchor left cycleStart pointing\n// past the end (empty history window, stale BP3). Reset both \u2014 the raw\n// messages come back into the window and will re-compress naturally.\nif ((conv.cycleStart || 0) > conv.messages.length) {\n  conv.cycleStart = 0;\n  conv.instantSummary = '';\n}",
+      "locator": "handleGatewaySend / Edit / Retry",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory injection is skipped entirely when there is no recent user context, and degrades silently to empty injection on timeout or error rather than blocking the response.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/chat-api/gateway.mjs",
+      "quote": "const injection = recentContext ? await getMemoryInjection(recentContext, lastReply) : { static: '', dynamic: '', memory_ids: [] };\n...\n} catch {\n    return { static: '', dynamic: '', facts_injected: 0, semantic_hits: 0, memory_ids: [] };\n  }",
+      "locator": "handleGatewaySend / Memory injection and getMemoryInjection",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "L0 is a named architectural layer representing the raw-archive source of truth, combining verbatim vault entries and chat messages for exact-recall queries",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/build-fts.py",
+      "quote": "L0 = source of truth: vault entries + API chat conversation messages, indexed verbatim for exact-recall (\"she said it exactly how?\")",
+      "locator": "module docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Vault entries and chat messages are distinguished by source tag ('vault:<category>' vs 'chat'), allowing downstream retrieval to differentiate curated memory from raw log",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/build-fts.py",
+      "quote": "(content, 'vault:' + e.get('category', ''), ...)\n...\n(t, 'chat', f'{conv_id}:{i}', date, m.get('role', ''))",
+      "locator": "main(), vault and chat INSERT statements",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A separate memory.json file exists in the chat data directory but is explicitly excluded from L0 indexing, suggesting it serves a different (possibly higher-layer) memory role",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/build-fts.py",
+      "quote": "if base in ('settings.json', 'memory.json', 'gateway-stats.json') or 'backup' in base:\n    continue",
+      "locator": "main(), chat file loop, skip-list guard",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The memory system is named Raffaello and uses BGE-small-zh embeddings as its vector representation layer",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/embedding.py",
+      "quote": "BGE-small-zh embedding for Raffaello memory system.",
+      "locator": "memory/embedding.py:1 module docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "ChromaDB is used as the vector store backing the memory system",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/embedding.py",
+      "quote": "from chromadb.api.types import EmbeddingFunction, Documents, Embeddings",
+      "locator": "memory/embedding.py:2",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The embedding model used is BAAI/bge-small-zh-v1.5, a Chinese-language model, suggesting the memory system targets Chinese-language content",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/embedding.py",
+      "quote": "_model = TextEmbedding(\"BAAI/bge-small-zh-v1.5\")",
+      "locator": "memory/embedding.py:9",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Extraction runs periodically and only when a conversation has at least 4 unprocessed messages",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/extract-memories.mjs",
+      "quote": "const MIN_NEW_MESSAGES = 4; // minimum unprocessed messages before extracting",
+      "locator": "top-level constants",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Full conversation transcript is never stored; only LLM-curated fact/event summaries with verbatim source quotes are persisted",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/extract-memories.mjs",
+      "quote": "\u4f60\u7684\u5de5\u4f5c\u662f\u300c\u6458\u5f55\u300d\u4e0d\u662f\u300c\u521b\u4f5c\u300d\uff1a\u5708\u51fa\u5bf9\u8bdd\u91cc\u503c\u5f97\u8bb0\u4f4f\u7684\u4fe1\u606f\u70b9\uff0c\u5e76\u4e3a\u6bcf\u6761\u9644\u4e0a\u539f\u6587\u5f15\u7528\u3002",
+      "locator": "extractMemories(), prompt string",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Quote-verification guard drops any memory whose required quote string cannot be found verbatim in the batch source, targeting hallucination and memory-echo",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/extract-memories.mjs",
+      "quote": "quote must appear verbatim in the batch source text \u2014 kills hallucinations and most memory-echo (retellings of old events have no literal source in the current batch).",
+      "locator": "extractMemories(), guard comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Superseded (contradicted/updated) memories are not deleted; they remain in the DB but are removed from ranking, and the operation is reversible by clearing superseded_by",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/extract-memories.mjs",
+      "quote": "Superseded memories leave ranking but stay in the DB (reversible: clear superseded_by).",
+      "locator": "applySupersede(), comment (2026-06-12)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Pinned memories are never auto-superseded regardless of contradiction confidence",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/extract-memories.mjs",
+      "quote": "Pinned memories are sacred and never auto-superseded.",
+      "locator": "applySupersede(), comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Relationship edge model uses DS V3 to classify relationships between new and existing memories; edges with confidence \u2265 0.5 are written to a JSONL file",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/extract-memories.mjs",
+      "quote": "const edgeLine = JSON.stringify({ source: memId, target: edge.target_id, relation_type: edge.relation, confidence: Math.round(conf * 100) / 100, reason: (edge.reason || '').slice(0, 100), created_at: now, }); appendFileSync(EDGES_PATH, edgeLine + '\\n');",
+      "locator": "buildEdges()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per conversation; extraction state and conversation_id are tracked per convId",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/extract-memories.mjs",
+      "quote": "state[convId] = { extractedUpTo: endIdx, lastExtracted: new Date().toISOString(), title: conv.title || '', };",
+      "locator": "processConversation()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "This file handles only the write path (extract + store); retrieval into the turn context is not implemented here",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/extract-memories.mjs",
+      "quote": "Stores into ChromaDB via memory-gateway /ingest-extracted endpoint.",
+      "locator": "file header comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory gateway persists curated memories in ChromaDB (vectors) and SQLite (metadata) as dual stores, distinct from a full transcript archive in raw-archive.db and a chat_archive ChromaDB collection.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/memory-gateway.py",
+      "quote": "_client = chromadb.PersistentClient(path=VEC_PATH)\n_col = _client.get_or_create_collection(\"raffaello_memory\", ...)\n_archive_col = _client.get_or_create_collection(\"chat_archive\", ...)",
+      "locator": "ChromaDB setup block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Injection into the prompt is split into a static layer (profiles, always included) and a dynamic layer (keyword-filtered facts + semantic index lines), with the semantic layer limited to one-line summaries per hit.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/memory-gateway.py",
+      "quote": "# Semantic search \u2014 index only (2026-06-11): one line per hit instead of\n# full documents (~150 tok vs ~1000+).",
+      "locator": "build_injection(), semantic search comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path for inline memories uses <mem> tag extraction from assistant replies; these are stored in ChromaDB only, not in the SQLite meta store or vault.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/memory-gateway.py",
+      "quote": "# Store only in ChromaDB (gateway injection), not vault",
+      "locator": "ingest_text() function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict/supersession is handled by marking absorbed memories with a superseded_by field rather than deleting them; they are excluded at retrieval scoring time.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/memory-gateway.py",
+      "quote": "\"\"\"Mark absorbed memories as superseded by keep_id. Does not delete them.\"\"\"",
+      "locator": "merge_memories() docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hard delete removes a memory from both ChromaDB and SQLite simultaneously via the /delete endpoint.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/memory-gateway.py",
+      "quote": "try: _col.delete(ids=[mem_id])\nexcept: pass\ndb = get_db()\ndb.execute('DELETE FROM memories WHERE id = ?', (mem_id,))",
+      "locator": "/delete handler",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy is adaptive: injection uses a relative distance filter (best+0.15, hard 0.65 cap) so low-relevance memories are withheld rather than always injected.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/memory-gateway.py",
+      "quote": "# Relative filter (2026-06-10): natural-sentence queries sit at dist\n# 0.5-0.6 with bge-small-zh, so a hard 0.45 cutoff starved injection.\n# Keep results within 0.15 of the best hit, hard junk line at 0.65.",
+      "locator": "build_injection(), relative filter comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Access tracking distinguishes injection-path retrieval (not counted) from tool-call retrieval (increments access_count and writes to recall_log).",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/memory-gateway.py",
+      "quote": "# only a real recall (tool call) counts as \"remembered\".",
+      "locator": "search_memories(), log_access comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Temporal validity windows provide a soft forget mechanism: post-expiry memories decay exponentially in score but are not deleted; pre-validity memories receive a gentle penalty.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/memory-gateway.py",
+      "quote": "if vu and now > vu:\n    days_late = (now - vu).total_seconds() / 86400\n    return max(0.05, exp(-0.1 * days_late))  # exponential fade after expiry",
+      "locator": "temporal_relevance() function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write-time deduplication merges incoming memories with cosine similarity >0.75 into the existing record rather than storing duplicates.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/memory-gateway.py",
+      "quote": "if sim > 0.75:\n    existing_doc = similar['documents'][0][i]\n    merged_text = existing_doc + '\\n' + text if len(existing_doc) < 2000 else text\n    _col.upsert(ids=[sid], documents=[merged_text], ...)",
+      "locator": "/embed handler, dedup block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The echo lane queries memory using the assistant's previous reply as a second query vector, surfacing memories relevant to what was just said rather than only what the user asked.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/memory-gateway.py",
+      "quote": "echo: the assistant's previous reply (\"\u56de\u590d\u7684\u4f59\u5473\", 2026-06-12) \u2014 a second\nquery lane so what the AI just said shapes what surfaces next turn.",
+      "locator": "build_injection() docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Two memory layers exist: a mechanical sliding-window archive (chat_archive, zero AI) and a curated AI-extracted vault-extract layer with verbatim quote verification.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/revault.py",
+      "quote": "phase l0     \u5168\u90e8 vault \u539f\u6587\u673a\u68b0\u5207\u7a97 \u2192 chat_archive\uff08\u88c5\u8ba2\u5de5\u914d\u65b9\uff0c\u96f6 AI\uff09\n  phase l1     split-done \u7684 vault \u957f\u6587\u8dd1\u6458\u5f55\u7ba1\u7ebf\uff08\u5708\u91cd\u70b9+\u9010\u5b57\u5f15\u7528+\u673a\u68b0\u6821\u9a8c\uff09",
+      "locator": "module docstring, phase list",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Archive windows are written with replace_conv semantics, making phase l0 idempotent by replacing all prior windows for a given vault document.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/revault.py",
+      "quote": "r = post(\"/archive-ingest\", {\"replace_conv\": d[\"id\"], \"windows\": wins})",
+      "locator": "phase_l0(), archive-ingest call",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Extracted memory items are stored with a verbatim quote field linking each curated fact back to its source text.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/revault.py",
+      "quote": "r = post(\"/ingest-extracted\", {\n                    \"document\": it[\"content\"], \"date\": it.get(\"date\") or date,\n                    \"source\": \"vault-extract\", \"conversation_id\": d[\"id\"],\n                    \"quote\": it.get(\"quote\", \"\")})",
+      "locator": "phase_l1(), work(), ingest-extracted call",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Extracted items that fail verbatim quote verification are dropped before ingestion, not stored.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/revault.py",
+      "quote": "if len(q) < 8 or q not in nd:\n                with lock: counts[\"dropped\"] += 1\n                continue",
+      "locator": "phase_l1(), work(), quote guard block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Tag authority resides in meta.db (SQLite), not in ChromaDB; ChromaDB metadata does not carry tags, discovered 2026-06-12.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/revault.py",
+      "quote": "# tags \u6743\u5a01\u5728 meta.db\uff0cchroma \u5143\u6570\u636e\u91cc\u6ca1\u6709\uff082026-06-12 \u9a8c\u51fa\uff09",
+      "locator": "phase_l1(), comment before sqlite query",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A prior extraction pipeline (split-memories.mjs using DS V3) produced 36% paraphrase rather than verbatim content, motivating the re-extraction with quote guards.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/revault.py",
+      "quote": "\u4ea7\u7269\u6ca1\u6709\u9010\u5b57\u6821\u9a8c\uff0c36% \u662f\u8f6c\u8ff0\uff08\u89c1 verify-splits-report.json\uff09",
+      "locator": "module docstring, background paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Vault documents are scoped per conversation (conv_id) and per source type (vault: prefix), establishing a form of isolation by conversation within the shared collection.",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/revault.py",
+      "quote": "if i.startswith(\"vault:\"):",
+      "locator": "vault_docs(), filter condition",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic retrieval returns cosine-distance-ranked results from ChromaDB using BGEZh embeddings; caller controls result count via n parameter",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/search.py",
+      "quote": "results = _col.query(query_texts=[query], n_results=min(n, count))",
+      "locator": "file:memory/search.py, do_POST /search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Upsert (not append-only) write semantics: re-embedding the same id overwrites the prior vector and metadata in both stores",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/search.py",
+      "quote": "_col.upsert(ids=[mem_id], documents=[text], metadatas=[metadata])\n...INSERT OR REPLACE INTO memories",
+      "locator": "file:memory/search.py, do_POST /embed",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hard delete removes a memory from both vector and relational stores; no soft-delete or hide-at-retrieve mechanism is present in this file",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/search.py",
+      "quote": "try: _col.delete(ids=[mem_id])\nexcept: pass\ndb.execute('DELETE FROM memories WHERE id = ?', (mem_id,))",
+      "locator": "file:memory/search.py, do_POST /delete",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory store is single-collection with no per-user or per-session isolation visible in this file; all memories share one ChromaDB collection and one SQLite table",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/search.py",
+      "quote": "_col = _client.get_or_create_collection(\"raffaello_memory\", embedding_function=_ef, metadata={\"hnsw:space\": \"cosine\"})",
+      "locator": "file:memory/search.py, ChromaDB init block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "activated field is persisted per memory but no read path in this file filters or increments it; its semantics are unresolved from this file alone",
+      "kind": "code",
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/search.py",
+      "quote": "metadata.get('activated', 0)",
+      "locator": "file:memory/search.py, do_POST /embed, SQLite insert",
+      "confidence": "medium",
+      "label": "measured"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/chat-api/gateway.mjs",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/memory-gateway.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/search.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/build-fts.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/embedding.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/extract-memories.mjs",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Shitsuten/paramecium/blob/7695d520e60bdbecc15086168d64321f2d1e039a/memory/revault.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Shitsuten/paramecium/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": []
+}
