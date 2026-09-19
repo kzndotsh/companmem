@@ -9,11 +9,12 @@ from pathlib import Path
 
 from companmem_pipeline.harvest import (
     canonical_github_product_url,
+    ids_for_namespace,
     normalize_url,
-    product_ids,
 )
 from companmem_pipeline.log import PipelineLogger
-from companmem_pipeline.paths import product_cache
+from companmem_pipeline.paths import Namespace, parse_namespace, slug_cache
+from companmem_pipeline.prompts import LEDGER_KINDS
 
 CONFIDENCE_RANK = {"high": 3, "medium": 2, "unknown": 1}
 PAGE_ABSENCE_RE = re.compile(
@@ -381,7 +382,18 @@ def filter_ledger_rows(
     rows: list[dict[str, object]],
     *,
     has_official_docs: bool,
+    subject: Namespace = "product",
 ) -> list[dict[str, object]]:
+    if subject == "eval":
+        kept: list[dict[str, object]] = []
+        for row in rows:
+            if is_weak_wiki_index_ledger(row):
+                continue
+            claim = str(row.get("claim") or "")
+            if LEDGER_ABSENCE_CLAIM_RE.search(claim):
+                continue
+            kept.append(row)
+        return kept
     return [row for row in rows if not should_drop_ledger_row(row, has_official_docs=has_official_docs)]
 
 
@@ -743,6 +755,7 @@ def fold_pages(
     log: PipelineLogger | None = None,
     *,
     extracted_page_ids: set[str] | None = None,
+    subject: Namespace = "product",
 ) -> dict[str, object]:
     identity = {
         "id": str(manifest.get("id") or ""),
@@ -811,7 +824,7 @@ def fold_pages(
             if not url:
                 continue
             kind = str(item.get("kind") or "")
-            if kind not in {"docs", "code", "issue", "community", "blog"}:
+            if kind not in LEDGER_KINDS:
                 kind = "docs"
             locator = str(item.get("locator") or "").strip()
             row: dict[str, object] = {
@@ -838,14 +851,22 @@ def fold_pages(
 
     ledger = list(ledger_by_key.values())
     has_official_docs = any(str(row.get("kind") or "") == "docs" for row in ledger)
-    ledger = filter_ledger_rows(ledger, has_official_docs=has_official_docs)
+    ledger = filter_ledger_rows(
+        ledger, has_official_docs=has_official_docs, subject=subject
+    )
     ledger = dedupe_ledger_near_duplicates(ledger)
     audit = empty_audit(identity)
     audit["ledger"] = ledger
     product_id = str(identity.get("id") or manifest.get("id") or "")
     product_name = str(identity.get("name") or manifest.get("name") or "")
+    drop_peripheral = subject == "product"
     purpose_kept = cited_summaries(
-        filter_summary_items(purposes, product_id, product_name),
+        filter_summary_items(
+            purposes,
+            product_id,
+            product_name,
+            drop_peripheral=drop_peripheral,
+        ),
         ledger,
     )
     mechanism_kept = cited_summaries(
@@ -853,7 +874,7 @@ def fold_pages(
             mechanisms,
             product_id,
             product_name,
-            drop_peripheral=True,
+            drop_peripheral=drop_peripheral,
         ),
         ledger,
     )
@@ -864,10 +885,11 @@ def fold_pages(
     for item in unknowns:
         text = str(item.get("text") or "")
         url = str(item.get("url") or "")
-        if unknown_superseded_by_docs(text, has_official_docs=has_official_docs):
-            continue
-        if unknown_superseded_by_ledger(text, ledger):
-            continue
+        if subject == "product":
+            if unknown_superseded_by_docs(text, has_official_docs=has_official_docs):
+                continue
+            if unknown_superseded_by_ledger(text, ledger):
+                continue
         item = align_unknown_to_source_kind(item, sources_by_url)
         key = f"{url}::{normalize_claim(text)}"
         if not text or not url or key in seen_unknown:
@@ -891,7 +913,7 @@ def fold_pages(
     audit["copy"] = []
     audit["refuse"] = []
     audit["consensus"] = []
-    audit["contested"] = build_contested_rows(ledger)
+    audit["contested"] = [] if subject == "eval" else build_contested_rows(ledger)
     audit["sources"] = filter_sources_by_citation(
         list(sources_by_url.values()),
         ledger,
@@ -973,21 +995,24 @@ def load_extracts(cache: Path, manifest: dict[str, object]) -> list[dict[str, ob
     return extracts
 
 
-def fold(slug: str) -> dict[str, object]:
-    cache = product_cache(slug)
+def fold(slug: str, *, namespace: Namespace = "product") -> dict[str, object]:
+    cache = slug_cache(slug, namespace=namespace)
     manifest_path = cache / "manifest.json"
     if not manifest_path.exists():
         raise SystemExit(f"missing manifest: {manifest_path}")
     manifest = load_json(manifest_path)
     extracts = load_extracts(cache, manifest)
     extracted_page_ids = extract_page_ids_ok(cache)
-    with PipelineLogger("fold", source=slug, extracts=len(extracts)) as log:
+    with PipelineLogger(
+        "fold", source=slug, extracts=len(extracts), namespace=namespace
+    ) as log:
         log.info("fold_started", extract_files=len(extracts), manifest=str(manifest_path))
         candidate = fold_pages(
             extracts,
             manifest,
             log=log,
             extracted_page_ids=extracted_page_ids,
+            subject=namespace,
         )
         out = cache / "candidate.json"
         out.write_text(json.dumps(candidate, indent=2), encoding="utf-8")
@@ -1010,19 +1035,21 @@ def fold(slug: str) -> dict[str, object]:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Fold extracts into candidate.json")
     parser.add_argument("--slug")
-    parser.add_argument("--all", action="store_true", help="Every product in seed.json")
+    parser.add_argument("--all", action="store_true", help="Every entry in seed for namespace")
+    parser.add_argument("--namespace", default="product", help="product or eval")
     args = parser.parse_args()
+    namespace = parse_namespace(args.namespace)
     if args.all:
-        for slug in product_ids():
-            cache = product_cache(slug)
+        for slug in ids_for_namespace(namespace):
+            cache = slug_cache(slug, namespace=namespace)
             if not (cache / "extract").exists():
-                print(f"fold {slug}: skip (no extracts)")
+                print(f"fold {namespace} {slug}: skip (no extracts)")
                 continue
-            fold(slug)
+            fold(slug, namespace=namespace)
         return
     if not args.slug:
         raise SystemExit("pass --slug <id> or --all")
-    fold(args.slug)
+    fold(args.slug, namespace=namespace)
 
 
 if __name__ == "__main__":

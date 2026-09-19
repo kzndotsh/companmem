@@ -9,7 +9,7 @@ import time
 from datetime import UTC, datetime
 from typing import TextIO
 
-from companmem_pipeline.paths import LOGS_DIR
+from companmem_pipeline.paths import LOGS_DIR, Namespace, namespace_paths
 
 _REDACT_NAMES = {
     "token",
@@ -83,14 +83,22 @@ def emit_console(
 class PipelineLogger:
     """JSONL logger. One file per run at .cache/by-product/logs/{step}_{slug}_{run_id}.jsonl."""
 
-    def __init__(self, step: str, source: str = "", **metadata: object) -> None:
+    def __init__(
+        self,
+        step: str,
+        source: str = "",
+        *,
+        namespace: Namespace = "product",
+        **metadata: object,
+    ) -> None:
         self.step = step
         self.source = source
         self.start_time = time.time()
         self.run_id = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-        LOGS_DIR.mkdir(parents=True, exist_ok=True)
+        logs_dir = namespace_paths(namespace).logs_dir
+        logs_dir.mkdir(parents=True, exist_ok=True)
         safe_source = source.replace("/", "_").replace(":", "_") if source else "global"
-        self.log_path = LOGS_DIR / f"{step}_{safe_source}_{self.run_id}.jsonl"
+        self.log_path = logs_dir / f"{step}_{safe_source}_{self.run_id}.jsonl"
         self._file = self.log_path.open("w", encoding="utf-8")
         self.counts = {
             "info": 0,

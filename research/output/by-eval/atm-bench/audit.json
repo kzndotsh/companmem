@@ -1,0 +1,722 @@
+{
+  "identity": {
+    "id": "atm-bench",
+    "name": "ATM-Bench",
+    "repo": "https://github.com/JingbiaoMei/ATM-Bench",
+    "docs": "https://arxiv.org/abs/2603.01990",
+    "license": "MIT",
+    "version_or_commit": "ef4e5dff1a47ec71213a06e359f02753defa8fb1",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "The first benchmark for multimodal, multi-source personalized referential memory QA over long time horizons (~4 years), with evidence-grounded retrieval and answering."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Five named ability dimensions tested: personalized reference resolution (PR), location awareness (LA), memory updates over time (MUT), multi-evidence composition (ME), and abstention (ABS)"
+    },
+    {
+      "text": "Raw modality degrades under haystack conditions and can fail due to model image/video count or API payload limits; SGM is preferred representation for realistic noisy conditions."
+    },
+    {
+      "text": "NIAH (Needle-in-a-Haystack style) evaluation uses generation-only mode with fixed evidence pools, tested across two model families and two memory representations (SGM and raw)."
+    },
+    {
+      "text": "Evidence is multimodal (images, videos, emails). Text-only mode uses precomputed batch_results.json (captions/OCR/tags); raw mode inserts actual images/videos into the prompt."
+    },
+    {
+      "text": "Each question in the dataset carries ground-truth evidence IDs. The Oracle baseline uses these IDs directly to test answer synthesis quality given perfect retrieval."
+    },
+    {
+      "text": "A two-stage memory/answerer model architecture is canonical: a smaller model (2B) handles ingestion/indexing and a larger model (8B) handles QA."
+    },
+    {
+      "text": "Two canonical QA data files exist: atm-bench.json (standard split) and atm-bench-hard.json (hard split), both located under data/atm-bench/."
+    },
+    {
+      "text": "SGM schema fields are modality-aware: image/video fields are time, location, entities, ocr, tags; email fields are time, summary, body."
+    },
+    {
+      "text": "Primary metric is QS (Query Score, reported as accuracy percentage). Recall@10 is also reported for memory-system baselines."
+    },
+    {
+      "text": "Primary judge for QS score is gpt-5-mini; some rows use a DeepSeek-V4-flash judge, which is flagged with an asterisk."
+    },
+    {
+      "text": "Memory ingestion is chronological: emails, images, and videos are merged and sorted by timestamp before ingestion."
+    },
+    {
+      "text": "The SGM text representation for media uses fields: type, timestamp, location, short_caption, caption, ocr, tags."
+    },
+    {
+      "text": "NIAH results can be summarized into a Markdown table using a dedicated script with configurable output root."
+    },
+    {
+      "text": "Input modalities include images, videos, and emails spanning approximately 4 years of personal memory."
+    },
+    {
+      "text": "Scale: approximately 12k memory items, approximately 1.1k QA pairs, years-long horizon"
+    },
+    {
+      "text": "Dataset is human-curated with evidence labels, not synthetic"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "ATM-Bench is the first benchmark for multimodal, multi-source personalized referential memory QA over ~4-year time horizons.",
+      "kind": "docs",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/README.md",
+      "quote": "The first benchmark for multimodal, multi-source personalized referential memory QA over long time horizons (~4 years), with evidence-grounded retrieval and answering.",
+      "locator": "README.md, subtitle",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hard split contains exactly 31 questions.",
+      "kind": "docs",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/README.md",
+      "quote": "run any Harbor agent against the 31 hard questions in per-question Docker isolation",
+      "locator": "README.md, Timeline section (2026-07-18)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Primary evaluation metric is QS (Query Score) reported as accuracy percentage; secondary metric is Recall@10 for memory-system baselines.",
+      "kind": "docs",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/README.md",
+      "quote": "ATM-Bench QS \u2191 | ATM-Bench Recall@10 \u2191 | ATM-Bench-Hard QS \u2191 | ATM-Bench-Hard Recall@10 \u2191",
+      "locator": "README.md, Memory-System Baseline Results table header",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "gpt-5-mini is the primary LLM judge for QS scoring; DeepSeek-V4-flash judge is used in some rows and flagged with asterisk.",
+      "kind": "docs",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/README.md",
+      "quote": "The QS score here uses `gpt-5-mini` as the primary judge. ... `*` marks QS measured with a DeepSeek-V4-flash judge rather than the `gpt-5-mini` judge used for the other rows.",
+      "locator": "README.md, General-Purpose Agent Results and Memory-System Baseline Results footnote",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "NIAH haystacks are evaluated at k=25, k=50, and k=100 distractors.",
+      "kind": "docs",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/README.md",
+      "quote": "the NIAH haystack sweep (k=25/50/100) for multimodal answerers under both SGM and Raw (real images/video) settings",
+      "locator": "README.md, Oracle and NIAH Results section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dataset covers ~4 years of personal memory across images, videos, and emails.",
+      "kind": "docs",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/main/README.md",
+      "quote": "Multimodal and multi-source data: Images, videos, emails ... Long-term horizon: ~4 years of personal memory",
+      "locator": "README.md, Overview section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Full dataset download is approximately 3.3 GB.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/README.md",
+      "quote": "Full download (~3.3 GB) \u2014 includes QA, NIAH pools, preprocessed memory, emails, raw images, raw videos, and the GPS reverse-geocoding cache",
+      "locator": "README.md, Download Dataset section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Metric definitions and full grader specification are deferred to docs/metrics.md; only metric names and judge model are stated in README.",
+      "kind": "docs",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/README.md",
+      "quote": "`docs/metrics.md` - Evaluation metrics",
+      "locator": "README.md, Documentation section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "SGM representation is recommended over Raw for realistic/agentic evaluation because Raw degrades and fails under haystack conditions.",
+      "kind": "docs",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/README.md",
+      "quote": "Raw outperforms SGM at the Oracle ceiling. But that advantage collapses under realistic conditions: as the haystack fills with distractors, raw degrades and even fails (payload/context limits), and under agentic retrieval the gap is stark \u2014 every 'w/o SGM' (raw) agent lands far below its SGM run.",
+      "locator": "README.md, Oracle and NIAH Results, Why SGM callout",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Harness and model are treated as one system, not independent factors, because the same model can differ by several points across harnesses.",
+      "kind": "docs",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/README.md",
+      "quote": "The same model can differ by several points across harnesses \u2014 GLM-5.2 scores 47.7% under Claude Code and 45.1% under Pi, Kimi K2.7 Code 47.0% / 39.2% / 37.8% under Claude Code, Pi and OpenCode. Harness and model are one system here, not two independent factors.",
+      "locator": "README.md, General-Purpose Agent Results section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "ATMBench is an evidence-grounded benchmark; models are prompted to answer only from retrieved evidence and return Unknown when evidence is insufficient.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "quote": "ATMBench is an evidence-grounded benchmark. Most baselines use prompts that: instruct the model to answer only from retrieved evidence, and return Unknown when evidence is insufficient.",
+      "locator": "docs/baseline.md \u00a7Baseline Principles / Evidence-grounded answering",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The standard QA input file is data/atm-bench/atm-bench.json and the hard split is data/atm-bench/atm-bench-hard.json.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "quote": "QA files: data/atm-bench/atm-bench.json / data/atm-bench/atm-bench-hard.json",
+      "locator": "docs/baseline.md \u00a7Common Runtime Knobs / Data paths",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Evidence modalities include images, videos, and emails. Text-only mode uses batch_results.json (captions/OCR/tags); raw mode passes actual media into the prompt.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "quote": "--media-source batch_results: treat images/videos as text via precomputed batch_results.json (captions/OCR/tags). --media-source raw: load raw images/videos and insert them into the prompt (multimodal inference).",
+      "locator": "docs/baseline.md \u00a7Baseline Principles / Text-only vs raw-media modes",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The Oracle baseline uses ground-truth evidence IDs from the dataset, measuring answer synthesis quality given perfect retrieval, not retrieval quality.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "quote": "An upper bound baseline that uses ground-truth evidence IDs from the dataset and asks the model to answer. What it measures: Answer synthesis quality given perfect retrieval (not a retrieval baseline).",
+      "locator": "docs/baseline.md \u00a7Oracle / What it is / What it measures",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Oracle baseline is implemented in memqa/qa_agent_baselines/oracle/oracle_baseline.py.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "quote": "Implementation: memqa/qa_agent_baselines/oracle/oracle_baseline.py",
+      "locator": "docs/baseline.md \u00a7Oracle / Implementation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "NIAH is a generation-only protocol on the hard split; each question has a niah_evidence_ids field with a fixed pool guaranteed to contain the ground truth. The evaluator swaps this into evidence_ids and calls oracle_baseline.py.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "quote": "A generation-only protocol for the hard split where each question includes a fixed evidence pool (niah_evidence_ids) guaranteed to contain the ground truth. niah_evaluate.py is a wrapper around the Oracle baseline: it swaps niah_evidence_ids -> evidence_ids and then calls oracle_baseline.py.",
+      "locator": "docs/baseline.md \u00a7NIAH / What it is / How it is implemented here",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The SGM text representation for media evidence uses fields: type, timestamp, location, short_caption, caption, ocr, tags.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "quote": "The *_SGM.sh scripts use --media-source batch_results with the paper's SGM fields: type,timestamp,location,short_caption,caption,ocr,tags.",
+      "locator": "docs/baseline.md \u00a7NIAH / How it is implemented here",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval recall outputs (retrieval_recall_details.json, retrieval_recall_summary.json) are produced by baselines including MMRAG, HippoRAG2, MemoryOS, A-Mem, Mem0, and MemPalace.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "quote": "<output>/retrieval_recall_details.json / <output>/retrieval_recall_summary.json",
+      "locator": "docs/baseline.md \u00a7MMRAG / Outputs",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemPalace computes R@{1,5,10,25,50,100} by over-fetching 100 candidates and persisting the ranked list; only top --retrieve-k (default 10) go to the answerer.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "quote": "--n-results defaults to 100 (upstream default is 5). The full ranked list is persisted in retrieval_recall_details.json so R@{1,5,10,25,50,100} can be computed; only the top --retrieve-k (default 10) items are passed to the answerer.",
+      "locator": "docs/baseline.md \u00a7MemPalace / Key design choices / Over-fetch for recall reporting",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemPalace outputs include retrieval_recall_joint_accuracy_summary.json, indicating joint retrieval-and-answer accuracy is tracked.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "quote": "<output>/retrieval_recall_joint_accuracy_summary.json",
+      "locator": "docs/baseline.md \u00a7MemPalace / Outputs",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Evaluation contamination is explicitly mitigated: per-question isolation via checkpoint restore and/or no-update mode (skip post-answer writes) are implemented where applicable.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "quote": "Where applicable we implement: per-question isolation (fresh instance restored from a checkpoint), and/or no-update evaluation mode (skip post-answer writes).",
+      "locator": "docs/baseline.md \u00a7Baseline Principles / Avoiding evaluation contamination",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemoryOS full-history mode is the canonical benchmark setting, enforcing floors on MTM capacity (>=20000) and session search depth (>=200) and suppressing promotion churn (heat_threshold>=1e9).",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "quote": "Full-history variant (this repo's benchmark setting): memoryos_mid_term_capacity >= 20000 / memoryos_top_k_sessions >= 200 / memoryos_heat_threshold >= 1e9 (suppresses MTM\u2192LPM promotion churn)",
+      "locator": "docs/baseline.md \u00a7MemoryOS / Paper defaults vs full-history variant",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory ingestion merges emails, images, and videos sorted by timestamp before ingestion into memory systems.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "quote": "We merge emails/images/videos and sort by timestamp before ingestion.",
+      "locator": "docs/baseline.md \u00a7MemoryOS / Key design choices / Chronological indexing",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Canonical default model sizes are 2B for memory/indexing and 8B for answering across multiple baselines.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "quote": "In this repo's canonical run scripts, the defaults follow: 2B model for memory/indexing / 8B model for answering.",
+      "locator": "docs/baseline.md \u00a7Baseline Principles / Memory/index model vs answerer model",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "GPS/reverse-geocoding of media is performed via OpenStreetMap Nominatim; a local geocoding cache keyed by media filename stem can be pre-populated to skip rate-limited calls.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "quote": "By default, the processors reverse-geocode GPS coordinates via a public provider (OpenStreetMap Nominatim). Public geocoding endpoints are rate-limited... GPS cache files are keyed by the media filename stem.",
+      "locator": "docs/baseline.md \u00a7Common Runtime Knobs / Generating batch_results.json",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "mem0's LLM-based extraction pipeline often returns empty facts for structured batch-result items; the canonical script defaults to direct embedding storage (--no-mem0-infer).",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "quote": "mem0 supports an LLM-based extraction/update pipeline (--mem0-infer) that is optimized for conversational personal facts. For structured batch-result style items, the upstream extraction prompt often returns empty facts, producing a near-empty index. Therefore, the canonical script defaults to: MEM0_INFER=0 \u2192 --no-mem0-infer",
+      "locator": "docs/baseline.md \u00a7Mem0 / Important note about mem0 extraction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "ATM-Bench has two difficulty splits: a standard split and a hard split (ATM-bench-hard), both exercised by the MMRAG pipeline.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/reproducibility.md",
+      "quote": "Runs both ATM-bench and ATM-bench-hard",
+      "locator": "reproducibility.md \u00a7MMRAG (retrieval + answering)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The Oracle condition provides an upper-bound score by supplying ground-truth evidence IDs instead of retrieved evidence.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/reproducibility.md",
+      "quote": "Oracle (upper bound using GT evidence IDs)",
+      "locator": "reproducibility.md \u00a7Oracle (upper bound using GT evidence IDs)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "NIAH evaluation uses fixed evidence pools and is generation-only, distinguishing it from the retrieval-conditioned MMRAG pipeline.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/reproducibility.md",
+      "quote": "NIAH (generation-only; fixed evidence pools)",
+      "locator": "reproducibility.md \u00a7NIAH (generation-only; fixed evidence pools)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "NIAH results are aggregated and presented as a Markdown table via a summarization script targeted at the hard output root.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/reproducibility.md",
+      "quote": "python scripts/QA_Agent/NIAH/summarize_niah_results.py --output-root output/QA_Agent/NIAH/hard",
+      "locator": "reproducibility.md \u00a7Evaluation Defaults (Paper)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The benchmark covers both image and video memory modalities, each with separate processing and output paths.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/reproducibility.md",
+      "quote": "output/image/qwen3vl2b/batch_results.json\noutput/video/qwen3vl2b/batch_results.json",
+      "locator": "reproducibility.md \u00a7Data",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "An OpenAI API key is required for the LLM judge and optionally for model endpoints; a vLLM endpoint is used for open-weight answering models.",
+      "kind": "code",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/reproducibility.md",
+      "quote": "OpenAI judge/models: set OPENAI_API_KEY (or use api_keys/.openai_key)\nvLLM answerers: set VLLM_ENDPOINT (default: http://127.0.0.1:8000/v1/chat/completions)",
+      "locator": "reproducibility.md \u00a7Model Endpoints / Keys",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "NIAH sweep uses k=25/50/100 distractors; full evidence pool per question is fixed via niah_evidence_ids.",
+      "kind": "docs",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/main/README.md",
+      "quote": "Each question is paired with a fixed evidence pool ( niah_evidence_ids ) that contains all ground-truth items. The rest of the pool is filled with realistic distractors.",
+      "locator": "README.md, NIAH Evaluation Setup section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "ATM-Bench-Hard contains 31 questions.",
+      "kind": "docs",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/main/README.md",
+      "quote": "run any Harbor agent against the 31 hard questions in per-question Docker isolation",
+      "locator": "README.md, Timeline entry 2026-07-18",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "SGM schema for image/video uses fields: time, location, entities, ocr, tags; email schema uses: time, summary, body.",
+      "kind": "docs",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/main/README.md",
+      "quote": "Image/Video memory: time , location , entities , ocr , tags\nEmail memory: time , summary , body",
+      "locator": "README.md, Memory Preprocessing section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Full dataset download is approximately 3.3 GB including QA, NIAH pools, preprocessed memory, emails, raw images, raw videos, and GPS reverse-geocoding cache.",
+      "kind": "docs",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/main/README.md",
+      "quote": "Full download (~3.3 GB) \u2014 includes QA, NIAH pools, preprocessed memory, emails, raw images, raw videos, and the GPS reverse-geocoding cache",
+      "locator": "README.md, Download Dataset section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memexa row QS is measured with DeepSeek-V4-flash judge, not the standard gpt-5-mini judge; ATM-Bench-Hard Recall is on fixed Qwen3-VL-2B captions while Hard QS uses Qwen3.6-27B captions.",
+      "kind": "docs",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/main/README.md",
+      "quote": "* marks QS measured with a DeepSeek-V4-flash judge rather than the gpt-5-mini judge used for the other rows. \u2020 marks ATM-Bench-Hard Recall reported on fixed Qwen3-VL-2B captions, although the submitted Hard QS run answers from Qwen3.6-27B captions.",
+      "locator": "README.md, Memory-System Baseline Results table footnote",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "SimpleMem baseline is pinned to upstream commit 094027eca4c890dc9912be8cee1da04428de8076.",
+      "kind": "docs",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/main/README.md",
+      "quote": "Pinned upstream commit: 094027eca4c890dc9912be8cee1da04428de8076 (verified by scripts/QA_Agent/SimpleMem/run.sh)",
+      "locator": "README.md, Baseline Compatibility section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory modalities include images, videos, and emails.",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2603.01990",
+      "quote": "long-term user memory, which naturally spans multiple modalities and sources such as images, videos, and emails",
+      "locator": "abstract",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "ATM-Bench dataset files include a standard split (atm-bench.json, atm-bench-hard.json) and a Needle-in-a-Haystack (NIAH) variant with evidence context sizes of 25, 50, 100, and 200 items",
+      "kind": "docs",
+      "url": "https://huggingface.co/datasets/Jingbiao/ATM-Bench",
+      "quote": "hf://datasets/Jingbiao/ATM-Bench/data/atm-bench/niah/atm-bench-hard-niah100.json ... atm-bench-hard-niah200.json ... atm-bench-hard-niah50.json ... atm-bench-hard-niah25.json",
+      "locator": "DatasetGenerationCastError traceback listing file paths",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark dataset schema includes fields: id, question, answer, notes, evidence_ids, and qtype",
+      "kind": "docs",
+      "url": "https://huggingface.co/datasets/Jingbiao/ATM-Bench",
+      "quote": "{'id': Value('string'), 'question': Value('string'), 'answer': Value('string'), 'notes': Value('string'), 'evidence_ids': List(Value('string')), 'qtype': Value('string')}",
+      "locator": "DatasetGenerationCastError message, target schema description",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The NIAH variant files contain an additional field 'niah_evidence_ids' not present in the standard split files, causing a schema mismatch",
+      "kind": "docs",
+      "url": "https://huggingface.co/datasets/Jingbiao/ATM-Bench",
+      "quote": "All the data files must have the same columns, but at some point there are 1 new columns ({'niah_evidence_ids'})",
+      "locator": "DatasetGenerationCastError message",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "ATM-Bench is tagged as a personal-memory, multimodal, long-term-memory, retrieval-augmented-generation benchmark",
+      "kind": "docs",
+      "url": "https://huggingface.co/datasets/Jingbiao/ATM-Bench",
+      "quote": "Tags: personal-memory multimodal long-term-memory retrieval-augmented-generation benchmark",
+      "locator": "Dataset card metadata tags",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark supports English and Chinese languages and has a size in the 1K\u201310K range",
+      "kind": "docs",
+      "url": "https://huggingface.co/datasets/Jingbiao/ATM-Bench",
+      "quote": "Languages: English Chinese Size: 1K<n<10K",
+      "locator": "Dataset card metadata",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark is associated with arXiv paper 2603.01990",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2603.01990",
+      "quote": "ArXiv: arxiv: 2603.01990",
+      "locator": "Dataset card metadata",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Three source modalities: images, videos, and emails",
+      "kind": "docs",
+      "url": "https://atmbench.github.io/",
+      "quote": "3 sources images + videos + emails \u2014 The answer often lives across multiple modalities at once.",
+      "locator": "\u00a7stats/hero",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dataset is human-curated with evidence labels (not synthetic)",
+      "kind": "docs",
+      "url": "https://atmbench.github.io/",
+      "quote": "Human-curated personal memory QA with evidence labels",
+      "locator": "\u00a7Compare ATM-Bench against prior memory benchmarks, row 'Data origin'",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Scale is approximately 12k memory items and approximately 1.1k QA pairs",
+      "kind": "docs",
+      "url": "https://atmbench.github.io/",
+      "quote": "~12k memory items, ~1.1k QA, years-long horizon, 2.25M-token context",
+      "locator": "\u00a7Compare ATM-Bench against prior memory benchmarks, row 'Scale and horizon'",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A Hard split and a corresponding leaderboard exist; evaluation includes price-vs-performance analysis with Pareto frontier",
+      "kind": "docs",
+      "url": "https://atmbench.github.io/",
+      "quote": "Every ATM-Bench-Hard agent run we have priced: what it scored against what it cost, at API list-price equivalent. Colour is the coding harness; the staircase is the Pareto frontier.",
+      "locator": "\u00a7Price vs. Performance",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Five evaluation dimensions: PR, LA, MUT, ME, ABS",
+      "kind": "docs",
+      "url": "https://atmbench.github.io/",
+      "quote": "PR Personalized references \u2026 LA Location awareness \u2026 MUT Memory updates over time \u2026 ME Multi-evidence composition \u2026 ABS Abstention",
+      "locator": "\u00a7What ATM-Bench Measures",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Associated paper is arXiv:2603.01990",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2603.01990",
+      "quote": "journal={arXiv preprint arXiv:2603.01990}",
+      "locator": "\u00a7Citation/BibTeX",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark design includes pre-registration of predictions and publication of negative results.",
+      "kind": "issue",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/issues/2",
+      "quote": "I pre-register predictions before measuring and publish negative results beside positive ones",
+      "locator": "comment body",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/reproducibility.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://arxiv.org/abs/2603.01990",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://atmbench.github.io/",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://huggingface.co/datasets/Jingbiao/ATM-Bench",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/issues/2",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Recall@10 formula and whether it is evaluated over the full memory corpus or only the NIAH pool is not defined in the README.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/metrics.md",
+      "kind": "code"
+    },
+    {
+      "text": "Train/test split boundaries and whether any train split exists are not stated in the README.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Total number of QA questions in the full (non-hard) ATM-Bench split is not stated in the README.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "The exact grader/scorer implementation (e.g., LLM-as-judge prompt, exact-match logic, rubric) that converts model answers in answer JSONL files into final accuracy scores is not described in this document.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "kind": "code"
+    },
+    {
+      "text": "Primary accuracy metric formula and aggregation method (e.g., macro accuracy, per-category scores, min-of-subscores) are not defined in this document.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "kind": "code"
+    },
+    {
+      "text": "Dataset construction methodology (how QA pairs were created, whether synthetic or human-authored, annotation process, adversarial or abstention sets) is not described in this document.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "kind": "code"
+    },
+    {
+      "text": "Train/test split boundaries and total dataset size (number of questions per split, number of memory items) are not specified in this document.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "kind": "code"
+    },
+    {
+      "text": "The NIAH evidence pool size k (number of items in niah_evidence_ids) and how pools were constructed are not specified in this document; docs/niah.md is referenced but not included.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "kind": "code"
+    },
+    {
+      "text": "The definition of the retrieval_recall_joint_accuracy_summary metric and its formula are not described in this document.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "kind": "code"
+    },
+    {
+      "text": "Whether an LLM-as-judge is used for answer grading (and if so, the judge model and prompt) versus exact/fuzzy string match is not specified in this document, though OPENAI_API_KEY is noted as required for LLM-judge eval.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/baseline.md",
+      "kind": "code"
+    },
+    {
+      "text": "The exact judge prompt used by the open_end LLM-as-judge (gpt-5-mini) is not specified in this document; the rubric or scoring criteria applied to open-ended answers is not disclosed here.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/reproducibility.md",
+      "kind": "code"
+    },
+    {
+      "text": "Primary metrics (e.g., exact match, F1, accuracy) and their aggregation formulas are not defined in this document.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/reproducibility.md",
+      "kind": "code"
+    },
+    {
+      "text": "Dataset construction methodology (synthetic vs. human-annotated, annotation process, adversarial or abstention subsets) is not described in this document.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/reproducibility.md",
+      "kind": "code"
+    },
+    {
+      "text": "Train/test split boundaries and total example counts per split are not specified here.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/reproducibility.md",
+      "kind": "code"
+    },
+    {
+      "text": "The definition and construction of the SGM (Structured Graph Memory?) memory representation used in NIAH scripts is not explained in this document.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/reproducibility.md",
+      "kind": "code"
+    },
+    {
+      "text": "The data layout specification referenced in docs/data.md and baseline details in docs/baseline.md are not included here and may contain additional task/scoring definitions.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/blob/ef4e5dff1a47ec71213a06e359f02753defa8fb1/docs/reproducibility.md",
+      "kind": "code"
+    },
+    {
+      "text": "Exact number of QA pairs, data splits (train/validation/test sizes), and split construction methodology are not specified in the abstract.",
+      "url": "https://arxiv.org/abs/2603.01990",
+      "kind": "paper"
+    },
+    {
+      "text": "Grader/scorer definition: whether accuracy is computed via exact match, LLM-as-judge, or human evaluation is not stated in the abstract.",
+      "url": "https://arxiv.org/abs/2603.01990",
+      "kind": "paper"
+    },
+    {
+      "text": "The criteria distinguishing ATM-Bench-Hard from the standard set are not described in the abstract.",
+      "url": "https://arxiv.org/abs/2603.01990",
+      "kind": "paper"
+    },
+    {
+      "text": "Details on how conflicting evidence cases are annotated and scored are not present in the abstract.",
+      "url": "https://arxiv.org/abs/2603.01990",
+      "kind": "paper"
+    },
+    {
+      "text": "License for the dataset and benchmark code is not stated.",
+      "url": "https://arxiv.org/abs/2603.01990",
+      "kind": "paper"
+    },
+    {
+      "text": "No definition of the task success scoring rubric or exact-match vs. LLM-as-judge grading procedure is provided.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/issues/2",
+      "kind": "issue"
+    },
+    {
+      "text": "No train/test split definitions or dataset construction methodology (synthetic vs. human-authored tasks) are specified.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/issues/2",
+      "kind": "issue"
+    },
+    {
+      "text": "No retrieval configuration details (index type, query formulation method, oracle vs. real retrieval settings) are described.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/issues/2",
+      "kind": "issue"
+    },
+    {
+      "text": "No version tag, commit hash, or canonical release is referenced for ATM-Bench.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/issues/2",
+      "kind": "issue"
+    },
+    {
+      "text": "The hazard taxonomy and how hazard recurrence is operationally detected or scored are not defined.",
+      "url": "https://github.com/JingbiaoMei/ATM-Bench/issues/2",
+      "kind": "issue"
+    }
+  ]
+}

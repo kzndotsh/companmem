@@ -60,6 +60,7 @@ def test_github_owner_repo_https_and_ssh() -> None:
 def test_seed_has_inclusion_lists() -> None:
     seed = load_seed()
     assert "slices" not in seed
+    assert isinstance(seed.get("evals"), dict)
     ids = product_ids()
     assert "mem0" in ids
     assert "claude-mem" in ids

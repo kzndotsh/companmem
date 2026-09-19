@@ -13,10 +13,10 @@ import json
 import tempfile
 from pathlib import Path
 
-from companmem_pipeline.harvest import product_ids
+from companmem_pipeline.harvest import ids_for_namespace
 from companmem_pipeline.lint import lint_audit
 from companmem_pipeline.log import PipelineLogger
-from companmem_pipeline.paths import product_cache, product_output
+from companmem_pipeline.paths import Namespace, parse_namespace, slug_cache, slug_output
 
 INTERPRETATION_FIELDS = ("copy", "refuse", "consensus", "contested")
 
@@ -116,13 +116,18 @@ def write_if_linted(audit: dict[str, object], dest: Path) -> None:
         tmp.unlink(missing_ok=True)
 
 
-def apply_slug(slug: str, *, write: bool) -> dict[str, object]:
-    cache = product_cache(slug)
+def apply_slug(
+    slug: str,
+    *,
+    write: bool,
+    namespace: Namespace = "product",
+) -> dict[str, object]:
+    cache = slug_cache(slug, namespace=namespace)
     candidate_path = cache / "candidate.json"
     if not candidate_path.exists():
         raise SystemExit(f"missing candidate: {candidate_path}. Run fold first.")
     candidate = load_json(candidate_path)
-    dest = product_output(slug) / "audit.json"
+    dest = slug_output(slug, namespace=namespace) / "audit.json"
     existing = load_json(dest) if dest.exists() else None
     manifest_path = cache / "manifest.json"
     clone_skipped = False
@@ -130,7 +135,7 @@ def apply_slug(slug: str, *, write: bool) -> dict[str, object]:
         manifest = load_json(manifest_path)
         clone_skipped = bool(manifest.get("clone_skipped"))
     merged = merge_audits(existing, candidate, clone_skipped=clone_skipped)
-    with PipelineLogger("apply", source=slug, write=write) as log:
+    with PipelineLogger("apply", source=slug, write=write, namespace=namespace) as log:
         log.info(
             "apply_started",
             dest=str(dest),
@@ -176,20 +181,22 @@ def apply_slug(slug: str, *, write: bool) -> dict[str, object]:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Apply candidate.json to audit.json")
     parser.add_argument("--slug")
-    parser.add_argument("--all", action="store_true", help="Every product in seed.json")
+    parser.add_argument("--all", action="store_true", help="Every entry in seed for namespace")
+    parser.add_argument("--namespace", default="product", help="product or eval")
     parser.add_argument("--write", action="store_true", help="Lint then write audit.json")
     args = parser.parse_args()
+    namespace = parse_namespace(args.namespace)
     if args.all:
-        for slug in product_ids():
-            candidate = product_cache(slug) / "candidate.json"
+        for slug in ids_for_namespace(namespace):
+            candidate = slug_cache(slug, namespace=namespace) / "candidate.json"
             if not candidate.exists():
-                print(f"apply {slug}: skip (no candidate)")
+                print(f"apply {namespace} {slug}: skip (no candidate)")
                 continue
-            apply_slug(slug, write=args.write)
+            apply_slug(slug, write=args.write, namespace=namespace)
         return
     if not args.slug:
         raise SystemExit("pass --slug <id> or --all")
-    apply_slug(args.slug, write=args.write)
+    apply_slug(args.slug, write=args.write, namespace=namespace)
 
 
 if __name__ == "__main__":

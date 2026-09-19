@@ -11,6 +11,12 @@ harvest-inventory slug:
 harvest-all:
     {{pipeline}} python -m companmem_pipeline.harvest --all
 
+harvest-eval slug:
+    {{pipeline}} python -m companmem_pipeline.harvest --namespace eval --slug {{slug}}
+
+harvest-eval-inventory slug:
+    {{pipeline}} python -m companmem_pipeline.harvest --namespace eval --slug {{slug}} --inventory
+
 extract slug:
     {{pipeline}} python -m companmem_pipeline.extract --slug {{slug}}
 
@@ -27,6 +33,11 @@ audit-write slug:
     {{pipeline}} python -m companmem_pipeline.fold --slug {{slug}}
     {{pipeline}} python -m companmem_pipeline.apply --slug {{slug}} --write
 
+audit-write-eval slug:
+    {{pipeline}} python -m companmem_pipeline.extract --namespace eval --slug {{slug}}
+    {{pipeline}} python -m companmem_pipeline.fold --namespace eval --slug {{slug}}
+    {{pipeline}} python -m companmem_pipeline.apply --namespace eval --slug {{slug}} --write
+
 audit-write-all:
     {{pipeline}} python -m companmem_pipeline.extract --all
     {{pipeline}} python -m companmem_pipeline.fold --all
@@ -34,6 +45,9 @@ audit-write-all:
 
 lint-audits:
     {{pipeline}} python -m companmem_pipeline.lint
+
+lint-eval-audits:
+    {{pipeline}} python -m companmem_pipeline.lint --namespace eval
 
 lint-seed:
     {{pipeline}} python -m companmem_pipeline.seed_lint --check-urls

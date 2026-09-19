@@ -1,0 +1,774 @@
+{
+  "identity": {
+    "id": "memoryagentbench",
+    "name": "MemoryAgentBench",
+    "repo": "https://github.com/HUST-AI-HYZ/MemoryAgentBench",
+    "docs": "https://arxiv.org/abs/2507.05257",
+    "license": "MIT",
+    "version_or_commit": "fe1735de8cf8b9908e1e3d3b5612afc815698062",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [],
+  "mechanisms": [
+    {
+      "text": "A community submitter proposes adding a 'conflict detection recall' metric to measure how many contradictions a system catches vs misses, implying the current benchmark does not include this metric."
+    },
+    {
+      "text": "Data was collected and reformulated from previous benchmarks and datasets; two datasets (EventQA and FactConsolidation) were newly constructed."
+    },
+    {
+      "text": "The primary metric reported for this split is QA accuracy (percentage correct), aggregated as an average across multi-hop (MH) sub-splits."
+    },
+    {
+      "text": "A run script at Benchmark_sample/run_MemoryAgentBench.py with an --llm flag is the entry point for evaluation."
+    },
+    {
+      "text": "For each context, an agent is initialized and a memorization phase is executed before queries are sent."
+    },
+    {
+      "text": "The dataset configuration is loaded from a YAML file; an example default points to HELMET_InfBench."
+    },
+    {
+      "text": "The benchmark and paper are currently based on gpt-4o-mini as the base model for evaluations."
+    },
+    {
+      "text": "The benchmark is accepted at ICLR 2026, indicating it is a peer-reviewed evaluation harness."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Test-Time Learning (ICL series) tasks use exact_match accuracy across five datasets.",
+      "kind": "code",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/README.md",
+      "quote": "TTL (ICL series) | ICL_banking, ICL_clinic, ICL_nlu, ICL_trec_coarse, ICL_trec_fine | Accuracy | `exact_match`",
+      "locator": "README.md, Clarification on Evaluation Metrics section, metric table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dataset is hosted on HuggingFace and can be automatically downloaded at runtime.",
+      "kind": "docs",
+      "url": "https://huggingface.co/datasets/ai-hyz/MemoryAgentBench",
+      "quote": "HuggingFace dataset link [...] It can be automatically downloaded if you run the code directly.",
+      "locator": "README.md, Data Download section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Paper accepted at ICLR 2026 (Fourteenth International Conference on Learning Representations).",
+      "kind": "docs",
+      "url": "https://openreview.net/forum?id=DT7JyQC3MR",
+      "quote": "Our paper is accepted by Fourteenth International Conference on Learning Representations (ICLR 2026).",
+      "locator": "README.md, Update section (Jan. 26, 2026)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Movie Recommendation task requires an entity2id.json file in addition to the main dataset.",
+      "kind": "code",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/README.md",
+      "quote": "Do not forget the `entity2id.json` for Movie Recommendation task.",
+      "locator": "README.md, Data Download section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The HuggingFace dataset 'ai-hyz/MemoryAgentBench' has a split called 'Accurate_Retrieval' used for this evaluation.",
+      "kind": "code",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/llm_based_eval/longmem_qa_evaluate.py",
+      "quote": "full_dataset = load_dataset(huggingface_dataset_name, split='Accurate_Retrieval', revision=\"main\")",
+      "locator": "longmem_qa_evaluate.py:load_references_from_huggingface",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Five distinct question types are evaluated: single-session-user, single-session-assistant, multi-session, temporal-reasoning, knowledge-update, single-session-preference, plus abstention questions.",
+      "kind": "code",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/llm_based_eval/longmem_qa_evaluate.py",
+      "quote": "if task in ['single-session-user', 'single-session-assistant', 'multi-session']:\n        ...\n        elif task == 'temporal-reasoning':\n        ...\n        elif task == 'knowledge-update':\n        ...\n        elif task == 'single-session-preference':",
+      "locator": "longmem_qa_evaluate.py:get_anscheck_prompt",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Accuracy is the primary metric, computed as mean of binary yes/no labels overall and per question type.",
+      "kind": "code",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/llm_based_eval/longmem_qa_evaluate.py",
+      "quote": "print('Accuracy:', round(np.mean([1 if x['autoeval_label']['label'] else 0 for x in logs]).item(), 4))",
+      "locator": "longmem_qa_evaluate.py:__main__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Temporal-reasoning grading explicitly tolerates off-by-one errors in predicted counts of days/weeks/months.",
+      "kind": "code",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/llm_based_eval/longmem_qa_evaluate.py",
+      "quote": "do not penalize off-by-one errors for the number of days. If the question asks for the number of days/weeks/months, etc., and the model makes off-by-one errors (e.g., predicting 19 days when the answer is 18), the model's response is still correct.",
+      "locator": "longmem_qa_evaluate.py:get_anscheck_prompt, task=='temporal-reasoning'",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Single-session-preference grading uses a rubric rather than a single correct answer, and partial rubric coverage is acceptable.",
+      "kind": "code",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/llm_based_eval/longmem_qa_evaluate.py",
+      "quote": "The model does not need to reflect all the points in the rubric. The response is correct as long as it recalls and utilizes the user's personal information correctly.",
+      "locator": "longmem_qa_evaluate.py:get_anscheck_prompt, task=='single-session-preference'",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The benchmark separates a memorization phase (context ingestion) from a query phase for each context.",
+      "kind": "code",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/main.py",
+      "quote": "agent = initialize_and_memorize_agent(agent_config, dataset_config, agent_save_folder, context_chunks, context_index, total_contexts)",
+      "locator": "main.py:process_context()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Metric aggregation multiplies raw mean values by 100 for all metrics except those whose key contains '_len' or '_time', implying percentage-based scoring for most metrics.",
+      "kind": "code",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/main.py",
+      "quote": "key: np.mean(values) * (1 if (\"_len\" in key) or (\"_time\" in key) else 100)",
+      "locator": "main.py:save_results_to_file()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The actual metric names, formulas, and grading logic are implemented in metrics_summarization, which is imported from utils.eval_other_utils and not defined in this file.",
+      "kind": "code",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/main.py",
+      "quote": "from utils.eval_other_utils import metrics_summarization",
+      "locator": "main.py:imports",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dataset splits, task types, and dataset construction details are encoded in external YAML config files (e.g., configs/data_conf/HELMET_InfBench.yaml), not in this file.",
+      "kind": "code",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/main.py",
+      "quote": "parser.add_argument('--dataset_config', type=str, default='configs/data_conf/HELMET_InfBench.yaml')",
+      "locator": "main.py:parse_command_line_arguments()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The benchmark supports resuming interrupted runs by tracking last processed context and query IDs.",
+      "kind": "code",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/main.py",
+      "quote": "metrics, results, last_processed_context_id, last_processed_query_id = load_existing_results(output_path, dataset_config, all_query_answer_pairs)",
+      "locator": "main.py:main()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Data was reformulated from prior benchmarks (RULER, InfBench, HELMET, LongmemEval); EventQA and FactConsolidation are newly constructed datasets.",
+      "kind": "docs",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/main/README.md",
+      "quote": "We collected and reformulated data from previous benchmarks and datasets. ... We also newly constructed two datasets EventQA and FactConsolidation.",
+      "locator": "README.md, LongMemEval Overview section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Five ICL datasets (banking, clinic, nlu, trec_coarse, trec_fine) are used for Test-Time Learning and scored with exact_match.",
+      "kind": "docs",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/main/README.md",
+      "quote": "TTL (ICL series): ICL_banking, ICL_clinic, ICL_nlu, ICL_trec_coarse, ICL_trec_fine \u2014 Accuracy \u2014 exact_match",
+      "locator": "README.md, Clarification on Evaluation Metrics table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Paper accepted at ICLR 2026; OpenReview URL is https://openreview.net/forum?id=DT7JyQC3MR.",
+      "kind": "docs",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/main/README.md",
+      "quote": "Our paper is accepted by Fourteenth International Conference on Learning Representations (ICLR 2026).",
+      "locator": "README.md, Update section, Jan. 26th 2026 entry",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "GPT-4o is used as the judge model for LLM-based metric evaluation (longmemeval and infbench summarization).",
+      "kind": "docs",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/main/README.md",
+      "quote": "They are needed to evaluate by using gpt-4o as a judge.",
+      "locator": "README.md, Update section, July 22th 2025 entry",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The benchmark targets the under-evaluated memory component of LLM agents, distinct from reasoning, planning, and execution.",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2507.05257",
+      "quote": "Recent benchmarks for Large Language Model (LLM) agents primarily focus on evaluating reasoning, planning, and execution capabilities, while another critical component-memory, encompassing how agents memorize, update, and retrieve long-term information-is under-evaluated due to the lack of benchmarks.",
+      "locator": "arXiv:2507.05257, Abstract",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The issue author contrasts MemoryAgentBench with LoCoMo, which grounds evaluation in events that occur during the conversation and are therefore not in the LLM's training data, implying MemoryAgentBench lacks this property.",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/10",
+      "quote": "Locomo evaluates based on events that occur during the conversation, using information that the base LLM does not know beforehand. This makes it possible to assess the memory system effectively. However, this dataset doesn't seem to follow that approach.",
+      "locator": "issue #10, body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Evaluation involves processing information in chunks and extracting memories from those chunks; empty memory extraction is a reproducibility concern for Mem0 on this task.",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/11",
+      "quote": "the memory remains empty after processing each chunk, with almost no information being extracted",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark code outputs multiple scores, and it is unclear which score was used in the final paper's reported results.",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/14",
+      "quote": "I noticed that your code output has multiple scores. I would like to know which score you ultimately used for the data presented in your final paper?",
+      "locator": "issue #14, comment body",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Sub-task categories evaluated under LongMemEval(S*) include: single-session-user (n=45), temporal-reasoning (n=75), knowledge-update (n=45), multi-session (n=75), single-session-preference (n=30), single-session-assistant (n=30).",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/15",
+      "quote": "single-session-user: 0.2 (45)\n        temporal-reasoning: 0.2 (75)\n        knowledge-update: 0.2 (45)\n        multi-session: 0.0933 (75)\n        single-session-preference: 0.0333 (30)\n        single-session-assistant: 0.1667 (30)",
+      "locator": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/15",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemoryAgentBench is widely adopted by papers and surveys on agent memory as a unified evaluation benchmark.",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/16",
+      "quote": "many papers and surveys on agent memory widely adopt MemoryAgentBench as a unified evaluation benchmark.",
+      "locator": "body paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark uses gpt-4o-mini as the base model for its evaluations as reported in the paper.",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/16",
+      "quote": "the benchmark and paper are currently based on gpt-4o-mini, which is gradually becoming outdated.",
+      "locator": "body paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Reproducibility of results is tied to gpt-4o-mini; its planned retirement around March 2026 would break direct comparability with reported results.",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/16",
+      "quote": "gpt-4o-mini is expected to be retired around March 2026. After that, it will no longer be possible for researchers to use the same base model to reproduce or directly compare results with those reported in MemoryAgentBench, which may limit the long-term usability of the benchmark.",
+      "locator": "body paragraph 3",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark covers multiple memory system categories including Structure-Augmented RAG Agents.",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/16",
+      "quote": "Other Structure-Augmented RAG Agents in the Paper",
+      "locator": "bulleted list near end",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark tracks estimated token usage per memory agent for each individual test, with results reported in a table in the associated paper.",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/17",
+      "quote": "Could you provide the estimated token usage per agent for each individual test in the benchmark, as referenced in the paper? I am particularly interested in the data regarding this table, as it would allow for a more comprehensive evaluation of the performance and cost-effectiveness of each method.",
+      "locator": "issue #17, opening comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "QA accuracy (%) is the primary metric; MH Average is reported as an aggregate of the four multi-hop context-length sub-splits.",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/18",
+      "quote": "MH Average | 12.0% | 5.0%",
+      "locator": "results table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Evaluation can be reproduced by running Benchmark_sample/run_MemoryAgentBench.py with --llm openai.",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/18",
+      "quote": "Reproducible with: `python Benchmark_sample/run_MemoryAgentBench.py --llm openai`",
+      "locator": "reproducibility line",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "On FC-SH sub-splits at 32K tokens and above, naive retrieval outperforms typed conflict resolution (80% vs 65% at 32K, 76% vs 55% at 64K, 76% vs 28% at 262K), suggesting the fixed similarity threshold used for conflict detection causes over-deletion at longer contexts.",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/18",
+      "quote": "On long-context single-hop (32K+), the engine over-deletes similar-but-non-contradictory facts.",
+      "locator": "known limitation section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No conflict detection recall metric currently exists in the benchmark; its addition is proposed by a community user.",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/18",
+      "quote": "Would it be useful for the benchmark to include a 'conflict detection recall' metric alongside QA accuracy to measure how many contradictions a system actually catches vs misses?",
+      "locator": "open questions section, question 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemoryAgentBench was accepted at ICLR 2026.",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/18",
+      "quote": "congrats on the ICLR 2026 acceptance!",
+      "locator": "opening line",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Running MemoryAgentBench incurs API costs, implying evals call external LLM APIs as part of the scoring or agent pipeline",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/2",
+      "quote": "Do you have a rough cost estimate (e.g. API costs) for running all the evals on this benchmark?",
+      "locator": "issue #2, opening comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The 262k source slice has 100 items and is noted as unresolved; metrics include a stop ranking score and a latest-path reachability score reported separately.",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/20",
+      "quote": "Known limit: the 262k source remains unresolved. Current 262k public-transfer row is 27/100 -> 44/100. Latest-only 262k stop ranking is 44/100 with latest-path reachability 64/100.",
+      "locator": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/20, body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The issue author explicitly disclaims that their result is not an official MemoryAgentBench score, not hidden validation, not broad memory-agent generality, and not independent reproduction.",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/21",
+      "quote": "not an official MemoryAgentBench score, not hidden validation, not broad memory-agent generality, not independent reproduction",
+      "locator": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/21, body",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The scoring pipeline emits at least six distinct signals: rougeL_f1, rougeL_recall, rougeLsum_f1, rougeLsum_recall, exact_match, and substring_exact_match.",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/5",
+      "quote": "rougeL_f1\nrougeL_recall\nrougeLsum_f1\nrougeLsum_recall\nexact_match\nsubstring_exact_match",
+      "locator": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/5",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark evaluates memory agents including mem0 as one of the evaluated systems",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/7",
+      "quote": "your paper evaluates several memory agents, including mem0",
+      "locator": "issue #7, comment body, sentence 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The framework supports integration of custom/self-developed memory agents for evaluation",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/7",
+      "quote": "what steps are required to evaluate our own self-developed memory agent using your framework/benchmark",
+      "locator": "issue #7, question 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark has a requirements section listing necessary libraries, but version numbers are not specified, causing environment conflicts for users",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/7",
+      "quote": "requirements section in your paper lists many necessary libraries. Could you please provide the specific version numbers for these libraries? I encountered many library conflicts when I tried to configure the environment",
+      "locator": "issue #7, question 2",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark may inadequately capture semantic quality, coherence, or instruction-following for open-ended generation tasks under current metrics",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/8",
+      "quote": "they may not fully capture the semantic quality, coherence, or instruction-following ability of model outputs\u2014especially for open-ended generation tasks",
+      "locator": "issue body, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LLM-as-a-Judge evaluation (prompt-based scoring by a strong LLM) is not currently included in the benchmark",
+      "kind": "issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/8",
+      "quote": "Was there a specific reason for not including LLM-as-a-Judge style evaluation (e.g., using a strong LLM to assess output quality via prompt-based scoring)?",
+      "locator": "issue body, paragraph 2, bullet 1",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/main.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/llm_based_eval/longmem_qa_evaluate.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://arxiv.org/abs/2507.05257",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/16",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/18",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/10",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/7",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/21",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/20",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/11",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/5",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/17",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/15",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/14",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/8",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/2",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Exact judge prompt used in llm_based_eval/longmem_qa_evaluate.py for LongMemEval LLM-as-judge scoring is not shown in the README.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/llm_based_eval/longmem_qa_evaluate.py",
+      "kind": "code"
+    },
+    {
+      "text": "Exact judge prompt and F1 rubric used in llm_based_eval/summarization_evaluate.py for InfBench LLM-as-judge F1 are not defined in the README.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/llm_based_eval/summarization_evaluate.py",
+      "kind": "code"
+    },
+    {
+      "text": "Train/test split boundaries and total example counts per dataset/task are not specified in the README.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Construction methodology and annotation procedure for the newly created EventQA and FactConsolidation datasets are not described in the README (noted as 'coming soon').",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Aggregation method across tasks/competencies for an overall benchmark score is not defined in the README.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Whether the 'Accurate_Retrieval' split is the only evaluation split or one of several (e.g. other memory ability splits) is not clarified in this script.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench",
+      "kind": "code"
+    },
+    {
+      "text": "The initialize_and_memorize_agent function controls the memorization pipeline (chunking, indexing, storage); its implementation and how chunk_size affects scoring are not visible here.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/fe1735de8cf8b9908e1e3d3b5612afc815698062/initialization.py",
+      "kind": "code"
+    },
+    {
+      "text": "The exact LLM-as-judge prompt used in llm_based_eval/longmem_qa_evaluate.py is not disclosed in the README.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/main/llm_based_eval/longmem_qa_evaluate.py",
+      "kind": "docs"
+    },
+    {
+      "text": "The exact LLM-as-judge prompt and HELMET-derived rubric used in llm_based_eval/summarization_evaluate.py are not disclosed in the README.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/main/llm_based_eval/summarization_evaluate.py",
+      "kind": "docs"
+    },
+    {
+      "text": "Train/test split sizes and boundaries for all datasets are not specified in the README.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Construction methodology (annotation process, annotators, adversarial design) for newly created EventQA and FactConsolidation datasets is not described in the README.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Aggregation method across subtasks or competency categories (e.g., macro average, min-of-subscores, weighted combination) is not specified in the README.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Version tag or commit hash for the dataset hosted on HuggingFace is not specified in the README.",
+      "url": "https://huggingface.co/datasets/HUST-AI-HYZ/MemoryAgentBench",
+      "kind": "docs"
+    },
+    {
+      "text": "Specific input format and session structure for each task type are not described in the abstract.",
+      "url": "https://arxiv.org/abs/2507.05257",
+      "kind": "paper"
+    },
+    {
+      "text": "Train/test splits and dataset size statistics are not provided in the abstract.",
+      "url": "https://arxiv.org/abs/2507.05257",
+      "kind": "paper"
+    },
+    {
+      "text": "Grader/scorer details (e.g., exact match, LLM-as-judge prompts, rubric) are not described in the abstract.",
+      "url": "https://arxiv.org/abs/2507.05257",
+      "kind": "paper"
+    },
+    {
+      "text": "Primary metric names, formulas, and aggregation methods are not specified in the abstract.",
+      "url": "https://arxiv.org/abs/2507.05257",
+      "kind": "paper"
+    },
+    {
+      "text": "Whether dataset construction is synthetic, human-annotated, or adversarial is not specified in the abstract.",
+      "url": "https://arxiv.org/abs/2507.05257",
+      "kind": "paper"
+    },
+    {
+      "text": "Version tags, leakage controls, and oracle retrieval settings are not mentioned in the abstract.",
+      "url": "https://arxiv.org/abs/2507.05257",
+      "kind": "paper"
+    },
+    {
+      "text": "Repository or code path implementing scoring is not linked in the abstract or page metadata.",
+      "url": "https://arxiv.org/abs/2507.05257",
+      "kind": "paper"
+    },
+    {
+      "text": "No task definitions, scoring procedures, metrics, splits, dataset construction details, or grader descriptions are present on this page. The issue is a short user inquiry asking whether MemAgent has been evaluated on MemoryAgentBench and requesting results; no substantive benchmark documentation is provided.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/1",
+      "kind": "issue"
+    },
+    {
+      "text": "No official response from authors confirming or refuting the data leakage / parametric-knowledge concern raised in this issue.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/10",
+      "kind": "issue"
+    },
+    {
+      "text": "No documentation on this page describing how questions were constructed or whether any filtering was applied to exclude world-knowledge questions answerable without memory context.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/10",
+      "kind": "issue"
+    },
+    {
+      "text": "No grader or scorer definition provided on this page; scoring pipeline for questions like the Normandy example is unspecified.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/10",
+      "kind": "issue"
+    },
+    {
+      "text": "No train/test split boundaries or session structure described on this page.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/10",
+      "kind": "issue"
+    },
+    {
+      "text": "No information on the Conflict Resolution task's input format, session structure, splits, or grading procedure is present on this page.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/11",
+      "kind": "issue"
+    },
+    {
+      "text": "No clarification is provided on whether empty memory extraction for Mem0 is a known issue, expected behavior, or a benchmark bug.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/11",
+      "kind": "issue"
+    },
+    {
+      "text": "Which specific score among multiple code outputs corresponds to the metric reported in the paper tables \u2014 no answer provided on this page.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/14",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the discrepancy between code output and paper table reflects a versioning difference, a reporting choice, or a scoring bug \u2014 unanswered on this page.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/14",
+      "kind": "issue"
+    },
+    {
+      "text": "The exact grading/scoring procedure (e.g., exact match, LLM-as-judge prompt, rubric) used to compute per-question accuracy is not described in this issue.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/15",
+      "kind": "issue"
+    },
+    {
+      "text": "The Mem0 SDK version and configuration used to produce the paper's reported 36.0 accuracy are not disclosed, making the result non-reproducible from the information available.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/15",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the overall Accuracy metric is a macro-average across sub-task categories or a micro-average over all questions is not specified in this issue.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/15",
+      "kind": "issue"
+    },
+    {
+      "text": "Train/test split boundaries and whether any questions overlap with Mem0's training or knowledge corpus are not addressed.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/15",
+      "kind": "issue"
+    },
+    {
+      "text": "No response or clarification from maintainers is present in the extracted page text, so whether token counts are provided in supplementary materials or only in the paper PDF is unknown.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/17",
+      "kind": "issue"
+    },
+    {
+      "text": "The grading/scoring procedure (exact match, LLM-as-judge, or other) is not specified anywhere in this issue.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/18",
+      "kind": "issue"
+    },
+    {
+      "text": "Train/test split boundaries and any held-out test set are not described.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/18",
+      "kind": "issue"
+    },
+    {
+      "text": "Dataset construction methodology (synthetic vs human-authored, annotation process) for the Conflict_Resolution split is not described.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/18",
+      "kind": "issue"
+    },
+    {
+      "text": "How the 8 'examples' relate to 800 questions (e.g., 100 questions per example/scenario) is not explained.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/18",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether a SH Average aggregate metric is defined alongside MH Average is not stated.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/18",
+      "kind": "issue"
+    },
+    {
+      "text": "No cost estimate or API usage breakdown provided on this page",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/2",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the 262k figure refers to a token-length context, a dataset size, or another quantity is not explained on this page.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/20",
+      "kind": "issue"
+    },
+    {
+      "text": "The definition and boundaries of the 'transfer-only subset' (300 items) relative to the full 400-item slice are not explained on this page.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/21",
+      "kind": "issue"
+    },
+    {
+      "text": "No maintainer response or resolution is visible on this page, leaving the metric-to-output mapping unresolved.",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/5",
+      "kind": "issue"
+    },
+    {
+      "text": "No response from authors is present in this issue page; steps to integrate a custom memory agent are undocumented on this page",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/7",
+      "kind": "issue"
+    },
+    {
+      "text": "Specific version numbers for required libraries are not provided on this page",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/7",
+      "kind": "issue"
+    },
+    {
+      "text": "No maintainer response present in this issue; it is unknown whether LLM-as-a-Judge support is planned or on a roadmap",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/8",
+      "kind": "issue"
+    },
+    {
+      "text": "Exact metric formulas, aggregation method, and grading code paths are not defined in this issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/8",
+      "kind": "issue"
+    },
+    {
+      "text": "Task definitions, session structure, dataset construction, and train/test splits are not addressed in this issue",
+      "url": "https://github.com/HUST-AI-HYZ/MemoryAgentBench/issues/8",
+      "kind": "issue"
+    }
+  ]
+}

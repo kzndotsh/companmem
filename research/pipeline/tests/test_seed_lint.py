@@ -93,8 +93,21 @@ def test_lint_open_code_detects_empty_path(tmp_path: Path) -> None:
     assert any("empty.py" in err and "empty" in err for err in errors)
 
 
+def test_evals_required_and_collision_guard() -> None:
+    seed = load_seed()
+    assert "evals" in seed
+    assert isinstance(seed["evals"], dict)
+    assert "locomo" in seed["evals"]
+    bad = {
+        "products": {"dup": {"id": "dup", "name": "Dup", "repo": "", "docs": "", "clone": False, "community": [], "skip_url_prefixes": [], "open_code": [], "open_docs": ["https://example.com/a"]}},
+        "evals": {"dup": {"id": "dup", "name": "Dup", "repo": "", "docs": "", "clone": False, "community": [], "skip_url_prefixes": [], "open_code": [], "open_docs": ["https://example.com/b"]}},
+    }
+    assert any("both products and evals" in err for err in lint_seed_structure(bad))
+
+
 def test_clone_true_requires_nonempty_open_code() -> None:
     seed = {
+        "evals": {},
         "products": {
             "bad": {
                 "id": "bad",

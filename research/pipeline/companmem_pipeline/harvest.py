@@ -27,9 +27,12 @@ from companmem_pipeline.httputil import (
 )
 from companmem_pipeline.log import PipelineLogger
 from companmem_pipeline.paths import (
+    Namespace,
     SEED_PATH,
     load_dotenv,
+    parse_namespace,
     product_cache,
+    slug_cache,
 )
 from companmem_pipeline.search import host_of, web_search_stats
 
@@ -252,6 +255,39 @@ def product_ids() -> list[str]:
     if not isinstance(products, dict):
         raise SystemExit("seed.json missing products")
     return [str(slug) for slug in products]
+
+
+def eval_ids() -> list[str]:
+    seed = load_seed()
+    evals = seed.get("evals")
+    if not isinstance(evals, dict):
+        return []
+    return [str(slug) for slug in evals]
+
+
+def ids_for_namespace(namespace: Namespace) -> list[str]:
+    if namespace == "eval":
+        return eval_ids()
+    return product_ids()
+
+
+def load_eval(slug: str) -> dict[str, object]:
+    seed = load_seed()
+    evals = seed.get("evals")
+    if not isinstance(evals, dict) or slug not in evals:
+        raise SystemExit(f"unknown eval slug: {slug}")
+    entry = dict(evals[slug])
+    entry["census_sources"] = []
+    entry["_audit_namespace"] = "eval"
+    return entry
+
+
+def load_entry(slug: str, *, namespace: Namespace) -> dict[str, object]:
+    if namespace == "eval":
+        return load_eval(slug)
+    product = load_product(slug)
+    product["_audit_namespace"] = "product"
+    return product
 
 
 def require_str_list(product: dict[str, object], key: str) -> list[str]:
@@ -1685,7 +1721,7 @@ def harvest_docs(
                 log.warn("docs_fetch_failed", url=url)
                 continue
             final_url = page.url
-            if not allowed_source_url(final_url, product, repo_meta):
+            if not docs_harvest_url_allowed(url, final_url, product, repo_meta):
                 log.warn("docs_skipped_off_product", url=final_url)
                 continue
             if is_generic_docs_url(final_url):
@@ -1700,19 +1736,20 @@ def harvest_docs(
             )
         else:
             final_url = (page_dir / "url.txt").read_text(encoding="utf-8").strip()
-            if not allowed_source_url(final_url, product, repo_meta):
+            if not docs_harvest_url_allowed(url, final_url, product, repo_meta):
                 log.warn("docs_skipped_off_product", url=final_url)
                 continue
             if is_generic_docs_url(final_url):
                 log.info("docs_skipped", url=final_url, reason="generic_docs")
                 continue
         already.add(normalize_url(final_url))
-        log.info("docs_kept", url=final_url, converter=converter)
+        page_kind = harvest_docs_page_kind(final_url, product)
+        log.info("docs_kept", url=final_url, converter=converter, kind=page_kind)
         pages.append(
             {
                 "id": f"docs_{slug}",
                 "lane": "docs",
-                "kind": "docs",
+                "kind": page_kind,
                 "url": final_url,
                 "path": str(page_dir.relative_to(cache) / "content.txt"),
                 "quality": "high",
@@ -1749,10 +1786,13 @@ def harvest_issues(
         return result
 
     owner, repo = pair
-    query = (
-        f"repo:{owner}/{repo} is:issue "
-        "(memory OR forget OR forgot OR remember OR persona OR recall)"
-    )
+    if str(product.get("_audit_namespace") or "") == "eval":
+        query = eval_issue_search_query(owner, repo)
+    else:
+        query = (
+            f"repo:{owner}/{repo} is:issue "
+            "(memory OR forget OR forgot OR remember OR persona OR recall)"
+        )
     url = "https://api.github.com/search/issues"
     headers = {
         "Authorization": f"Bearer {token}",
@@ -1897,12 +1937,44 @@ def path_under_docs_prefix(path: str, prefix: str) -> bool:
     return path == prefix or path.startswith(prefix + "/") or path.startswith(prefix + ".")
 
 
+def seed_open_doc_keys(product: dict[str, object]) -> set[str]:
+    open_docs = product.get("open_docs")
+    if not isinstance(open_docs, list):
+        return set()
+    return {open_doc_url_key(str(item)) for item in open_docs if isinstance(item, str)}
+
+
+def harvest_docs_page_kind(url: str, product: dict[str, object]) -> str:
+    if str(product.get("_audit_namespace") or "") != "eval":
+        return "docs"
+    host = host_of(url).lower()
+    paper_markers = (
+        "arxiv.org",
+        "export.arxiv.org",
+        "aclanthology.org",
+        "semanticscholar.org",
+        "openreview.net",
+    )
+    if any(marker in host for marker in paper_markers):
+        return "paper"
+    return "docs"
+
+
+def eval_issue_search_query(owner: str, repo: str) -> str:
+    return (
+        f"repo:{owner}/{repo} is:issue "
+        "metric OR judge OR grader OR leakage OR reproducibility OR benchmark"
+    )
+
+
 def allowed_source_url(
     url: str,
     product: dict[str, object],
     repo_meta: dict[str, object],
 ) -> bool:
     """True if this URL is this product (docs host or this GitHub repo), not a sibling vendor."""
+    if open_doc_url_key(url) in seed_open_doc_keys(product):
+        return True
     parsed = urlparse(url)
     host = host_of(url)
     path = parsed.path
@@ -1962,6 +2034,18 @@ def sibling_on_shared_host(
     if host not in first_party_hosts(product, repo_meta):
         return False
     return not allowed_source_url(url, product, repo_meta)
+
+
+def docs_harvest_url_allowed(
+    requested_url: str,
+    final_url: str,
+    product: dict[str, object],
+    repo_meta: dict[str, object],
+) -> bool:
+    """Keep seed-listed open_docs even when fetch redirects (e.g. OpenReview challenge gate)."""
+    if open_doc_url_key(requested_url) in seed_open_doc_keys(product):
+        return True
+    return allowed_source_url(final_url, product, repo_meta)
 
 
 def blog_seed_urls(product: dict[str, object]) -> list[str]:
@@ -2456,17 +2540,21 @@ def harvest(
     *,
     force: bool = False,
     inventory: bool = False,
+    namespace: Namespace = "product",
 ) -> dict[str, object] | None:
-    product = load_product(slug)
-    cache = product_cache(slug)
+    product = load_entry(slug, namespace=namespace)
+    cache = slug_cache(slug, namespace=namespace)
     cache.mkdir(parents=True, exist_ok=True)
+    is_eval = namespace == "eval"
     if inventory:
-        with PipelineLogger("harvest", source=slug, inventory=True) as log:
+        with PipelineLogger(
+            "harvest", source=slug, inventory=True, namespace=namespace
+        ) as log:
             harvest_repo(cache, product, log, force=force, inventory=True)
         return None
     already: set[str] = set()
-    with PipelineLogger("harvest", source=slug, force=force) as log:
-        log.info("harvest_started", slug=slug)
+    with PipelineLogger("harvest", source=slug, force=force, namespace=namespace) as log:
+        log.info("harvest_started", slug=slug, namespace=namespace)
         client = get_client()
         try:
             log.info("lane_start", lane="repo")
@@ -2475,14 +2563,22 @@ def harvest(
             docs = harvest_docs(cache, product, repo_meta, already, log, client, force=force)
             log.info("lane_start", lane="issues")
             issues = harvest_issues(cache, product, repo_meta, log, force=force)
-            log.info("lane_start", lane="blog")
-            blog = harvest_blog(cache, product, already, log, client, force=force)
-            log.info("lane_start", lane="search")
-            search = harvest_search(
-                cache, product, repo_meta, already, log, client, force=force
-            )
-            log.info("lane_start", lane="community")
-            community = harvest_community(cache, product, already, log, client, force=force)
+            blog: dict[str, object] = {"lane": "blog", "truncated": False, "pages": []}
+            search: dict[str, object] = {"lane": "search", "truncated": False, "pages": []}
+            community: dict[str, object] = {
+                "lane": "community",
+                "truncated": False,
+                "pages": [],
+            }
+            if not is_eval:
+                log.info("lane_start", lane="blog")
+                blog = harvest_blog(cache, product, already, log, client, force=force)
+                log.info("lane_start", lane="search")
+                search = harvest_search(
+                    cache, product, repo_meta, already, log, client, force=force
+                )
+                log.info("lane_start", lane="community")
+                community = harvest_community(cache, product, already, log, client, force=force)
         finally:
             client.close()
         lanes = {
@@ -2495,14 +2591,15 @@ def harvest(
         }
         manifest = write_manifest(cache, product, lanes, repo_meta)
         log.action("manifest_written", pages=len(manifest["pages"]))
-        print(f"harvest {slug}: {len(manifest['pages'])} pages")
+        print(f"harvest {namespace} {slug}: {len(manifest['pages'])} pages")
         return manifest
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Harvest product pages into .cache/")
+    parser = argparse.ArgumentParser(description="Harvest pages into .cache/")
     parser.add_argument("--slug")
-    parser.add_argument("--all", action="store_true", help="Every product in seed.json")
+    parser.add_argument("--all", action="store_true", help="Every entry in seed for namespace")
+    parser.add_argument("--namespace", default="product", help="product or eval")
     parser.add_argument("--force", action="store_true")
     parser.add_argument(
         "--inventory",
@@ -2510,13 +2607,19 @@ def main() -> None:
         help="Clone if needed and print source paths. Do not rank or fetch.",
     )
     args = parser.parse_args()
+    namespace = parse_namespace(args.namespace)
     if args.all:
-        for slug in product_ids():
-            harvest(slug, force=args.force, inventory=args.inventory)
+        for slug in ids_for_namespace(namespace):
+            harvest(slug, force=args.force, inventory=args.inventory, namespace=namespace)
         return
     if not args.slug:
         raise SystemExit("pass --slug <id> or --all")
-    harvest(args.slug, force=args.force, inventory=args.inventory)
+    harvest(
+        args.slug,
+        force=args.force,
+        inventory=args.inventory,
+        namespace=namespace,
+    )
 
 
 if __name__ == "__main__":

@@ -11,7 +11,9 @@ output/
     synthesis.json       # after audit.json exist (just synthesize)
     <slug>/audit.json
   by-paper/              # reserved
-  by-eval/               # reserved
+  by-eval/               # benchmark audits (see by-eval/PROTOCOL.md)
+    PROTOCOL.md
+    <slug>/audit.json
 ```
 
 ## Query
@@ -34,6 +36,9 @@ just audit mem0          # extract → fold → apply dry-run
 just audit-write mem0    # lint temp, then write audit.json
 just audit-write-all
 just lint-audits
+just lint-eval-audits
+just harvest-eval <slug>
+just audit-write-eval <slug>
 just synthesize
 just test-pipeline
 ```
@@ -47,4 +52,4 @@ uv run --project research/pipeline playwright install chromium
 
 On NixOS, system `chromium` in `PATH` is used when the Playwright-bundled browser cannot start.
 
-See [`by-product/PROTOCOL.md`](by-product/PROTOCOL.md).
+See [`by-product/PROTOCOL.md`](by-product/PROTOCOL.md) and [`by-eval/PROTOCOL.md`](by-eval/PROTOCOL.md).

@@ -23,7 +23,7 @@ research/pipeline/         # harvest / extract / fold / apply (when built)
 research/output/
   by-product/             # audit.json per product
   by-paper/               # reserved
-  by-eval/                # reserved
+  by-eval/                # benchmark audit.json per eval slug
 .agents/skills/            # git-tracked agent skills
 .cache/                    # harvest clones and extracts. gitignored + cursorignored
 ```
@@ -48,18 +48,21 @@ Canonical file is `research/output/by-product/<slug>/audit.json`.
 - `copy` / `refuse`: interpretation. Extract must not invent them
 - Search snippets are discovery, not quotes
 
-Pipeline: harvest (no LLM) → one-shot extract (Kiro, no tools) → fold → apply dry-run → lint then write. Harvest fills `.cache/by-product/<slug>/` (clone, docs, issues, blogs, search-then-fetch). `.cache/` stays out of git and Cursor context.
+Pipeline: harvest (no LLM) → one-shot extract (Kiro, no tools) → fold → apply dry-run → lint then write. Products: `.cache/by-product/<slug>/` (six harvest lanes). Evals: `.cache/by-eval/<slug>/` (repo, docs, issues only). `seed.json` has `products` and `evals`. `.cache/` stays out of git and Cursor context.
 
 ## Commands
 
 ```bash
 just harvest mem0
 just harvest-all         # every product in seed.json
+just harvest-eval locomo
 just audit mem0          # extract → fold → apply dry-run
 just audit-write mem0    # lint temp, then write audit.json
+just audit-write-eval locomo
 just audit-write-all
 just lint-audits
-just lint-seed          # validate seed.json URLs and zep/graphiti rules
+just lint-eval-audits
+just lint-seed          # validate seed.json products + evals
 just synthesize
 just test-pipeline
 ```

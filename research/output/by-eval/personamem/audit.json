@@ -1,0 +1,611 @@
+{
+  "identity": {
+    "id": "personamem",
+    "name": "PersonaMem",
+    "repo": "https://github.com/bowen-upenn/PersonaMem",
+    "docs": "https://arxiv.org/abs/2504.14230",
+    "license": "MIT",
+    "version_or_commit": "d07e6ade22e85e0e5d562247323a9c3e07553226",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [],
+  "mechanisms": [
+    {
+      "text": "v1 used a shared_contexts_32k.jsonl format for the inference loop; v2 uses individual JSON files in data/chat_history_32k/, but no updated evaluation loop is documented for v2."
+    },
+    {
+      "text": "Evaluation scripts reference a questions CSV and shared contexts JSONL file parameterized by benchmark size, but these data files are not present in the repository."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Dataset is synthetically generated using LLMs seeded from PersonaHub personas",
+      "kind": "docs",
+      "url": "https://github.com/bowen-upenn/PersonaMem/blob/d07e6ade22e85e0e5d562247323a9c3e07553226/README.md",
+      "quote": "PersonaMem emphasizes persona-oriented, multi-session interactions between users and chatbots, facilitated by a synthetic dialog generation pipeline that simulates realistic and evolving conversational contexts.",
+      "locator": "README.md, abstract paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "15 LLMs evaluated across 7 in-situ query types",
+      "kind": "docs",
+      "url": "https://github.com/bowen-upenn/PersonaMem/blob/d07e6ade22e85e0e5d562247323a9c3e07553226/README.md",
+      "quote": "We evaluate 15 state-of-the-art LLMs, including GPT-4.5, GPT-4.1, o4-mini, o3-mini, o1, Llama-4, DeepSeek-R1, Gemini-2, Gemini-1.5, Claude-3.7, and Claude-3.5, across 7 in-situ query types.",
+      "locator": "README.md, Performance Leaderboard section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Context slicing is supported via end_index_in_shared_context field, enabling questions to reference only a prefix of the full conversation history",
+      "kind": "docs",
+      "url": "https://github.com/bowen-upenn/PersonaMem/blob/d07e6ade22e85e0e5d562247323a9c3e07553226/README.md",
+      "quote": "end_index_in_shared_context: Use to slice the loaded context as context[:int(end_index_in_shared_context)]",
+      "locator": "README.md, File Format section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dataset is synthetic: personas and multi-session conversations are generated via LLM pipeline seeded from PersonaHub",
+      "kind": "docs",
+      "url": "https://github.com/bowen-upenn/PersonaMem/blob/main/README.md",
+      "quote": "facilitated by a synthetic dialog generation pipeline that simulates realistic and evolving conversational contexts \u2026 First, download PersonaHub and place it in path data/source/Persona_Hub_20000.jsonl",
+      "locator": "README.md, introduction and Step 1",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Only Gemini models and Llama-4 support the 1M token context window size",
+      "kind": "docs",
+      "url": "https://github.com/bowen-upenn/PersonaMem/blob/main/README.md",
+      "quote": "Currently, only Gemini models and Llama-4 support context windows up to 1 million tokens",
+      "locator": "README.md, Running Inference on Benchmark Data section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Substituting gpt-4o-mini with qwen2.5-72b via vllm causes serious divergence in generated conversations, suggesting the benchmark's synthetic data is not straightforwardly reproducible with alternative models.",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/14",
+      "quote": "I replaced it with qwen2.5-72b deployed by vllm. However, I encountered a problem of inconsistent generated data (the generated data diverged seriously when it came to the conversation).",
+      "locator": "https://github.com/bowen-upenn/PersonaMem/issues/14",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The data preparation pipeline requires a file 'data/source/creative_writing/human_wp_stories_cleaned.json' that is missing from the distributed Google Drive archive, indicating a gap between the repository's run_all_prepare_data.sh script and the actual distributed data.",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/15",
+      "quote": "FileNotFoundError: [Errno 2] No such file or directory: 'data/source/creative_writing/human_wp_stories_cleaned.json' ... I checked the Google Drive link, and it seems that the creative_writing folder is currently empty.",
+      "locator": "GitHub issue #15, user report body",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The evaluation pipeline expects questions_${BENCHMARK_SIZE}.csv and shared_contexts_${BENCHMARK_SIZE}.jsonl under a data/ directory, parameterized by a BENCHMARK_SIZE variable.",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/17",
+      "quote": "QUESTION_PATH=\"data/questions_${BENCHMARK_SIZE}.csv\"\nCONTEXT_PATH=\"data/shared_contexts_${BENCHMARK_SIZE}.jsonl\"",
+      "locator": "https://github.com/bowen-upenn/PersonaMem/issues/17, issue body",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "It is unconfirmed whether the 50 unused shared contexts are an intentional design choice (e.g., filtering, train split, ablation reserve) or an inadvertent data discrepancy.",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/34",
+      "quote": "this seems more like an intentional selection or filtering choice rather than an obvious data issue. However, it is also possible that I may have misunderstood some aspect of the dataset usage or design",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "PersonaMem questions are grounded in specific oracle messages within a conversation session that serve as evidence for the answer",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/23",
+      "quote": "I was wondering how to easily access which specific messages contain evidence for the answer for a given question! E.g if I wanted to identify the exact message that would explain the answer to the question, what would be an easy way to compute that directly?",
+      "locator": "https://github.com/bowen-upenn/PersonaMem/issues/23, issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The main branch does not include a pre-made dataset; pre-made datasets exist only in other (non-main) branches, raising reproducibility concerns for users who want to avoid regenerating data.",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/24",
+      "quote": "I don't see a pre-made dataset in the main branch but did find some (what looks to be) pre-made datasets in other branches.",
+      "locator": "issue #24, first bullet",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Baseline implementations for mem0 and RAG exist in separate branches but lack documented run commands in the README.",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/24",
+      "quote": "I found codes for mem0 and rag in separate branches but was not able to access any explanations about the commands that is used to run them.",
+      "locator": "issue #24, second bullet",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark combines personal information with dialogue and Q&A construction, but the construction pipeline is not disclosed on this page.",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/30",
+      "quote": "how you utilize all this personal information to create consistent conversations and Q&A",
+      "locator": "https://github.com/bowen-upenn/PersonaMem/issues/30, issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A V2 benchmark called ImplicitPersona exists within the PersonaMem repository",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/32",
+      "quote": "I am interesting in the V2 benchmark",
+      "locator": "issue #32, comment body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Baselines including RAG are expected or have been run against PersonaMem V2, but official results had not been published as of this issue",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/32",
+      "quote": "Are there any official results? e.g. what is the performance of RAG and other baselines",
+      "locator": "issue #32, question 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "An evaluation pipeline exists for V1 and the question of whether it carries over to V2 is unresolved at time of issue",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/32",
+      "quote": "Is the evaluation pipeline the same as v1? Could you please help us reproduce your scores in question 1?",
+      "locator": "issue #32, question 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "inference.py was written for the v1 data format (shared_contexts_32k.jsonl) and is not confirmed compatible with the v2 format (individual JSON files in data/chat_history_32k/).",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/35",
+      "quote": "The provided inference.py in this repo seems to rely on the V1 shared_contexts_32k.jsonl format. For V2, which uses individual JSON files in data/chat_history_32k/, is there an updated evaluation loop we should follow to reproduce the leaderboard stats accurately?",
+      "locator": "https://github.com/bowen-upenn/PersonaMem/issues/35",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "An evaluation script for PersonaMem-v2 exists or is expected to exist in the repository, but its location is not publicly evident to at least one researcher.",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/36",
+      "quote": "I would greatly appreciate it if you could share the evaluation script for the v2 benchmark",
+      "locator": "body paragraph 1",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A prior issue (#35) discussed evaluation code but did not surface a usable link to the script, indicating a reproducibility gap.",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/36",
+      "quote": "I noticed the previously closed Issue #35 regarding the evaluation code, but I was unable to find a link to the corresponding script there",
+      "locator": "body paragraph 2",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session time / temporal metadata is referenced in the PersonaMem paper as part of the benchmark design but is missing from the publicly released dataset.",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/37",
+      "quote": "I find there are lack of session time. Which you have mentioned it in your paper. How can I create the session time naturally?",
+      "locator": "https://github.com/bowen-upenn/PersonaMem/issues/37, issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Claude models had their context dropped during question answering, which the issue author argues severely deflated Claude model scores on PersonaMem",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/39",
+      "quote": "There is a huge bug where claude models context get's dropped when asking questions. This severely deflated the models outcomes",
+      "locator": "issue #39, opening comment",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Evaluating a model (deepseek v4 flash) on PersonaMem is reported by a user to take an estimated 60+ hours to complete",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/40",
+      "quote": "when applying dpsk v4 flash in this benchmark, the eta seems to be 60+ hours",
+      "locator": "issue #40, body paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "PersonaMem-v2 no-context accuracy for a frontier model is 31.1% [27.1, 35.2] on a stratified n=501 sample, above the 25% four-option floor but below the length-heuristic signal of 44.7%.",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/42",
+      "quote": "a frontier model with no conversation history scores 31.1% [27.1, 35.2] here against the 25% four-option floor, versus 49.2% on v1",
+      "locator": "section 'Summary'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The direction of the length association inverts by slice: for pref_types where the correct answer applies a preference (e.g. anti_stereotypical_pref, stereotypical_pref, neutral_preferences), gold is disproportionately the longest option; for slices where the correct answer declines or forgets (ask_to_forget, therapy_background, who=others), gold is disproportionately the shortest.",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/42",
+      "quote": "A mechanism consistent with inspection: where the correct response *declines* to use a preference \u2014 a forgetting request, someone else's preference \u2014 the correct answer is a short acknowledgement while the distractors are longer elaborations that wrongly apply the information. Where the correct response *uses* a preference, it is the richest option and the distractors are thinner.",
+      "locator": "section 'The length signal, by slice'",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "On the ask_to_forget slice, a frontier model with no context scores 14.3% \u2014 below the 25% chance floor \u2014 because it is drawn to the more personalized-sounding distractor options.",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/42",
+      "quote": "On this supersession/forgetting axis, a frontier model with no context scores **14.3%** \u2014 well *below* chance, because it is drawn to whichever option sounds most personalized and those are the distractors.",
+      "locator": "section 'Why we think the supersession/forgetting axis is still valuable'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The PersonaMem-v1 no-context frontier model score was 49.2%, reported in a prior issue as a data leakage finding.",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/41",
+      "quote": "versus 49.2% on v1",
+      "locator": "https://github.com/bowen-upenn/PersonaMem/issues/42, section 'Summary'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The authors suggest remedies including reporting length controls alongside leaderboard numbers, length-balancing options, possibly dropping or rebuilding who=others, and documenting intended no-model baseline per slice.",
+      "kind": "issue",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/42",
+      "quote": "Report the longest / shortest controls, including tie-conservative unique extrema, alongside every leaderboard number \u2014 they cost nothing and expose the operative no-model baseline. Length-balance the options, or publish a length-matched subset. Consider dropping or rebuilding `who=others` if the full-set check confirms the sampled near-determinism. Document the intended no-model baseline per slice \u2014 25% is not the only relevant comparator anywhere we measured.",
+      "locator": "section 'Suggested remedies'",
+      "confidence": "high",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/bowen-upenn/PersonaMem/blob/d07e6ade22e85e0e5d562247323a9c3e07553226/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://arxiv.org/abs/2504.14230",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/bowen-upenn/PersonaMem/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://arxiv.org/html/2504.14230v1",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/15",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/42",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/34",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/23",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/35",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/30",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/24",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/17",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/40",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/39",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/14",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/37",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/36",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/32",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Train/test split boundaries and any held-out test set structure are not described",
+      "url": "https://github.com/bowen-upenn/PersonaMem/blob/d07e6ade22e85e0e5d562247323a9c3e07553226/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Leakage controls and reproducibility guarantees (random seeds, version pinning for generated data) are not mentioned",
+      "url": "https://github.com/bowen-upenn/PersonaMem/blob/d07e6ade22e85e0e5d562247323a9c3e07553226/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "The source page (arXiv:2504.14230) is a cooperative game theory paper about the Owen value and contains no information about PersonaMem. No task definitions, dataset statistics, metrics, graders, or any other claims about PersonaMem are present on this page.",
+      "url": "https://arxiv.org/abs/2504.14230",
+      "kind": "paper"
+    },
+    {
+      "text": "Exact grader/scorer implementation: the README does not specify whether scoring is exact string match against correct_answer, LLM-as-judge, or another method; no judge prompt is shown",
+      "url": "https://github.com/bowen-upenn/PersonaMem/blob/main/inference.py",
+      "kind": "docs"
+    },
+    {
+      "text": "Definition of the 7 in-situ query types (question_type column values) and per-type metric aggregation are not enumerated in the README",
+      "url": "https://github.com/bowen-upenn/PersonaMem/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Train/test split boundaries or held-out persona IDs are not described",
+      "url": "https://github.com/bowen-upenn/PersonaMem/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "LLM filter prompt used to remove questions answerable without context (--filter_questions) is not reproduced in the README",
+      "url": "https://github.com/bowen-upenn/PersonaMem/blob/main/inference.py",
+      "kind": "docs"
+    },
+    {
+      "text": "Exact metric formula and aggregation method (e.g., macro vs micro accuracy, per-topic vs overall) are not specified in the README",
+      "url": "https://arxiv.org/abs/2504.14225",
+      "kind": "docs"
+    },
+    {
+      "text": "The source page (arXiv:2504.14230v1) is a cooperative game theory paper about axiomatizations of the Owen value and contains no information about PersonaMem. No claims, quotes, or locators about PersonaMem can be extracted from this page.",
+      "url": "https://arxiv.org/html/2504.14230v1",
+      "kind": "paper"
+    },
+    {
+      "text": "Whether the non-open-source email and law source data was self-constructed by the authors or derived from secondary cleaning of existing open-source datasets is unresolved in this issue thread.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/14",
+      "kind": "issue"
+    },
+    {
+      "text": "No grader/scorer definition, metric formula, or evaluation rubric is described on this page.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/14",
+      "kind": "issue"
+    },
+    {
+      "text": "No train/test split boundaries or dataset size figures are stated on this page.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/14",
+      "kind": "issue"
+    },
+    {
+      "text": "The exact system prompt or generation prompt used with client.beta.threads.create during data construction is not disclosed on this page.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/14",
+      "kind": "issue"
+    },
+    {
+      "text": "No maintainer response or resolution is present in this issue; it is unknown whether the missing file was subsequently restored or replaced.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/15",
+      "kind": "issue"
+    },
+    {
+      "text": "No maintainer response is present in the extracted text; whether 'stereotypical' is a required question-type label, a bias-avoidance filter, or a scoring rubric dimension is not defined here.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/18",
+      "kind": "issue"
+    },
+    {
+      "text": "The role of the 'stereotypical' field in the grading/scoring pipeline (e.g., whether questions tagged stereotypical are excluded, down-weighted, or scored differently) is not specified.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/18",
+      "kind": "issue"
+    },
+    {
+      "text": "Split definitions, train/test boundaries, and whether persona_id 0 is part of the evaluation split or a special case are not addressed.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/18",
+      "kind": "issue"
+    },
+    {
+      "text": "The primary metric names, formulas, and aggregation method used by inference.py are not described in this issue.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/18",
+      "kind": "issue"
+    },
+    {
+      "text": "No response from maintainers is present in this page; the format or field name for oracle turn/message indices in the dataset schema is not specified here.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/23",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether oracle message identifiers are included in the released dataset splits (train/test) is not stated.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/23",
+      "kind": "issue"
+    },
+    {
+      "text": "No canonical split definition (train/validation/test boundaries, sizes, or versioning) is documented on this page or resolvable from the issue thread.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/24",
+      "kind": "issue"
+    },
+    {
+      "text": "Grader/scorer details (exact-match, LLM-as-judge prompt, rubric) are not mentioned in this issue.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/24",
+      "kind": "issue"
+    },
+    {
+      "text": "Dataset construction methodology (synthetic vs. human, annotation pipeline, adversarial sets) is not described in this issue.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/24",
+      "kind": "issue"
+    },
+    {
+      "text": "The 'validation-proved dataset' referenced in the issue has no linked version tag or commit hash, making the exact artifact unresolvable from this page.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/24",
+      "kind": "issue"
+    },
+    {
+      "text": "Grader/scorer details: no information about exact match, LLM-as-judge prompts, rubric, or primary metrics is present on this page.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/30",
+      "kind": "issue"
+    },
+    {
+      "text": "No official baseline or RAG results for PersonaMem V2 (ImplicitPersona) are documented on this page",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/32",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the V1 evaluation pipeline applies unchanged to V2 is unresolved; no answer is present on this page",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/32",
+      "kind": "issue"
+    },
+    {
+      "text": "No author response is present in this issue confirming or explaining the 50 unused shared contexts in PersonaMem-128k; the rationale for context exclusion from the question set is undocumented.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/34",
+      "kind": "issue"
+    },
+    {
+      "text": "The train/test/validation split boundaries for PersonaMem-128k are not defined in this issue; it is unclear whether the unused contexts belong to a training or held-out partition.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/34",
+      "kind": "issue"
+    },
+    {
+      "text": "The grader/scorer definition (exact match, LLM-as-judge prompt, rubric) for PersonaMem is not discussed in this issue.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/34",
+      "kind": "issue"
+    },
+    {
+      "text": "Primary metrics (names, formulas, aggregation method) for PersonaMem are not specified in this issue.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/34",
+      "kind": "issue"
+    },
+    {
+      "text": "The exact option-label formatting protocol for presenting multiple-choice questions to models in v2 is not documented (e.g., whether '(A) [text]' or another scheme is used).",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/35",
+      "kind": "issue"
+    },
+    {
+      "text": "An updated inference/evaluation loop for PersonaMem-v2 compatible with the individual JSON file structure is not confirmed to exist in the repository.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/35",
+      "kind": "issue"
+    },
+    {
+      "text": "Train/test split definitions and any data leakage controls for v2 are not discussed on this page.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/35",
+      "kind": "issue"
+    },
+    {
+      "text": "Evaluation script location for PersonaMem-v2 is not disclosed on this page; the requestor could not locate it after checking Issue #35.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/36",
+      "kind": "issue"
+    },
+    {
+      "text": "No author response is present in this issue clarifying whether session timestamps are intentionally omitted, how they should be generated, or whether a corrected data release is planned.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/37",
+      "kind": "issue"
+    },
+    {
+      "text": "The paper's specification of how session time is used in task construction or scoring is not quoted or reproduced on this page.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/37",
+      "kind": "issue"
+    },
+    {
+      "text": "No confirmation or rebuttal from maintainers is present in the extracted page text; root cause of context-dropping is unverified",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/39",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the bug affects only Claude models or other models is not stated",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/39",
+      "kind": "issue"
+    },
+    {
+      "text": "No information on task definitions, input format, session structure, splits, train/test boundaries, dataset construction, grading/scoring procedures, or primary metrics is present on this page",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/40",
+      "kind": "issue"
+    },
+    {
+      "text": "No explanation of what causes the long evaluation time (e.g., dataset size, number of turns, API rate limits, sequential vs parallel inference) is provided on this page",
+      "url": "https://github.com/bowen-upenn/PersonaMem/issues/40",
+      "kind": "issue"
+    },
+    {
+      "text": "The judge/grader prompt used in inference.py for create_mcq_options() is not reproduced in this issue; the exact wording of MCQ option assembly and the system prompt for history-conditioned runs is unspecified here.",
+      "url": "https://github.com/bowen-upenn/PersonaMem/blob/main/inference.py",
+      "kind": "issue"
+    },
+    {
+      "text": "Official train/test/validation split boundaries and total dataset size across all pref_type and who values are not stated in this issue.",
+      "url": "https://huggingface.co/datasets/bowen-upenn/PersonaMem-v2",
+      "kind": "issue"
+    },
+    {
+      "text": "The annotation and construction methodology for distractor (incorrect_answers) generation \u2014 whether synthetic, human-authored, or adversarially constructed \u2014 is not described in this issue.",
+      "url": "https://huggingface.co/datasets/bowen-upenn/PersonaMem-v2",
+      "kind": "issue"
+    },
+    {
+      "text": "The definition of the who field values beyond 'others' (e.g. what values exist and how they are populated) is not stated in this issue.",
+      "url": "https://huggingface.co/datasets/bowen-upenn/PersonaMem-v2",
+      "kind": "issue"
+    },
+    {
+      "text": "The primary aggregated metric and leaderboard ranking procedure (e.g. macro-average across slices vs flat accuracy) are not defined in this issue.",
+      "url": "https://github.com/bowen-upenn/PersonaMem",
+      "kind": "issue"
+    }
+  ]
+}

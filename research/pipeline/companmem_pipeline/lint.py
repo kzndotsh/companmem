@@ -9,7 +9,7 @@ from pathlib import Path
 import jsonschema
 
 from companmem_pipeline.log import PipelineLogger
-from companmem_pipeline.paths import OUTPUT_DIR, SCHEMA_PATH
+from companmem_pipeline.paths import EVAL_OUTPUT_DIR, OUTPUT_DIR, SCHEMA_PATH
 
 _schema_cache: dict[str, object] | None = None
 
@@ -60,6 +60,34 @@ def lint_path(path: Path) -> list[str]:
     return [f"{path}: {msg}" for msg in lint_audit(audit)]
 
 
+def lint_eval_all() -> int:
+    paths = sorted(EVAL_OUTPUT_DIR.glob("*/audit.json"))
+    if not paths:
+        print("no eval audit.json files")
+        return 0
+    failed = 0
+    with PipelineLogger("lint", source="eval", files=len(paths)) as log:
+        log.info("lint_started", files=len(paths), namespace="eval")
+        for path in paths:
+            errors = lint_path(path)
+            if errors:
+                failed += 1
+                log.error(
+                    "lint_fail",
+                    path=str(path),
+                    error_count=len(errors),
+                    errors=errors[:20],
+                )
+                print(f"FAIL {path}")
+                for err in errors:
+                    print(f"  {err}")
+            else:
+                log.info("lint_ok", path=str(path))
+                print(f"ok {path}")
+        log.info("lint_finished", ok=len(paths) - failed, failed=failed)
+    return 1 if failed else 0
+
+
 def lint_all() -> int:
     paths = sorted(OUTPUT_DIR.glob("*/audit.json"))
     if not paths:
@@ -89,8 +117,14 @@ def lint_all() -> int:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Lint product audit.json files")
+    parser = argparse.ArgumentParser(description="Lint audit.json files")
     parser.add_argument("--path", help="Single audit.json path")
+    parser.add_argument(
+        "--namespace",
+        choices=("product", "eval"),
+        default="product",
+        help="Glob audits under by-product (default) or by-eval",
+    )
     args = parser.parse_args()
     if args.path:
         path = Path(args.path)
@@ -104,6 +138,8 @@ def main() -> None:
             log.info("lint_ok", path=str(path))
             print(f"ok {args.path}")
         return
+    if args.namespace == "eval":
+        raise SystemExit(lint_eval_all())
     raise SystemExit(lint_all())
 
 

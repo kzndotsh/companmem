@@ -1,0 +1,1262 @@
+{
+  "identity": {
+    "id": "longmemeval",
+    "name": "LongMemEval",
+    "repo": "https://github.com/xiaowu0162/LongMemEval",
+    "docs": "https://arxiv.org/abs/2410.10813",
+    "license": "MIT",
+    "version_or_commit": "9e0b455f4ef0e2ab8f2e582289761153549043fc",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Evaluates memory and long-dialogue systems across question types covering single-session, multi-session, temporal reasoning, knowledge update, and preference recall."
+    },
+    {
+      "text": "LongMemEval is used to evaluate end-to-end QA performance of conversational memory systems."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "The grader dispatches a task-specific LLM-as-judge prompt based on question_type. Five task types are handled: single-session-user, single-session-assistant, multi-session, temporal-reasoning, knowledge-update, and single-session-preference."
+    },
+    {
+      "text": "The benchmark includes oracle category metadata (dataset-provided category labels) which can be used to select per-category retrieval policies; the issue distinguishes oracle-metadata runs from no-metadata runs as a methodological concern."
+    },
+    {
+      "text": "LongMemEval-S is a subset/variant of LongMemEval consisting of 500 questions used here for retrieval-only evaluation, where a hit is defined as the gold answer session appearing in the top-k retrieved results."
+    },
+    {
+      "text": "Each question has a ground truth label that maps to a specific session expected to contain the answer; retrieval systems are evaluated against this session mapping."
+    },
+    {
+      "text": "For knowledge-update tasks, the judge accepts a response that contains prior information alongside the updated answer, as long as the updated answer is present."
+    },
+    {
+      "text": "The benchmark uses an official judge prompt applied via an LLM (gpt-4o-2024-08-06) to score system-generated hypothesis answers against gold answers."
+    },
+    {
+      "text": "Primary metric is overall accuracy (mean of binary correct/incorrect labels across all questions) plus per-question-type accuracy breakdown."
+    },
+    {
+      "text": "Primary metrics reported are R@5, R@10, and Hit Rate, broken down per category and aggregated overall."
+    },
+    {
+      "text": "Hypothesis submissions follow a two-field JSONL contract specifying question_id and hypothesis fields."
+    },
+    {
+      "text": "The judge is invoked via a pipeline script with a top-k parameter."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "500 evaluation instances total across all question types.",
+      "kind": "docs",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/README.md",
+      "quote": "We release 500 high quality questions to test five core long-term memory abilities",
+      "locator": "README.md, LongMemEval Overview section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "30 abstention instances are present and skipped during retrieval evaluation.",
+      "kind": "docs",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/README.md",
+      "quote": "for evaluating the retrieval, we always skip the 30 abstention instances. This is because these instances generally refer to non-existing events and do not have a ground truth answer location.",
+      "locator": "README.md, Baseline Retrieval section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "QA grader is GPT-4o used as LLM-as-judge via evaluate_qa.py; produces per-instance autoeval_label and averaged scores.",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/README.md",
+      "quote": "python3 evaluate_qa.py gpt-4o your_hypothesis_file ../../data/longmemeval_oracle.json ... each line will contain a new field called `autoeval_label`. While `evaluate_qa.py` already reports the averaged scores",
+      "locator": "README.md, Testing Your System section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LongMemEval_S fits within 128k context window; LongMemEval_M is too long for long-context testing.",
+      "kind": "docs",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/README.md",
+      "quote": "`longmemeval_s.json` and `longmemeval_oracle.json` are designed to fit into a model with 128k context, but `longmemeval_m.json` is too long for long-context testing.",
+      "locator": "README.md, Long-Context Generation section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "History sessions were updated in 2025/09 to prevent interference on answer correctness; change logs available externally.",
+      "kind": "docs",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/README.md",
+      "quote": "We have further cleaned up the history sessions to prevent interference on answer correctness. The updated benchmark can be found here and the change logs can be found here.",
+      "locator": "README.md, News section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "QA scoring is LLM-as-judge using a specified model (e.g., gpt-4o); the judge assigns an autoeval_label per instance.",
+      "kind": "docs",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/main/README.md",
+      "quote": "python3 evaluate_qa.py gpt-4o your_hypothesis_file ... each line will contain a new field called autoeval_label",
+      "locator": "README.md, Testing Your System section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Internal task names in released data differ from paper names; a mapping table is provided.",
+      "kind": "docs",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/README.md",
+      "quote": "In the released data, we used a different naming compared to the paper. Here is the mapping. single_hop \u2192 single-session-user, implicit_preference_v2 \u2192 single-session-preference, assistant_previnfo \u2192 single-session-assistant, two_hop \u2192 multi-session, multi_session_synthesis \u2192 multi-session, temp_reasoning_implicit \u2192 temporal-reasoning, temp_reasoning_explicit \u2192 temporal-reasoning, knowledge_update \u2192 knowledge-update",
+      "locator": "README.md, Reproducing LongMemEval's History Compilation section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval metrics are computed by print_retrieval_metrics.py from the retrieval log file.",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/README.md",
+      "quote": "python3 src/evaluation/print_retrieval_metrics.py log_file",
+      "locator": "README.md, Baseline Retrieval section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Five distinct question types exist in the benchmark: single-session-user, single-session-assistant, multi-session, temporal-reasoning, knowledge-update, single-session-preference",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/src/evaluation/evaluate_qa.py",
+      "quote": "if task in ['single-session-user', 'single-session-assistant', 'multi-session']: ... elif task == 'temporal-reasoning': ... elif task == 'knowledge-update': ... elif task == 'single-session-preference':",
+      "locator": "evaluate_qa.py:get_anscheck_prompt",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Abstention (unanswerable) questions are a distinct subset identified by '_abs' suffix in question_id",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/src/evaluation/evaluate_qa.py",
+      "quote": "abstention='_abs' in entry['question_id']",
+      "locator": "evaluate_qa.py:main block, prompt construction call",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Grading is LLM-as-judge with binary yes/no output; no exact-match or n-gram metric is used",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/src/evaluation/evaluate_qa.py",
+      "quote": "label = 'yes' in eval_response.lower()",
+      "locator": "evaluate_qa.py:main block, label assignment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Temporal-reasoning grader explicitly tolerates off-by-one errors in duration counts",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/src/evaluation/evaluate_qa.py",
+      "quote": "do not penalize off-by-one errors for the number of days. If the question asks for the number of days/weeks/months, etc., and the model makes off-by-one errors (e.g., predicting 19 days when the answer is 18), the model's response is still correct.",
+      "locator": "evaluate_qa.py:get_anscheck_prompt, temporal-reasoning template",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Knowledge-update grader accepts responses that include both stale and updated information as long as the updated answer is present",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/src/evaluation/evaluate_qa.py",
+      "quote": "If the response contains some previous information along with an updated answer, the response should be considered as correct as long as the updated answer is the required answer.",
+      "locator": "evaluate_qa.py:get_anscheck_prompt, knowledge-update template",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Single-session-preference grader uses a rubric nugget approach but does not require full rubric coverage",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/src/evaluation/evaluate_qa.py",
+      "quote": "The model does not need to reflect all the points in the rubric. The response is correct as long as it recalls and utilizes the user's personal information correctly.",
+      "locator": "evaluate_qa.py:get_anscheck_prompt, single-session-preference template",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Overall accuracy is macro-averaged over all questions; per-type accuracy is also reported with sample count",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/src/evaluation/evaluate_qa.py",
+      "quote": "print('Accuracy:', round(np.mean([1 if x['autoeval_label']['label'] else 0 for x in logs]).item(), 4)) ... for k,v in qtype2acc.items(): print('\\t{}: {} ({})'.format(k, round(np.mean(v), 4), len(v)))",
+      "locator": "evaluate_qa.py:main block, final print statements",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Reference data is loaded from a JSON file keyed by question_id; each entry contains question, answer, and question_type fields",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/src/evaluation/evaluate_qa.py",
+      "quote": "qid2qdata = {entry['question_id']: entry for entry in references} ... q = qid2qdata[entry['question_id']]['question'] ... ans = qid2qdata[entry['question_id']]['answer']",
+      "locator": "evaluate_qa.py:main block, reference loading and field access",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Proposed optimizations include session decomposition, fact-augmented key expansion, and time-aware query expansion",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2410.10813",
+      "quote": "several memory design optimizations including session decomposition for value granularity, fact-augmented key expansion for indexing, and time-aware query expansion for refining the search scope",
+      "locator": "abstract",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Paper is work in progress; full benchmark details may not be finalized",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2605.12493",
+      "quote": "Work in Progress",
+      "locator": "comments",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval has 500 human-curated questions covering five core memory abilities across seven question types.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2410.10813v1",
+      "quote": "LongMemEval consists of 500 human-curated, high-quality questions to test five core memory abilities: information extraction, cross-session reasoning, temporal reasoning, knowledge updates, and abstention.",
+      "locator": "Section 1, Introduction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The QA judge is GPT-4o (gpt-4o-2024-08-06) with separate per-type prompts, achieving \u226590% and average >97% agreement with human experts.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2410.10813v1",
+      "quote": "we use the gpt-4o-2024-08-06 model via the OpenAI API. Our meta-evaluation study demonstrates that the evaluator achieves more than 97% agreement with human experts.",
+      "locator": "Section 3.4; Section A.3",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is evaluated with Recall@k and NDCG@k against human-annotated answer location labels.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2410.10813v1",
+      "quote": "As LongMemEval contains human-annotated answer location labels, intermediate retrieval metrics can be reported if the chat system exposes its retrieval results. In this paper, we report Recall@k and NDCG@k.",
+      "locator": "Section 3.4, Memory Recall",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Long-context LLMs show 30\u201360% performance drop on LongMemEval-S versus oracle retrieval setting.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2410.10813v1",
+      "quote": "these LLMs showed a 30% to 60% performance decline when tasked with reading the entire LongMemEval_S history, regardless of whether the chain-of-note technique was applied.",
+      "locator": "Section 3.5, Long-Context LLMs; Figure 4(b)",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "ChatGPT (GPT-4o) shows 37% accuracy drop and Coze (GPT-4o) shows 64% accuracy drop compared to offline reading on 97-question pilot study.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2410.10813v1",
+      "quote": "ChatGPT and Coze instantiated with GPT-4o exhibits 37% and 64% performance drop, respectively.",
+      "locator": "Section 3.5, Figure 4(a) caption",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Evidence sessions are LLM-simulated (Llama 3 70B Instruct) via self-chat and then human-edited; ~70% of sessions required human editing.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2410.10813v1",
+      "quote": "In total, roughly 70% of the sessions are human edited.",
+      "locator": "Section A.1, Evidence Session Construction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "History session mixture is 25% ShareGPT, 25% UltraChat, 50% simulated sessions based on same self-chat pipeline.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2410.10813v1",
+      "quote": "For LongMemEval, we always use the following mixture: 25% ShareGPT, 25% UltraChat, and 50% simulated sessions.",
+      "locator": "Section A.2, Session sampling",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Attribute ontology covers 164 user attributes across five categories: demographic information, lifestyle, situational context, life events, and belongings.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2410.10813v1",
+      "quote": "We first define an ontology of 164 user attributes in five categories: lifestyle, belongings, life events, situations context, and demographic information.",
+      "locator": "Section 3.2, Question Curation Pipeline; Section A.1, Attribute Ontology",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Question yield rate is approximately 5% from ~1000 generated questions per type after human filtering and editing.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2410.10813v1",
+      "quote": "In total, approximately 1000 questions were generated for each question type, and the final yield rate is about 5%.",
+      "locator": "Section A.1, Question Construction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Abstention (false premise) questions number 30, drawn and modified from other question types.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2410.10813v1",
+      "quote": "we draw 30 questions from the previous question types and modify them 'false premise' questions, testing whether the model can correctly abstain from answering (ABS).",
+      "locator": "Section 3.2",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Timestamps for non-pre-specified sessions are randomly assigned in May 2023.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2410.10813v1",
+      "quote": "Otherwise, we randomly assign timestamps in May 2023.",
+      "locator": "Section A.2, Timestamp resolution",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The benchmark and experiment code are publicly released at https://github.com/xiaowu0162/LongMemEval.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2410.10813v1",
+      "quote": "we publicly release the benchmark and our experiment code at https://github.com/xiaowu0162/LongMemEval",
+      "locator": "Abstract",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LongMemEval_S history consumes approximately 115k tokens (~40 sessions) for Llama 3.",
+      "kind": "docs",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/main/README.md",
+      "quote": "Concatenating all the chat history roughly consumes 115k tokens (~40 history sessions) for Llama 3.",
+      "locator": "README.md, Dataset Format section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LongMemEval_S and oracle splits are designed to fit within a 128k context model; LongMemEval_M is too long for long-context testing.",
+      "kind": "docs",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/main/README.md",
+      "quote": "longmemeval_s.json and longmemeval_oracle.json are designed to fit into a model with 128k context, but longmemeval_m.json is too long for long-context testing.",
+      "locator": "README.md, Running Memory System Experiments / Long-Context Generation section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Running BM25 (flat-bm25, session granularity) on longmemeval_m_cleaned.json produces noticeably higher retrieval scores than those reported in paper Table 9, indicating a reproducibility discrepancy tied to dataset version.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/27",
+      "quote": "My results are noticeably higher. I was wondering whether this difference could be due to the dataset version.",
+      "locator": "https://github.com/xiaowu0162/LongMemEval/issues/27, issue body",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval_s is a named split or variant of LongMemEval used to measure accuracy of retrieval/memory techniques.",
+      "kind": "issue",
+      "url": "https://github.com.xiaowu0162/LongMemEval/issues/28",
+      "quote": "an 'ASMR' (Agentic Search and Memory Retrieval) technique achieved ~99% accuracy on LongMemEval_s",
+      "locator": "https://github.com/xiaowu0162/LongMemEval/issues/28, body, opening paragraph",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval includes tasks covering temporal reasoning, knowledge update tracking, and multi-hop inference.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/28",
+      "quote": "LongMemEval tests temporal reasoning, knowledge updates, multi-hop inference \u2014 things embeddings struggle with",
+      "locator": "https://github.com/xiaowu0162/LongMemEval/issues/28, body, Context section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A community execution harness for LongMemEval is available at dcostenco/prism under benchmarks/longmemeval/.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/31",
+      "quote": "Our execution harness is publicly available in our repo at [dcostenco/prism](https://github.com/dcostenco/prism) under `benchmarks/longmemeval/`.",
+      "locator": "https://github.com/xiaowu0162/LongMemEval/issues/31",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The LongMemEval oracle split contains exactly 500 questions across six named categories.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/32",
+      "quote": "| **OVERALL** | **500** | **99.9%** | **100.0%** | **100.0%** |",
+      "locator": "Results table, OVERALL row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The six task categories in LongMemEval are: knowledge-update, multi-session, single-session-assistant, single-session-preference, single-session-user, and temporal-reasoning.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/32",
+      "quote": "knowledge-update | 78 ... multi-session | 133 ... single-session-assistant | 56 ... single-session-preference | 30 ... single-session-user | 70 ... temporal-reasoning | 133",
+      "locator": "Results table, category rows",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The oracle split dataset artifact is published on Hugging Face at xiaowu0162/longmemeval-cleaned as longmemeval_oracle.json.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/32",
+      "quote": "https://huggingface.co/datasets/xiaowu0162/longmemeval-cleaned/resolve/main/longmemeval_oracle.json",
+      "locator": "Reproduce section, curl command",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The oracle split evaluation protocol isolates the retrieval stage: each question uses all haystack sessions as the retrieval corpus, and scoring checks whether the answer session(s) appear in the top-K retrieved results.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/32",
+      "quote": "The benchmark runner creates a fresh SQLite database per question, ingests all haystack sessions, queries with both retrieval modes, and scores Recall@K against answer_session_ids.",
+      "locator": "Reproduce section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Primary metrics for the oracle split are Recall@5, Recall@10, and Hit Rate, reported per category and overall.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/32",
+      "quote": "| Category | N | R@5 | R@10 | Hit Rate |",
+      "locator": "Results table header",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval-S contains 500 questions loaded from longmemeval_s_cleaned.json.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/43",
+      "quote": "Dataset | LongMemEval-S cleaned (`longmemeval_s_cleaned.json`, 500 questions)",
+      "locator": "Result Summary table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval has seven question categories: single-session-assistant (56), knowledge-update (78), single-session-user (70), temporal-reasoning (133), multi-session (133), abstention (30), single-session-preference (30).",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/34",
+      "quote": "single-session-assistant | 56 ... knowledge-update | 78 ... single-session-user | 70 ... temporal-reasoning | 133 ... multi-session | 133 ... abstention | 30 ... single-session-preference | 30",
+      "locator": "Per-Category Breakdown table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval explicitly evaluates temporal reasoning as a benchmark category.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/34",
+      "quote": "Temporal-aware generation \u2014 memories are sorted chronologically with real session dates in the prompt, giving the LLM proper context for temporal reasoning",
+      "locator": "Architecture section, point 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A leaderboard exists for LongMemEval with at least OMEGA (95.4%) and Mastra (94.9%) as prior entries.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/34",
+      "quote": "a significantly cheaper model than GPT-4.1 (used by OMEGA, 95.4%) or GPT-5-mini (used by Mastra, 94.9%)",
+      "locator": "Context section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Question type counts in LongMemEval-S: knowledge-update=78, multi-session=133, single-session-assistant=56, single-session-preference=30, single-session-user=70, temporal-reasoning=133",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/35",
+      "quote": "knowledge-update\t100%\t78\nmulti-session\t100%\t133\nsingle-session-assistant\t96.4%\t56\nsingle-session-preference\t96.7%\t30\nsingle-session-user\t97.1%\t70\ntemporal-reasoning\t97.0%\t133",
+      "locator": "https://github.com/xiaowu0162/LongMemEval/issues/35",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "longmemeval_s contains 500 questions in total.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/36",
+      "quote": "72.20% (361/500) \u2014 longmemeval_s, end-to-end QA with official judge prompts",
+      "locator": "https://github.com/xiaowu0162/LongMemEval/issues/36",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Question ID eac54add has a ground truth label whose expected session annotation points to the wrong session, approximately 18 days apart from the session containing the correct answer.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/37",
+      "quote": "The ground truth label (expected session annotation) points to a different session that occurred approximately 18 days apart from the session that actually contains the correct answer.",
+      "locator": "Issue Details section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval-S is a named split or variant of LongMemEval containing 500 questions.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/42",
+      "quote": "Results (N=500, LongMemEval-S)",
+      "locator": "Results header",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval defines at least six question types: knowledge-update, multi-session, single-session-assistant, single-session-preference, single-session-user, and temporal-reasoning.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/42",
+      "quote": "knowledge-update ... multi-session ... single-session-assistant ... single-session-preference ... single-session-user ... temporal-reasoning",
+      "locator": "By question type table",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval supports retrieval-only evaluation where the scoring unit is whether the gold answer session appears in the top-k retrieved sessions (Recall@k).",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/42",
+      "quote": "Task: Retrieval only (not end-to-end QA). Each haystack session is stored as a memory. A question is a hit if the gold answer session appears in the top-k retrieved results.",
+      "locator": "Methodology section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval sessions carry date/timestamp metadata, which is meaningful for temporal-reasoning questions and is leveraged by time-aware retrieval systems.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/42",
+      "quote": "Memories are stored with timestamps matching their session dates. The Ebbinghaus decay score is computed relative to the question date",
+      "locator": "Decay handling section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The community has open questions about whether decay-relative-to-question-date is a valid evaluation framing for LongMemEval's temporal-reasoning questions, indicating the benchmark's temporal grading semantics are underspecified or ambiguous.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/42",
+      "quote": "I'd welcome any feedback on the evaluation setup \u2014 particularly whether the decay-relative-to-question-date approach is a fair way to evaluate a time-aware memory system, or whether you'd recommend a different framing.",
+      "locator": "Closing paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The gpt-4o judge has a known scoring artifact on single-session-assistant questions, where natural-phrasing abstentions are credited as correct even on non-abstention questions, adding ~2.2pp to the no-retrieval baseline.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/43",
+      "quote": "ss-assistant jumps 0.0% \u2192 19.6% under the RAG-aware prompt due to a gpt-4o judge artifact (judge credits natural-phrasing abstentions as correct on 11 non-abstention questions). This adds ~2.2pp to the baseline but does not change the conclusion.",
+      "locator": "Retrieval contribution / Note",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval-S question category distribution: single-session-user 70, single-session-assistant 56, single-session-preference 30, multi-session 133, temporal-reasoning 133, knowledge-update 78.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/43",
+      "quote": "single-session-user | 70 ... single-session-assistant | 56 ... single-session-preference | 30 ... multi-session | 133 ... temporal-reasoning | 133 ... knowledge-update | 78 ... Overall | 500",
+      "locator": "Per-category breakdown table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The dataset includes oracle category metadata (category labels) that can be used to configure per-category retrieval policies; results differ substantially between oracle-metadata (89.0%) and no-metadata (68.0%\u201374.8%) conditions.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/43",
+      "quote": "The 89.0% stock run uses the dataset's category labels to select per-category retrieval policies (k values, session expansion, recency bias, role weighting, answer scaffolds). We report numbers with and without those signals, since a production system would have to infer them at runtime.",
+      "locator": "Category-aware policy ablation",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Single gpt-4o judge is used with no human or secondary-LLM validation, and the ss-assistant abstention artifact is a known judge bias.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/43",
+      "quote": "Judge: Single gpt-4o judge, no human or secondary-LLM validation. The ss-assistant abstention artifact above is one known bias.",
+      "locator": "Caveats",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Primary retrieval metrics used on LongMemEval-S are R@1, R@5, R@10, and NDCG@10.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/46",
+      "quote": "R@1: 90.6%; R@5: 98.6%; R@10: 99.4%; NDCG@10: 0.9426",
+      "locator": "issue body, Results table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Chunking over flat session-level embedding yields +8.4% R@1, +3.2% R@5, +2.0% R@10 improvement on LongMemEval-S.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/46",
+      "quote": "Chunking adds +3.2% R@5, +2.0% R@10, +8.4% R@1 over session-level flat embedding.",
+      "locator": "issue body, Chunking Delta section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval-S contains exactly 500 questions distributed across six named categories with canonical counts.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/48",
+      "quote": "We ran the full 500-question split with the canonical category counts (knowledge-update 78, multi-session 133, single-session-assistant 56, single-session-preference 30, single-session-user 70, temporal-reasoning 133)",
+      "locator": "issue body, 'Two notes for fair comparison', note 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "R@5 is the primary retrieval metric; Accuracy is the primary end-to-end metric.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/48",
+      "quote": "R@5 | Accuracy \u2026 Overall \u2026 97.0% (485/500) \u2026 87.0% (435/500)",
+      "locator": "issue body, results table header and overall row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The hit definition for R@5 is ambiguous across implementations for multi-gold questions, creating a reproducibility and comparability risk.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/48",
+      "quote": "I've seen runs reporting different totals, so per-category R@5 isn't always directly comparable \u2026 How is everyone defining the hit for multi-gold questions? Worth standardizing if a leaderboard comes out of this.",
+      "locator": "issue body, 'Two notes for fair comparison', notes 1 and 2",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "knowledge-update, multi-session, and temporal-reasoning categories average approximately 2 gold sessions per question, making them multi-gold categories.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/48",
+      "quote": "For multi-gold categories (knowledge-update, multi-session, temporal \u2014 averaging ~2 gold sessions each)",
+      "locator": "issue body, 'Two notes for fair comparison', note 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The synthesis gap (high R@5 but low accuracy) is most pronounced in single-session-preference, suggesting the benchmark stresses answer generation beyond retrieval.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/48",
+      "quote": "single-session-preference: 90% R@5 but only 57% end-to-end accuracy \u2014 we retrieve the right memory and then answer wrong",
+      "locator": "issue body, synthesis bottleneck paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The judge expects JSON-formatted answers; non-JSON output is treated as incorrect.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/49",
+      "quote": "One question (bc8a6e93_abs) produced non-JSON output and is counted as incorrect",
+      "locator": "M3 Memory \u2014 LongMemEval-S v3 (no-oracle) results, bullet list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval-S has seven question types: single-session-user (70), single-session-assistant (56), single-session-preference (30), multi-session (133), temporal-reasoning (133), knowledge-update (78).",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/49",
+      "quote": "single-session-user | 70 | ... single-session-assistant | 56 | ... single-session-preference | 30 | ... multi-session | 133 | ... temporal-reasoning | 133 | ... knowledge-update | 78 |",
+      "locator": "Results by question type table",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The dataset includes a question_type field that can be used as oracle routing metadata.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/49",
+      "quote": "no dataset `question_type` labels used during answering",
+      "locator": "M3 Memory \u2014 LongMemEval-S v3 (no-oracle) results, opening paragraph",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The judge pipeline is invoked via pipeline/06_judge.py with a --top-k parameter.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/49",
+      "quote": "python pipeline/06_judge.py --backend batch --top-k 10 --answerer-model opus46@frontier-strategy",
+      "locator": "Reproduce section, Judge phase command",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The gpt-4o judge is non-deterministic at T=0 with observed run variance of approximately \u00b10.7pp.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/49",
+      "quote": "Opus 4.6 and the gpt-4o judge are non-deterministic at T=0; re-runs vary \u2248\u00b10.7pp.",
+      "locator": "Caveats section, Non-determinism bullet",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session hit-rate at k=20 reaches 100% across all question types, indicating retrieval is not the primary error source.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/49",
+      "quote": "SHR is 100% @ k=20 for every question type. As in #43, session recall is necessary but not sufficient \u2014 the gap between 100% SHR@k=20 and 92.0% QA is answer-side (interpretation, computation, preference inference, abstention), not retrieval failure.",
+      "locator": "Retrieval (session hit-rate) section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval categories include single-session-user, single-session-assistant, single-session-preference, knowledge-update, temporal-reasoning, multi-session, and abstention.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/51",
+      "quote": "Per category: single-session-user 100%, single-session-assistant 89.3%, single-session-preference 66.7%, knowledge-update 84.6%, temporal-reasoning 83.5%, multi-session 71.4%; abstention 73.3% (n=30)",
+      "locator": "https://github.com/xiaowu0162/LongMemEval/issues/51",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A community-maintained Chinese translation of all 500 LongMemEval questions exists, with public evaluation and reproducibility artifacts, but is not an official release and does not modify the upstream dataset or evaluation code.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/52",
+      "quote": "an unofficial, community-maintained Chinese translation of all 500 LongMemEval questions, with public evaluation and reproducibility artifacts \u2026 The resource is not an official LongMemEval release and does not modify the upstream dataset or evaluation code.",
+      "locator": "issue #52, body",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval uses an official LLM-as-judge prompt applied with gpt-4o-2024-08-06 to score hypotheses.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/53",
+      "quote": "Judge | LongMemEval official prompt, gpt-4o-2024-08-06",
+      "locator": "'Result summary' table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval-S contains exactly 500 questions, of which 30 are information-unavailable abstention questions with IDs ending in _abs.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/53",
+      "quote": "Dataset | longmemeval_s_cleaned, 500 questions ... LongMemEval-S contains 30 information-unavailable abstention questions whose question IDs end in _abs.",
+      "locator": "'Result summary' table and 'End-to-end breakdown' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Abstention questions are excluded from retrieval metric calculation because they have no ground-truth answer location.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/53",
+      "quote": "Abstention questions are excluded because they have no ground-truth answer location from which retrieval recall can be calculated.",
+      "locator": "'Retrieval results' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval recall is defined at session granularity, not chunk granularity, with both macro (per-question mean) and micro (pooled) variants.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/53",
+      "quote": "Macro session recall: mean across questions of covered Gold sessions divided by required Gold sessions. Micro session recall: 822 covered Gold sessions out of 890 required sessions.",
+      "locator": "'Retrieval results \u2014 Definitions'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The official submission format is a two-field JSONL file with question_id and hypothesis keys.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/53",
+      "quote": "The hypothesis artifact follows the official two-field JSONL contract: {question_id: ..., hypothesis: ...}",
+      "locator": "'Code and artifacts' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Nondeterminism from proprietary model providers (judge and answer model) can affect fresh-run reproducibility.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/53",
+      "quote": "GPT-5.4 and GPT-4o are hosted proprietary models, so provider revisions and nondeterminism can affect a fresh run.",
+      "locator": "'Notes' section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval defines question_type categories: information-unavailable abstention, knowledge update, multi-session, single-session assistant, single-session preference, single-session user, temporal reasoning.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/53",
+      "quote": "All remaining rows retain their official question_type. | Information-unavailable abstention | Knowledge update | Multi-session | Single-session assistant | Single-session preference | Single-session user | Temporal reasoning",
+      "locator": "'End-to-end breakdown' section, breakdown table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval-S is a 500-question cleaned subset of LongMemEval.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/55",
+      "quote": "sharing an external result on LongMemEval-S (500, cleaned set)",
+      "locator": "issue body, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Six persistent structural errors (1.2% of 500) and an SA subscore gap of \u22121.8pp versus the mini baseline are disclosed as known reproducibility deviations.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/55",
+      "quote": "Six persistent structural errors (1.2%) and the SA \u22121.8pp vs mini are declared in the report, not hidden",
+      "locator": "issue body, paragraph 2",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A reproducible package including per-question caches, gate subset, and harness flags is published externally; total cost was ~$24.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/55",
+      "quote": "Reproducible package (per-question caches, gate subset, harness flags, costs ~$24 measured): https://github.com/marcot3ssar1/InfiniteMemOs/releases/tag/v1.3-lmem-kimi",
+      "locator": "issue body, paragraph 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "~30\u201340 sessions have empty correct_docs, making them affected by both bugs simultaneously.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/7",
+      "quote": "It looks like there is about 30-40 sessions which have an empty correct_docs",
+      "locator": "https://github.com/xiaowu0162/LongMemEval/issues/7, issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/src/evaluation/evaluate_qa.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://arxiv.org/abs/2410.10813",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://arxiv.org/html/2410.10813v1",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://arxiv.org/abs/2605.12493",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/27",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/46",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/28",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/31",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/48",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/43",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/7",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/37",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/55",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/53",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/52",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/51",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/49",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/42",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/36",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/35",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/34",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/32",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Exact judge prompt used inside evaluate_qa.py is not shown in the README; the LLM-as-judge rubric, scoring criteria, and any chain-of-thought instructions are undocumented here.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/src/evaluation/evaluate_qa.py",
+      "kind": "code"
+    },
+    {
+      "text": "Exact metric definitions and formulas output by print_qa_metrics.py (e.g., per-type accuracy, macro vs micro aggregation) are not described in the README.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/src/evaluation/print_qa_metrics.py",
+      "kind": "code"
+    },
+    {
+      "text": "Exact retrieval metrics computed by print_retrieval_metrics.py (e.g., recall@k, MRR, hit rate) are not defined in the README.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/src/evaluation/print_retrieval_metrics.py",
+      "kind": "code"
+    },
+    {
+      "text": "Train/test split information is not mentioned; it is unclear whether any training split exists or if all 500 instances are evaluation-only.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/9e0b455f4ef0e2ab8f2e582289761153549043fc/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Dataset construction annotation process (how questions and answers were authored or verified, human vs synthetic labeling) is not described in the README.",
+      "url": "https://arxiv.org/abs/2410.10813",
+      "kind": "paper"
+    },
+    {
+      "text": "Grader/scorer details: exact match, LLM-as-judge prompts, rubric, or human evaluation procedure not described in the abstract",
+      "url": "https://arxiv.org/abs/2605.12493",
+      "kind": "paper"
+    },
+    {
+      "text": "Train/test split boundaries and whether evaluation splits are defined",
+      "url": "https://arxiv.org/abs/2605.12493",
+      "kind": "paper"
+    },
+    {
+      "text": "Metric formula and aggregation method for average accuracy (e.g., macro vs micro, per-category weighting)",
+      "url": "https://arxiv.org/abs/2605.12493",
+      "kind": "paper"
+    },
+    {
+      "text": "Data leakage controls and reproducibility provisions (version tags, held-out test sets)",
+      "url": "https://arxiv.org/abs/2605.12493",
+      "kind": "paper"
+    },
+    {
+      "text": "Oracle retrieval settings and whether oracle context conditions are defined",
+      "url": "https://arxiv.org/abs/2605.12493",
+      "kind": "paper"
+    },
+    {
+      "text": "Code repository or release not referenced in the abstract",
+      "url": "https://arxiv.org/abs/2605.12493",
+      "kind": "paper"
+    },
+    {
+      "text": "The exact train/test split and whether any portion of the 500 questions is reserved for development/validation is not specified.",
+      "url": "https://arxiv.org/html/2410.10813v1",
+      "kind": "paper"
+    },
+    {
+      "text": "The full text of judge prompts beyond the excerpts in Figure 10 (e.g., complete system prompt, few-shot examples included with the judge) is not reproduced in the paper.",
+      "url": "https://arxiv.org/html/2410.10813v1",
+      "kind": "paper"
+    },
+    {
+      "text": "No explicit version tag or commit hash is provided for the released benchmark, making it unclear how to pin a specific version for reproducibility.",
+      "url": "https://github.com/xiaowu0162/LongMemEval",
+      "kind": "paper"
+    },
+    {
+      "text": "The distribution of questions across the seven question types (beyond the 30 abstention questions) is not numerically reported in the paper.",
+      "url": "https://arxiv.org/html/2410.10813v1",
+      "kind": "paper"
+    },
+    {
+      "text": "The license under which the benchmark data and code are released is not stated in the paper.",
+      "url": "https://github.com/xiaowu0162/LongMemEval",
+      "kind": "paper"
+    },
+    {
+      "text": "The exact judge prompt used in evaluate_qa.py for LLM-as-judge scoring is not specified in the README.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/main/src/evaluation/evaluate_qa.py",
+      "kind": "docs"
+    },
+    {
+      "text": "The definition and formula for the primary QA metric (e.g., exact match, F1, accuracy) reported by evaluate_qa.py is not stated in the README.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/main/src/evaluation/evaluate_qa.py",
+      "kind": "docs"
+    },
+    {
+      "text": "The definition and formula for retrieval metrics reported by print_retrieval_metrics.py (e.g., recall@k, MRR) are not stated in the README.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/main/src/evaluation/print_retrieval_metrics.py",
+      "kind": "docs"
+    },
+    {
+      "text": "Train/test split information is not described; it is unclear whether any training split exists or if all 500 instances are test-only.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Aggregation method across question types (e.g., macro vs micro averaging) is not described in the README.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/main/src/evaluation/print_qa_metrics.py",
+      "kind": "docs"
+    },
+    {
+      "text": "No official response in this issue clarifying which dataset version (longmemeval_m.json vs longmemeval_m_cleaned.json) was used to produce Table 9 results, leaving the version-split boundary unresolved.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/27",
+      "kind": "issue"
+    },
+    {
+      "text": "The scoring implementation for recall_any@K and ndcg_any@K (code path in run_retrieval.sh and underlying scripts) is referenced but not shown; whether 'any' aggregation matches the paper's metric definition is unverifiable from this page.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/27",
+      "kind": "issue"
+    },
+    {
+      "text": "The ~99% accuracy claim for ASMR on LongMemEval_s is unverified: no paper, code, or reproduction protocol is cited by the issue author to substantiate it.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/28",
+      "kind": "issue"
+    },
+    {
+      "text": "The grading/scoring procedure for R@5 is not defined in this issue \u2014 it is unclear whether R@5 is computed by the official harness, what constitutes a match, or whether an LLM-as-judge or exact-match grader is used.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/31",
+      "kind": "issue"
+    },
+    {
+      "text": "The distinction between LongMemEval-S and other named variants (e.g. LongMemEval-M, LongMemEval-L) is not explained in this issue \u2014 split boundaries and item counts for other variants are unknown from this source.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/31",
+      "kind": "issue"
+    },
+    {
+      "text": "No train/test split information or leakage controls are described in this issue.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/31",
+      "kind": "issue"
+    },
+    {
+      "text": "Dataset construction methodology (synthetic vs human, annotation process) is not addressed in this issue.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/31",
+      "kind": "issue"
+    },
+    {
+      "text": "Aggregation method for per-category scores into overall accuracy (e.g., macro average vs. pooled count) is not explicitly defined on this page.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/34",
+      "kind": "issue"
+    },
+    {
+      "text": "Exact definition and formula for Recall@K and NDCG@K as implemented in the benchmark's scoring code are not provided on this page",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/35",
+      "kind": "issue"
+    },
+    {
+      "text": "The exact text of the official judge prompts is not disclosed in this issue; it is unclear whether they use rubric nuggets, binary pass/fail, or another grading scheme.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/36",
+      "kind": "issue"
+    },
+    {
+      "text": "Train/test split boundaries and whether longmemeval_s is a designated test split or a sampled subset are not specified in this issue.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/36",
+      "kind": "issue"
+    },
+    {
+      "text": "Dataset construction methodology (synthetic vs human-authored, annotation process) is not described in this issue.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/36",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the category scores are aggregated via macro or micro averaging to produce the overall score is not stated.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/36",
+      "kind": "issue"
+    },
+    {
+      "text": "Version tag or commit hash of LongMemEval used for this evaluation run is not reported.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/36",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the benchmark's temporal-reasoning questions have a defined evaluation protocol for time-aware retrieval (e.g., whether recency bias is rewarded or penalized) is explicitly raised as an open question by the issue author.",
+      "url": "https://github.com/xiaowu0162/LongMemEval",
+      "kind": "issue"
+    },
+    {
+      "text": "The exact judge prompt used by the upstream LongMemEval gpt-4o judge is not defined or quoted in this issue; the canonical judge prompt specification is not present.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/43",
+      "kind": "issue"
+    },
+    {
+      "text": "Train/test split boundaries and how longmemeval_s_cleaned.json differs from the original LongMemEval-S release are not specified.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/43",
+      "kind": "issue"
+    },
+    {
+      "text": "Dataset construction methodology (synthetic vs. human-authored questions, annotation process, adversarial or abstention sets) is not described in this issue.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/43",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether R@10 is defined as session-level or turn-level recall, and how session boundaries are determined, is not specified.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/43",
+      "kind": "issue"
+    },
+    {
+      "text": "The official definition of 'LongMemEval-S cleaned' split \u2014 what 'cleaned' means, how sessions are structured, and whether this split has official train/test boundaries \u2014 is not specified in this issue.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/46",
+      "kind": "issue"
+    },
+    {
+      "text": "The official grading/scoring procedure for retrieval metrics (how gold sessions are labelled, whether there are multiple gold sessions per query) is not defined in this issue.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/46",
+      "kind": "issue"
+    },
+    {
+      "text": "No information is provided about how the benchmark distinguishes retrieval-only evaluation from end-to-end QA scoring, or whether there is an official retrieval sub-task definition.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/46",
+      "kind": "issue"
+    },
+    {
+      "text": "The exact gpt-4o judge prompt used by LongMemEval is not quoted or linked in this issue.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/49",
+      "kind": "issue"
+    },
+    {
+      "text": "The rubric or scoring criteria applied by the gpt-4o judge (e.g. exact match vs partial credit, nugget-based) is not described in this issue.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/49",
+      "kind": "issue"
+    },
+    {
+      "text": "Train/test split boundaries and whether LongMemEval-S is the full test set or a subset are not specified here.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/49",
+      "kind": "issue"
+    },
+    {
+      "text": "Dataset construction method (synthetic vs human-authored, annotation process) is not described in this issue.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/49",
+      "kind": "issue"
+    },
+    {
+      "text": "The --top-k 10 parameter passed to the judge script and its effect on scoring are not explained.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/49",
+      "kind": "issue"
+    },
+    {
+      "text": "The exact judge prompt used in evaluate_qa.py is not quoted or reproduced in this issue; the LLM-as-judge rubric/criteria are unspecified here.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/main/src/evaluate_qa.py",
+      "kind": "issue"
+    },
+    {
+      "text": "The definition of micro vs macro aggregation (e.g., whether macro averages over categories or questions) is not stated in this issue.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/blob/main/src/print_qa_metrics.py",
+      "kind": "issue"
+    },
+    {
+      "text": "The nature and scope of the 'cleaned' split (what was changed from the original, what errors were corrected) is not described in this issue.",
+      "url": "https://huggingface.co/datasets/xiaowu0162/longmemeval-cleaned",
+      "kind": "issue"
+    },
+    {
+      "text": "The full definition of the official protocol for Group A (and other groups) and what constitutes the canonical evaluation segments is not specified here.",
+      "url": "https://github.com/xiaowu0162/LongMemEval",
+      "kind": "issue"
+    },
+    {
+      "text": "The issue does not define or discuss task structure, scoring pipeline, metrics, splits, or grading procedures for LongMemEval itself.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/52",
+      "kind": "issue"
+    },
+    {
+      "text": "The full text of the official LongMemEval judge prompt is not quoted or linked on this page; it is only referenced as 'LongMemEval official prompt'.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/53",
+      "kind": "issue"
+    },
+    {
+      "text": "The exact aggregation formula for overall end-to-end accuracy (e.g., whether it is macro-averaged across question_type categories or flat over all 500 questions) is not explicitly defined on this page.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/53",
+      "kind": "issue"
+    },
+    {
+      "text": "The exact judge prompt templates ('upstream prompts verbatim') are not reproduced in this issue; the canonical source in the repo is not identified here.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/55",
+      "kind": "issue"
+    },
+    {
+      "text": "The definition and construction criteria for the 'cleaned set' that distinguishes LongMemEval-S from the full LongMemEval benchmark are not explained in this issue.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/55",
+      "kind": "issue"
+    },
+    {
+      "text": "Aggregation method across per-type subscores to the overall score (e.g., macro average, weighted by type frequency, or raw count) is not stated.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/55",
+      "kind": "issue"
+    },
+    {
+      "text": "The stratification criteria for the 60-question gate subset (which question types or attributes were stratified on) are not defined in this issue.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/55",
+      "kind": "issue"
+    },
+    {
+      "text": "The scoring script file path implementing recall@any / recall@all is not named on this page.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/7",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the '_abs' suffix on question_id is the intended signal to skip empty-correct_docs samples from retrieval evaluation is not clarified.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/7",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether a fix or official guidance was provided in response to this issue is not visible on this page.",
+      "url": "https://github.com/xiaowu0162/LongMemEval/issues/7",
+      "kind": "issue"
+    }
+  ]
+}

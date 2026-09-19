@@ -1,0 +1,778 @@
+{
+  "identity": {
+    "id": "halumem",
+    "name": "HaluMem",
+    "repo": "https://github.com/MemTensor/HaluMem",
+    "docs": "https://arxiv.org/abs/2511.03506",
+    "license": "LICENSE.txt",
+    "version_or_commit": "718f16ff0c83413b1c86fa83fc13cc1a639871f9",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "HaluMem is presented as an important benchmark for evaluating AI memory systems, with this issue representing the first independent evaluation outside the original team."
+    },
+    {
+      "text": "HaluMem is a benchmark for measuring hallucination and memory performance of different memory systems."
+    },
+    {
+      "text": "HaluMem includes a Memory Extraction task evaluated on a medium-difficulty split"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Memory Extraction metrics: R (Recall), Weighted R, Target P (Target Memory Precision), Acc. (Memory Accuracy), FMR (False Memory Resistance), F1 (Memory Extraction F1-score). Higher is better for all except none noted as lower."
+    },
+    {
+      "text": "Human annotation covered over 50% of Halu-Medium by 8 annotators, scoring memory points and QA pairs on correctness, relevance, and consistency; reported accuracy 95.70%, relevance 9.58/10, consistency 9.45/10."
+    },
+    {
+      "text": "Each memory system has a dedicated adapter script (e.g., eval_memzero.py, eval_memos.py, eval_memobase.py, eval_zep.py, eval_supermemory.py) following a shared input/output contract for fair comparison"
+    },
+    {
+      "text": "Per-item scores aggregate into an overall_score dict with six named sub-scores: memory_integrity, memory_accuracy, memory_extraction_f1, memory_update, question_answering, memory_type_accuracy."
+    },
+    {
+      "text": "Zep cannot be evaluated on memory extraction because its API does not support retrieving all memory points within a session; only memory update and QA tasks are reliably scored for Zep"
+    },
+    {
+      "text": "QA evaluation covers six question types: Basic Fact Recall, Dynamic Update, Multi-hop Inference, Generalization & Application, Memory Conflict, Memory Boundary."
+    },
+    {
+      "text": "An LLM (configurable via OPENAI_MODEL, e.g. gpt-4o) is used as part of the evaluation pipeline, with temperature set to 0.0."
+    },
+    {
+      "text": "Each memory system adapter follows the same input/output contract so the downstream scorer can compare systems fairly."
+    },
+    {
+      "text": "The official grader/judge for HaluMem is GPT-4o, described as the HaluMem standard."
+    },
+    {
+      "text": "HaluMem includes a QA task scored by accuracy."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "HaluMem has two dataset splits: Halu-Medium (20 users, 30,073 dialogues, ~160k tokens avg context, 14,948 memory points, 3,467 QA pairs) and Halu-Long (20 users, 53,516 dialogues, ~1M tokens avg context, 14,948 memory points, 3,467 QA pairs).",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/README.md",
+      "quote": "Halu-Medium: #Users 20, #Dialogues 30,073, Avg. Sessions/User 70, Avg. Context Length ~160k tokens, #Memory Points 14,948, #QA Pairs 3,467. Halu-Long: #Users 20, #Dialogues 53,516, Avg. Sessions/User 120, Avg. Context Length ~1M tokens, #Memory Points 14,948, #QA Pairs 3,467.",
+      "locator": "README.md \u00a7Dataset Overview table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dataset is publicly available on Hugging Face at IAAR-Shanghai/HaluMem.",
+      "kind": "docs",
+      "url": "https://huggingface.co/datasets/IAAR-Shanghai/HaluMem",
+      "quote": "The complete HaluMem dataset is publicly available on Hugging Face: https://huggingface.co/datasets/IAAR-Shanghai/HaluMem",
+      "locator": "README.md \u00a7Dataset Access",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Human annotation covered over 50% of Halu-Medium by 8 annotators, scoring memory points and QA pairs on correctness, relevance, and consistency; results: Accuracy 95.70%, Relevance 9.58/10, Consistency 9.45/10.",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/README.md",
+      "quote": "A team of 8 annotators manually reviewed over 50% of Halu-Medium, scoring each session's memory points and QA pairs on correctness, relevance, and consistency. Results demonstrate high data quality: Accuracy: 95.70%, Relevance: 9.58 / 10, Consistency: 9.45 / 10",
+      "locator": "README.md \u00a7Dataset Construction Process / Human Annotation & Quality Verification",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dataset construction used a six-stage pipeline: Persona Construction (seeded from Persona Hub 1B+ personas, refined with GPT-4o), Life Skeleton Planning, Event Flow Generation, Session Summaries & Memory Points, Multi-turn Session Generation, Question Generation.",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/README.md",
+      "quote": "The HaluMem dataset was built through a six-stage, carefully controlled pipeline that combines programmatic generation, LLM-assisted refinement, and human validation... Personas were initially generated via rule-based templates seeded from Persona Hub (1B+ personas) and then refined using GPT-4o",
+      "locator": "README.md \u00a7Dataset Construction Process",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory points are categorized into three types: Persona Memory, Event Memory, Relationship Memory.",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/README.md",
+      "quote": "memory_type: Type (e.g., Persona Memory, Event Memory, Relationship Memory)",
+      "locator": "README.md \u00a7Dataset Structure / Memory Point Structure",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Evaluation code is located in the eval/ directory and supports multiple memory systems with standardized pipelines.",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/HaluMem/tree/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval",
+      "quote": "The HaluMem benchmark includes a complete evaluation suite located in the eval/ directory. It supports multiple memory systems and provides standardized pipelines for testing hallucination resistance and memory performance.",
+      "locator": "README.md \u00a7Evaluation Code",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Leaderboard tables report results for MemOS, Zep, Mem0-Graph, Mem0, Supermemory, and Memobase on both Halu-Medium and Halu-Long splits.",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/README.md",
+      "quote": "We conducted a comprehensive evaluation of several state-of-the-art memory systems on HaluMem, including Mem0 (both standard and graph versions), Memobase, MemOS, Supermemory, and Zep.",
+      "locator": "README.md \u00a7LeaderBoard",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Paper is cited as arXiv:2511.03506, accepted to EMNLP 2026 Main Conference.",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2511.03506",
+      "quote": "HaluMem has been accepted to the EMNLP 2026 Main Conference!... url={https://arxiv.org/abs/2511.03506}",
+      "locator": "README.md \u00a7What's New and Citation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "HaluMem is a benchmark for measuring hallucination and memory performance of memory systems",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/README.md",
+      "quote": "evaluation toolkit for measuring hallucination and memory performance of different memory systems on the HaluMem benchmark",
+      "locator": "eval/README.md \u00a7intro paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "HaluMem has three sub-tasks: memory extraction, memory update, and memory QA",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/README.md",
+      "quote": "evaluate Mem0 on memory extraction, memory update, and memory QA tasks, and aggregate the results",
+      "locator": "eval/README.md \u00a7Running the Evaluation, step 2",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Zep cannot be evaluated on the memory extraction task due to API limitations",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/README.md",
+      "quote": "the official APIs provided by Zep do not support retrieving all memory points within a specific session... Consequently, we were unable to evaluate Zep's performance on the memory extraction task.",
+      "locator": "eval/README.md \u00a7Special Configurations, Zep subsection",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Scoring is implemented in evaluation.py and takes --frame and --version arguments",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/README.md",
+      "quote": "python evaluation.py --frame memzero --version default",
+      "locator": "eval/README.md \u00a7Running the Evaluation, step 2",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "An LLM judge (default gpt-4o, temperature 0.0) is used during evaluation",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/README.md",
+      "quote": "OPENAI_MODEL : Model name used for evaluation, gpt-4o ... OPENAI_TEMPERATURE : Sampling temperature for generation, 0.0",
+      "locator": "eval/README.md \u00a7Configuration, Model Configuration table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memobase memory update task uses 250-token max recall; memory QA uses 500-token max recall",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/README.md",
+      "quote": "we set the maximum length for memory recall in the memory updating task to 250 tokens and the recall length for the memory question answering task to 500 tokens",
+      "locator": "eval/README.md \u00a7Special Configurations, Memobase subsection",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Adapter scripts process dialogue input and extract memory points before QA retrieval",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/README.md",
+      "quote": "process dialogue input, extract memory points, and perform QA retrieval",
+      "locator": "eval/README.md \u00a7Running the Evaluation, step 1",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "All adapters share the same input/output contract to enable fair cross-system comparison",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/README.md",
+      "quote": "Each adapter follows the same input / output contract so the downstream scorer can compare systems fairly.",
+      "locator": "eval/README.md \u00a7Supported Memory System Wrappers",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Four evaluation tasks are implemented and run: Memory Integrity, Memory Accuracy, Memory Update, and Question Answering.",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/evaluation.py",
+      "quote": "from eval_tools import (\n    evaluation_for_memory_accuracy, \n    evaluation_for_memory_integrity, \n    evaluation_for_question, \n    evaluation_for_update_memory\n)",
+      "locator": "eval/evaluation.py, lines 10-15",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory extraction F1 is the primary combined metric, computed as harmonic mean of precision (target_accuracy(all)) and recall (recall(all)).",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/evaluation.py",
+      "quote": "eval_results[\"overall_score\"][\"memory_extraction_f1\"] = compute_f1(\n        precision=eval_results[\"overall_score\"][\"memory_accuracy\"][\"target_accuracy(all)\"],\n        recall=eval_results[\"overall_score\"][\"memory_integrity\"][\"recall(all)\"]\n    )",
+      "locator": "eval/evaluation.py:aggregate_eval_results, lines ~171-174",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory update and QA grading uses a three- or four-way classification: Correct, Hallucination, Omission (plus Other for updates), returned by LLM-as-judge functions.",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/evaluation.py",
+      "quote": "if item[\"memory_update_type\"] not in [\"Correct\", \"Hallucination\", \"Omission\", \"Other\"]:\n            item[\"is_valid\"] = False\n            continue\n        ...if item[\"result_type\"] not in [\"Correct\", \"Hallucination\", \"Omission\"]:\n            item[\"is_valid\"] = False",
+      "locator": "eval/evaluation.py:aggregate_eval_results, lines ~185-190, ~213-215",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Importance-weighted recall is computed for memory integrity, where each golden memory has an 'importance' scalar.",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/evaluation.py",
+      "quote": "memory_integrity_weighted_scores += 0.5 * item[\"memory_integrity_score\"] * item[\"importance\"]\n            memory_integrity_weighted_valid_num += item[\"importance\"]",
+      "locator": "eval/evaluation.py:aggregate_eval_results, lines ~116-117",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory type breakdown is tracked for three categories: Event Memory, Persona Memory, Relationship Memory.",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/evaluation.py",
+      "quote": "\"memory_type_accuracy\": {\n                \"Event Memory\": {\n                    \"memory_integrity_acc\": 0,\n                    \"memory_update_acc\": 0,\n                    \"total_num\": 0,\n                },\n                \"Persona Memory\": {...},\n                \"Relationship Memory\": {...},\n            }",
+      "locator": "eval/evaluation.py:main, lines ~244-254",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dialogue turns include timestamps and speaker roles, formatted as [timestamp]role: content.",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/evaluation.py",
+      "quote": "dialogue_str.append(\n                f'[{turn[\"timestamp\"]}]{turn[\"role\"]}: {turn[\"content\"]}'\n            )",
+      "locator": "eval/evaluation.py:process_user, lines ~62-64",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Evaluation is parallelized per memory item within each user using ProcessPoolExecutor with configurable max_workers.",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/evaluation.py",
+      "quote": "with ProcessPoolExecutor(max_workers=max_workers) as executor:",
+      "locator": "eval/evaluation.py:process_user, multiple blocks",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Items where the LLM judge returns an unparseable or unexpected result are marked is_valid=False and excluded from valid-denominator metrics but counted in all-denominator metrics.",
+      "kind": "code",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/evaluation.py",
+      "quote": "if item[\"memory_integrity_score\"] is None:\n            item[\"is_valid\"] = False\n            continue",
+      "locator": "eval/evaluation.py:aggregate_eval_results, lines ~107-109",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "HaluMem is the first operation-level hallucination benchmark designed explicitly for memory systems.",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/README.md",
+      "quote": "The paper 'HaluMem: A Comprehensive Benchmark for Evaluating Hallucinations in Memory Systems' presents the first operation-level hallucination benchmark designed explicitly for memory systems.",
+      "locator": "README.md \u00a7What Is HaluMem?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory Extraction is scored with Recall, Weighted Recall, Target Memory Precision, Memory Accuracy, False Memory Resistance, and F1.",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/README.md",
+      "quote": "R: Recall (Higher is better \u2191) | Target P: Target Memory Precision (Higher is better \u2191) | Acc.: Memory Accuracy (Higher is better \u2191) | FMR: False Memory Resistance (Higher is better \u2191) | F1: Memory Extraction F1-score (Higher is better \u2191)",
+      "locator": "README.md \u00a7Main Evaluation Results \u2013 Metric Legend",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "QA evaluation spans six question types: Basic Fact Recall, Dynamic Update, Multi-hop Inference, Generalization & Application, Memory Conflict, Memory Boundary.",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/README.md",
+      "quote": "Basic Fact Recall | Dynamic Update | Multi-hop Inference | Generalization & Application | Memory Conflict | Memory Boundary",
+      "locator": "README.md \u00a7Performance Across Question Types (table headers)",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Halu-Medium contains 20 users, 30,073 dialogues, avg 70 sessions/user, ~160k tokens context, 14,948 memory points, 3,467 QA pairs.",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/README.md",
+      "quote": "Halu-Medium | 20 | 30,073 | 70 | ~160k tokens | 14,948 | 3,467",
+      "locator": "README.md \u00a7Dataset Overview \u2013 table",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dataset was constructed using rule-based templates seeded from Persona Hub and refined with GPT-4o.",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/README.md",
+      "quote": "Personas were initially generated via rule-based templates seeded from Persona Hub (1B+ personas) and then refined using GPT-4o, ensuring logical coherence and natural diversity.",
+      "locator": "README.md \u00a7Dataset Construction Process \u2013 Stage 1",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Human annotation covered >50% of Halu-Medium by 8 annotators; reported accuracy 95.70%, relevance 9.58/10, consistency 9.45/10.",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/README.md",
+      "quote": "A team of 8 annotators manually reviewed over 50% of Halu-Medium, scoring each session's memory points and QA pairs on correctness, relevance, and consistency. Results demonstrate high data quality: Accuracy: 95.70% | Relevance: 9.58 / 10 | Consistency: 9.45 / 10",
+      "locator": "README.md \u00a7Dataset Construction Process \u2013 Human Annotation & Quality Verification",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Evaluation code is located in eval/ directory; evaluation.py runs scoring; results are saved to results/.",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/README.md",
+      "quote": "The HaluMem benchmark includes a complete evaluation suite located in the eval/ directory... python evaluation.py --frame memzero --version default... All evaluation outputs (task scores, FMR, aggregated metrics) are saved in the results/ directory.",
+      "locator": "README.md \u00a7Evaluation Code",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "HaluMem was accepted to EMNLP 2026 Main Conference.",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/README.md",
+      "quote": "[2026.08] \ud83c\udf89 HaluMem has been accepted to the EMNLP 2026 Main Conference!",
+      "locator": "README.md \u00a7What's New",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "HaluMem measures hallucination and memory performance of memory systems.",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/README.md",
+      "quote": "This folder contains the evaluation toolkit for measuring hallucination and memory performance of different memory systems on the HaluMem benchmark.",
+      "locator": "eval/README.md, introduction paragraph",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Three tasks are evaluated: memory extraction, memory update, and memory QA.",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/README.md",
+      "quote": "run the following command to evaluate Mem0 on memory extraction, memory update, and memory QA tasks, and aggregate the results.",
+      "locator": "eval/README.md, 'Running the Evaluation' section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Zep is excluded from the memory extraction task evaluation.",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/README.md",
+      "quote": "the official APIs provided by Zep do not support retrieving all memory points within a specific session... Consequently, we were unable to evaluate Zep's performance on the memory extraction task.",
+      "locator": "eval/README.md, 'Zep' special configuration subsection",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "An OpenAI-compatible LLM (e.g. gpt-4o) is used as a grader or generator within the evaluation pipeline at temperature 0.0.",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/README.md",
+      "quote": "OPENAI_MODEL: Model name used for evaluation \u2014 gpt-4o\nOPENAI_TEMPERATURE: Sampling temperature for generation \u2014 0.0",
+      "locator": "eval/README.md, 'Model Configuration' table",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Each system adapter shares the same input/output contract enabling fair cross-system comparison.",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/README.md",
+      "quote": "Each adapter follows the same input / output contract so the downstream scorer can compare systems fairly.",
+      "locator": "eval/README.md, 'Supported Memory System Wrappers' section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memobase memory recall is capped at 250 tokens for the update task and 500 tokens for the QA task.",
+      "kind": "docs",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/README.md",
+      "quote": "we set the maximum length for memory recall in the memory updating task to 250 tokens and the recall length for the memory question answering task to 500 tokens.",
+      "locator": "eval/README.md, 'Memobase' special configuration subsection",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Empirical results show hallucinations are generated and accumulated during extraction and updating stages and propagate to QA stage",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2511.03506",
+      "quote": "existing memory systems tend to generate and accumulate hallucinations during the extraction and updating stages, which subsequently propagate errors to the question answering stage",
+      "locator": "abstract",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory points marked with is_updated reference original_memories that are missing from the dataset, affecting more than 70% of such memory points.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/HaluMem/issues/10",
+      "quote": "Some memory points marked with is_updated have original_memories that cannot be found in the user's memory points. For example, the original memory: \"Martin Mark is considering a career change due to health impacts from his current role.\" According to my statistics, this issue occurs in more than 70% of memory points.",
+      "locator": "https://github.com/MemTensor/HaluMem/issues/10",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark has three operation-level task types: QA (question_answering_records), memory extraction (memory_integrity_records + memory_accuracy_records), and memory update (memory_update_records).",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/HaluMem/issues/12",
+      "quote": "I'd want the extraction (memory_integrity_records/memory_accuracy_records) and update (memory_update_records) layers to round-trip too, matching HaluMem's own three-operation framing",
+      "locator": "issue body \u00a7'Sketch'",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "memory_extraction_f1 is one of the six aggregated overall_score sub-metrics, implying set-based matching against golden memories for the extraction task.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/HaluMem/issues/12",
+      "quote": "aggregated into eval_results[\"overall_score\"] (memory_integrity, memory_accuracy, memory_extraction_f1, memory_update, question_answering, memory_type_accuracy)",
+      "locator": "issue body \u00a7'What I found in the real code'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The license badge in README states CC-BY-NC-ND-4.0, but no LICENSE file was found in the repo root, leaving ambiguity over whether the license covers code, dataset, or both.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/HaluMem/issues/12",
+      "quote": "The README's badge says License: CC-BY-NC-ND-4.0, but I don't see a LICENSE file in the repo root (I listed the full tree) \u2014 I couldn't confirm whether that license is meant to cover the code in this repo, the dataset on Hugging Face, or both.",
+      "locator": "issue body \u00a7'One thing I want to flag rather than assume'",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "HaluMem has at least one named difficulty split called 'Medium' for the Memory Extraction task",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/HaluMem/issues/4",
+      "quote": "Results (HaluMem-Medium, Memory Extraction)",
+      "locator": "https://github.com/MemTensor/HaluMem/issues/4, table header",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Primary metric for Memory Extraction is F1, with Precision and Recall also reported",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/HaluMem/issues/4",
+      "quote": "| **F1** | **86.7%** |\n| Precision | 76.5% |\n| Recall | 100.0% |",
+      "locator": "https://github.com/MemTensor/HaluMem/issues/4, Results table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Submitters can optionally provide evaluation logs for verification, suggesting some reproducibility mechanism exists",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/HaluMem/issues/4",
+      "quote": "We can provide evaluation logs for verification.",
+      "locator": "https://github.com/MemTensor/HaluMem/issues/4, closing paragraph",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "All prior HaluMem scores were produced by the HaluMem team themselves, raising a reproducibility concern about independence of prior results.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/HaluMem/issues/6",
+      "quote": "This is the first independent evaluation of HaluMem \u2014 all other scores in the paper were evaluated by the HaluMem team.",
+      "locator": "body paragraph 1",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "F1 is the primary metric for both Extraction and Update tasks, decomposed into Precision and Recall.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/HaluMem/issues/6",
+      "quote": "F1 (Extraction) 71.99% \u2026 Precision 92.90% \u2026 Recall 58.66% \u2026 F1 (Update) 62.47% \u2026 Precision 73.00% \u2026 Recall 54.64%",
+      "locator": "results tables",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Accuracy is the primary metric for the QA task.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/HaluMem/issues/6",
+      "quote": "QA Accuracy 68.07%",
+      "locator": "results table 3",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "GPT-4o is the official LLM-as-judge for HaluMem scoring.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/HaluMem/issues/6",
+      "quote": "Judge: GPT-4o (official HaluMem standard)",
+      "locator": "Verification section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The standard evaluation protocol uses 20 users; this submission covers only 1 user, representing a partial evaluation.",
+      "kind": "issue",
+      "url": "https://github.com/MemTensor/HaluMem/issues/6",
+      "quote": "This evaluation was run on 1 user (HaluMem-Medium). A full 20-user evaluation is planned.",
+      "locator": "Note under results tables",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/evaluation.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://arxiv.org/abs/2511.03506",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/MemTensor/HaluMem/issues/12",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/HaluMem/issues/10",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/HaluMem/issues/6",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/MemTensor/HaluMem/issues/4",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Formula definitions for FMR (False Memory Resistance), Weighted Recall, and the aggregation method combining subscores into a holistic ranking are not provided on this page.",
+      "url": "https://arxiv.org/abs/2511.03506",
+      "kind": "paper"
+    },
+    {
+      "text": "Train/test boundary and whether any train split exists are not described; it is unclear if the dataset is evaluation-only or includes training data.",
+      "url": "https://huggingface.co/datasets/IAAR-Shanghai/HaluMem",
+      "kind": "code"
+    },
+    {
+      "text": "The eval/README.md referenced for full configuration options and reproducibility details is not included in this page's content.",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Metric formulas for memory_accuracy and memory_recall are not defined in this document",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Metric names and formulas for the memory update and memory QA sub-tasks are not stated in this document",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "LLM-as-judge prompt(s) used in evaluation.py are not shown or described in this document",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Dataset construction method (synthetic vs human-authored, annotation procedure, adversarial sets) is not described in this document",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Train/test splits, total number of sessions/examples, and session structure are not specified in this document",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Aggregation method across sub-tasks (e.g., macro average, min-of-subscores) is not described in this document",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Whether the OPENAI_MODEL is used as a grader, generator, or both, and the grader rubric, are not stated in this document",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Data leakage controls and version/commit tags for the dataset are not mentioned in this document",
+      "url": "https://github.com/MemTensor/HaluMem/blob/718f16ff0c83413b1c86fa83fc13cc1a639871f9/eval/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Exact formulas for FMR (False Memory Resistance), Weighted Recall, Memory Accuracy, Hallucination Rate, and Omission Rate are not defined in the README; the paper is cited as the authoritative source.",
+      "url": "https://arxiv.org/abs/2511.03506",
+      "kind": "paper"
+    },
+    {
+      "text": "The grader/scorer implementation details (e.g., whether LLM-as-judge is used, judge prompt templates, exact-match vs. semantic match) are not described in the README; eval/README.md is referenced but not provided.",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Train/test split boundaries and any held-out test set designation are not specified in the README.",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Oracle retrieval settings (whether systems are given ground-truth memory pointers during QA evaluation or must retrieve autonomously) are not described.",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Version or commit tag for the dataset and evaluation code is not specified in the README.",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No information on dataset construction method (synthetic vs. human-authored, annotation process, size, or train/test splits).",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No definition of metric formulas for memory_accuracy, memory_recall, or any memory update / memory QA metric (exact match, F1, LLM-as-judge rubric, etc.).",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No disclosure of the LLM judge prompt used inside evaluation.py, or whether it is exact-match, rubric-based, or another grading method.",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No version tag, commit hash, or dataset card versioning information provided.",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No information on aggregation method across tasks (e.g., macro average, min-of-subscores, or separate reporting).",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No information on leakage controls or oracle retrieval settings.",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Grader/scorer details not available from abstract: exact match, LLM-as-judge prompts, rubric, or human evaluation protocol not described",
+      "url": "https://arxiv.org/abs/2511.03506",
+      "kind": "paper"
+    },
+    {
+      "text": "Primary metric names and formulas (e.g., F1, accuracy, hallucination rate) not specified in the abstract",
+      "url": "https://arxiv.org/abs/2511.03506",
+      "kind": "paper"
+    },
+    {
+      "text": "Train/test split boundaries and data construction methodology (synthetic vs. human, annotation process) not described in the abstract",
+      "url": "https://arxiv.org/abs/2511.03506",
+      "kind": "paper"
+    },
+    {
+      "text": "Dataset construction details for multi-type questions (question taxonomy, adversarial or abstention sets) not available from abstract",
+      "url": "https://arxiv.org/abs/2511.03506",
+      "kind": "paper"
+    },
+    {
+      "text": "Code repository and oracle retrieval settings not referenced in the abstract",
+      "url": "https://arxiv.org/abs/2511.03506",
+      "kind": "paper"
+    },
+    {
+      "text": "Version tags or leakage/reproducibility controls not mentioned in the abstract",
+      "url": "https://arxiv.org/abs/2511.03506",
+      "kind": "paper"
+    },
+    {
+      "text": "The grader/judge prompt used by evaluation.py to assign Correct/Hallucination/Omission verdicts is not described in this issue \u2014 no LLM judge prompt, rubric, or exact-match logic is quoted.",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/evaluation.py",
+      "kind": "issue"
+    },
+    {
+      "text": "The formula or aggregation method for each of the six overall_score sub-metrics (e.g., how memory_integrity_f1 vs mean 0/1/2 scores are combined, macro vs micro aggregation) is not specified in this issue.",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/evaluation.py",
+      "kind": "issue"
+    },
+    {
+      "text": "Train/test split boundaries and total dataset size (number of users, sessions, QA items) are not mentioned in this issue.",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Whether the dataset is synthetic, human-authored, or human-annotated, and the annotation procedure for golden memories and ground-truth answers, is not described in this issue.",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The definition of question_type values and difficulty levels (e.g., how many levels, what criteria) is not specified in this issue.",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The formula for memory_extraction_f1 (what counts as a true positive match against golden_memories) is not defined in this issue.",
+      "url": "https://github.com/MemTensor/HaluMem/blob/main/eval/evaluation.py",
+      "kind": "issue"
+    },
+    {
+      "text": "How Precision and Recall are computed (token-level, span-level, or fact-level) is not specified",
+      "url": "https://github.com/MemTensor/HaluMem/issues/4",
+      "kind": "issue"
+    },
+    {
+      "text": "Definition and construction of the 'Medium' difficulty split (criteria, size, train/test boundary) are not stated",
+      "url": "https://github.com/MemTensor/HaluMem/issues/4",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether evaluation logs are human-reviewed or automatically verified, and by whom, is not described",
+      "url": "https://github.com/MemTensor/HaluMem/issues/4",
+      "kind": "issue"
+    },
+    {
+      "text": "LLM-as-judge or other grader details for Memory Extraction are absent from this page",
+      "url": "https://github.com/MemTensor/HaluMem/issues/4",
+      "kind": "issue"
+    },
+    {
+      "text": "The embedding model used for each memory system during HaluMem evaluation is unspecified in this issue; no answer has been provided, creating a reproducibility gap for any retrieval-dependent scoring pipeline.",
+      "url": "https://github.com/MemTensor/HaluMem/issues/9",
+      "kind": "issue"
+    }
+  ]
+}
