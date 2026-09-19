@@ -1,0 +1,585 @@
+{
+  "identity": {
+    "id": "membench",
+    "name": "MemBench",
+    "repo": "https://github.com/import-myself/Membench",
+    "docs": "https://arxiv.org/abs/2506.21605",
+    "license": "MIT",
+    "version_or_commit": "f66d8d1028d3f68627d00f77a967b93fbb8694b6",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Evaluate the memory capability of LLM-based agents from multiple aspects including effectiveness, efficiency, and capacity, across multi-scenario and multi-level memory content."
+    },
+    {
+      "text": "Towards more comprehensive evaluation on the memory of LLM-based agents"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "GAMemory implements the Generative Agents memory mechanism with a scored retrieval combining recency, importance, and relevance, plus a reflection cycle triggered by accumulated importance exceeding a threshold."
+    },
+    {
+      "text": "All memory classes expose a retri() method returning a list of integer observation indices (parsed from a '[|]'-delimited prefix in stored text), used by the benchmark harness to compute retrieval-level metrics."
+    },
+    {
+      "text": "After noise injection, target_step_id indices in the QA field are remapped to reflect the new positions of original messages within the noisy sequence, so ground-truth step references remain aligned."
+    },
+    {
+      "text": "Tasks are divided along two perspective axes (first-person Participation vs. third-person Observation) and two depth axes (Reflective/high-level vs. Factual/low-level), yielding four sub-datasets"
+    },
+    {
+      "text": "A capacity-oriented variant (response_cap) stores memory at every step while simultaneously answering questions injected mid-session, testing memory under continuous write load."
+    },
+    {
+      "text": "All questions are multiple-choice; accuracy is computed by comparing the agent's choice to the ground-truth choice."
+    },
+    {
+      "text": "Wall-clock latency for memory write and read operations is recorded separately per step for performance profiling."
+    },
+    {
+      "text": "Pre-sampled test sets at 0\u201310k and 100k total conversation token lengths are provided in the data2test directory"
+    },
+    {
+      "text": "Dialogue length is controlled by injecting noise data; each noise unit adds approximately 1k tokens on average"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Benchmark targets memory evaluation of LLM-based agents",
+      "kind": "docs",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/README.md",
+      "quote": "MemBench: Towards More Comprehensive Evaluation on the Memory of LLM-based Agents",
+      "locator": "README.md, title",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dataset has four named splits crossing perspective (Participation/Observation) and depth (Reflective/Factual)",
+      "kind": "docs",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/README.md",
+      "quote": "Participation-Reflective (FirstAgentHighLevel), Participation-Factual (FirstAgentLowLevel), Observation-Reflective (ThirdAgentHighLevel), Observation-Factual (ThirdAgentLowLevel)",
+      "locator": "README.md, Data Details section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Noise injection is used to control total conversation length; each noise unit \u2248 1k tokens",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/README.md",
+      "quote": "For each additional unit of noise length, the token count increases by about 1k on average.",
+      "locator": "README.md, Noise data section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Data is hosted externally on Baidu Pan and Google Drive, not in the repository itself",
+      "kind": "docs",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/README.md",
+      "quote": "https://pan.baidu.com/s/1HqwY0nu5bltSAJ2TbnxcFQ?pwd=yzsj Extraction code: yzsj or https://drive.google.com/file/d/112Zraj4pTPH4Idph6i1uMOLA_LPFdGr0/view?usp=sharing",
+      "locator": "README.md, Data location section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Category taxonomy is defined in Appendix Table 6 of the companion paper",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2506.21605",
+      "quote": "category information and details available in Appendix Table 6",
+      "locator": "README.md, Data Details section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Task format is multiple-choice QA with exactly four options (A, B, C, D) answered from recalled memory.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/MembenchAgent.py",
+      "quote": "Choices:\nA. {choice_A}\nB. {choice_B}\nC. {choice_C}\nD. {choice_D}\nPlease output the correct option for the question, only one corresponding letter, without any other messages.",
+      "locator": "INSTRUCTION_FIRST, lines 24-30",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Grading is exact-match on a single letter extracted from constrained JSON output; no LLM-as-judge is used at answer scoring.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/MembenchAgent.py",
+      "quote": "res = json.loads(res)['choice']",
+      "locator": "MemBenchAgent.response(), line ~98",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Observations follow two distinct types: 'message' (memory ingestion) and 'question' (evaluation), forming the session structure.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/MembenchAgent.py",
+      "quote": "if 'message' in observation:\n    ...\nelif 'question' in observation:\n    ...\nelse:\n    raise \"Agent accepts unknown observations.\"",
+      "locator": "MemBenchAgent.response(), lines ~55-103",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Current simulation time is provided in each question observation and included in both the retrieval query and the prompt, indicating temporal reasoning is a tested ability.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/MembenchAgent.py",
+      "quote": "question, time_, choices = observation['question'], observation['time'], observation['choices']\nmemory_context = self.memory.recall('%s (%s)' % (question, time_))",
+      "locator": "MemBenchAgent.response(), lines ~71-73",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory write and read latency are first-class metrics, tracked per step.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/MembenchAgent.py",
+      "quote": "self.write_time.append(time_02 - time_01)\n...\nself.read_time.append(time_04 - time_03)",
+      "locator": "MemBenchAgent.response(), lines ~67 and ~76",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A separate capacity test mode (response_cap) injects QA questions at every step after a target step, stressing memory under continuous concurrent writes.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/MembenchAgent.py",
+      "quote": "def response_cap(self, observation, reward, terminated, info, mode, step):\n# \u56e0\u4e3a\u5728target_step_id\u4e4b\u540e\u6bcf\u4e00\u6b65\u90fd\u8981\u8fdb\u884cQA",
+      "locator": "MemBenchAgent.response_cap(), lines ~108-109",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Two prompt perspectives exist: third-person (observer of user messages) and first-person (agent recalling its own conversation), selectable by mode.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/MembenchAgent.py",
+      "quote": "INSTRUCTION_THIRD = \"\"\"Please answer the following question based on past memories of the user's messages.\"\"\"\nINSTRUCTION_FIRST = \"\"\"Please answer the following question based on past memories of your'conversation with the user.\"\"\"",
+      "locator": "Module level, lines 12 and 22",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory module is pluggable via create_memory_module(config), and the LLM is pluggable via create_LLM(config), making the harness memory-system agnostic.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/MembenchAgent.py",
+      "quote": "self.memory = create_memory_module(self.config['memory_config'])\nself.llm = create_LLM(config['LLM_config'])",
+      "locator": "MemBenchAgent.__init__(), lines ~37-38",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Benchmark data is divided into at least two agent-perspective types: 'ThirdAgent' (observer/message format) and 'FirstAgent' (session/dialogue format), each further split into low-level and high-level QA sub-types.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/load_test_data.py",
+      "quote": "dir_path = '../MemData/ThirdAgent' ... dir_path = '../MemData/FirstAgent'",
+      "locator": "load_test_data.py:MixMessage,MixSession",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "QA items carry a 'target_step_id' field that identifies which step(s) in the trajectory the question refers to; this is used as ground truth and is remapped after noise injection.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/load_test_data.py",
+      "quote": "noisy_traj['QA']['target_step_id'] = [reverse_relocate_dict[step_id] for step_id in noisy_traj['QA']['target_step_id']]",
+      "locator": "load_test_data.py:infuse_single_trajectory_message",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Noise injection is the primary mechanism for varying context/dialogue length, controlled by the integer 'length' parameter (0, 99, 100, 500 observed values), which sets the number of distractor message blocks inserted.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/load_test_data.py",
+      "quote": "def MakeNoiseMessage(RawDataPath, length = 10)",
+      "locator": "load_test_data.py:MakeNoiseMessage signature",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Temporal and spatial metadata (place, time) is embedded directly into serialised message strings presented to the model, suggesting temporal and spatial reasoning are tested abilities.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/load_test_data.py",
+      "quote": "'{} (place: {}; time{})'.format(m['message'], m['place'], m['time'])",
+      "locator": "load_test_data.py:infuse_single_trajectory_message, length==0 branch",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "GAMemory retrieval score is a weighted linear combination of recency, importance, and relevance coefficients configurable per experiment.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/memory/CommonMemory.py",
+      "quote": "score_list = [\n            (self.recency_coef * recency_list[mid] + self.importance_coef * importance_list[mid] + self.relevance_coef * relevance_list[mid], mid)\n            for mid in range(self.__get_size__())]",
+      "locator": "GAMemory.recall",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Importance is scored by an LLM on a 1\u201310 integer scale, clamped to [1,10], then normalised to [0.1, 1.0] by dividing by 10.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/memory/CommonMemory.py",
+      "quote": "if importance < 1.0:\n            importance = 1.0\n        if importance > 10.0:\n            importance = 10.0\n        assert 1.0 <= float(importance) <= 10.0\n        return float(importance)/10.0",
+      "locator": "GAMemory.__calculate_importance__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Reflection in GAMemory is triggered when accmulated_importance >= reflect_threshold; accumulated importance resets to 0 after each reflection.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/memory/CommonMemory.py",
+      "quote": "self.accmulated_importance += importance\n        if self.accmulated_importance >= self.reflect_threshold:",
+      "locator": "GAMemory.__reflect__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemoryBank forgetting is stochastic: a memory item is skipped during recall with probability 1 - exp(-(current_time-recency_t)/(5*memory_strength)), controlled by use_forget flag.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/memory/CommonMemory.py",
+      "quote": "prob = math.exp(-(self.current_time-recency_t)/5*memory_strength)\n        return random.random() > prob",
+      "locator": "MemoryBank.__get_forgetting_flag__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MGMemory LLM function-call dispatch uses regex parsing of free-text output; parse failures and execution errors are caught and printed but do not halt evaluation.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/memory/CommonMemory.py",
+      "quote": "except Exception as e:\n                    print('Fail to ExecuateFunction [%s(%s)]: %s'% (func_name, func_args, e))",
+      "locator": "MGMemory.__parse_excuate_function__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "All memory context returned to the agent is word-count truncated to a configurable max_words limit; truncation uses whitespace splitting.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/memory/CommonMemory.py",
+      "quote": "return  ' '.join((memory_context + self.memorystore[mid]).split(' ')[:self.max_words])",
+      "locator": "multiple recall methods (GAMemory, MemoryBank, RetrievalMemory)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The retri() interface returns integer observation indices extracted by splitting stored text on '[|]' and taking index 0, implying observations are stored with a numeric prefix separator.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/memory/CommonMemory.py",
+      "quote": "memory_index.append(int(memory.split('[|]')[0]))",
+      "locator": "FullMemory.retri / RetrievalMemory.retri / RecentMemory.retri",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "RFMemory training runs trajectory_num episodes, calling env.reset_train() and env.step(); reflection is updated after each full trajectory.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/memory/CommonMemory.py",
+      "quote": "for i in range(self.train_config['trajectory_num']):\n            agent.reset()\n            observation, reward, terminated, info = env.reset_train()\n\n            while not terminated:\n                action = agent.response(observation, reward, terminated, info)\n                observation, reward, terminated, info = env.step(action)",
+      "locator": "RFMemory.train",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "SCMemory flash memory is defined as the last 2 stored observations, retrieved by slicing the history list.",
+      "kind": "code",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/memory/CommonMemory.py",
+      "quote": "return '\\n'.join([self.memory_stream['history'][mid] for mid in range(max(0,self.__get_size__()-2), self.__get_size__())])",
+      "locator": "SCMemory.__get_flash_memory__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemBench evaluates memory capability across three aspects: effectiveness, efficiency, and capacity.",
+      "kind": "paper",
+      "url": "https://aclanthology.org/2025.findings-acl.989/",
+      "quote": "we present a benchmark, named MemBench, to evaluate the memory capability of LLM-based agents from multiple aspects, including their effectiveness, efficiency, and capacity.",
+      "locator": "abstract, tan-etal-2025-membench",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemBench evaluates memory capability across three aspects: effectiveness, efficiency, and capacity",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2506.21605",
+      "quote": "evaluate the memory capability of LLM-based agents from multiple aspects, including their effectiveness, efficiency, and capacity",
+      "locator": "abstract",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Paper accepted at ACL 2025 Findings; 17 pages, 5 figures",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2506.21605",
+      "quote": "17 pages, 5 figures. Accepted by ACL 2025 findings",
+      "locator": "comments",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "MemBench evaluates LLM-based agent memory on effectiveness, efficiency, and capacity using four metrics: accuracy, recall, capacity, and temporal efficiency.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2506.21605v1",
+      "quote": "we introduce a multi-metric benchmark to evaluate the memory capabilities of LLM-based agents. To provide a comprehensive and obvious assessment of the various aspects of the agent's memory performance, we offer four evaluation metrics, including accuracy, recall, capacity, and temporal efficiency.",
+      "locator": "Section 1, Introduction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dataset contains PS-RM: 3.5k sessions/questions/trajectories (avg 2,195 tokens); PS-FM: 51k sessions, 39k questions, 8k trajectories (avg 10,285 tokens); OS-RM: 2k sessions/questions/trajectories (avg 745 tokens); OS-FM: 8.5k sessions/questions/trajectories (avg 617 tokens).",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2506.21605v1",
+      "quote": "PS-RM: 3.5k / 3.5k / 3.5k / 2,195 ... PS-FM: 51k / 39k / 8k / 10,285 ... OS-RM: 2k / 2k / 2k / 745 ... OS-FM: 8.5k / 8.5k / 8.5k / 617",
+      "locator": "Section 3.5, Table 2",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dataset is built on 500 user-profile relation graphs paired with synthetic dialogues generated by LLMs.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2506.21605v1",
+      "quote": "The dataset consists of two parts: (1) 500 graphs composed of user profiles and profiles of entities associated with users, and (2) multiple dialogues between users and assistants, multiple users' messages, and corresponding questions.",
+      "locator": "Section 3.5, Dataset Statistics",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Accuracy is measured via multiple-choice comparison; no LLM-as-judge is used for accuracy scoring.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2506.21605v1",
+      "quote": "all questions are set as multiple-choice questions. After the agent completes the memory process, both the questions and options will be submitted to the agent. The accuracy score of the memory is calculated by comparing the agent's choice with the true choice.",
+      "locator": "Section 3.4, Multi-metric Evaluation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MemBench tests temporal reasoning ability by requiring agents to convert indirect time references (e.g., 'next Monday') to exact dates.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2506.21605v1",
+      "quote": "the user may not directly express the time of an event but might use indirect references, such as 'next Monday', we can evaluate the agent's ability to extract information and instantly convert time-related information by asking it the exact time of the day of the month of the event.",
+      "locator": "Section 3.3, Multi-level Memory \u2014 Factual Memory",
+      "confidence": "unknown",
+      "label": "unknown"
+    },
+    {
+      "claim": "MemBench tests reflective summarization and personalization by requiring agents to infer high-level preferences (e.g., taste, movie genre, book preference) from multiple low-level factual expressions.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2506.21605v1",
+      "quote": "Reflective memory refers to the extraction and summarization of high-level preferences based on the user's expression of low-level preferences... We can evaluate the agent's memory mechanism's ability to extract and summarize preferences at different levels.",
+      "locator": "Section 3.3, Multi-level Memory \u2014 Reflective Memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "RetrievalMemory achieves Recall@10 of 0.776 (10k) and 0.749 (100k) in participation; 0.847 (10k) and 0.769 (100k) in observation.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2506.21605v1",
+      "quote": "RetrievalMemmory: Participation-Recall@10: 10k=0.776, 100k=0.749; Observation-Recall@10: 10k=0.847, 100k=0.769",
+      "locator": "Section 4.2, Table 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory capacity is evaluated by tracking per-round accuracy after key evidence turns in the 100k observation sub-dataset as token count increases; sharp declines indicate capacity limits.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2506.21605v1",
+      "quote": "we test the answering accuracy of each round after the key evidence turns on the observation scenario in Sub-dataset 2(100k). In order to observe the changes in the accuracy of MemGPT and Self-Controlled Memory with the number of tokens increases, we drew Figure 5.",
+      "locator": "Section 4.4, Evaluations on Memory Capacity",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Participation dataset detail: FM subtypes include sh(8k), mh(8k), comp(8k), agg(8k), pp(8k), ku(8k), ssa(1.5k), msa(1.5k) sessions; RM subtypes include Preference(3k) and Emotion(0.5k) sessions.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2506.21605v1",
+      "quote": "RM-Pr: 3.0k/3.0k/3.0k; RM-Em: 0.5k/0.5k/0.5k; FM-sh: 8k/8k/1k; FM-mh: 8k/8k/1k; FM-comp: 8k/4k/1k; FM-agg: 8k/1k/1k; FM-ku: 8k/8k/1k; FM-pp: 8k/8k/1k; FM-ssa: 1.5k/1.5k/1.5k; FM-msa: 1.5k/0.5k/0.5k",
+      "locator": "Appendix B, Table 8",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Observation dataset detail: FM subtypes include sh, mh, comp, agg, pp, ku each at 1.5k sessions (except ku at 1k); RM subtypes Preference(1.5k) and Emotion(0.5k).",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2506.21605v1",
+      "quote": "RM-Pr: 1.5k/1.5k/1.5k; RM-Em: 0.5k/0.5k/0.5k; FM-sh: 1.5k/1.5k/1.5k; FM-mh: 1.5k/1.5k/1.5k; FM-comp: 1.5k/1.5k/1.5k; FM-agg: 1.5k/1.5k/1.5k; FM-pp: 1.5k/1.5k/1.5k; FM-ku: 1k/1k/1k",
+      "locator": "Appendix B, Table 9",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Noise injection via makenoise.py controls conversation length; ~1k tokens added per noise unit",
+      "kind": "docs",
+      "url": "https://github.com/import-myself/Membench/blob/main/README.md",
+      "quote": "For each additional unit of noise length, the token count increases by about 1k on average.",
+      "locator": "README.md, Noise data section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Ready-to-use test samples at 0\u201310k and 100k token lengths are shipped in the repo under data2test/",
+      "kind": "docs",
+      "url": "https://github.com/import-myself/Membench/blob/main/README.md",
+      "quote": "you can find the 0-10k and 100k datasets in the data2test directory. These represent the lengths of the entire conversation.",
+      "locator": "README.md, paragraph after data links",
+      "confidence": "high",
+      "label": "measured"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/MembenchAgent.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/load_test_data.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/memory/CommonMemory.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://arxiv.org/abs/2506.21605",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://arxiv.org/html/2506.21605v1",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://aclanthology.org/2025.findings-acl.989/",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/import-myself/Membench/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Grader/scorer implementation: no information on exact-match, LLM-as-judge, or rubric used to score model responses",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Primary metrics: no metric names, formulas, or aggregation method defined in this page",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Dataset construction: no information on this page about whether questions are synthetic or human-authored, how distractors are generated, or train/test splits.",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/MembenchAgent.py",
+      "kind": "code"
+    },
+    {
+      "text": "The environment/runner that calls response() and response_cap() and collects results is not present; scoring aggregation logic is unknown.",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/MembenchAgent.py",
+      "kind": "code"
+    },
+    {
+      "text": "Definition and implementation of memory.retri() and how memory_index is used in final scoring is not shown.",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/MembenchAgent.py",
+      "kind": "code"
+    },
+    {
+      "text": "The 'mode' parameter passed to response() is referenced in commented-out code suggesting a ThirdAgent/FirstAgent distinction, but the live branching on mode is absent; its current role is unclear.",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/MembenchAgent.py",
+      "kind": "code"
+    },
+    {
+      "text": "The GAMemory reflection loop asserts exactly 3 questions but retries up to 5 times for insights; behaviour on persistent failure (max_try exhausted) is unspecified.",
+      "url": "https://github.com/import-myself/Membench/blob/f66d8d1028d3f68627d00f77a967b93fbb8694b6/benchmark/memory/CommonMemory.py",
+      "kind": "code"
+    },
+    {
+      "text": "Dataset construction methodology (synthetic vs. human-authored, annotation process, dataset size/splits) is not detailed on this page.",
+      "url": "https://aclanthology.org/2025.findings-acl.989/pdf",
+      "kind": "paper"
+    },
+    {
+      "text": "Exact metric definitions, formulas, and aggregation methods for effectiveness, efficiency, and capacity are not defined in the abstract",
+      "url": "https://arxiv.org/abs/2506.21605",
+      "kind": "paper"
+    },
+    {
+      "text": "Grading/scoring pipeline (e.g., exact match, LLM-as-judge, rubric) not specified in the abstract",
+      "url": "https://arxiv.org/abs/2506.21605",
+      "kind": "paper"
+    },
+    {
+      "text": "Dataset construction methodology (synthetic vs human, annotation process, size/splits) not described in the abstract",
+      "url": "https://arxiv.org/abs/2506.21605",
+      "kind": "paper"
+    },
+    {
+      "text": "Train/test split boundaries and leakage controls not mentioned",
+      "url": "https://arxiv.org/abs/2506.21605",
+      "kind": "paper"
+    },
+    {
+      "text": "Repository URL for released dataset and code not provided in the extracted page text",
+      "url": "https://arxiv.org/abs/2506.21605",
+      "kind": "paper"
+    },
+    {
+      "text": "No explicit train/test split or held-out test boundary is defined; it is unclear whether the full dataset is used only for evaluation or whether any portion is reserved for training or few-shot prompting.",
+      "url": "https://arxiv.org/html/2506.21605v1",
+      "kind": "paper"
+    },
+    {
+      "text": "The exact judge prompt or grading procedure used when the agent selects a multiple-choice answer is not specified; it is unclear whether the agent outputs a letter, a full answer string, or something else, and how ambiguous outputs are resolved.",
+      "url": "https://arxiv.org/html/2506.21605v1",
+      "kind": "paper"
+    },
+    {
+      "text": "No versioned release tag or commit hash is provided for the dataset or codebase; reproducibility against future changes to the GitHub repository cannot be confirmed from this paper.",
+      "url": "https://github.com/import-myself/Membench",
+      "kind": "paper"
+    },
+    {
+      "text": "The aggregation method for combining sub-type accuracy scores into a single overall accuracy figure is not defined (e.g., macro average, weighted average, or flat pooling across all questions).",
+      "url": "https://arxiv.org/html/2506.21605v1",
+      "kind": "paper"
+    },
+    {
+      "text": "The Recall@10 ground-truth construction procedure (how candidate retrieval pool is defined, negative sampling strategy) is not described beyond the statement that key evidence dialogues are pre-generated.",
+      "url": "https://arxiv.org/html/2506.21605v1",
+      "kind": "paper"
+    },
+    {
+      "text": "Grading/scoring procedure: the README does not specify whether answers are evaluated by exact match, LLM-as-judge, or human annotation, nor does it provide a judge prompt or rubric",
+      "url": "https://github.com/import-myself/Membench/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Train/test split boundaries and how evaluation questions are constructed (synthetic vs. human-authored, annotation process) are not described",
+      "url": "https://github.com/import-myself/Membench/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Leakage controls, versioning policy, and oracle retrieval settings are not mentioned",
+      "url": "https://github.com/import-myself/Membench/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Category details referenced as 'Appendix Table 6' are in the paper, not this README",
+      "url": "https://github.com/import-myself/Membench/blob/main/README.md",
+      "kind": "docs"
+    }
+  ]
+}
