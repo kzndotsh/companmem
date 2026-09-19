@@ -1,0 +1,846 @@
+{
+  "identity": {
+    "id": "prefeval",
+    "name": "PrefEval",
+    "repo": "https://github.com/amazon-science/prefeval",
+    "docs": "https://arxiv.org/abs/2502.09597",
+    "license": "LICENSE",
+    "version_or_commit": "50795054b5ff5f418d2b768a331d71e480f93331",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Evaluating whether LLMs recognize and follow user preferences in personalized settings."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Two evaluation tasks exist: a generation task (requiring an LLM-as-judge evaluator such as Claude 3 Sonnet) and a classification task (no LLM evaluator needed), with the classification task showing strong correlation with generation task performance."
+    },
+    {
+      "text": "Preference adherence accuracy for a single entry is True only when none of the three violation subtypes nor unhelpfulness applies; aggregate accuracy is the count of passing entries divided by total entries, expressed as a percentage."
+    },
+    {
+      "text": "Task variants supported are: zero-shot, chain-of-thought (cot), remind (re-stating preference at question time), RAG (retrieval-augmented with top-k turns), and selfcritic (generate then self-critique and revise)."
+    },
+    {
+      "text": "Explicit preference tasks supply a stated user preference, a query likely to elicit a preference-violating generic response, and an explanation of why preference-following is challenging."
+    },
+    {
+      "text": "Results are saved incrementally per task item to a JSON file after each generation, allowing resumption; existing completed items are skipped."
+    },
+    {
+      "text": "The benchmark is topic-parameterized; topic is passed as a CLI argument (default 'travel_restaurant'), implying separate data files per topic."
+    },
+    {
+      "text": "Dataset construction involved LLM-generated preference-query pairs (using Claude) followed by human filtering and iterative labeling."
+    },
+    {
+      "text": "Leaderboard scores are numeric values in [0,1] range; exact metric formula and grader implementation are not defined in this page"
+    },
+    {
+      "text": "Model is invoked via AWS Bedrock runtime (boto3 bedrock-runtime, us-east-1); model identity is resolved via get_model_info."
+    },
+    {
+      "text": "Evaluation conditions include zero-shot and reminder baselines, tested at 10-turn and 300-turn session lengths"
+    },
+    {
+      "text": "RAG retrieval files are stored under a dedicated directory structure within the benchmark dataset."
+    },
+    {
+      "text": "Five baseline methods are supported: zero-shot, reminder, chain-of-thought, RAG, and self-critic."
+    },
+    {
+      "text": "Number of inter-turn conversations is a configurable parameter used to vary task difficulty"
+    },
+    {
+      "text": "Multi-session conversational context with context length up to 100k tokens"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "PrefEval evaluates personalized preference following in LLMs",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/README.md",
+      "quote": "PrefEval Benchmark: Do LLMs Recognize Your Preferences? Evaluating Personalized Preference Following in LLMs",
+      "locator": "README.md, title",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Three preference types are tested: explicit, implicit choice-based, and implicit persona-driven",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/README.md",
+      "quote": "1. Explicit Preference. ... 2. Implicit Preference - Choice-based Conversation ... 3. Implicit Preference - Persona-driven Conversation",
+      "locator": "README.md, Data Format section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Two task types exist: generation and classification (MCQ)",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/README.md",
+      "quote": "Example 1: Benchmark Generation Tasks ... Example 2: Benchmark Classification Tasks",
+      "locator": "README.md, Example Usages section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session length is a variable ranging from at least 10 to 300 turns",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/README.md",
+      "quote": "Zero-shot (10 Turns) | Reminder (10 Turns) | Zero-shot (300 Turns) | Reminder (300 Turns)",
+      "locator": "README.md, Performance Leaderboard table header",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Five baselines are defined: zero-shot, reminder, chain-of-thought, RAG, self-critic",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/README.md",
+      "quote": "Test 5 baseline methods on explicit preferences: zero-shot, reminder, chain-of-thought, RAG, self-critic.",
+      "locator": "README.md, Example 3",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dataset construction used LLM generation (Claude) followed by human filtering and iterative labeling",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/README.md",
+      "quote": "our final benchmark dataset includes extensive human filtering and iterative labeling, we provide the initial sampling code for reproducibility.",
+      "locator": "README.md, Benchmark preference and query pair generation section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Leaderboard scores for the Travel-Restaurants topic on explicit preference generation task are in [0,1] range; o1-preview achieves 0.98 under Reminder (10 Turns) and Reminder (300 Turns)",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/README.md",
+      "quote": "| **o1-preview** | **0.50** | **0.98** | **0.14** | **0.98** |",
+      "locator": "README.md, Performance Leaderboard table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Leaderboard covers the topic Travel-Restaurants with explicit preference and generation task",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/README.md",
+      "quote": "This table presents the performance results for the topic: Travel-Restaurants. (With explicit preference and generation task)",
+      "locator": "README.md, Performance Leaderboard caption",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Inference uses AWS Bedrock API; credentials via aws configure are required",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/README.md",
+      "quote": "Set up AWS credentials for calling Bedrock API.",
+      "locator": "README.md, Environment Setup section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Explicit preference data is publicly available on HuggingFace",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/README.md",
+      "quote": "<a href=\"https://huggingface.co/datasets/siyanzhao/prefeval_explicit\"><b>Data</b></a>",
+      "locator": "README.md, header links",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MCQ options are shuffled per instance with a fixed random seed (41) before being presented to the model.",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/classification_task/benchmark_classification.py",
+      "quote": "random.seed(41)\n...\nnew_options, correct_idx = shuffle_options(options)",
+      "locator": "main(), ~lines 63, 90-91",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Scoring is exact string match between extracted choice letter and correct index letter; no LLM-as-judge or rubric scoring is used for this task.",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/classification_task/benchmark_classification.py",
+      "quote": "if task[\"choice\"] == task[\"correct_idx\"]:\n    correct_count += 1",
+      "locator": "main(), ~lines 168-169",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Implicit preferences are split into two sub-types: choice-based and persona-driven, each stored in separate dataset files.",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/classification_task/benchmark_classification.py",
+      "quote": "benchmark_dataset/implicit_preference/choice-based/{args.topic}.json\n...\nbenchmark_dataset/implicit_preference/persona-driven/{args.topic}.json",
+      "locator": "main(), ~lines 74-81",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The benchmark supports resumable evaluation by detecting pre-existing 'choice' keys in saved output and skipping those tasks.",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/classification_task/benchmark_classification.py",
+      "quote": "if \"choice\" in task:\n    processed_tasks += 1\n    if task[\"choice\"] == task[\"correct_idx\"]:\n        correct_count += 1",
+      "locator": "main(), ~lines 70-74",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The number of distractor inter-turns inserted between the preference turn and question turn defaults to 5 and is configurable.",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/classification_task/benchmark_classification.py",
+      "quote": "parser.add_argument(\"--inter_turns\", type=int, default=5, help=\"Number of inter turns conversations to insert.\")",
+      "locator": "argparse setup, ~line 27",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "RAG baseline retrieves top-k (default 5) prior conversation turns as context; task name is rewritten to 'rag_{topk}' internally.",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/classification_task/benchmark_classification.py",
+      "quote": "if \"rag\" in args.task:\n    args.task = \"rag_\" + str(args.topk)",
+      "locator": "main(), ~lines 38-39",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Overall accuracy is the sole reported aggregate metric; no macro-F1, per-category breakdown, or min-of-subscores aggregation is computed in this script.",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/classification_task/benchmark_classification.py",
+      "quote": "overall_accuracy = (correct_count / processed_tasks) * 100\nprint(f\"Overall accuracy: {overall_accuracy:.2f}%\")",
+      "locator": "main(), ~lines 177-178",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "PrefEval supports two preference elicitation modes: explicit (user directly states a preference) and implicit (preference must be inferred from conversation history).",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/generation_task/benchmark_generation.py",
+      "quote": "parser.add_argument(\"--pref_form\", type=str, default=\"explicit\", choices=[\"explicit\", \"implicit\"])",
+      "locator": "~line 47",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Preference type distinguishes 'persona' from 'choice' preferences; this dimension is only active in implicit mode (set to empty string in explicit mode).",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/generation_task/benchmark_generation.py",
+      "quote": "parser.add_argument(\"--pref_type\", type=str, default=\"choice\", choices=[\"persona\", \"choice\"])\n...\nif args.pref_form == \"explicit\":\n    args.pref_type = \"\"",
+      "locator": "~lines 46, 56",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The number of interleaved (distractor) turns inserted between preference signal and the evaluation question is configurable, defaulting to 5.",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/generation_task/benchmark_generation.py",
+      "quote": "parser.add_argument(\"--inter_turns\", type=int, default=5, help=\"Number of inter turns conversations to insert.\")",
+      "locator": "~line 37",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Five task/baseline conditions are evaluated: zero-shot, chain-of-thought, remind, RAG (top-k retrieval), and selfcritic.",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/generation_task/benchmark_generation.py",
+      "quote": "parser.add_argument(\"--task\", type=str, default=\"zero-shot\", choices=[\"zero-shot\", \"cot\", \"remind\", \"rag\", \"selfcritic\"])",
+      "locator": "~line 40",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "RAG baseline uses a configurable top-k (default 5) to retrieve prior turns as context.",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/generation_task/benchmark_generation.py",
+      "quote": "parser.add_argument(\"--topk\", type=int, default=5, help=\"Number of turns to extract for RAG\")\n...\nif \"rag\" in args.task:\n    args.task = \"rag_\" + str(args.topk)",
+      "locator": "~lines 38, 50",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Generation is run against AWS Bedrock-hosted models; model identity is abstracted via a get_model_info lookup keyed by a short alias (e.g. 'claude3hk').",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/generation_task/benchmark_generation.py",
+      "quote": "client = boto3.client(service_name=\"bedrock-runtime\", region_name=\"us-east-1\")\nmodel_id, model_type = get_model_info(args.model)",
+      "locator": "~lines 67-68",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Data is organized by topic (e.g. 'travel_restaurant'); topic is a required CLI dimension implying per-topic dataset files.",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/generation_task/benchmark_generation.py",
+      "quote": "parser.add_argument(\"--topic\", type=str, default=\"travel_restaurant\")",
+      "locator": "~line 39",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Generation outputs are stored as JSON with a 'response_to_q' field per task item; presence of this field is used to skip already-completed items on resumption.",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/generation_task/benchmark_generation.py",
+      "quote": "if \"response_to_q\" in task or (\"self_critic\" in task and args.task == \"selfcritic\"):\n    continue",
+      "locator": "~lines 81-82",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Selfcritic baseline stores three artefacts per item: the initial zero-shot response, the critic output, and the revised response messages.",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/generation_task/benchmark_generation.py",
+      "quote": "zero_shot_response, revised_messages, critic = handle_selfcritic_task(...)\n...\nupdate_task_data(task, pref_generation, end_generation=None, zero_shot_response=zero_shot_response, revised_messages=revised_messages, critic=critic)",
+      "locator": "~lines 115-127, 145-151",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Primary metric is Preference Following Accuracy, computed as (count of entries where none of the four error conditions hold) / (total entries) * 100.",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/generation_task/get_preference_following_accuracy_generation_task.py",
+      "quote": "preference_following_accuracy = not any(\n    [is_inconsistent, is_hallucination_of_preference_violation, is_preference_unaware_violation, is_unhelpful]\n) ... accuracy = (stats[\"preference_adherence_accuracy\"] / total_data) * 100",
+      "locator": "generation_task/get_preference_following_accuracy_generation_task.py:analyze_errors,print_evaluation_results",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Error taxonomy distinguishes four counted subtypes: unhelpful responses, inconsistent responses, hallucination-of-preference violations, and preference-unaware violations.",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/generation_task/get_preference_following_accuracy_generation_task.py",
+      "quote": "print(f\"  Unhelpful Responses: {stats['error_unhelpful']}\")\nprint(f\"  Inconsistent Responses: {stats['error_inconsistent']}\")\nprint(f\"  Hallucination of Preference Violations: {stats['hallucination_of_preference_violation']}\")\nprint(f\"  Preference Unaware Violations: {stats['preference_unaware_violation']}\")",
+      "locator": "generation_task/get_preference_following_accuracy_generation_task.py:print_evaluation_results",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Task variants tested include zero-shot, chain-of-thought (cot), remind, RAG with 5 retrievals (rag_5), and self-critic (selfcritic).",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/generation_task/get_preference_following_accuracy_generation_task.py",
+      "quote": "parser.add_argument(\n    \"--task\", type=str, default=\"zero-shot\", choices=[\"zero-shot\", \"cot\", \"remind\", \"rag_5\", \"selfcritic\"]\n)",
+      "locator": "generation_task/get_preference_following_accuracy_generation_task.py:parse_arguments",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Grader outputs are stored in a pre-computed error analysis file (error_{model}_{topic}_{inter_turn}interturn.json); the scoring script reads rather than runs the judge, so the judge prompt itself is not visible in this file.",
+      "kind": "code",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/generation_task/get_preference_following_accuracy_generation_task.py",
+      "quote": "eval_file = f\"{args.dir_name}error_{args.model}_{args.topic}_{args.inter_turn}interturn.json\"",
+      "locator": "generation_task/get_preference_following_accuracy_generation_task.py:setup_paths",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Preference following accuracy falls below 10% at 10 turns (~3k tokens) in zero-shot settings across most evaluated models",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2502.09597",
+      "quote": "in zero-shot settings, preference following accuracy falls below 10% at merely 10 turns (~3k tokens) across most evaluated models",
+      "locator": "abstract",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Accepted at ICLR 2025 as oral presentation",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2502.09597",
+      "quote": "Accepted at ICLR 2025 as oral presentation.",
+      "locator": "comments",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Explicit preference inputs consist of a preference string, a question string, and a 1-sentence explanation.",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/main/README.md",
+      "quote": "\"preference\": [string] The user's stated preference that the LLM should follow. \"question\": [string] The user's query related to the preference, where a generic response to this question is highly likely to violate the preference. \"explanation\": [string] A 1-sentence explanation of why answering this question in a preference-following way is challenging.",
+      "locator": "README.md, Data Format > Explicit Preference",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Implicit preference (choice-based) inputs include an aligned_op field identifying the option that matches the user's preference, enabling automated grading.",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/main/README.md",
+      "quote": "\"aligned_op\": [string] The option that aligns with the user's preference.",
+      "locator": "README.md, Data Format > Implicit Preference - Choice-based Conversation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Persona-driven implicit preference tasks encode multi-turn conversations with up to N turns in the dataset JSON.",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/main/README.md",
+      "quote": "\"conversation\": { \"turn1\": { \"user\": [string], \"assistant\": [string] }, ... \"turnN\": { \"user\": [string], \"assistant\": [string] } }",
+      "locator": "README.md, Data Format > Implicit Preference - Persona-driven Conversation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Task difficulty is parameterized by the number of inter-turn conversations and by preference style (explicit vs. implicit).",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/main/README.md",
+      "quote": "You can flexibly modify the arguments within these scripts to assess different topics, preference styles, and inter-turn conversation numbers to create varying task difficulties.",
+      "locator": "README.md, Example Usages",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The leaderboard reports a numeric score (likely compliance rate or accuracy) under Zero-shot and Reminder conditions at 10 and 300 inter-turns for Travel-Restaurants explicit generation tasks.",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/main/README.md",
+      "quote": "Model | Zero-shot (10 Turns) | Reminder (10 Turns) | Zero-shot (300 Turns) | Reminder (300 Turns)",
+      "locator": "README.md, Performance Leaderboard",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The dataset was constructed by LLM generation (Claude) with subsequent human filtering and iterative labeling.",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/main/README.md",
+      "quote": "While our final benchmark dataset includes extensive human filtering and iterative labeling, we provide the initial sampling code for reproducibility.",
+      "locator": "README.md, Benchmark preference and query pair generation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Five baselines are included: zero-shot, reminder, chain-of-thought, RAG, and self-critic.",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/main/README.md",
+      "quote": "Test 5 baseline methods on explicit preferences: zero-shot, reminder, chain-of-thought, RAG, self-critic.",
+      "locator": "README.md, Example 3: Test 5 baselines methods",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The benchmark dataset is stored in the benchmark_dataset/ directory in JSON format.",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/main/README.md",
+      "quote": "The preference evaluation dataset is located in the benchmark_dataset directory. The dataset is provided in json format",
+      "locator": "README.md, Dataset Location / Data Format",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The evaluation pipeline is invoked via shell scripts (run_and_eval_explicit.sh, run_and_eval_implicit.sh, run_mcq_task.sh) and targets the AWS Bedrock API.",
+      "kind": "docs",
+      "url": "https://github.com/amazon-science/prefeval/blob/main/README.md",
+      "quote": "Set up AWS credentials for calling Bedrock API. ... bash run_and_eval_explicit.sh ... bash run_and_eval_implicit.sh ... bash run_mcq_task.sh",
+      "locator": "README.md, Environment Setup / Example Usages",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Three preference forms exist: Explicit, Implicit Choice-Based, and Implicit Persona-Driven, each hosted in a separate Hugging Face dataset repository.",
+      "kind": "docs",
+      "url": "https://huggingface.co/datasets/siyanzhao/prefeval_explicit",
+      "quote": "Due to their different structures and column names, we've organized them into three separate huggingface dataset repos: Explicit Preferences, Implicit Choice-Based Preferences, Implicit Persona-Driven Preferences.",
+      "locator": "Dataset Overview section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The explicit preference split is labeled 'train' with 1000 rows; no separate test split is described on this page.",
+      "kind": "docs",
+      "url": "https://huggingface.co/datasets/siyanzhao/prefeval_explicit",
+      "quote": "default (1k rows) Split (1) train \u00b7 1k rows",
+      "locator": "Dataset Viewer header",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The generation task uses an LLM-as-judge evaluator (e.g., Claude 3 Sonnet); the classification task requires no LLM evaluator and correlates strongly with generation task performance per paper Sec 3.4.",
+      "kind": "docs",
+      "url": "https://huggingface.co/datasets/siyanzhao/prefeval_explicit",
+      "quote": "If an evaluator model like Claude 3 Sonnet is available: Use the generation task for comprehensive evaluation. If using a local LLM as evaluator: Choose a subset of the benchmark or opt for our classification task, which doesn't require LLM-based evaluators but still has strong correlation with generation task performance (see paper Sec 3.4).",
+      "locator": "Practical Guide to Using PrefEval section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark paper is arXiv:2502.09597, published February 13, 2025.",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2502.09597",
+      "quote": "eprint={2502.09597} ... year={2025} ... Published Feb 13, 2025",
+      "locator": "Citation section and paper card",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "All explicit preference data points have preference_type value 'explicit_preference'.",
+      "kind": "docs",
+      "url": "https://huggingface.co/datasets/siyanzhao/prefeval_explicit",
+      "quote": "preference_type ... 1 value ... explicit_preference",
+      "locator": "Dataset Viewer column metadata",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Questions in the explicit form are designed so that a generic (non-preference-aware) response is highly likely to violate the stated preference.",
+      "kind": "docs",
+      "url": "https://huggingface.co/datasets/siyanzhao/prefeval_explicit",
+      "quote": "\"question\": [string] The user's query related to the preference, where a generic response to this question is highly likely to violate the preference.",
+      "locator": "Preference Forms \u2014 Explicit Preference schema",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "10 open-sourced and proprietary LLMs were evaluated, including GPT-4o, o1-preview, Claude 3.5 Sonnet, and Gemini 1.5 Pro",
+      "kind": "docs",
+      "url": "https://prefeval.github.io/",
+      "quote": "we have evaluated 10 open-sourced and proprietary LLMs in multi-session conversations with varying context lengths up to 100k tokens.",
+      "locator": "https://prefeval.github.io/ \u00a7Introduction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Generation task uses an LLM-based evaluator as grader; specific judge model, prompt, and rubric are not defined on this page",
+      "kind": "docs",
+      "url": "https://prefeval.github.io/",
+      "quote": "Generation tasks are evaluated using an LLM-based evaluator to measure preference following accuracy and analyze error types.",
+      "locator": "https://prefeval.github.io/ \u00a7PrefEval setup overview",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Primary metric is preference following accuracy; aggregation is averaging across 20 topics",
+      "kind": "docs",
+      "url": "https://prefeval.github.io/",
+      "quote": "Zero-shot performance of LLMs with explicit preferences, averaged across 20 topics.",
+      "locator": "https://prefeval.github.io/ \u00a7SoTA LLMs performance on PrefEval",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context length varies up to 100k tokens in multi-session conversational setup",
+      "kind": "docs",
+      "url": "https://prefeval.github.io/",
+      "quote": "Up to 100k tokens / Multi-session conversational context",
+      "locator": "https://prefeval.github.io/ \u00a7PrefEval Dataset / Dataset Statistics",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Reminder prompting outperforms more complex techniques (Self-Critic, CoT) and matches RAG as best method",
+      "kind": "docs",
+      "url": "https://prefeval.github.io/",
+      "quote": "Both Reminder and RAG consistently achieve the highest accuracy across models. Notably, Reminder outperforms more complex techniques such as Self-Critic and CoT.",
+      "locator": "https://prefeval.github.io/ \u00a7Experiment Results / Main Performance Comparisons",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Multiple stated preferences within a conversation improve adherence to the initial preference",
+      "kind": "docs",
+      "url": "https://prefeval.github.io/",
+      "quote": "Introducing multiple preferences throughout a conversation improves adherence to the initial preference using Claude 3 Sonnet with Reminder prompting.",
+      "locator": "https://prefeval.github.io/ \u00a7Experiment Results / Dynamic Preferences",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "PrefEval was presented as an Oral paper at ICLR 2025",
+      "kind": "docs",
+      "url": "https://prefeval.github.io/",
+      "quote": "ICLR 2025 Oral",
+      "locator": "https://prefeval.github.io/ \u00a7Header",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The shuffle function in classification_task/benchmark_classification.py (line 126) does not accept or pass a random seed parameter, causing all shuffle operations to use the same default seed (41) and produce identical results.",
+      "kind": "issue",
+      "url": "https://github.com/amazon-science/prefeval/issues/10",
+      "quote": "The current implementation does not pass a random seed to the shuffle function. As a result, the same default seed(41) is being used for every shuffle operation, which causes all shuffle results to be identical",
+      "locator": "https://github.com/amazon-science/PrefEval/issues/10",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "o1-preview achieved 0.98 accuracy on PrefEval with advanced prompting, raising the question of whether the benchmark has been saturated",
+      "kind": "issue",
+      "url": "https://github.com/amazon-science/prefeval/issues/24",
+      "quote": "in the repo I can see that o1-preview already achieved `0.98` accuracy with advanced prompting!!! Does it mean the problem has been solved and we don't need SFT anymore?",
+      "locator": "https://github.com/amazon-science/PrefEval/issues/24, issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A data integrity / completeness bug exists in at least one committed retrieval file, potentially affecting reproducibility of MCQ results for the entertainment/games preference domain.",
+      "kind": "issue",
+      "url": "https://github.com/amazon-science/prefeval/issues/25",
+      "quote": "the following file appears to be incomplete or truncated \u2026 Please verify the integrity of this file and upload the complete version if available.",
+      "locator": "https://github.com/amazon-science/PrefEval/issues/25, issue body",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "PrefEval includes a RAG-based evaluation mode (explicit RAG MCQ) that loads per-category top-k history JSON files to provide retrieved context at inference time.",
+      "kind": "issue",
+      "url": "https://github.com/amazon-science/prefeval/issues/28",
+      "quote": "This blocks explicit RAG MCQ for `entertain_games`.",
+      "locator": "https://github.com/amazon-science/PrefEval/issues/28 \u2014 issue body, last paragraph",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The RAG retrieval dataset file entertain_games_overall300_topk_history.json is malformed (JSONDecodeError at line 11164, column 20, char 240253), causing the classification pipeline to crash when loading the entertain_games category.",
+      "kind": "issue",
+      "url": "https://github.com/amazon-science/prefeval/issues/28",
+      "quote": "json.decoder.JSONDecodeError: Expecting ',' delimiter: line 11164 column 20 (char 240253)",
+      "locator": "https://github.com/amazon-science/PrefEval/issues/28 \u2014 issue body, Error section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark dataset contains multiple RAG retrieval JSON files across categories; only entertain_games_overall300_topk_history.json was found to be invalid at time of report.",
+      "kind": "issue",
+      "url": "https://github.com/amazon-science/prefeval/issues/28",
+      "quote": "I also scanned all `benchmark_dataset/rag_retrieval/**/*.json` and this was the only invalid JSON.",
+      "locator": "https://github.com/amazon-science/PrefEval/issues/28 \u2014 issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The naming convention 'overall300' in the file name suggests the retrieval pool or history window covers 300 examples for the entertain_games category.",
+      "kind": "issue",
+      "url": "https://github.com/amazon-science/prefeval/issues/28",
+      "quote": "entertain_games_overall300_topk_history.json",
+      "locator": "https://github.com/amazon-science/PrefEval/issues/28 \u2014 issue body, File field",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark is intended to support evaluation of user preference memory and profile-building methodologies across long conversation histories.",
+      "kind": "issue",
+      "url": "https://github.com/amazon-science/prefeval/issues/9",
+      "quote": "I would like to use this dataset to conduct an experiment in which I evaluate the methodology of creating a profile and how it affects remembering user preferences, but such a short history of the user's conversation with the assistant does not make sense in my case",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/generation_task/benchmark_generation.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/generation_task/get_preference_following_accuracy_generation_task.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/classification_task/benchmark_classification.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://arxiv.org/abs/2502.09597",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://prefeval.github.io/",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/amazon-science/prefeval/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://huggingface.co/datasets/siyanzhao/prefeval_explicit",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/amazon-science/prefeval/issues/9",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/amazon-science/prefeval/issues/24",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/amazon-science/prefeval/issues/28",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/amazon-science/prefeval/issues/25",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/amazon-science/prefeval/issues/10",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Full list of topics beyond Travel-Restaurants is not enumerated on this page",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Implementation details of load_files_explicit, load_files_implicit, create_user_pref_message, get_question_prompt, and get_implicit_question_prompt \u2014 which define the actual prompt structure seen by the model \u2014 are in separate utility modules not shown here.",
+      "url": "https://github.com/amazon-science/prefeval/blob/50795054b5ff5f418d2b768a331d71e480f93331/generation_task/benchmark_generation.py",
+      "kind": "code"
+    },
+    {
+      "text": "Exact grader/scorer definition: judge prompt text, rubric, or exact-match criteria for the generation task are not described in the abstract",
+      "url": "https://arxiv.org/abs/2502.09597",
+      "kind": "paper"
+    },
+    {
+      "text": "Train/test split boundaries and dataset construction methodology (how manual curation was performed, annotator details) are not specified in the abstract",
+      "url": "https://arxiv.org/abs/2502.09597",
+      "kind": "paper"
+    },
+    {
+      "text": "Primary metric formula and aggregation method for 'preference following accuracy' are not defined in the abstract",
+      "url": "https://arxiv.org/abs/2502.09597",
+      "kind": "paper"
+    },
+    {
+      "text": "Definition and scoring procedure for the classification task vs. the generation task are not detailed in the abstract",
+      "url": "https://arxiv.org/abs/2502.09597",
+      "kind": "paper"
+    },
+    {
+      "text": "Repository URL for code and dataset is referenced but not fully resolved in the abstract ('this https URL')",
+      "url": "https://arxiv.org/abs/2502.09597",
+      "kind": "paper"
+    },
+    {
+      "text": "The exact scoring/grading procedure (e.g., exact match, LLM-as-judge prompt, rubric) used by run_and_eval_explicit.sh and run_and_eval_implicit.sh is not defined in this README.",
+      "url": "https://github.com/amazon-science/prefeval/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The metric name and formula behind the numeric scores in the leaderboard table (e.g., whether it is preference-following rate, accuracy, or another statistic) are not defined in this README.",
+      "url": "https://github.com/amazon-science/prefeval/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Train/test split boundaries and the full list of topics beyond Travel-Restaurants are not specified in this README.",
+      "url": "https://github.com/amazon-science/prefeval/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The grading procedure for MCQ/classification tasks (run_mcq_task.sh) \u2014 including how options are matched and how scores are aggregated \u2014 is not described in this README.",
+      "url": "https://github.com/amazon-science/prefeval/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Version tags or commit identifiers for the released benchmark dataset are not mentioned in this README.",
+      "url": "https://github.com/amazon-science/prefeval/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Train/test split strategy and whether the 'train' label indicates the full dataset used for evaluation or a training partition is not clarified on this page.",
+      "url": "https://huggingface.co/datasets/siyanzhao/prefeval_explicit",
+      "kind": "docs"
+    },
+    {
+      "text": "Error-type taxonomy used in generation task analysis is not enumerated on this page.",
+      "url": "https://huggingface.co/datasets/siyanzhao/prefeval_explicit",
+      "kind": "docs"
+    },
+    {
+      "text": "Full list of 20 topic values is not enumerated on this page.",
+      "url": "https://huggingface.co/datasets/siyanzhao/prefeval_explicit",
+      "kind": "docs"
+    },
+    {
+      "text": "Version tag or commit hash for the dataset and evaluation code are not provided on this page",
+      "url": "https://prefeval.github.io/",
+      "kind": "docs"
+    },
+    {
+      "text": "The exact shuffle function signature and whether the seed parameter was intentionally omitted or is a bug is not confirmed without reading the source file directly.",
+      "url": "https://github.com/amazon-science/prefeval/blob/f899d58d574e5c2e21b3df8cde137b491e90dc43/classification_task/benchmark_classification.py#L126",
+      "kind": "issue"
+    },
+    {
+      "text": "The downstream effect of identical shuffles on benchmark reproducibility and whether results reported in the paper were affected is not addressed in this issue.",
+      "url": "https://github.com/amazon-science/prefeval/issues/10",
+      "kind": "issue"
+    },
+    {
+      "text": "The issue page contains only a user question about RAG sorting logic and no extractable claims about PrefEval's task definitions, dataset construction, grading, metrics, or scoring pipeline.",
+      "url": "https://github.com/amazon-science/prefeval/issues/21",
+      "kind": "issue"
+    },
+    {
+      "text": "What 'advanced prompting' means in the context of achieving 0.98 accuracy is not defined \u2014 no prompt template, chain-of-thought strategy, or prompting protocol is described",
+      "url": "https://github.com/amazon-science/prefeval/issues/24",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the 0.98 score is reported across all PrefEval splits or a subset is not stated",
+      "url": "https://github.com/amazon-science/prefeval/issues/24",
+      "kind": "issue"
+    },
+    {
+      "text": "No maintainer or author response is present in the extracted text, leaving the saturation and contamination questions unaddressed",
+      "url": "https://github.com/amazon-science/prefeval/issues/24",
+      "kind": "issue"
+    },
+    {
+      "text": "No maintainer response or resolution is present on this page; it is unknown whether the truncated file was fixed, replaced, or confirmed complete.",
+      "url": "https://github.com/amazon-science/prefeval/issues/25",
+      "kind": "issue"
+    },
+    {
+      "text": "The value of k (top-k) used in RAG retrieval and how it is configured per category is not specified in this issue.",
+      "url": "https://github.com/amazon-science/prefeval/issues/28",
+      "kind": "issue"
+    },
+    {
+      "text": "The full list of preference categories covered by the benchmark and whether each has a corresponding RAG retrieval file is not disclosed here.",
+      "url": "https://github.com/amazon-science/prefeval/issues/28",
+      "kind": "issue"
+    },
+    {
+      "text": "The scoring/grading procedure for the explicit RAG MCQ task (e.g., exact match, LLM-as-judge, rubric) is not described in this issue.",
+      "url": "https://github.com/amazon-science/prefeval/issues/28",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the corrupted file has been regenerated or a fix released is not indicated in this issue (no maintainer response visible).",
+      "url": "https://github.com/amazon-science/prefeval/issues/28",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether train/test splits exist or whether the 14-message sessions represent only a test subset is not clarified on this page.",
+      "url": "https://github.com/amazon-science/prefeval/issues/9",
+      "kind": "issue"
+    }
+  ]
+}
