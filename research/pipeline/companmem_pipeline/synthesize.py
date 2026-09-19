@@ -125,7 +125,7 @@ def synthesize(*, write: bool = True) -> dict[str, object]:
             "shared_gaps": parsed.get("shared_gaps") or [],
             "unknowns": parsed.get("unknowns") or [],
         }
-        dest = OUTPUT_DIR / "_synthesis.json"
+        dest = OUTPUT_DIR / "synthesis.json"
         log.info(
             "synthesize_parsed",
             themes=len(record["themes"]) if isinstance(record["themes"], list) else 0,

@@ -8,7 +8,7 @@ output/
   by-product/            # this program
     PROTOCOL.md
     excluded.json
-    _synthesis.json      # after audit.json files exist
+    synthesis.json       # after audit.json exist (just synthesize)
     <slug>/audit.json
   by-paper/              # reserved
   by-eval/               # reserved

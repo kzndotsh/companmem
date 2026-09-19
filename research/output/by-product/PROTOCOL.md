@@ -46,7 +46,7 @@ Search snippets are not evidence. `ledger.kind` is `docs | code | issue | commun
 | [`../../pipeline/seed.json`](../../pipeline/seed.json) | Product census and harvest config (source of truth) |
 | `.cache/by-product/<slug>/` | Harvest manifest, pages, extract shards (gitignored) |
 | `research/output/by-product/<slug>/audit.json` | Published audit (lint-clean before write) |
-| `_synthesis.json` | Optional cross-product themes (`just synthesize`; not required for audits) |
+| `synthesis.json` | Optional cross-product themes (`just synthesize`; not required for audits) |
 
 Canonical audit fields: `identity`, `claimed_purpose`, `mechanisms`, `ledger`, `sources`, `unknowns`, `copy`, `refuse`, `consensus`, `contested`. Every ledger row needs `url` or `locator` and a non-empty `quote`.
 
@@ -107,7 +107,7 @@ Env: `GITHUB_TOKEN` (issues/clone), optional `BRAVE_API_KEY` (search; falls back
 
 ## Synthesis
 
-Optional. `just synthesize` writes [`_synthesis.json`](_synthesis.json) from **all** lint-clean audits (Kiro). Themes from ledgers, not a fixed axis list. `missing` lists seed ids skipped intentionally. Run only when you want RQ4 rollup; audits do not depend on it.
+Optional. `just synthesize` writes [`synthesis.json`](synthesis.json) from **all** lint-clean audits (Kiro). Themes from ledgers, not a fixed axis list. `missing` lists seed ids skipped intentionally. Run only when you want RQ4 rollup; audits do not depend on it.
 
 ## Snowball appendix
 
