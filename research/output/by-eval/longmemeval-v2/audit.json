@@ -1,0 +1,655 @@
+{
+  "identity": {
+    "id": "longmemeval-v2",
+    "name": "LongMemEval-V2",
+    "repo": "https://github.com/xiaowu0162/LongMemEval-V2",
+    "docs": "https://arxiv.org/abs/2605.12493",
+    "license": "Apache-2.0",
+    "version_or_commit": "2cc8c540bdb87fe6761629b585e727e1c4704520",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [],
+  "mechanisms": [
+    {
+      "text": "The LLM-as-judge or agent model is configurable via OPENAI_SDK_MODEL (default gpt-5.4-mini) with a reasoning effort parameter (default medium), suggesting an OpenAI-API-backed grader or agent."
+    },
+    {
+      "text": "RAG methods use an embedding model (default: Qwen/Qwen3-Embedding-8B) with a query instruction oriented toward past agent trajectories, and retrieve top-k slices or notes."
+    },
+    {
+      "text": "The benchmark includes an abstention slice; in control runs the reader asserted on 115 of 128 questions whose gold answer is an abstention, with the status signal unused."
+    },
+    {
+      "text": "Two haystack tiers: LME-V2-Small (100-trajectory shared haystack, ~25M tokens) and LME-V2-Medium (~500-trajectory per-question haystack, ~115M tokens)."
+    },
+    {
+      "text": "Five core memory ability categories: static state recall, dynamic state tracking, workflow knowledge, environment gotchas, and premise awareness."
+    },
+    {
+      "text": "A 'tier' dimension (default 'small') is supported, indicating dataset splits or difficulty tiers controlled by the TIER environment variable."
+    },
+    {
+      "text": "Pilot study confirms questions are not answerable from parametric knowledge: best frontier model reaches 14.1% without trajectory context."
+    },
+    {
+      "text": "Evaluation is run via a central Python script (run_eval.py) accepting method, data-root, domain, tier, output-dir, and model parameters."
+    },
+    {
+      "text": "Agent trajectories are loaded from a 'trajectories.jsonl' file in the dataset root and passed to the harness."
+    },
+    {
+      "text": "The benchmark is partitioned into at least two domains: 'web' and 'enterprise', iterated over in sequence."
+    },
+    {
+      "text": "Truncation budget for returned memory context is set to 200k tokens."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Haystacks contain up to 500 trajectories and up to 115M tokens.",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/README.md",
+      "quote": "Up to 500 trajectories per haystack. Up to 115M tokens in the largest haystacks.",
+      "locator": "README.md, Overview section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The fixed reader model used in paper runs is Qwen3.5-9B; embedding model is Qwen3-Embedding-8B.",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/README.md",
+      "quote": "The paper runs use Qwen3.5-9B as the fixed reader and Qwen3-Embedding-8B for embedding-based methods.",
+      "locator": "README.md, Setup: Model Endpoints and Software section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The primary leaderboard metric is LAFS (Latency-Adjusted Frontier Score) gain over a fixed accuracy-latency reference frontier.",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/README.md",
+      "quote": "The score is LAFS gain over the fixed reference frontier, and a submission may include multiple latency operating points for the same method and tier.",
+      "locator": "README.md, Submitting to Leaderboard section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Scoring aggregation is implemented in leaderboard/combine_aggregated_metrics.py and metric merging utilities under leaderboard/.",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/README.md",
+      "quote": "leaderboard/ metric merging, LAFS scoring, and submission packaging",
+      "locator": "README.md, Repository Layout section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory backends must implement insert() receiving full trajectory objects and query() receiving question text and optional image, with no access to gold answers or question IDs during inference.",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/README.md",
+      "quote": "Backends receive no benchmark metadata during `query`: retrieval is based only on the question text and optional question image. `self.get_query_context()` contains only a random, run-local `query_invocation_id` for trace and lifecycle bookkeeping. The evaluator keeps the dataset question ID, question type, raw question record, gold answer, and evaluator configuration private.",
+      "locator": "README.md, Implementing Your Method section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The benchmark uses multimodal trajectories; question inputs can include an optional screenshot image alongside question text.",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/README.md",
+      "quote": "The benchmark pairs manually curated questions with long histories of multimodal web-agent trajectories. ... implement `query(self, query, query_image=None)`, which receives the question text and optional question screenshot path.",
+      "locator": "README.md, Overview and Implementing Your Method sections",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Evaluation uses an LLM-as-judge grader (default gpt-5.2) with medium reasoning effort and up to 4096 completion tokens for scoring.",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/evaluation/run_eval.py",
+      "quote": "parser.add_argument(\"--evaluator-model\", default=os.getenv(\"EVALUATOR_MODEL\", \"gpt-5.2\"))\n    parser.add_argument(\"--evaluator-reasoning-effort\", choices=[\"low\", \"medium\", \"high\"], default=\"medium\")\n    parser.add_argument(\"--evaluator-max-completion-tokens\", type=int, default=4096)",
+      "locator": "evaluation/run_eval.py:parse_args",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Questions are sourced from agent trajectories stored in a trajectories.jsonl file; the benchmark tests memory recall over past agent trajectory data.",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/evaluation/run_eval.py",
+      "quote": "\"--trajectories-path\",\n        str(data_root / \"trajectories.jsonl\"),",
+      "locator": "evaluation/run_eval.py:main (harness_argv construction)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The embedding retrieval query instruction frames the task as recalling information from past agent trajectories, indicating the benchmark evaluates memory over agentic interaction histories.",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/evaluation/run_eval.py",
+      "quote": "\"query_instruction\": \"Given a question about past agent trajectories, retrieve relevant memory entries that help answer it.\"",
+      "locator": "evaluation/run_eval.py:embedding_params",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Online learning of retrieval strategy is supported for agentrunbook_c_v2, requiring strictly sequential question processing (max_workers=1).",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/evaluation/run_eval.py",
+      "quote": "if args.enable_online_learning and args.prompt_build_max_workers != 1:\n        raise SystemExit(\"--enable-online-learning requires --prompt-build-max-workers 1 for sequential online learning\")",
+      "locator": "evaluation/run_eval.py:main",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Evaluation entrypoint is evaluation/run_eval.py, accepting --method, --data-root, --domain, --tier, --output-dir, --openai-sdk-model, and --openai-sdk-reasoning-effort flags.",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/evaluation/scripts/run_agentrunbook_c_v2.sh",
+      "quote": "python \"$REPO_ROOT/evaluation/run_eval.py\" --method \"$METHOD\" --data-root \"$DATA_ROOT_VALUE\" --domain \"$domain\" --tier \"$TIER_VALUE\" --output-dir \"$OUTPUT_ROOT_VALUE/${METHOD}_${domain}_${TIER_VALUE}\" --openai-sdk-model \"$OPENAI_SDK_MODEL_VALUE\" --openai-sdk-reasoning-effort \"$OPENAI_SDK_REASONING_EFFORT_VALUE\"",
+      "locator": "run_agentrunbook_c_v2.sh:L28-L35",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The benchmark contains a 'web' domain and an 'enterprise' domain as distinct evaluation partitions.",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/evaluation/scripts/run_agentrunbook_c_v2.sh",
+      "quote": "for domain in web enterprise; do",
+      "locator": "run_agentrunbook_c_v2.sh:L27",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A 'small' tier exists as the default; other tier values may be set via the TIER environment variable.",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/evaluation/scripts/run_agentrunbook_c_v2.sh",
+      "quote": "TIER_VALUE=\"${TIER:-small}\"",
+      "locator": "run_agentrunbook_c_v2.sh:L10",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The default grader/agent model is gpt-5.4-mini with medium reasoning effort, pointing to an OpenAI-compatible API backend.",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/evaluation/scripts/run_agentrunbook_c_v2.sh",
+      "quote": "OPENAI_SDK_MODEL_VALUE=\"${OPENAI_SDK_MODEL:-gpt-5.4-mini}\"\nOPENAI_SDK_REASONING_EFFORT_VALUE=\"${OPENAI_SDK_REASONING_EFFORT:-medium}\"",
+      "locator": "run_agentrunbook_c_v2.sh:L11-L12",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Some benchmark items are screenshot-grounded; the agentrunbook_c_v2 method skips the view_image tool and uses text/AXTree evidence for those items instead.",
+      "kind": "code",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/evaluation/scripts/run_agentrunbook_c_v2.sh",
+      "quote": "agentrunbook_c_v2 does not enable a view_image tool; prior runs found low usage and high latency overhead. Screenshot-grounded items may rely on text/AXTree evidence instead.",
+      "locator": "run_agentrunbook_c_v2.sh:L22",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Benchmark targets long-term memory in specialized web agent environments",
+      "kind": "paper",
+      "url": "https://arxiv.org/abs/2605.12493",
+      "quote": "Long-term memory is crucial for agents in specialized web environments, where success depends on recalling interface affordances, state dynamics, workflows, and recurring failure modes",
+      "locator": "abstract",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LME-V2 contains 451 manually curated questions covering five core memory abilities.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2605.12493v1",
+      "quote": "LME-V2 contains 451 manually curated questions covering five core memory abilities for web agents: static state recall, dynamic state tracking, workflow knowledge, environment gotchas, and premise awareness.",
+      "locator": "Abstract",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LME-V2-Small uses a 100-trajectory shared haystack (~25M tokens); LME-V2-Medium uses ~500-trajectory per-question haystacks (~115M tokens).",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2605.12493v1",
+      "quote": "LME-V2-Small provides a 100-trajectory haystack shared by all questions, and LME-V2-Medium has 500-trajectory question-specific haystacks... The final history lengths of LME-V2-Small and LME-V2-Medium are approximately 25M and 115M tokens",
+      "locator": "Section 1; Section 3.2, Haystack Creation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Trajectory pool: 599 WebArena trajectories and 941 WorkArena/WorkArena++ trajectories; overall success rate 52.0%; average 28.1 states per trajectory.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2605.12493v1",
+      "quote": "The final pool contains 599 trajectories from WebArena and 941 from WorkArena/WorkArena++. The overall success rate is 52.0%, and each trajectory contains 28.1 states on average.",
+      "locator": "Section 3.2, Trajectory Collection",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Questions require 1.4 trajectories on average to answer (min 1, max 5).",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2605.12493v1",
+      "quote": "On average, questions require 1.4 trajectories to answer (min 1, max 5).",
+      "locator": "Section 3.2, Question Annotation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Minimal answer core: 44 trajectories for WebArena domain, 49 for ServiceNow domain.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2605.12493v1",
+      "quote": "The resulting core contains 44 trajectories for WebArena and 49 trajectories for ServiceNow.",
+      "locator": "Appendix A.4, Minimal answer core",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory context truncation budget is 200k tokens (Qwen3.5-9B tokens).",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2605.12493v1",
+      "quote": "We set the truncation budget to 200k tokens empirically.",
+      "locator": "Section 3.3, footnote 3; Appendix A.5",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Fixed reader model is Qwen3.5-9B with temperature 0.6, top_p 0.95, top_k 20.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2605.12493v1",
+      "quote": "For the fixed reader model, we use the Qwen3.5-9B model hosted with vllm on a local machine with Nvidia A100 GPUs. We use temperature 0.6, top_p 0.95, and top_k 20 for a sampling evaluation.",
+      "locator": "Appendix A.5, Experimental Details",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Best frontier model scores 14.1% on LME-V2 non-abstention questions without trajectory context, confirming questions require environment-specific knowledge.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2605.12493v1",
+      "quote": "all LLMs perform poorly in this setting: the best model reaches only 14.1% overall accuracy, suggesting that LME-V2 questions generally cannot be answered from public or parametric knowledge alone.",
+      "locator": "Section 3.4",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "AgentRunbook-C achieves 74.9% overall accuracy on LME-V2-Small and 70.1% on LME-V2-Medium; baseline RAG (query\u2192slice) achieves 42.8% / 38.1%.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2605.12493v1",
+      "quote": "AgentRunbook-C achieves the best overall accuracy, reaching 74.9% on LME-V2-Small and 70.1% on LME-V2-Medium... A simple query-to-slice RAG baseline reaches 42.8% on LME-V2-Small and 38.1% on LME-V2-Medium",
+      "locator": "Section 5.1",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Questions were filtered so at least two of four tested frontier LLMs (Gemini-3-Pro, GPT-5.2, Grok-4.1-thinking, Claude-Opus-4.6) answered incorrectly without trajectory context.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2605.12493v1",
+      "quote": "We manually tested Gemini-3-Pro, GPT-5.2, Grok-4.1-thinking, and Claude-Opus-4.6 and ensured that at least two out of four models answered the questions incorrectly.",
+      "locator": "Section 3.2, Question Annotation, footnote 2",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Abstention questions constructed with wrong premises; these are excluded from pilot studies (non-abstention questions only evaluated in pilots).",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2605.12493v1",
+      "quote": "we curate abstention questions with wrong premises that the model must identify to succeed... These studies use a direct question answering setup rather than the context gathering formulation used in the main experiments, and evaluate non-abstention questions only.",
+      "locator": "Section 3.2, Question Annotation; Section 3.4",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Benchmark artifacts (derived trajectory traces, accessibility trees, screenshots) to be released under Apache-2.0 license.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2605.12493v1",
+      "quote": "We plan to release our code and derived benchmark artifacts under the Apache-2.0 license as well.",
+      "locator": "Appendix E.2, Dataset and artifact licensing",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Accuracy aggregated overall and per category (static, dynamic, workflow, gotchas); category-level breakdowns reported in main results table.",
+      "kind": "paper",
+      "url": "https://arxiv.org/html/2605.12493v1",
+      "quote": "We aggregate accuracy over the full set and also report category-level breakdowns.",
+      "locator": "Appendix A.5, Evaluation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Two public leaderboard tiers exist: small and medium.",
+      "kind": "docs",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/main/README.md",
+      "quote": "Two public leaderboard tiers: small and medium.",
+      "locator": "README.md \u00a7Overview",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Primary leaderboard metric is LAFS (accuracy-latency frontier score) gain over a fixed reference frontier.",
+      "kind": "docs",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/main/README.md",
+      "quote": "The score is LAFS gain over the fixed reference frontier, and a submission may include multiple latency operating points for the same method and tier.",
+      "locator": "README.md \u00a7Submitting to Leaderboard",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Input format is multimodal: question text plus optional question screenshot; trajectory history includes screenshots stored as per-step PNGs.",
+      "kind": "docs",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/main/README.md",
+      "quote": "query(self, query, query_image=None), which receives the question text and optional question screenshot path ... screenshots/<trajectory_id>/<step>.png",
+      "locator": "README.md \u00a7Implementing Your Method / \u00a7Setup: Data",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Data sourced from xiaowu0162/longmemeval-v2 dataset repository; screenshot bundles are .tar.gz archives extracted during preparation.",
+      "kind": "docs",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/main/README.md",
+      "quote": "The default dataset repository is xiaowu0162/longmemeval-v2. Screenshot bundles are stored as .tar.gz archives under trajectory_screenshots/; prepare_data.py extracts them when needed.",
+      "locator": "README.md \u00a7Setup: Data",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "AgentRunbook-C V2 update released in August 2026.",
+      "kind": "docs",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/main/README.md",
+      "quote": "[2026/08] Update: AgentRunbook-C V2.",
+      "locator": "README.md \u00a7News",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Question 01f6e679 has a gold answer that contradicts the DOM evidence in its own trajectory: the gold claims no field exists between 'Body' and 'Forum', but trajectory 08e662c8 state 3 shows a 'Formatting help +' checkbox between them.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/issues/1",
+      "quote": "Question 01f6e679 asks what field is between 'body' and 'forum' on the reddit create submission form. The gold answer says 'there is no such field. body and forum are next to each other.' But looking at trajectory 08e662c8 state 3, the DOM clearly shows: [143] textbox 'Body' [148] checkbox 'Formatting help +' [277] LabelText 'Forum'",
+      "locator": "https://github.com/xiaowu0162/LongMemEval-V2/issues/1",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "On an enriched 192-question abstention slice, the reader asserted on 115/128 questions whose gold answer is an abstention when the status signal was unused.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/issues/6",
+      "quote": "the reader asserted on 115/128 questions whose gold answer is an abstention \u2014 with the status signal sitting unused one layer below",
+      "locator": "body \u00a7'Why it matters for scoring'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "memory_modules/codex.py implements a four-status evidence contract (directly_supported, contradicts_premise, near_match_only, insufficient) and a corresponding answer-policy mapping.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/issues/6",
+      "quote": "VALID_EVIDENCE_STATUSES = {directly_supported, contradicts_premise, near_match_only, insufficient} \u2026 ANSWER_POLICY_BY_EVIDENCE_STATUS mapping each status to an answer policy (answer_normally, state_premise_false, say_exact_target_not_found, abstain_unknown)",
+      "locator": "body \u00a7'What the code does today'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The published Codex baseline may be affected by the dormant evidence-status contract, raising baseline comparability concerns for providers building on memory_modules/codex.py.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/issues/6",
+      "quote": "it affects the published Codex baseline as far as we can tell, and any provider building on memory_modules/codex.py",
+      "locator": "body, introduction paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The suggested fix is bounded retry with backoff on transport-class errors and exclusion of persistently-failing rows from the scored denominator with a reported count, rather than scoring empty strings as 0.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/issues/7",
+      "quote": "Bounded retry with backoff on transport-class errors (5xx/timeout); if still failing, mark the row `instrument_failed` and exclude it from the scored denominator (reporting the count) rather than scoring an empty string as 0.",
+      "locator": "https://github.com/xiaowu0162/LongMemEval-V2/issues/7",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A data-minimized evaluation workflow concern was raised requesting a value-free provenance manifest binding benchmark items to immutable source or trajectory coordinates, implying the benchmark contains question records, gold answers, evaluator settings, and hidden labels as protected content.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/issues/9",
+      "quote": "avoid downloading or exposing question records, gold answers, evaluator settings, or hidden labels",
+      "locator": "issue #9, request body, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Benchmark items are associated with source or trajectory coordinates, suggesting a trajectory-based dataset construction (e.g., conversation sessions or interaction logs).",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/issues/9",
+      "quote": "binds benchmark items to immutable source or trajectory coordinates",
+      "locator": "issue #9, request body, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The benchmark has per-item identifiers or item commitments, implying items are individually addressable and potentially have public item IDs.",
+      "kind": "issue",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/issues/9",
+      "quote": "per-item commitments binding an opaque item commitment (or a public item ID, if appropriate) to publicly documented source or trajectory identifiers",
+      "locator": "issue #9, request body, item 3",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/evaluation/run_eval.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/evaluation/scripts/run_agentrunbook_c_v2.sh",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://arxiv.org/abs/2605.12493",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://arxiv.org/html/2605.12493v1",
+      "kind": "paper",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/issues/6",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/issues/1",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/issues/7",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/issues/9",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Exact LLM-as-judge prompt template used by the default gpt-5.2 judge is not specified in this README; the grader implementation is in evaluation/ but not shown here.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/tree/2cc8c540bdb87fe6761629b585e727e1c4704520/evaluation",
+      "kind": "code"
+    },
+    {
+      "text": "Exact formula and aggregation method for LAFS (Latency-Adjusted Frontier Score) are not defined in this README; full details are deferred to leaderboard/README.md.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/leaderboard/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Train/test split boundaries and whether any held-out test split exists beyond the public leaderboard tiers (small/medium) are not described in this README.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Per-ability metric definitions and how subscores across the five memory abilities are aggregated into a single accuracy figure are not specified in this README.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Dataset construction methodology \u2014 how the 451 questions were manually curated, annotator details, and whether adversarial or abstention subsets exist \u2014 is not described in this README.",
+      "url": "https://arxiv.org/abs/2605.12493",
+      "kind": "paper"
+    },
+    {
+      "text": "Definition and measurement of query latency (wall-clock time, token count, API calls, or other proxy) used in the accuracy-latency frontier is not specified in this README.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/leaderboard/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Metric definitions and aggregation formulas (e.g., exact match, F1, LLM-judge rubric) are not present in this script; they would be defined in evaluation/run_eval.py or a companion grader module.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/2cc8c540bdb87fe6761629b585e727e1c4704520/evaluation/run_eval.py",
+      "kind": "code"
+    },
+    {
+      "text": "Train/test split boundaries and dataset construction methodology (synthetic vs human, annotation process) are not described in this script.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2",
+      "kind": "code"
+    },
+    {
+      "text": "Exact grader/scorer definition: whether accuracy is computed via exact match, LLM-as-judge, or human evaluation \u2014 and the judge prompt if applicable",
+      "url": "https://arxiv.org/abs/2605.12493",
+      "kind": "paper"
+    },
+    {
+      "text": "Train/test split information and how splits are defined or whether a single evaluation set exists",
+      "url": "https://arxiv.org/abs/2605.12493",
+      "kind": "paper"
+    },
+    {
+      "text": "Aggregation formula for average accuracy across the five memory ability categories (e.g., macro average, weighted, min-of-subscores)",
+      "url": "https://arxiv.org/abs/2605.12493",
+      "kind": "paper"
+    },
+    {
+      "text": "Data leakage controls, versioning tags, and reproducibility details (e.g., oracle retrieval settings)",
+      "url": "https://arxiv.org/abs/2605.12493",
+      "kind": "paper"
+    },
+    {
+      "text": "Repository or data release URL for the benchmark",
+      "url": "https://arxiv.org/abs/2605.12493",
+      "kind": "paper"
+    },
+    {
+      "text": "Distribution of questions across the five memory ability categories",
+      "url": "https://arxiv.org/abs/2605.12493",
+      "kind": "paper"
+    },
+    {
+      "text": "No public repository URL is given for the LME-V2 benchmark code or data; only a project webpage is listed.",
+      "url": "https://xiaowu0162.github.io/longmemeval-v2/",
+      "kind": "paper"
+    },
+    {
+      "text": "Exact train/test split or held-out split structure is not specified; the paper describes a single fixed question pool of 451 questions without explicit train/validation/test partitions.",
+      "url": "https://arxiv.org/html/2605.12493v1",
+      "kind": "paper"
+    },
+    {
+      "text": "The exact number of abstention (premise awareness) questions versus other question type counts is not stated.",
+      "url": "https://arxiv.org/html/2605.12493v1",
+      "kind": "paper"
+    },
+    {
+      "text": "The LLM judge prompt for the main context gathering evaluation (as opposed to oracle/pilot settings) is not separately specified; it is unclear whether the same GPT-5.2 judge prompts in Table 5 are used verbatim for main experiment scoring.",
+      "url": "https://arxiv.org/html/2605.12493v1",
+      "kind": "paper"
+    },
+    {
+      "text": "Exact LAFS formula and how accuracy and latency are combined into the frontier score are not defined in the README; leaderboard/README.md is referenced but not shown.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/main/leaderboard/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "LLM-as-judge prompt template and rubric used for answer scoring are not specified in the README.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/main/evaluation",
+      "kind": "docs"
+    },
+    {
+      "text": "Per-ability metric aggregation method (e.g., macro average, weighted, min-of-subscores) is not described in the README.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/main/evaluation",
+      "kind": "docs"
+    },
+    {
+      "text": "Train/test split boundaries and whether any held-out set exists beyond the small/medium tiers are not described.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Dataset construction methodology (how the 451 questions were curated, annotator details, adversarial or abstention subsets) is not described in the README.",
+      "url": "https://arxiv.org/abs/2605.12493",
+      "kind": "paper"
+    },
+    {
+      "text": "No grader prompt or exact-match rubric definition is referenced; it is unclear whether scoring is rule-based exact match, LLM-as-judge, or another method.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2",
+      "kind": "issue"
+    },
+    {
+      "text": "No information about train/test splits, total question count, or dataset construction methodology (synthetic vs human annotation) is present on this page.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2",
+      "kind": "issue"
+    },
+    {
+      "text": "No versioning or commit tag is mentioned; it is unknown whether this gold annotation error affects a specific release or the current HEAD.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2",
+      "kind": "issue"
+    },
+    {
+      "text": "The reader/judge prompt used in evaluation/ is not described; it is unknown whether the grader uses exact match, LLM-as-judge, or a rubric for abstention and false-premise questions.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/issues/6",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the 192-question abstention slice is an official benchmark split or a reporter-constructed enriched subset is not clarified.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/issues/6",
+      "kind": "issue"
+    },
+    {
+      "text": "The exact scoring formula or metric name (e.g., exact match, F1, LLM-as-judge) used to produce the per-question score that sums to 1.55 points for 7 questions is not specified in this issue.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/issues/7",
+      "kind": "issue"
+    },
+    {
+      "text": "The full split composition of the 451-question evaluation set (train/test boundaries, synthetic vs. human sourcing, session structure) is not described in this issue.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/issues/7",
+      "kind": "issue"
+    },
+    {
+      "text": "The Hermes-LCM protocol definition (judge prompts, reader invocation format, aggregation method) is referenced but not described in this issue.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/issues/7",
+      "kind": "issue"
+    },
+    {
+      "text": "No response from maintainers is present in this issue; it is unknown whether an official provenance manifest exists.",
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2/issues/9",
+      "kind": "issue"
+    }
+  ]
+}
