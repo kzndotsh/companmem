@@ -1,0 +1,1456 @@
+{
+  "identity": {
+    "id": "reme",
+    "name": "ReMe",
+    "repo": "https://github.com/agentscope-ai/ReMe",
+    "docs": "https://reme.agentscope.io/llms.txt",
+    "license": "Apache-2.0",
+    "version_or_commit": "5231f3970c550bb0bc5d1bc7fbc85534274ca530",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "ReMe is a file-native memory system with a defined memory lifecycle spanning ingestion through proactive topics."
+    },
+    {
+      "text": "ReMe is described as a personal knowledge base that grows after every conversation."
+    },
+    {
+      "text": "ReMe is described as a memory toolkit that can support companion-style systems"
+    },
+    {
+      "text": "AutoMemoryStep records conversation facts into a daily note via an agent"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "ReMe uses a BM25 keyword index for search, fed by chunks emitted from MarkdownFileChunker. Frontmatter fields (name, description, tags) are parsed into metadata but not emitted as searchable text, so they are invisible to BM25 search."
+    },
+    {
+      "text": "Workspace root is configurable, and per-item workspaces can be reused (eval_only mode re-queries pre-built memory without re-ingesting), indicating the store persists independently of the query step."
+    },
+    {
+      "text": "ReMe supports an auto_dream feature that can be triggered when sessions cross a configured hour, suggesting a background summarization or consolidation process distinct from raw session ingestion."
+    },
+    {
+      "text": "auto_memory distills useful conversation facts from conversation while preserving a filtered conversation source record (JSONL log) separately from curated daily memory cards"
+    },
+    {
+      "text": "proactive_read reads interest topics produced by a separate proactive refresh flow; host agent decides whether to act \u2014 retrieve policy is adaptive, not always-on injection"
+    },
+    {
+      "text": "The benchmark preset uses a modified auto-memory prompt with auto_dream disabled, indicating a prompt-scaffold layer that instructs the model how to use retrieved memory."
+    },
+    {
+      "text": "Retrieve policy uses BM25 plus optional embeddings fused via reciprocal rank fusion, returning matching chunks with line ranges and bounded wikilink neighbors"
+    },
+    {
+      "text": "The edit command auto-appends the .md suffix via gate_md(), but stat, frontmatter_read, and frontmatter_update do not, causing inconsistent path resolution."
+    },
+    {
+      "text": "Raw CC entries are appended into ReMe's own CC SessionStore; deduplication by record uuid identifies only the increment (new turns) since the last stop."
+    },
+    {
+      "text": "A graph-chunk consistency repair step exists but only detects graph-vs-store id mismatches; it cannot detect stale chunks that are consistently wrong."
+    },
+    {
+      "text": "Rename/retarget on update: if the Agent supplies a better frontmatter name on update, the system can rename the note and retarget inbound wikilinks."
+    },
+    {
+      "text": "Session lifecycle hooks record durable session knowledge automatically without blocking agent shutdown, indicating a write path tied to session end."
+    },
+    {
+      "text": "ReMe uses a dedicated service LLM for memory extraction and retrieval, separate from the agent LLM used for task reasoning."
+    },
+    {
+      "text": "An endpoint /add_task_memory is expected to exist on the HTTP backend to ingest task memories during pool initialization."
+    },
+    {
+      "text": "ReMe exposes an HTTP service entrypoint, with two copies suggesting an in-progress v3\u2192v4 migration (reme/ and reme4/)"
+    },
+    {
+      "text": "Procedure deduplication and recall is scoped to current project plus global procedures, excluding other projects"
+    },
+    {
+      "text": "ReMe surfaces a 'Memory as File' mechanism, indicating memory is persisted as files on the local filesystem."
+    },
+    {
+      "text": "Store is file-native in a user-owned local workspace; index is rebuildable and separate from source files"
+    },
+    {
+      "text": "ReMe uses a file-native workspace model with explicit source-of-truth boundaries and generated indexes."
+    },
+    {
+      "text": "ReMe includes an Auto Memory feature, suggesting automated extraction or writing to the memory store."
+    },
+    {
+      "text": "Session message log path is <session_dir>/dialog/<session_id>.jsonl \u2014 isolation is per session_id"
+    },
+    {
+      "text": "v0.3 lacked BM25 keyword search and RRF fusion; v0.4 introduces these alongside vector search"
+    },
+    {
+      "text": "Multiple agents can share one workspace; memory isolation is per workspace, not per agent"
+    },
+    {
+      "text": "A ReMe.forget() method exists and is described as a cleanup path that could be extended"
+    },
+    {
+      "text": "Embeddings are disabled by default; enabling them requires explicit config changes"
+    },
+    {
+      "text": "In v0.4 the file-native approach became core and vector retrieval was made opt-in"
+    },
+    {
+      "text": "Wiki namespace remains global and is not subdivided by project"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Memory is stored as durable Markdown files with frontmatter and wikilinks; indexes are rebuildable side artifacts",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/README.md",
+      "quote": "ReMe stores durable memory as ordinary Markdown with frontmatter and wikilinks. Users and agents can inspect, edit, move, sync, and back it up with familiar tools, while indexes and generated metadata remain rebuildable.",
+      "locator": "README.md, Why ReMe? section, Memory as File bullet",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Message log (JSONL) and curated memory (Markdown cards) are distinct artifacts on distinct write paths",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/README.md",
+      "quote": "auto_memory: Distills useful conversation facts while preserving a filtered conversation source record. Output: session/dialog/*.jsonl, daily/<date>/<topic>.md",
+      "locator": "README.md, Memory Lifecycle table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Default retrieval is BM25 + wikilink expansion; vector retrieval is optional and disabled by default",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/README.md",
+      "quote": "Embeddings are disabled by default, so the default setup does not start an embedding model or require an embedding API key.",
+      "locator": "README.md, Environment Variables section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is chunk-level with line ranges and bounded wikilink neighbors, not full-file loading",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/README.md",
+      "quote": "Search returns matching chunks with line ranges and bounded wikilink neighbors. Optional vector results are fused with BM25 through reciprocal rank fusion (RRF).",
+      "locator": "README.md, How ReMe Works section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "proactive_read implements an adaptive retrieve policy: host agent decides whether to surface topics",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/README.md",
+      "quote": "proactive_read only reads and exposes interest topics produced by proactive refresh. It does not independently browse the web, send notifications, or rewrite the knowledge base; the host agent decides whether and how to act on a topic.",
+      "locator": "README.md, How ReMe Works section, IMPORTANT note",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per workspace directory, not per agent; multiple agents can share one workspace",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/README.md",
+      "quote": "Agents such as QwenPaw and DeepSeek Harness can share the same workspace to retrieve, maintain, and evolve knowledge, while users retain control of the durable files.",
+      "locator": "README.md, Why ReMe? section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LongMemEval cleaned-s agentic score of 89.4% on 500 questions covering cross-session retrieval, knowledge updates, and temporal reasoning",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/README.md",
+      "quote": "LongMemEval cleaned-s Overall 500 questions 89.4% Cross-session retrieval, knowledge updates, and temporal reasoning",
+      "locator": "README.md, Benchmarks table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "\u03c0-Bench PROC score of 0.580 across five user personas, measuring proactive handling of hidden intent, clarification, cross-session preferences, task dependencies, and underspecified requests",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/README.md",
+      "quote": "ReMe also achieved a 0.580 PROC score across five user personas in the repository's \u03c0-Bench evaluation, 2.4% above NanoBot under the same test-model configuration. PROC measures proactive handling of hidden intent, clarification, cross-session preferences and conventions, task dependencies, and underspecified requests.",
+      "locator": "README.md, Benchmarks section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "ACL 2026 paper describes a dynamic procedural memory framework for experience-driven agent evolution",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/README.md",
+      "quote": "Remember Me, Refine Me: A Dynamic Procedural Memory Framework for Experience-Driven Agent Evolution has been accepted to Findings of ACL 2026.",
+      "locator": "README.md, Latest Updates, 2026.07 entry",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "ReMe maintains two distinct stores: a raw JSONL session log (full message transcript) and a curated Markdown daily note (agent-extracted facts), which are separate artifacts with different write paths",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/evolve/auto_memory.py",
+      "quote": "Record conversation facts into a daily note via an Agent.",
+      "locator": "AutoMemoryStep class docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Tool-result content (retrieved memory, search results) is deliberately stripped before saving to the session log to prevent retrieved facts from being mistaken for user-provided context in future memory extraction runs",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/evolve/auto_memory.py",
+      "quote": "Tool results often contain recalled memory/search/read output. Keeping them in saved conversation history lets retrieved facts masquerade as user-provided context in future auto-memory runs.",
+      "locator": "_sanitize_msg_for_save function, inline comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory write uses an agent with tool access rather than a deterministic extractor; the agent receives formatted history and an existing memory hint and decides what to write or update",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/evolve/auto_memory.py",
+      "quote": "result = await self.agent_wrapper.reply(\n    user_message,\n    system_prompt=self.prompt_format(\"system_prompt\"),\n    job_tools=self.create_tools if created else self.update_tools,\n    **reply_kwargs,\n)",
+      "locator": "execute method",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per session_id; each session has its own JSONL log file and its own daily note identified by session_id in frontmatter",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/evolve/auto_memory.py",
+      "quote": "return self.file_store.workspace_path / self._session_dir() / \"dialog\" / f\"{session_id}.jsonl\"",
+      "locator": "_session_path method",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The JSONL session log is a full message transcript (log), while the daily note is a curated summary of facts (memory); they serve different roles in the pipeline",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/evolve/auto_memory.py",
+      "quote": "session_file=self._session_source_path(session_id),\nhistory=self._format_history(messages),",
+      "locator": "execute method, prompt_format call",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "No explicit delete or forget operation is present in this file; the only removal-like behavior is stripping tool-result blocks before log persistence",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/evolve/auto_memory.py",
+      "quote": "if block.type == \"tool_result\":\n    changed = True\n    continue",
+      "locator": "_sanitize_msg_for_save function",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "ReMe persists raw CC transcript entries into a file-backed store, deduplicating by uuid to track incremental new turns across stop-hook firings.",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/evolve/auto_memory_cc.py",
+      "quote": "save the *raw* entries into ReMe's own CC SessionStore \u2014 ``append`` dedups by record ``uuid``, so this both copies the conversation into ReMe and tells us the **increment** since the last stop.",
+      "locator": "module docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "ReMe's write path filters out boilerplate-only user turns before passing messages upstream, preventing noise from entering the memory store.",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/evolve/auto_memory_cc.py",
+      "quote": "if not text or cls._is_injected_only(text):\n                continue",
+      "locator": "_entries_to_messages method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "ReMe's write path also filters out uuid-less control rows so only conversational entries enter the store.",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/evolve/auto_memory_cc.py",
+      "quote": "cc_entries = [e for e in cc_entries if isinstance(e, dict) and e.get(\"uuid\")]",
+      "locator": "_save_cc_session method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is always executed on demand (no adaptive 'stay silent' policy); the step returns an error only if query is empty",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/index/search.py",
+      "quote": "if not query:\n            self.context.response.success = False\n            self.context.response.answer = \"Error: query cannot be empty\"\n            return self.context.response",
+      "locator": "reme/steps/index/search.py, SearchStep.execute",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Within a tool_context_id scope, seen chunks expire after a TTL (default 24 h); expired entries are pruned on each call",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/index/search.py",
+      "quote": "seen_ttl_hours: float = 24\n...\nstore[self.SEARCH_SEEN_KEY] = seen = {chunk_id: ts for chunk_id, ts in seen.items() if now - float(ts) < ttl}",
+      "locator": "reme/steps/index/search.py, SearchStep.__init__ and _dedupe_tool_context",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation of seen-chunk state is per tool_context_id; different tool_context_id values get separate dedup buckets",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/index/search.py",
+      "quote": "return contexts.setdefault(tool_context_id, {})",
+      "locator": "reme/steps/index/search.py, SearchStep._tool_context_store",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Date-range filtering allows temporal scoping of retrieval; path date is canonical YYYY-MM-DD for lexicographic comparison",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/index/search.py",
+      "quote": "_matches_search_filter does lexicographic string comparison against\n        # path_date (always a canonical YYYY-MM-DD)",
+      "locator": "reme/steps/index/search.py, SearchStep.execute inline comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval draws from a file_store via vector similarity search, not a live transcript log.",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/index/vector_search.py",
+      "quote": "results = await self.file_store.vector_search(query, candidates, {})",
+      "locator": "VectorSearchStep.execute",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Candidate pool is capped at 200 or 10x the requested limit, whichever is smaller, to bound retrieval cost before score filtering.",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/index/vector_search.py",
+      "quote": "_MAX_CANDIDATES: Final = 200\n_CANDIDATE_MULTIPLIER: Final = 10",
+      "locator": "module-level constants",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Seen-chunk deduplication is scoped to a tool_context_id with a configurable TTL (default 24 h), suggesting per-tool-call rather than per-user or per-session isolation.",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/index/vector_search.py",
+      "quote": "seen_ttl_hours: float = 24",
+      "locator": "VectorSearchStep.__init__ signature",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Chunks are grouped by session before rendering, indicating the store preserves session provenance alongside vector content.",
+      "kind": "code",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/index/vector_search.py",
+      "quote": "merge_session_chunk_intervals(results, session_dir)",
+      "locator": "VectorSearchStep.execute, render block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "ReMe stores durable memory as Markdown files with frontmatter and wikilinks; indexes are rebuildable but files are the source of truth",
+      "kind": "docs",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/main/README.md",
+      "quote": "ReMe stores durable memory as ordinary Markdown with frontmatter and wikilinks. Users and agents can inspect, edit, move, sync, and back it up with familiar tools, while indexes and generated metadata remain rebuildable.",
+      "locator": "README.md, \u2728 Why ReMe? section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path: auto_memory distills conversation facts and writes to session/dialog/*.jsonl and daily/<date>/<name>.md",
+      "kind": "docs",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/main/README.md",
+      "quote": "auto_memory \u2014 Distills useful conversation facts while preserving a filtered conversation source record. Output: session/dialog/*.jsonl , daily/<date>/<generated-name>.md",
+      "locator": "README.md, Memory Lifecycle table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy: BM25 by default, optional vector embeddings fused via RRF, returning line-level chunks and wikilink neighbors",
+      "kind": "docs",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/main/README.md",
+      "quote": "Search returns matching chunks with line ranges and bounded wikilink neighbors. Optional vector results are fused with BM25 through reciprocal rank fusion (RRF).",
+      "locator": "README.md, \ud83e\udde0 How ReMe Works section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Log vs memory distinction: raw session JSONL (log) is kept separately from curated daily and digest Markdown (memory)",
+      "kind": "docs",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/main/README.md",
+      "quote": "session/ \u2014 Conversation source records and agent sessions \u2026 daily/ \u2014 Lightly processed memory: daily facts, conversation summaries, resource readings \u2026 digest/ \u2014 Long-term memory: personal facts, procedural experience, knowledge nodes",
+      "locator": "README.md, Workspace Layout section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LongMemEval cleaned-s benchmark: 89.4% on 500 questions covering cross-session retrieval, knowledge updates, and temporal reasoning",
+      "kind": "docs",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/main/README.md",
+      "quote": "LongMemEval cleaned-s \u2014 Overall \u2014 500 questions \u2014 89.4% \u2014 Cross-session retrieval, knowledge updates, and temporal reasoning",
+      "locator": "README.md, \ud83d\udcca Benchmarks table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "\u03c0-Bench PROC score 0.580 across five user personas, 2.4% above NanoBot under same test-model configuration; measures proactive handling of hidden intent, cross-session preferences, task dependencies",
+      "kind": "docs",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/main/README.md",
+      "quote": "ReMe also achieved a 0.580 PROC score across five user personas in the repository's \u03c0-Bench evaluation , 2.4% above NanoBot under the same test-model configuration. PROC measures proactive handling of hidden intent, clarification, cross-session preferences and conventions, task dependencies, and underspecified requests.",
+      "locator": "README.md, \ud83d\udcca Benchmarks section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Scaffold/instructions: proactive_read exposes topics but the host agent decides whether and how to mention them",
+      "kind": "docs",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/main/README.md",
+      "quote": "proactive_read only reads and exposes interest topics produced by proactive refresh. It does not independently browse the web, send notifications, or rewrite the knowledge base; the host agent decides whether and how to act on a topic.",
+      "locator": "README.md, Important callout after Memory Lifecycle table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Auto Memory is the entry point for conversational memory in ReMe, writing curated facts (not transcripts) to topic-named daily cards keyed by session_id.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/en/auto_memory",
+      "quote": "Auto Memory is ReMe's entry point for conversational memory. Within a target date, it uses session_id to find or update at most one daily memory card, whose filename is a concise topic or event name chosen by the Agent.",
+      "locator": "Auto Memory section, paragraph 1",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The store is the daily/ layer of topic-named markdown cards; the source log is a separate session/dialog/<session_id>.jsonl. These are distinct artifacts.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/en/auto_memory",
+      "quote": "step 1: daily/YYYY-MM-DD/<generated_name>.md # one topic-named card per session \u2026 source: session/dialog/<session_id>.jsonl # source conversation record",
+      "locator": "Auto Memory section, directory tree",
+      "confidence": "unknown",
+      "label": "unknown"
+    },
+    {
+      "claim": "What is persisted is curated facts across five categories (preferences, key facts, process decisions, current state, reusable experience), not a chat transcript or running summary.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/en/auto_memory",
+      "quote": "Auto Memory does not preserve a chat transcript as a running summary. It records information that may remain useful later.",
+      "locator": "What It Records section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Update path: system locates existing note by session_id or source_conversation frontmatter; a better name triggers rename with wikilink retargeting.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/en/auto_memory",
+      "quote": "An update locates the existing note by session_id or source_conversation ; if the Agent supplies a better frontmatter name , the system can rename the note and retarget inbound wikilinks.",
+      "locator": "Write Location section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Source log omits tool-result and base64 blocks to prevent recalled memory or binary payloads from being treated as user-provided evidence on future retrieval.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/en/auto_memory",
+      "quote": "Saved messages omit tool-result blocks and base64 data blocks, preventing recalled memory and binary payloads from being mistaken for user-provided evidence later.",
+      "locator": "Preserving the Original Information section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Long-term memory distillation (digest/ layer) is not performed by Auto Memory; it requires a separate Auto Dream job.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/en/auto_memory",
+      "quote": "Auto Memory only creates memory in the daily layer. To distill this material further into long-term digest/ nodes, use Auto Dream .",
+      "locator": "What Happens Next section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "ReMe stores multi-session chat histories in an isolated workspace per item, enabling long-term memory retrieval across sessions.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/en/benchmarks/longmemeval",
+      "quote": "ReMe ingests the sessions into an isolated per-item workspace, answers the question via an agentic (ReAct) mode, and scores the answer with an LLM-as-judge.",
+      "locator": "LongMemEval Benchmark section, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is per workspace (per item in benchmark context), with a configurable workspace root.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/en/benchmarks/longmemeval",
+      "quote": "dataset.workspace_root \u2014 Per-item workspace root (benchmark/longmemeval/workspaces/longmemeval-s).",
+      "locator": "4. Key config \u2014 benchmark/longmemeval/config.yaml, table row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe's memory store persists independently of the retrieval/query step; pre-built workspaces can be reused without re-ingestion.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/en/benchmarks/longmemeval",
+      "quote": "python benchmark/longmemeval/run.py --eval_only # reuse existing workspaces, query + judge only",
+      "locator": "2. Run, command list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe has an optional dream mechanism (auto_dream) that triggers consolidation at a configured hour; disabled in the packaged benchmark preset.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/en/benchmarks/longmemeval",
+      "quote": "If a custom application configuration enables auto_dream, trigger it when sessions cross the configured hour (default 23:00). The packaged preset leaves it disabled.",
+      "locator": "3. Pipeline, step 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe uses a modified auto-memory prompt (scaffold) to instruct the model how to act on retrieved memory; this is distinct from the memory store itself.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/en/benchmarks/longmemeval",
+      "quote": "Modified auto-memory prompt, auto-dream disabled.",
+      "locator": "6. Reference Results, Basic settings",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe's agentic retrieval (ReAct) over the memory store yields overall 0.894 accuracy on LongMemEval cleaned-s across 500 items, with temporal-reasoning and multi-session question types requiring significantly more tool calls and tokens.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/en/benchmarks/longmemeval",
+      "quote": "OVERALL 0.894 43,448 876 44,324 3.69",
+      "locator": "6. Reference Results, cleaned-s, Results table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe separates raw session transcripts from daily memory and consolidated long-term (digest) memory, suggesting a log-vs-memory architecture.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/en/configuration",
+      "quote": "session_dir session Agent sessions; standard transcripts use session/dialog ... daily_dir daily Daily memory ... digest_dir digest Consolidated long-term memory",
+      "locator": "Application fields table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory evolution workflows (auto_memory, auto_resource, auto_dream, proactive refresh) are distinct named jobs that require an LLM, implying active curation/update of stored memory rather than passive transcript storage.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/en/configuration",
+      "quote": "Evolution workflows such as auto_memory , auto_resource , auto_dream , and proactive refresh do.",
+      "locator": "LLM section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The embedding store is backed by a local backend and is linked to a keyword index and a file graph, indicating a hybrid retrieval scaffold.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/en/configuration",
+      "quote": "file_store : default : backend : local embedding_store : default keyword_index : default file_graph : default",
+      "locator": "Embeddings section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "ReMe is local-first and stores memory as files on the filesystem rather than a remote database.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/llms.txt",
+      "quote": "Local-first, file-native memory for agents.",
+      "locator": "page tagline",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe's memory persists and grows across conversations, not just within a single session.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/llms.txt",
+      "quote": "ReMe: A Personal Knowledge Base That Keeps Growing After Every Conversation",
+      "locator": "link title: https://reme.agentscope.io/en/reme-blog",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe stores memory as files, implying a file-based persistence store rather than a vector database or in-memory log.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/llms.txt",
+      "quote": "Memory as File",
+      "locator": "link title: https://reme.agentscope.io/en/memory_as_file",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe has a search-based retrieval path over its memory store.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/llms.txt",
+      "quote": "Memory Search",
+      "locator": "link title: https://reme.agentscope.io/en/memory_search",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe has an automated write path (Auto Memory) that extracts and stores memories from conversation.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/llms.txt",
+      "quote": "Auto Memory",
+      "locator": "link title: https://reme.agentscope.io/en/auto_memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe has a consolidation or reflection mechanism (Auto Dream) that processes stored memories, possibly summarizing or reorganizing them.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/llms.txt",
+      "quote": "Auto Dream",
+      "locator": "link title: https://reme.agentscope.io/en/auto_dream",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe supports proactive memory surfacing, suggesting retrieval is not only demand-driven but can be initiated by the system.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/llms.txt",
+      "quote": "Proactive",
+      "locator": "link title: https://reme.agentscope.io/en/proactive",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe has been evaluated on BEAM, LongMemEval, and \u03c0-Bench memory benchmarks.",
+      "kind": "docs",
+      "url": "https://reme.agentscope.io/llms.txt",
+      "quote": "BEAM Benchmark",
+      "locator": "link title: https://reme.agentscope.io/en/benchmarks/beam",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe provides a measurable improvement on BFCL-V3 multi-turn-base benchmarks when memory is enabled, per its own README.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/123",
+      "quote": "Documented Results (from ReMe README): with ReMe | 0.4450 (+4.17%) | 0.6577 (+6.22%)",
+      "locator": "Documented vs. Actual Results table",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe's memory pipeline involves extraction from training trajectories, with a possible filtering distinction between positive and negative trajectory cases.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/123",
+      "quote": "Are there specific filtering rules for memory data (e.g., only positive trajectories)?",
+      "locator": "Questions, item 2",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe's memory extraction and retrieval is handled by a separate LLM service component, not the task-facing agent LLM.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/123",
+      "quote": "ReMe Service LLM: llm.default.model_name=qwen-max-2025-01-25 (for memory extraction/retrieval)",
+      "locator": "My Configuration table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe benchmark results may be sensitive to training data volume and configuration parameters such as num_trials and num_runs.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/123",
+      "quote": "Does num_trials=2 impact results or num_runs=1 in the training progress impact results)?",
+      "locator": "Questions, item 3",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "The /add_task_memory HTTP endpoint is missing from the MCP server deployment, causing 404 errors during memory pool initialization.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/178",
+      "quote": "the init_task_memory_pool.py file would constantly call the local access point http://localhost:8002/add_task_memory when ReMe is deployed as a MCP server, but there doesn't seem to be an actual access point for this url so it keeps returning the 404 error",
+      "locator": "issue body, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "PR #141 introduced the call to /add_task_memory, which is the likely source of the missing endpoint bug.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/178",
+      "quote": "I checked the PRs and noticed that #141 seems to be PR that introduced the call to add_task_memory",
+      "locator": "issue body, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe is a memory toolkit positioned to support agent or companion systems such as CoPaw",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/196",
+      "quote": "ReMe is a memory toolkit that can support systems like CoPaw",
+      "locator": "issue body, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory governance (what gets persisted, deduplication, staleness, long-term usability) is identified as a gap relative to ReMe's current capability focus",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/196",
+      "quote": "What Claude Code seems to add, at least in some areas, is a stronger emphasis on memory governance: what gets persisted, how it is organized, how to avoid duplication, how to avoid stale memory, how to keep file-based memory usable over time",
+      "locator": "issue body, section 'Why I think this might matter for ReMe'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe has hybrid retrieval pipelines",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/196",
+      "quote": "Since ReMe already has strong hybrid retrieval",
+      "locator": "issue body, section '3. Metadata-first recall'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe has file-based memory with a daily accumulation pattern; consolidation into durable topic memory is not yet a distinct layer",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/196",
+      "quote": "ReMe already has a nice file-based accumulation story. What Claude Code made me think about is whether accumulation and consolidation should be treated as two distinct layers",
+      "locator": "issue body, section '5. Consolidation as a separate layer'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe's file-based memory currently lacks explicit freshness or staleness semantics",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/196",
+      "quote": "I wonder whether ReMe's file-based memory could eventually benefit from more explicit freshness semantics, such as timestamps or retrieval-time reminders",
+      "locator": "issue body, section '4. Modeling stale memory more explicitly'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe's file-based memory may lack lightweight metadata or taxonomy on stored entries",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/196",
+      "quote": "topic-style file memory in ReMe might someday benefit from metadata like: type, description, updated_at",
+      "locator": "issue body, section '2. Adding lightweight metadata / taxonomy to file-based long-term memory'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A requested improvement is to isolate session memory by project directory, so memories do not bleed across engineering projects.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/374",
+      "quote": "It is recommended to support managing session memory by project directory, with session memory isolated between engineering projects.",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Current character-based chunking causes semantic mixing, where unrelated topics end up in one chunk, degrading memory_search accuracy",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/219",
+      "quote": "splits memory files by character count (`chunk_tokens * 4`), which causes semantic mixing \u2014 unrelated topics within the same section can end up in one chunk, diluting vector embeddings and reducing `memory_search` accuracy",
+      "locator": "Problem",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory files are stored as structured text (line-per-fact implied) and indexed via chunked vector embeddings for retrieval",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/219",
+      "quote": "each fact on its own line can be precisely matched",
+      "locator": "Proposed Solution",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory configuration for the QwenPaw agent variant is governed by ReMeLightMemoryConfig",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/219",
+      "quote": "QwenPaw's `ReMeLightMemoryConfig`",
+      "locator": "Additional Requests, item 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Fixed memory (pre-built) does not reliably outperform no-memory baseline; results vary across runs, with fixed memory sometimes scoring lower than no-memory on pass@4",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/241",
+      "quote": "\u6211\u505a\u4e86\u591a\u6b21\u5b9e\u73b0\uff0c\u53d1\u73b0\u6bcf\u6b21\u7684\u7ed3\u679c\u4e0d\u4e00\u6837\uff0c\u6709\u7684\u65f6\u5019fixed-memory\u8981\u6bd4no-memory\u7684pass@4\u9ad8\u4e00\u70b9\uff0c\u6709\u7684\u65f6\u5019\u8981\u4f4e\u4e00\u70b9",
+      "locator": "issue body, final paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe evaluates memory benefit using pass@1 through pass@4 metrics across bfcl and appworld datasets under no-memory, fixed-memory, and dynamic-memory conditions",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/241",
+      "quote": "bfcl v3\u7ed3\u679c\u5982\u4e0b\uff1a... pass@1 pass@2 pass@3 pass@4 ... appworld\u7ed3\u679c\uff1a... pass@1 pass@2 pass@4",
+      "locator": "issue body, results tables",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe uses chromadb as a pinned vector retrieval dependency on the core path",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/275",
+      "quote": "The pinned `chromadb` is past the published fix for CVE-2026-45829. For a memory framework whose value-add is vector retrieval, the affected dependency is on the core path.",
+      "locator": "## 2. `chromadb` \u2014 CVE-2026-45829",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe has two HTTP service entrypoints suggesting an active v3\u2192v4 (reme/\u2192reme4/) migration",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/275",
+      "quote": "The `reme/` and `reme4/` copies look like an in-progress v3\u2192v4 migration; both copies of the middleware setup would need the change.",
+      "locator": "## 1. Wildcard CORS with credentials \u2014 `reme/core/service/http_service.py:35`",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe's Neo4j file graph backend defaults to hardcoded neo4j/neo4j credentials",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/275",
+      "quote": "`neo4j/neo4j` are the documented default credentials Neo4j ships with \u2014 the same credentials every Neo4j hardening guide tells operators to change on first run. Defaulting them in the connector silently lands operators who instantiate `Neo4jFileGraph()` without explicit credentials on a deployment shape that's trivially scannable.",
+      "locator": "## 3. `reme4/components/file_graph/neo4j_file_graph.py:71`",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe's vector store backends (pgvector, Hologres) and SQLite file store use SQL identifier interpolation; currently config-controlled via Pydantic-validated BaseVectorStoreConfig/BaseFileStoreConfig",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/275",
+      "quote": "139 SQL identifier-interpolation sites across `reme/core/vector_store/{pgvector_store,hologres_store}.py` and `reme/core/file_store/sqlite_file_store.py` \u2014 config-controlled identifiers today (Pydantic-validated `BaseVectorStoreConfig` / `BaseFileStoreConfig`)",
+      "locator": "## Out of scope for this issue",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Default memory file names are generated using datetime.now() at summarization time, not the timestamp of the original conversation, causing temporal retrieval failures.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/302",
+      "quote": "The summarizer was using datetime.now() for memory file names, so LoCoMo's 2023 conversations were written as memory/2026-06-29.md, invalidating all time-related answers.",
+      "locator": "issue body, What I've Tried \u00a72 Fixed Summarizer Timestamps",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mistimed recall continuity failure: correct date information present in memory files is not used correctly, producing answers referencing the current date instead of the stored event date.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/302",
+      "quote": "Q: \"When did Jon lose his job?\" Gold: \"19 January, 2023\" \u2192 answered: \"28 June, 2026\"\nQ: \"When did Caroline attend the support group?\" Gold: \"7 May, 2023\" \u2192 answered: \"29 June, 2026\"",
+      "locator": "issue body, Remaining Errors",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The file-based and vector-based variants of ReMe differ architecturally in how temporal facts are stored and retrieved.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/302",
+      "quote": "Curious about the architectural difference in temporal reasoning between the two versions.",
+      "locator": "issue body, Questions \u00a73",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe persists memory as user-owned workspace files, making the file the durable store rather than a database or model state.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/347",
+      "quote": "keeping user-owned ReMe workspace files as the source of truth",
+      "locator": "Background section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write path is triggered via session lifecycle hooks at session end, recording knowledge asynchronously so as not to block shutdown.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/347",
+      "quote": "Use session lifecycle hooks to record durable session knowledge automatically without blocking agent shutdown",
+      "locator": "Changes section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is organized into at least two layers: a daily/session log layer and a curated procedural digest layer extracted by Auto Dream",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/378",
+      "quote": "ReMe currently records conversation memory into daily notes by date and identifies each source conversation with a stable `session_id`... Auto Dream extracts changed daily notes globally and may consolidate project-specific operational experience into the same procedural-memory namespace.",
+      "locator": "Background",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe uses lifecycle hooks to write durable session knowledge asynchronously",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/350",
+      "quote": "Integrate supported Codex lifecycle hooks to record durable session knowledge without blocking session completion",
+      "locator": "Changes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe uses a file-native workspace as its persistence model with generated indexes derived from source files.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/357",
+      "quote": "Clarify the file-native workspace model, source-of-truth boundaries, generated indexes, session state, and rebuild and recovery workflows",
+      "locator": "Changes bullet 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe's memory lifecycle has a named 'auto memory' stage distinct from manual ingestion.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/357",
+      "quote": "Document the complete memory lifecycle: ingestion, auto memory, resources, indexing, retrieval, linking, consolidation, and proactive topics",
+      "locator": "Changes bullet 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe is being benchmarked or targets evaluation against LoCoMo, LongMemEval, and BEAM.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/357",
+      "quote": "Add benchmark setup and reproducibility guidance for LoCoMo, LongMemEval, BEAM, and future personal or proactive evaluations",
+      "locator": "Changes bullet 6",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe has privacy, security, backup, and migration guidance as documented operational concerns.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/357",
+      "quote": "Improve troubleshooting, observability, privacy, security, backup, migration, and failure-recovery guidance",
+      "locator": "Changes bullet 7",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe documentation has English and Chinese versions that must remain structurally aligned.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/357",
+      "quote": "ReMe has English and Chinese guides for its core file-native memory workflows",
+      "locator": "Background paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe startup performs a full scan-diff-index cycle (collect_existing, load_indexed_nodes, diff, coalesce, dispatch) that can peak at 238\u2013279 MiB RSS for small datasets.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/360",
+      "quote": "Index loop only, cold index | 238.5 MiB \u2026 Index + resource loops, without existing metadata | 278.8 MiB",
+      "locator": "Measurements (table)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The change-apply path accumulates all parsed FileNode/FileChunk items for the entire workspace before upserting, making peak memory proportional to total workspace size rather than a bounded batch.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/360",
+      "quote": "This is an unbounded-by-input-size batch and is likely a more important peak contributor than the scan maps alone.",
+      "locator": "Suspected allocation/lifetime issues > 2. The downstream change path accumulates all parsed items before upsert",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Auto-resource processing currently has no file-count or file-size limits at startup and can trigger model inference without explicit user action, which is proposed to become opt-in.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/360",
+      "quote": "Because this feature can trigger expensive model and memory work without an explicit user action, a conservative default should be opt-in.",
+      "locator": "Suspected allocation/lifetime issues > 3. Auto-resource has no sufficiently conservative startup budget",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe persists mem_metadata (about 4.2 MiB for 11 files) separately from raw memory/digest/resource content, and this metadata is loaded during warm-index startup.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/360",
+      "quote": "Existing `mem_metadata/`: 11 files, about 4.2 MiB",
+      "locator": "Measurements > Dataset characteristics",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Search and index results, chunk count, embedding count, BM25 document count, and persisted metadata must remain equivalent after proposed batching changes, implying these are the authoritative persisted retrieval structures.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/360",
+      "quote": "Search/index results, chunk count, embedding count, BM25 document count, and persisted metadata remain equivalent to the existing implementation for inputs within limits.",
+      "locator": "Acceptance criteria",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe coalesces multiple changes per path into a single entry (OrderedDict[path, set[Change]]) before dispatching downstream steps.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/360",
+      "quote": "an `OrderedDict[path, set[Change]]`, and the coalesced changes list",
+      "locator": "Suspected allocation/lifetime issues > 1. InitChangesStep retains scan state across downstream dispatch",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe v0.3 had two parallel memory tracks: a vector-centric system and a file-based ReMeLight system",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/373",
+      "quote": "v0.3 had two parallel tracks: ReMe (v0.3): a vector-centric memory system where embedding + vector store was the primary approach / ReMeLight: a file-based memory system using Markdown files for conversation summarization and context compression",
+      "locator": "issue body, bullet list under v0.3 description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "In v0.4, file-native memory (Markdown) became the core paradigm and vector retrieval was demoted to opt-in",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/373",
+      "quote": "The ReMeLight file-native approach was elevated to ReMe's core paradigm, while vector retrieval was demoted from 'on by default' to an 'opt-in enhancement layer.'",
+      "locator": "issue body, bolded architectural summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "v0.4 adds BM25 keyword search and RRF fusion as retrieval options not present in v0.3",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/373",
+      "quote": "v0.3 only supported vector search without introducing BM25 keyword search and RRF fusion",
+      "locator": "issue body, speculation paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Procedure recall is scoped to current project plus global procedures, explicitly excluding other projects' procedures",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/378",
+      "quote": "Scope procedure deduplication and recall to the current project plus global procedures, excluding procedures from other projects.",
+      "locator": "Proposed Changes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Wiki namespace is global knowledge, not per-project, distinguishing lore/global knowledge from project-specific operational procedures",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/378",
+      "quote": "`digest/wiki/` remains a global knowledge namespace and does not gain project subdirectories.",
+      "locator": "Expected Behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Continuity failure: when a context window collapses mid-session, daily notes with actionable items (TODO, BLOCKED) are left unresolved and never revisited \u2014 the agent effectively forgets them",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/393",
+      "quote": "When the agent is interrupted or a context window collapses mid-session, these notes often end up containing: TODO: add validation for edge cases... BLOCKED: need user confirmation... There's currently no lifecycle management for these notes. They just sit there, silently.",
+      "locator": "Issue body, Problem section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The gap between retrieve and remember: fetch retrieves context but does not surface what is absent or stale, leaving forgotten commitments invisible to the agent",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/393",
+      "quote": "The gap: there's no mechanism to surface \"this daily note had an unresolved TODO from 10 days ago and it was never addressed.\"",
+      "locator": "Issue body, Relationship to Existing Features section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe exposes a forget() method as part of its memory cleanup path",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/393",
+      "quote": "A ReMe.forget() extension \u2014 include stale-marker filtering in the existing cleanup path",
+      "locator": "Issue body, Integration Point section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "BM25 is the keyword search mechanism; it indexes chunked Markdown body text but not frontmatter fields",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/429",
+      "quote": "MarkdownFileChunker only chunks the Markdown body. The frontmatter fields (name, description, tags) are parsed into metadata but are not emitted as searchable text, so the BM25 keyword index never sees the Chinese description.",
+      "locator": "Bug 1 \u2014 Root cause (observed)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "gate_md() is an internal path-normalisation function that auto-appends .md; it is applied inconsistently across CLI commands",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/429",
+      "quote": "edit calls gate_md() to auto-append .md, but stat, frontmatter_read, and frontmatter_update do not.",
+      "locator": "Bug 2 \u2014 Root cause (observed)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Chinese-language content in frontmatter description is not retrievable via search, a continuity failure where memory stored with a Chinese description cannot be recalled by a Chinese query",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/429",
+      "quote": "The recommended Chinese query returns nothing:\nreme search query=\"\u5feb\u901f\u5f00\u59cb \u793a\u4f8b \u8bb0\u5fc6\" limit=5\nWhereas the English query works as expected",
+      "locator": "Bug 1 \u2014 Description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Suggested fix is to emit a dedicated frontmatter chunk from MarkdownFileChunker so name, description, and tags enter the BM25 index",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/429",
+      "quote": "Emit a dedicated frontmatter chunk from MarkdownFileChunker so that name, description, and tags are included in the BM25 index.",
+      "locator": "Suggested fix \u2014 point 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe currently has no first-class subject contract, causing preferences for different people (e.g. Alice and Bob) to be recalled together or consolidated into one vague digest node \u2014 a cross-subject continuity failure.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/506",
+      "quote": "This creates a correctness problem in multi-person scenarios. For example, preferences for Alice and Bob can be recalled together or consolidated into one vague personal digest node.",
+      "locator": "## Problem",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "New personal digest nodes created by Dream will inherit the canonical subject deterministically once the feature lands.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/506",
+      "quote": "newly created personal digest nodes inherit the canonical subject deterministically",
+      "locator": "### 4. Prevent cross-subject Dream consolidation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Enabling frontmatter metadata indexing requires an explicit key allowlist to avoid unintentionally indexing sensitive fields; changing the default requires users to run reme reindex.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/506",
+      "quote": "Enabling frontmatter metadata must use an explicit key allowlist to avoid unintentionally indexing unrelated or sensitive fields. Changing the default requires documenting that users should run `reme reindex`.",
+      "locator": "## Local-first and compatibility considerations",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The consistency repair step (_repair_graph_chunk_consistency) cannot detect silent staleness when graph and store are mutually consistent but both wrong.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/524",
+      "quote": "_repair_graph_chunk_consistency cannot help: it only detects a graph<->store mismatch. Here both the file graph and the chunk store consistently reference the SAME old chunk ids, so no mismatch is detected and no automatic re-chunk is triggered.",
+      "locator": "Observed",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Proposed fix: include a chunker fingerprint (hash of class + configuration) in store metadata or filename to trigger invalidation on chunker change.",
+      "kind": "issue",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/524",
+      "quote": "Include a chunker fingerprint (hash of the chunker class + its configuration, e.g. chunk_byte_size, embed_toc, max_ast_sections, AST/plain-text mode) in the store metadata or filename (bump store_version).",
+      "locator": "Expected",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Tool memory drives a 15%+ improvement in tool selection accuracy from historical performance data.",
+      "kind": "blog",
+      "url": "https://themenonlab.blog/blog/reme-ai-memory-kit-agents-tool-memory",
+      "quote": "The tool memory alone drives a 15%+ improvement in tool selection accuracy from historical performance data.",
+      "locator": "What's the Performance Impact?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe is developed by the AgentScope team and works standalone with any agent framework.",
+      "kind": "blog",
+      "url": "https://themenonlab.blog/blog/reme-ai-memory-kit-agents-tool-memory",
+      "quote": "ReMe is developed by the AgentScope team. It integrates with CoPaw, their personal assistant agent, but works standalone with any agent framework.",
+      "locator": "FAQ: What's the relationship to AgentScope?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe is model-agnostic and can be configured to work with any OpenAI-compatible API including Ollama via environment variables.",
+      "kind": "blog",
+      "url": "https://themenonlab.blog/blog/reme-ai-memory-kit-agents-tool-memory",
+      "quote": "Yes. ReMe is model-agnostic. Configure your LLM via environment variables (LLM_API_KEY, LLM_BASE_URL) to point at any OpenAI-compatible API including Ollama.",
+      "locator": "FAQ: Does ReMe work with Ollama/local models?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ReMe's file-based memory is human-readable, git-versionable, and directly editable.",
+      "kind": "blog",
+      "url": "https://themenonlab.blog/blog/reme-ai-memory-kit-agents-tool-memory",
+      "quote": "This is similar to soul.py's approach \u2014 human-readable, git-versionable, directly editable.",
+      "locator": "How Does the File-Based Memory Work?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "auto_memory filters out recalled tool results and base64 data before persisting, preventing retrieved or binary content from re-entering the conversation source record",
+      "kind": "blog",
+      "url": "https://skillsmp.com/creators/agentscope-ai/reme/skills-reme-memory",
+      "quote": "`auto_memory` omits recalled tool results and base64 data when it persists a source record so retrieved or binary content does not become conversation source material.",
+      "locator": "ReMe Memory section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Default search is BM25; vector/embedding retrieval is disabled by default and requires additional configuration beyond setting an API key",
+      "kind": "blog",
+      "url": "https://skillsmp.com/creators/agentscope-ai/reme/skills-reme-memory",
+      "quote": "Embedding retrieval is disabled by default. Do not request `EMBEDDING_API_KEY` merely to use the default BM25 and wikilink search. Enabling vector retrieval also requires changing the embedding components in ReMe's configuration; do not claim that setting an embedding key alone enables it.",
+      "locator": "Bootstrap ReMe / Configure optional model credentials section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "auto_dream consolidates daily notes and resource interpretations into long-term digest memory and generates proactive interest topics; runs as background/cron job or on demand",
+      "kind": "blog",
+      "url": "https://skillsmp.com/creators/agentscope-ai/reme/skills-reme-memory",
+      "quote": "`auto_dream` consolidates daily notes and resource interpretations into long-term digest memory and generates interest topics. Run it manually when the host owns the schedule or the user requests consolidation.",
+      "locator": "Consolidate and Use Proactive Topics section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory store is user-owned local files; the index is rebuildable and distinct from source data, so reindex does not require deleting memory files",
+      "kind": "blog",
+      "url": "https://skillsmp.com/creators/agentscope-ai/reme/skills-reme-memory",
+      "quote": "Treat user-owned memory files as source data. Do not delete, rewrite, or migrate a workspace merely to repair an index; use rebuildable index operations such as `reme reindex` when appropriate.",
+      "locator": "Integration Rules section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieve is agent-initiated (explicit search call); there is no automatic context injection \u2014 the agent must call search before answering memory-relevant questions",
+      "kind": "blog",
+      "url": "https://skillsmp.com/creators/agentscope-ai/reme/skills-reme-memory",
+      "quote": "Before answering questions about previous conversations, user preferences, project history, decisions, resources, or long-term context, search ReMe first",
+      "locator": "Retrieve Memory section",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/evolve/auto_memory.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/evolve/auto_memory_cc.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/index/search.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/reme/steps/index/vector_search.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://reme.agentscope.io/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://reme.agentscope.io/en/auto_memory",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://reme.agentscope.io/en/benchmarks/longmemeval",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://reme.agentscope.io/en/configuration",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/issues/506",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/issues/378",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/issues/178",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/issues/241",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/issues/302",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/issues/350",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/issues/374",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/issues/373",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/issues/123",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/issues/219",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/issues/524",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/issues/429",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/issues/393",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/issues/347",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/issues/360",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/issues/357",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/issues/275",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/agentscope-ai/ReMe/issues/196",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://themenonlab.blog/blog/reme-ai-memory-kit-agents-tool-memory",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://skillsmp.com/creators/agentscope-ai/reme/skills-reme-memory",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Conflict and supersession semantics: auto_dream mentions 'corroborates, refines, or corrects' digest nodes but this README does not describe the resolution logic when two facts contradict.",
+      "url": "https://github.com/agentscope-ai/ReMe/blob/5231f3970c550bb0bc5d1bc7fbc85534274ca530/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Conflict / supersession policy: the page describes update-by-session_id and rename, but does not state what happens when two sessions produce contradictory facts about the same topic.",
+      "url": "https://reme.agentscope.io/en/auto_memory",
+      "kind": "docs"
+    },
+    {
+      "text": "The page does not clarify whether memory data filtering (positive-only vs. positive+negative trajectories) is required for correct retrieval behavior, though this is raised as an open question by the reporter.",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/123",
+      "kind": "issue"
+    },
+    {
+      "text": "No information on this page about how ReMe handles write conflicts or supersession when the same fact is stored multiple times",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/196",
+      "kind": "issue"
+    },
+    {
+      "text": "The quickstart doc (ReMe/benchmark/bfcl/quickstart.md) and the init script (init_task_memory_pool.py) are referenced but not quoted; it is unclear what write-path or memory-pool construction logic they specify, which is directly relevant to the reproducibility gap reported here",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/213",
+      "kind": "issue"
+    },
+    {
+      "text": "The source of non-determinism in fixed-memory runs (retrieval policy, model sampling, or memory selection) is raised but not explained on this page",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/241",
+      "kind": "issue"
+    },
+    {
+      "text": "Conflict and supersession policy: no mention of how conflicting or outdated facts are resolved in the store.",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/347",
+      "kind": "issue"
+    },
+    {
+      "text": "Conflict and supersession policy is not described: how ReMe handles contradictory or outdated facts across sessions is unspecified.",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/348",
+      "kind": "issue"
+    },
+    {
+      "text": "Conflict and supersession policy (how contradictory memories are handled on write) is not described.",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/357",
+      "kind": "issue"
+    },
+    {
+      "text": "The actual maintainer rationale for the v0.3\u2192v0.4 architectural shift is not answered on this page; the issue is a question with no maintainer response captured here",
+      "url": "https://github.com/agentscope-ai/ReMe/issues/373",
+      "kind": "issue"
+    },
+    {
+      "text": "Conflict and supersession: the page states guidelines are updated as the system learns more but does not describe how conflicting or outdated facts in personal or task memory are resolved or superseded.",
+      "url": "https://themenonlab.blog/blog/reme-ai-memory-kit-agents-tool-memory",
+      "kind": "blog"
+    },
+    {
+      "text": "Conflict and supersession policy for auto_memory is not described: the page does not specify what happens when a new memory contradicts an existing stored fact",
+      "url": "https://skillsmp.com/creators/agentscope-ai/reme/skills-reme-memory",
+      "kind": "blog"
+    }
+  ]
+}
