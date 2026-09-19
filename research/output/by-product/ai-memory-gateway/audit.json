@@ -1,0 +1,555 @@
+{
+  "identity": {
+    "id": "ai-memory-gateway",
+    "name": "PawWake ai-memory-gateway",
+    "repo": "https://github.com/garan0613/ai-memory-gateway",
+    "docs": "https://github.com/garan0613/ai-memory-gateway/blob/main/README.md",
+    "license": "AGPL-3.0",
+    "version_or_commit": "d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d",
+    "observed_at": "2026-09-18"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Memory retrieved from store is injected into the current user turn as a <retrieved_memories> block"
+    },
+    {
+      "text": "Adds a long-term memory layer between the user and any LLM via a lightweight proxy gateway."
+    },
+    {
+      "text": "Memory CRUD, import, consolidation, and backfill are exposed as routes."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Retrieved memories are injected into the current user turn as a <retrieved_memories> block, assembled alongside a time-injection preamble; memory retrieval is conditional on MEMORY_ENABLED and a non-empty user message"
+    },
+    {
+      "text": "Backup exports all memories including layer, title, merged_from, superseded_by, remind_at, and reminder_delivered_at, but explicitly excludes embeddings and last_accessed as recomputable/access-state data."
+    },
+    {
+      "text": "Recency scoring distinguishes event memories (scored by local calendar-day difference from event_date) from ordinary fragments (scored by elapsed seconds from created_at)."
+    },
+    {
+      "text": "Returned fragments truncate matched messages at 200 chars and context messages at 80 chars with an ellipsis marker, limiting what is injected into the turn."
+    },
+    {
+      "text": "Core candidate selection applies two thresholds: merged_from count >= 3 sources, or importance >= 8, bounded to a maximum of 20 candidates."
+    },
+    {
+      "text": "No delete or forget operation is present in this file; the backfill only writes, never removes records."
+    },
+    {
+      "text": "Three-layer memory architecture: layer 1 = fragments (\u788e\u7247), layer 2 = events (\u4e8b\u4ef6), layer 3 = core (\u6838\u5fc3)"
+    },
+    {
+      "text": "Memory count is read from the database at startup, confirming memories survive process restarts."
+    },
+    {
+      "text": "Memory routes expose CRUD, import, consolidation, and backfill operations."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Memories are persisted to a PostgreSQL `memories` table with content, importance, source_session, layer, event_date, is_active, and optional external_id for conflict-free re-import.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/db/memories.py",
+      "quote": "\"INSERT INTO memories (content, importance, source_session, created_at, title, layer, event_date, external_id, is_active) VALUES ($1, $2, $3, COALESCE($4, NOW()), $5, $6, $7, $8, TRUE) ON CONFLICT (external_id) WHERE external_id IS NOT NULL DO NOTHING RETURNING id\"",
+      "locator": "db/memories.py: save_memory()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Background extraction may only atomically supersede layer-1 fragments; layer-2 and layer-3 memories are protected from silent background supersession.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/db/memories.py",
+      "quote": "\"# \u540e\u53f0\u63d0\u53d6\u53ea\u5141\u8bb8\u63a5\u7ba1\u788e\u7247\u5c42\uff1b\u4e8b\u4ef6/\u6838\u5fc3\u8bb0\u5fc6\u4e0d\u5728\u8fd9\u91cc\u9759\u9ed8\u5f52\u6863\uff0c\\n                # \u65b0\u4e8b\u5b9e\u7167\u5e38\u6309\u788e\u7247\u4fdd\u5b58\uff0c\u65e7\u884c\u4fdd\u6301 active\uff0c\u51b2\u7a81\u7559\u7ed9\u6574\u7406\u6d41\u7a0b\u5904\u7406\u3002\"",
+      "locator": "db/memories.py: save_extracted_memory()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval uses a four-dimensional weighted score (keyword, semantic, importance, recency) with min-max normalisation; results below MIN_SCORE_THRESHOLD are suppressed.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/db/memories.py",
+      "quote": "\"score = (shared.MEMORY_HW_KEYWORD * kw + shared.MEMORY_HW_SEMANTIC * sem + shared.MEMORY_HW_IMPORTANCE * imp + shared.MEMORY_HW_RECENCY * rec)\"",
+      "locator": "db/memories.py: search_memories_hybrid()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Recency for event memories is calendar-day distance from event_date in a configurable local timezone; for fragments it is elapsed seconds from created_at.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/db/memories.py",
+      "quote": "\"\u65f6\u6548\u5929\u6570\uff1a\u4e8b\u4ef6\u8bb0\u5fc6\u6309\u672c\u5730\u65e5\u5386\u65e5\u5dee\uff08event_date \u662f\u672c\u5730\u65e5\u671f\uff0c\u4e0d\u505a UTC \u6362\u7b97\uff09\uff0c\u666e\u901a\u788e\u7247\u6309 created_at \u7cbe\u786e\u65f6\u957f\"",
+      "locator": "db/memories.py: _effective_days_ago()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Three-layer memory architecture: layer 1 raw fragments, layer 2 event memories, layer 3 core memories. Fragments merge into events; events promote to core.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/db/memories.py",
+      "quote": "\"# \u4e09\u5c42\u8bb0\u5fc6\u67b6\u6784\uff08\u788e\u7247/\u4e8b\u4ef6/\u6838\u5fc3\uff09\" ... \"layer: int = None  # 1=\u539f\u59cb\u788e\u7247, 2=\u4e8b\u4ef6\u8bb0\u5fc6, 3=\u6838\u5fc3\u8bb0\u5fc6\"",
+      "locator": "db/memories.py: section header, get_all_memories_detail() docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forgetting has two paths: soft-delete (is_active=FALSE, reversible) and hard-delete (permanent DELETE, only for inactive rows not in any merge or supersession chain).",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/db/memories.py",
+      "quote": "\"UPDATE memories SET is_active = FALSE WHERE id = ANY($1::int[]) AND is_active = TRUE\" ... \"DELETE FROM memories AS memory USING targets WHERE memory.id = targets.id AND NOT targets.protected\"",
+      "locator": "db/memories.py: soft_delete_memories_batch(), delete_archived_memories_batch()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Old layer-1 archived fragments are periodically purged by cleanup_old_fragments after a configurable day threshold, clearing merged_from back-references before deletion.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/db/memories.py",
+      "quote": "\"async def cleanup_old_fragments(days: int = 30): ... DELETE FROM memories WHERE id = ANY($1::int[])\"",
+      "locator": "db/memories.py: cleanup_old_fragments()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Reminder delivery uses a lease/claim pattern on reminder_claimed_at to prevent duplicate delivery across concurrent processes; timed-out leases are re-claimable.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/db/memories.py",
+      "quote": "\"\u53d6\u51fa\u5168\u90e8\u5230\u671f\u672a\u9001\u8fbe\u7684\u63d0\u9192\uff0c\u5e76\u786e\u4fdd\u540c\u4e00\u6761\u53ea\u4ea4\u7ed9\u4e00\u4e2a\u8bf7\u6c42\u5904\u7406\u3002\\n\\n    \u5904\u7406\u8d85\u65f6\u6216\u8fdb\u7a0b\u5d29\u6e83\u540e\uff0c\u63d0\u9192\u53ef\u7531\u4e0b\u4e00\u6b21\u8bf7\u6c42\u91cd\u65b0\u5904\u7406\u3002\"",
+      "locator": "db/memories.py: claim_due_reminders()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Backup excludes embeddings and last_accessed, treating them as recomputable derived data; restore is idempotent by content matching.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/db/memories.py",
+      "quote": "\"embedding/embedding_json \u548c last_accessed \u662f\u53ef\u91cd\u7b97\u7684\u6d3e\u751f\u6570\u636e\u4e0e\u8bbf\u95ee\u72b6\u6001\uff0c\u4e0d\u8fdb\u5907\u4efd\u3002\"",
+      "locator": "db/memories.py: get_all_memories()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Two stores exist: `conversations` (raw message log keyed by session_id) and `memories` (separate curated table); they have independent embedding columns and write paths.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/db/search.py",
+      "quote": "UPDATE memories SET embedding = $1::vector WHERE id = $2\n...\nUPDATE conversations SET embedding = $1::vector WHERE id = $2",
+      "locator": "db/search.py, save_memory_embedding and save_conversation_embedding",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per session_id; no cross-session data is returned.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/db/search.py",
+      "quote": "AND NOT (session_id = ANY(${param_index}::text[]))\n...\nWHERE session_id = $1",
+      "locator": "db/search.py, _session_exclusion_sql and session_id filter in search_chat_fragments",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall can be globally disabled at runtime; when disabled all search functions return empty results immediately.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/db/search.py",
+      "quote": "if not shared.CONVERSATION_RECALL_ENABLED:\n        return [], 0",
+      "locator": "db/search.py, search_chat_fragments early-return guard",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hybrid scoring weights for keyword, semantic, and recency are externally configurable via shared config (CONVERSATION_HW_KEYWORD, CONVERSATION_HW_SEMANTIC, CONVERSATION_HW_RECENCY).",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/db/search.py",
+      "quote": "shared.CONVERSATION_HW_KEYWORD * keyword_normalized.get(session_id, 0.0)\n                + shared.CONVERSATION_HW_SEMANTIC * semantic_normalized.get(session_id, 0.0)\n                + shared.CONVERSATION_HW_RECENCY * recency_normalized.get(session_id, 0.0)",
+      "locator": "db/search.py, search_chat_fragments hybrid score assembly",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No delete or forget path is present in this file; conversation and memory rows are never removed or hidden by this module.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/db/search.py",
+      "quote": "\u5931\u8d25\u9879\u4fdd\u6301 NULL\uff0c\u4e0b\u4e00\u6b21\u53ef\u7eed\u8dd1",
+      "locator": "db/search.py, backfill_conversation_embeddings_once docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Injected context is truncated: matched messages to 200 chars, surrounding context messages to 80 chars, limiting scaffold size per turn.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/db/search.py",
+      "quote": "max_chars = 200 if is_match else 80\n        if len(content) > max_chars:\n            content = content[:max_chars] + \"\u2026\uff08\u7701\u7565\uff09\"",
+      "locator": "db/search.py, _assemble_fragments",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are stored in PostgreSQL and persist across process restarts; count is verified at startup.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/main.py",
+      "quote": "count = await db_memories.get_all_memories_count()\nprint(f\"\u2705 \u8bb0\u5fc6\u7cfb\u7edf\u5df2\u542f\u52a8\uff0c\u5f53\u524d\u8bb0\u5fc6\u6570\u91cf\uff1a{count}\")",
+      "locator": "lifespan(), main.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Automatic extraction frequency and injection cap are independently configurable, allowing either to be disabled without affecting the other.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/main.py",
+      "quote": "MEMORY_EXTRACT_INTERVAL=0 \u505c\u6b62\u81ea\u52a8\u63d0\u53d6\uff0cMAX_MEMORIES_INJECT=0 \u505c\u6b62\u81ea\u52a8\u6ce8\u5165",
+      "locator": "lifespan() startup warning, main.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dashboard-written settings (including explicit empty values) are restored from the database on restart, preventing environment variable defaults from overriding user configuration.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/main.py",
+      "quote": "\u663e\u5f0f\u7a7a\u503c\u4e5f\u8981\u6062\u590d\uff0c\u5426\u5219\u91cd\u542f\u65f6\u73af\u5883\u9ed8\u8ba4\u4f1a\u8986\u76d6\u9762\u677f\u4e0a\u7684\u6e05\u7a7a\u64cd\u4f5c\u3002",
+      "locator": "lifespan() config restore block, main.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory CRUD, import, consolidation, and backfill are exposed as HTTP routes, implying memories can be written, deleted, and bulk-managed via API.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/main.py",
+      "quote": "routes/memories.py     memory CRUD, import, consolidation, and backfill",
+      "locator": "Module map comment, main.py",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Each source memory ID must appear in exactly one consolidated draft; the normalization step raises ConsolidationCoverageError if any ID is duplicated or omitted.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/memory_consolidator.py",
+      "quote": "missing_ids = expected_set - seen_ids\nif missing_ids:\n    raise ConsolidationCoverageError(f\"\u6a21\u578b\u9057\u6f0f\u8bb0\u5fc6ID: {sorted(missing_ids)}\")",
+      "locator": "memory_consolidator.py, _normalize_organize_drafts",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Consolidation is a curated write path, not a log copy: the model groups, merges, and scores fragments, producing fewer, higher-layer records with title, content, and importance fields.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/memory_consolidator.py",
+      "quote": "\"1. \u6309\u4e3b\u9898/\u4e8b\u4ef6\u5206\u7ec4\uff0c\u76f8\u5173\u7684\u8bb0\u5fc6\u5408\u5e76\u5230\u4e00\u8d77\"\n\"4. \u5408\u5e76\u91cd\u590d\u5185\u5bb9\uff0c\u4fdd\u7559\u91cd\u8981\u7ec6\u8282\"",
+      "locator": "memory_consolidator.py, ORGANIZE_DRAFT_PROMPT",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Core candidate promotion uses two quantitative thresholds: merged_from >= 3 sources OR importance >= 8, capped at 20 candidates per consolidation run.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/memory_consolidator.py",
+      "quote": "MAX_CORE_CANDIDATES = 20\nMIN_CORE_MERGED_SOURCES = 3\nMIN_CORE_IMPORTANCE = 8",
+      "locator": "memory_consolidator.py, module-level constants",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "This file implements a preview/draft stage only; actual persistence of consolidated memories to the store is not performed here.",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/memory_consolidator.py",
+      "quote": "\"Generate grouped editable drafts for selected active memories.\"",
+      "locator": "memory_consolidator.py, preview_memories docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The product maintains two distinct stores: a full conversation log (message-level) and a curated memory store (extracted facts/events with importance scores), written by separate code paths",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/memory_pipeline.py",
+      "quote": "\u5bf9\u8bdd\u8bb0\u5f55\u59cb\u7ec8\u4fdd\u5b58\uff0c\u4e0d\u53d7\u95f4\u9694\u5f71\u54cd\uff08\u9664\u975e skip_conversation_log=True\uff09",
+      "locator": "memory_pipeline.py:process_memories_background docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory retrieval is semantic/keyword search against the curated memory store (not full transcript replay); the search query is the current user message",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/memory_pipeline.py",
+      "quote": "return await db_memories.search_memories(user_message, limit=shared.MAX_MEMORIES_INJECT) or []",
+      "locator": "memory_pipeline.py:_search_memories_or_empty",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict resolution on write: new extraction supersedes an existing memory row by candidate_id; if candidate_id is not in the known candidate set the action is downgraded to 'new', preventing stale supersessions",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/memory_pipeline.py",
+      "quote": "if (\n    mem.get(\"action\") == \"supersede\"\n    and mem.get(\"candidate_id\") not in candidate_ids\n):\n    mem = {**mem, \"action\": \"new\", \"candidate_id\": None}",
+      "locator": "memory_pipeline.py:process_memories_background, filtered_memories loop",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Scaffold instruction resolves retrieval-vs-new-input conflict in generation: model is told to treat new information as authoritative over stored memory",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/memory_pipeline.py",
+      "quote": "- \u65b0\u4fe1\u606f\u4e0e\u8bb0\u5fc6\u51b2\u7a81\u65f6\uff0c\u4ee5\u65b0\u4fe1\u606f\u4e3a\u51c6",
+      "locator": "memory_pipeline.py:build_system_prompt_with_memories, enhanced_prompt string",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieved memories include date metadata (event_date, remind_at, or created_at converted to local timezone) so the model can judge recency",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/memory_pipeline.py",
+      "quote": "# event_date \u4f18\u5148\uff1a\u6574\u7406\u4ea7\u7269\u7684 created_at \u662f\u6574\u7406\u5f53\u5929\uff0c\u771f\u5b9e\u53d1\u751f\u65e5\u5b58\u5728 event_date \u91cc\u3002\n# event_date \u672c\u8eab\u5c31\u662f\u672c\u5730\u65e5\u671f\uff0c\u4e0d\u505a\u65f6\u533a\u6362\u7b97",
+      "locator": "memory_pipeline.py:build_system_prompt_with_memories, comment before memory_lines loop",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conversation recall is a separate retrieval path from memory retrieval: it searches raw conversation fragments across sessions using hybrid search, returning them under a distinct XML tag",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/memory_pipeline.py",
+      "quote": "<retrieved_conversations>\n\u4ee5\u4e0b\u662f\u7f51\u5173\u68c0\u7d22\u7684\u76f8\u5173\u5386\u53f2\u5bf9\u8bdd\u7247\u6bb5\uff0c\u4f9b\u53c2\u8003\uff0c\u975e\u7528\u6237\u672c\u6b21\u8f93\u5165\uff1a",
+      "locator": "memory_pipeline.py:build_conversation_recall_text, return statement",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Injection is conditional: if memory_injection_enabled() returns false, the base prompt is returned unmodified with no memories injected",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/memory_pipeline.py",
+      "quote": "if not shared.memory_injection_enabled():\n    return base_prompt",
+      "locator": "memory_pipeline.py:build_system_prompt_with_memories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory retrieve policy is adaptive: memory_text_builder is only called when MEMORY_ENABLED is true and user_message is non-empty; an empty result suppresses injection",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/partition_engine.py",
+      "quote": "if (\n            shared.MEMORY_ENABLED\n            and user_message\n            and memory_text_builder\n        ):\n            mem_text = await memory_text_builder(user_message)\n            if mem_text:\n                parts.append(mem_text)",
+      "locator": "partition_engine.py:build_partitioned_messages",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The summary zone is a curated write, not a full transcript log \u2014 greetings and repetition are explicitly dropped and only emotionally/relationally significant content is retained",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/partition_engine.py",
+      "quote": "\u53bb\u6389\u65e5\u5e38\u5bd2\u6684\u548c\u91cd\u590d\u5185\u5bb9\u3002\u63a7\u5236\u5728300\u5b57\u4ee5\u5185\u3002",
+      "locator": "partition_engine.py:generate_summary",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieved memories (from a separate memory store, via memory_text_builder) are injected at retrieval time into the user turn, not persisted into the summary \u2014 these are distinct from the summary log",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/partition_engine.py",
+      "quote": "\u7528\u6237\u6d88\u606f\u4e2d\u7684 <retrieved_memories> \u5757\u662f\u7f51\u5173\u81ea\u52a8\u68c0\u7d22\u7684\u8fc7\u5f80\u8bb0\u5fc6",
+      "locator": "partition_engine.py:MEMORY_USAGE_GUIDE",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Summary fold (compression of old summary segments) will be rolled back entirely if the model returns a result longer than the target or not shorter than the input \u2014 preventing unbounded summary growth",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/partition_engine.py",
+      "quote": "if len(base) > target_chars or len(base) >= old_total:\n            print(\n                f\"\u26a0\ufe0f \u6458\u8981\u6298\u53e0\u5931\u8d25: \u6a21\u578b\u8fd4\u56de{len(base)}\u5b57\uff0c\u8d85\u8fc7\u76ee\u6807{target_chars}\u5b57\u6216\u4e0d\u77ed\u4e8e\u539f{old_total}\u5b57\uff0c\"\n                f\"\u672c\u6b21\u6298\u53e0\u7ed3\u679c\u4e0d\u4fdd\u5b58\"\n            )\n            return None",
+      "locator": "partition_engine.py:fold_summary_parts",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conversation recall (dialogue fragments) and curated memories are retrieved as two distinct channels and injected separately in partition mode",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/routes/chat.py",
+      "quote": "conversation_recall_text, pending_fragment_ids = (\n    await memory_pipeline.build_conversation_recall_text(user_message, session_id)\n)\n... build_session_memory_text",
+      "locator": "_chat_completions_inner, partition cache branch",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory extraction from the conversation runs as a background async task after each turn, separate from the message log write",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/routes/chat.py",
+      "quote": "asyncio.create_task(\n    memory_pipeline.process_memories_background(session_id, user_message, assistant_msg, model, ...))",
+      "locator": "_chat_completions_inner non-streaming 200 branch; _stream_and_capture_inner post-stream block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieved memories are injected into the system prompt pre-turn, not appended to the message log",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/routes/chat.py",
+      "quote": "enhanced_prompt = await memory_pipeline.build_system_prompt_with_memories(\n    user_message,\n    resolved_system_prompt,\n    pending_reminder_claims,\n)",
+      "locator": "_chat_completions_inner, non-partition else branch",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Reminders are a distinct memory sub-type with a lease/claim/deliver/release lifecycle across request boundaries",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/routes/chat.py",
+      "quote": "await db_memories.renew_reminder_claims(list(self.claims))\n... await db_memories.mark_reminders_delivered(list(pending_reminder_claims))\n... await db_memories.release_reminder_claims(list(pending_reminder_claims))",
+      "locator": "_ReminderLeaseKeeper._renew_once(); _settle_reminder_claims(); _release_reminder_claims()",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieved memory and fragment IDs are marked seen after a successful turn, indicating a suppress-on-recent-retrieval policy",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/routes/chat.py",
+      "quote": "await db_conversations.mark_fragments_seen(\n    session_id,\n    pending_fragment_ids,\n    shared.CONVERSATION_SEEN_TTL_HOURS,\n)\n... await db_conversations.mark_memories_seen(\n    session_id,\n    pending_memory_ids,\n    shared.MEMORY_SEEN_TTL_HOURS,\n)",
+      "locator": "_mark_pending_seen()",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Session isolation is per active session_id; a shared active session can be reused across requests via shared.get_active_session_id()",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/routes/chat.py",
+      "quote": "active_sid = shared.get_active_session_id()\nif active_sid:\n    session_id = active_sid",
+      "locator": "_chat_completions_inner, partition cache branch, session ID reuse",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistent memory store uses a database (not a flat log) with a memories table; memories are curated facts, not conversation transcripts",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/routes/memories.py",
+      "quote": "existing = await conn.fetchval(\n                    \"SELECT COUNT(*) FROM memories WHERE content = $1\", content\n                )",
+      "locator": "routes/memories.py, import_text_memories",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Three-layer architecture (fragment \u2192 event \u2192 core) structures memory lifecycle and promotion",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/routes/memories.py",
+      "quote": "layer: \u7b5b\u9009\u5c42\u7ea7\uff081=\u788e\u7247, 2=\u4e8b\u4ef6, 3=\u6838\u5fc3\uff09",
+      "locator": "routes/memories.py, api_get_memories docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Soft delete (archive) is the default forget path; hard delete is gated on archived status and blocked for memories in merge or supersession chains",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/routes/memories.py",
+      "quote": "soft: true=\u53ef\u6062\u590d\u8f6f\u5220\u9664\uff0cfalse=\u6c38\u4e45\u5220\u9664\u5df2\u5f52\u6863\u8bb0\u5fc6",
+      "locator": "routes/memories.py, api_delete_memory docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Supersession is a distinct conflict/update path from merge, with its own undo operation",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/routes/memories.py",
+      "quote": "\"\"\"\u64a4\u9500\u81ea\u52a8\u53d6\u4ee3\uff1a\u6062\u590d\u65e7\u8bb0\u5fc6\uff0c\u4fdd\u7559\u540e\u7ee7\u8bb0\u5fc6\u3002\"\"\"",
+      "locator": "routes/memories.py, api_undo_memory_supersession docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Vector embeddings are used for semantic memory search with keyword fallback; embeddings can be backfilled for existing memories",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/routes/memories.py",
+      "quote": "\"\u7ed9\u5df2\u6709\u8bb0\u5fc6\u8865\u7b97embedding\uff08\u540e\u53f0\u5f02\u6b65\u6267\u884c\uff0c\u524d\u7aef\u8f6e\u8be2\u8fdb\u5ea6\uff09\"",
+      "locator": "routes/memories.py, api_backfill_memory_embeddings docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Seed/preset memories (lore/backstory) are imported once from a dedicated file, separate from conversation-derived memories",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/routes/memories.py",
+      "quote": "\"\"\"\u4e00\u6b21\u6027\u5bfc\u5165\u9884\u7f6e\u8bb0\u5fc6\uff08\u4ece seed_memories.py\uff09\"\"\"",
+      "locator": "routes/memories.py, import_seed_memories docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Backup export is versioned (schema_version 1\u20134); v3 adds supersession chain restore, v4 adds reminder and delivery-record restore",
+      "kind": "code",
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/routes/memories.py",
+      "quote": "# v2/v3/v4 \u7248\u672c\u5316\u5907\u4efd\uff1av3 \u989d\u5916\u6062\u590d\u81ea\u52a8\u53d6\u4ee3\u7248\u672c\u94fe\uff0cv4 \u989d\u5916\u6062\u590d\u63d0\u9192\u4e0e\u9001\u8fbe\u8d26",
+      "locator": "routes/memories.py, import_memories",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Product is a lightweight proxy/gateway that interposes a memory layer between client and any LLM.",
+      "kind": "blog",
+      "url": "https://meshkore.com/agent/garan0613-ai-memory-gateway",
+      "quote": "A lightweight proxy gateway that adds a memory layer between you and any LLM.",
+      "locator": "page description block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Product is categorised as AI infrastructure, implemented in Python, uses the OpenAI framework, and is MIT-licensed.",
+      "kind": "blog",
+      "url": "https://meshkore.com/agent/garan0613-ai-memory-gateway",
+      "quote": "Category ai-infra \u00b7 Framework openai \u00b7 Language python \u00b7 Source github \u00b7 License MIT",
+      "locator": "Details panel",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/main.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/memory_pipeline.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/memory_consolidator.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/partition_engine.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/db/memories.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/db/search.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/routes/chat.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/garan0613/ai-memory-gateway/blob/d1dc3c74c8af8fc58319331fc2ef9d434e8eba1d/routes/memories.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://meshkore.com/agent/garan0613-ai-memory-gateway",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": []
+}
