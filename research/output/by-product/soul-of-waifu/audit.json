@@ -1,0 +1,570 @@
+{
+  "identity": {
+    "id": "soul-of-waifu",
+    "name": "Soul of Waifu",
+    "repo": "https://github.com/jofizcd/Soul-of-Waifu",
+    "docs": "https://github.com/jofizcd/Soul-of-Waifu/blob/main/README.md",
+    "license": "GPL-3.0",
+    "version_or_commit": "747048b3b3ad7d321a667630018f7ffc04eb5f6d",
+    "observed_at": "2026-09-18"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Soul Memory is explicitly contrasted against standard vector-RAG, positioning it as an autonomous background agent rather than a retrieve-then-prompt system."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "MEMORY.md is distinguished from USER.md by content focus: MEMORY.md holds the character's subjective psychology, beliefs, emotional decay, and internal tension; USER.md holds factual user attributes, preferences, habits, relationship dynamics, and shared milestones/promises."
+    },
+    {
+      "text": "Topic deduplication at create-time uses cosine similarity with a threshold of 0.82; if a sufficiently similar topic already exists, the create action is redirected to update that existing file instead."
+    },
+    {
+      "text": "Conflict/supersession: the system detects logical contradictions between new responses and past stored facts, automatically overwriting outdated information and logging corrections."
+    },
+    {
+      "text": "A dedicated 'Last Prompt' tab inside the Soul Memory archive exposes the raw prompt as constructed before sending to the backend, allowing inspection of injected blocks."
+    },
+    {
+      "text": "A rolling narrative summary ('summary_text') is persisted per chat and injected into the system prompt under a [Story Summary] label, separate from Soul Memory"
+    },
+    {
+      "text": "Four sync-depth modes that trade memory depth against VRAM/RAM usage: Full Sync, Soul Link, Mind Spark, Reflection Flow (diary only)."
+    },
+    {
+      "text": "Soul Memory uses a semantic search model (all-MiniLM-L6-v2 embeddings); without the model file, memory cannot search by meaning"
+    },
+    {
+      "text": "Memory is isolated per character and per chat session via path parameters passed to SoulMemoryAgent"
+    },
+    {
+      "text": "Retrieve policy contrast: Soul Memory is distinguished from standard vector-RAG keyword log search"
+    },
+    {
+      "text": "Lore injection modes: passive (background knowledge) vs active (system directive)."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Episodic Topic Archive uses local semantic embeddings for retrieval, not keyword search",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/README.md",
+      "quote": "Categorized knowledge base indexing locations, events, and key facts, matched against your queries using local semantic embeddings - with strong bilingual accuracy.",
+      "locator": "### \ud83e\udde0 Soul Memory \u2014 Long-Term Cognitive Architecture",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict supersession: contradictions between new responses and stored facts trigger automatic overwrite and correction log",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/README.md",
+      "quote": "The system detects logical contradictions between new responses and past facts, automatically overwriting outdated information and logging corrections.",
+      "locator": "### \ud83e\udde0 Soul Memory \u2014 Long-Term Cognitive Architecture (Cognitive Mechanics tip)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per-character (each character has its own independent cognitive files)",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/README.md",
+      "quote": "An independent digital brain for every character - tracking mood, relationships, and lived history far beyond basic keyword fact-searching.",
+      "locator": "### 1. One Soul, Multiple Dimensions (Soul Memory row)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "All processing runs locally by default with no data sent externally unless user opts into cloud providers",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/README.md",
+      "quote": "Everything runs 100% locally on your PC by default - your chats with characters can live entirely offline, with no subscriptions and no filters.",
+      "locator": "## \ud83c\udf1f What is Soul of Waifu?",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Soul Memory is a named, togglable feature controlled by a 'soul_memory' configuration setting",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/ai_clients/prompt_engine.py",
+      "quote": "def is_soul_memory_enabled(self) -> bool:\n        try:\n            return self.configuration_settings.get_main_setting(\"soul_memory\")\n        except Exception:\n            return True",
+      "locator": "is_soul_memory_enabled method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Soul Memory stores are isolated per character and per chat session",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/ai_clients/prompt_engine.py",
+      "quote": "agent.get_memory_paths(character_name, current_chat_id)",
+      "locator": "build_system_prompt_blocks, Soul Memory Processing block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Diary topic files are a distinct memory subtype; only their tail (last 2500 chars) is retrieved to preserve recency",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/ai_clients/prompt_engine.py",
+      "quote": "if t_name.startswith(\"diary_\"):\n                                    display_content = \"... \" + t_full_content[-2500:] if len(t_full_content) > 2500 else t_full_content\n                                    found_topics.append(f\"--- [DIARY ENTRY: {t_name}] ---\\n{display_content}\")",
+      "locator": "build_system_prompt_blocks, Soul Memory Processing block, semantic search section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Explicit topic pins in the memory index bypass semantic scoring and are always retrieved",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/ai_clients/prompt_engine.py",
+      "quote": "explicit_topics = [t.lower().strip() for t in re.findall(r'\\[TOPIC FILE:\\s*(.*?\\.md)\\]', memory_index)]\n                ...\n                if t_name in explicit_topics:\n                    ...\n                    continue",
+      "locator": "build_system_prompt_blocks, Soul Memory Processing block, explicit_topics logic",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory write path is async and LLM-driven, delegated entirely to SoulMemoryAgent.update_memory_after_response; the extract/update/delete logic is not defined in this file",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/ai_clients/prompt_engine.py",
+      "quote": "agent = SoulMemoryAgent(lambda msgs: self._memory_llm_call(provider, msgs))\n        await agent.update_memory_after_response(new_messages, character_name, user_name, activated_lorebook, force)",
+      "locator": "update_memory_after_response method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Short-term memory is a recency-based token-budget window over the raw message log, not a curated memory store",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/ai_clients/prompt_engine.py",
+      "quote": "# Short-Term Memory filtering\n        reversed_history = []\n        history_tokens_used = 0\n\n        for msg in reversed(chat_messages):\n            ...\n            if history_tokens_used + msg_tokens > available_tokens:\n                break",
+      "locator": "build_system_prompt_blocks, Short-Term Memory filtering block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A narrative summary is persisted per chat ('summary_text') and injected separately from Soul Memory topic files",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/ai_clients/prompt_engine.py",
+      "quote": "current_summary = current_chat_data.get(\"summary_text\", \"\")\n        summary_template = \"[Story Summary: {{summary}}]\"",
+      "locator": "build_system_prompt_blocks, summary extraction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Typed per-character state variables are persisted in 'variables_state' within the chat object and updated each turn via model-emitted <state_update> tags",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/ai_clients/prompt_engine.py",
+      "quote": "variables_state = chat_obj.get(\"variables_state\", {})\n            \n            state_lines = []\n            for var in sow_variables:\n                var_id = var[\"id\"]\n                template = var.get(\"prompt_template\", \"\")\n                \n                if template:\n                    val = variables_state.get(var_id, var[\"default\"])",
+      "locator": "build_system_prompt_blocks, sow_variables block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "When context is nearly full, soul memory and history are dropped and only system blocks plus the current user message are sent",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/ai_clients/prompt_engine.py",
+      "quote": "if available_tokens <= 128:\n            logger.warning(\"Context full! Drastic compression triggered: sending only system blocks + last message.\")\n            final_messages = system_blocks + [{\"role\": \"user\", \"content\": final_user_content}]",
+      "locator": "build_system_prompt_blocks, context full branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per character name and per chat session, stored under .soul/{character}/chats/{chat_id}/memory/",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/soul_memory.py",
+      "quote": "mem_dir    = Path(f\".soul/{safe_name}/chats/{safe_chat}/memory\")",
+      "locator": "SoulMemoryAgent.get_memory_paths",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Character psychological state (MEMORY.md) and user profile/relationship state (USER.md) are separate persisted stores with distinct schemas.",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/soul_memory.py",
+      "quote": "- MEMORY.md focuses entirely on \"{character}\"'s subjective psychology, beliefs, emotional decay, and internal tension.\n- USER.md focuses entirely on factual user attributes, preferences, habits, relationship dynamics (trust levels), and shared milestones/promises.",
+      "locator": "_ROUTER_SYSTEM prompt string, CRITICAL INSTRUCTIONS",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Topic files are curated lore/lorebook entries distinct from the rolling index, created or updated by the Archivist Agent for significant new narrative entities.",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/soul_memory.py",
+      "quote": "\"reasoning\": \"Analyze if the recent conversation introduced new locations, NPCs, items, or deep backstories requiring a separate file.\"",
+      "locator": "_ROUTER_SYSTEM prompt string, topic_plan",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Topic retrieval is adaptive: cosine similarity selects up to 3 relevant topic files per turn when more than 4 exist; all files are passed when 4 or fewer exist.",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/soul_memory.py",
+      "quote": "RAG_THRESHOLD = 4\n        ...\n        if len(all_topics) <= self.RAG_THRESHOLD:\n            return {k: v[:self.PASS_CHARS] for k, v in all_topics.items()}",
+      "locator": "TopicRAG class; TopicRAG.get_relevant_topics",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "No-op detection prevents fabrication: batches judged as insignificant (small talk, filler, repeated greetings) skip all index/user/topic writes.",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/soul_memory.py",
+      "quote": "NO-OP DETECTION: If the RECENT MESSAGES contain nothing psychologically or factually significant (small talk, filler, a repeated greeting, an interrupted/empty exchange), do NOT fabricate change.",
+      "locator": "_ROUTER_SYSTEM prompt string, NO-OP DETECTION",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Diary entries are appended (not overwritten) to a per-date file, and diary files are protected from Archivist modification.",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/soul_memory.py",
+      "quote": "if topic_path.exists():\n                    existing     = topic_path.read_text(encoding=\"utf-8\")\n                    full_content = f\"{existing}\\n\\n**[{time_str}]**\\n{diary_content}\"\n                ...\n                if safe_fname.startswith(\"diary_\"):\n                            logger.debug(f\"[Soul Memory] Protecting diary file from Archivist: {safe_fname}\")",
+      "locator": "SoulMemoryAgent._update_daily_diary; SoulMemoryAgent._run_update_pipeline archivist loop",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Topic deduplication at create-time redirects new topic creation onto an existing similar file when cosine similarity exceeds 0.82.",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/soul_memory.py",
+      "quote": "DEDUP_THRESHOLD = 0.82\n        ...\n        if dedup_target and dedup_target != safe_fname:\n                                logger.info(\n                                    f\"[Soul Memory] Dedup: redirecting CREATE '{safe_fname}' onto \"\n                                    f\"existing similar topic '{dedup_target}'.\"\n                                )",
+      "locator": "TopicRAG.DEDUP_THRESHOLD; SoulMemoryAgent._run_update_pipeline archivist loop",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Index writes are rejected if the new content is shorter than MIN_INDEX_CHARS (100 chars), preserving the existing memory rather than accepting a degraded update.",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/soul_memory.py",
+      "quote": "if len(stripped) < self.MIN_INDEX_CHARS:\n            logger.warning(\n                f\"[Soul Memory] Index write rejected \u2014 content too short \"\n                f\"({len(stripped)} chars < {self.MIN_INDEX_CHARS}). Keeping old memory.\"\n            )\n            return False",
+      "locator": "SoulMemoryAgent._safe_write_index",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Up to MAX_BACKUP_COUNT (5) rolling backups are kept per index file; oldest are pruned automatically on each write.",
+      "kind": "code",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/soul_memory.py",
+      "quote": "MAX_BACKUP_COUNT = 5\n        ...\n            while len(all_backups) > self.MAX_BACKUP_COUNT:\n                all_backups[0].unlink(missing_ok=True)",
+      "locator": "SoulMemoryAgent._backup_file",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Soul Memory continuously rewrites four isolated cognitive files in real time via a background agent, contrasting with standard vector-RAG keyword search over chat logs.",
+      "kind": "docs",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/main/README.md",
+      "quote": "Standard vector-RAG approaches search old chat logs for keyword matches. Soul Memory functions as an autonomous background agent that continuously rewrites four isolated cognitive files in real time",
+      "locator": "Section: Soul Memory \u2014 Long-Term Cognitive Architecture",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write path includes automatic conflict resolution (self-healing): contradictions between new responses and stored facts trigger overwrite of outdated information with logged corrections.",
+      "kind": "docs",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/main/README.md",
+      "quote": "Memory Self-Healing: The system detects logical contradictions between new responses and past facts, automatically overwriting outdated information and logging corrections.",
+      "locator": "Section: Soul Memory \u2014 Long-Term Cognitive Architecture, Cognitive Mechanics tip",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is per character; each character has an independent store.",
+      "kind": "docs",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/main/README.md",
+      "quote": "An independent digital brain for every character - tracking mood, relationships, and lived history far beyond basic keyword fact-searching.",
+      "locator": "Section: Key Modules & Capabilities, table row Soul Memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Soul Stage serializes trust levels and social roles into every RPG turn; roles mutate mid-story with immediate behavioral effect.",
+      "kind": "docs",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/main/README.md",
+      "quote": "Trust levels and social roles are serialized and fed into every turn, so companions and NPCs never 'forget' their dynamic with you, even dozens of turns later. Roles and titles can mutate mid-story and behavior updates immediately.",
+      "locator": "Section: Soul Stage \u2014 Tabletop RPG & Game Master Engine",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Discord Gateway maintains distinct conversation context per server member for isolation across users.",
+      "kind": "docs",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/main/README.md",
+      "quote": "Distinguishes between individual server members and keeps a distinct conversation context per speaker.",
+      "locator": "Section: Discord Gateway",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Four sync-depth modes (Full Sync, Soul Link, Mind Spark, Reflection Flow) control how much of the memory pipeline runs, trading depth for resource usage.",
+      "kind": "docs",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/main/README_RU.md",
+      "quote": "\u0412\u044b\u0431\u0438\u0440\u0430\u0439\u0442\u0435 \u043c\u0435\u0436\u0434\u0443 Full Sync (\u043c\u0430\u043a\u0441\u0438\u043c\u0430\u043b\u044c\u043d\u0430\u044f \u0433\u043b\u0443\u0431\u0438\u043d\u0430), Soul Link (\u0441\u0431\u0430\u043b\u0430\u043d\u0441\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0439 \u0440\u0435\u0436\u0438\u043c), Mind Spark (\u043b\u0451\u0433\u043a\u0438\u0439 \u0440\u0435\u0436\u0438\u043c) \u0438\u043b\u0438 Reflection Flow (\u0442\u043e\u043b\u044c\u043a\u043e \u0434\u043d\u0435\u0432\u043d\u0438\u043a), \u0432 \u0437\u0430\u0432\u0438\u0441\u0438\u043c\u043e\u0441\u0442\u0438 \u043e\u0442 \u043e\u0433\u0440\u0430\u043d\u0438\u0447\u0435\u043d\u0438\u0439 \u0432\u0430\u0448\u0435\u0439 VRAM/RAM.",
+      "locator": "\ud83e\udde0 Soul Memory \u2014 \u0434\u043e\u043b\u0433\u043e\u0441\u0440\u043e\u0447\u043d\u0430\u044f \u043a\u043e\u0433\u043d\u0438\u0442\u0438\u0432\u043d\u0430\u044f \u0430\u0440\u0445\u0438\u0442\u0435\u043a\u0442\u0443\u0440\u0430",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory self-repair handles conflict/supersession by detecting contradictions and overwriting outdated facts, logging corrections.",
+      "kind": "docs",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/main/README_RU.md",
+      "quote": "\u0441\u0438\u0441\u0442\u0435\u043c\u0430 \u043e\u0431\u043d\u0430\u0440\u0443\u0436\u0438\u0432\u0430\u0435\u0442 \u043b\u043e\u0433\u0438\u0447\u0435\u0441\u043a\u0438\u0435 \u043f\u0440\u043e\u0442\u0438\u0432\u043e\u0440\u0435\u0447\u0438\u044f \u043c\u0435\u0436\u0434\u0443 \u043d\u043e\u0432\u044b\u043c\u0438 \u043e\u0442\u0432\u0435\u0442\u0430\u043c\u0438 \u0438 \u043f\u0440\u043e\u0448\u043b\u044b\u043c\u0438 \u0444\u0430\u043a\u0442\u0430\u043c\u0438, \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u0438 \u043f\u0435\u0440\u0435\u0437\u0430\u043f\u0438\u0441\u044b\u0432\u0430\u044f \u0443\u0441\u0442\u0430\u0440\u0435\u0432\u0448\u0443\u044e \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u044e \u0438 \u0444\u0438\u043a\u0441\u0438\u0440\u0443\u044f \u0438\u0441\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u044f.",
+      "locator": "\ud83e\udde0 Soul Memory \u2014 \u041a\u043e\u0433\u043d\u0438\u0442\u0438\u0432\u043d\u044b\u0435 \u043c\u0435\u0445\u0430\u043d\u0438\u043a\u0438",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Per-user isolation in Discord gateway: separate conversation context is maintained for each server member.",
+      "kind": "docs",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/main/README_RU.md",
+      "quote": "\u0440\u0430\u0437\u043b\u0438\u0447\u0430\u0435\u0442 \u043e\u0442\u0434\u0435\u043b\u044c\u043d\u044b\u0445 \u0443\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u043e\u0432 \u0441\u0435\u0440\u0432\u0435\u0440\u0430 \u0438 \u0432\u0435\u0434\u0451\u0442 \u0434\u043b\u044f \u043a\u0430\u0436\u0434\u043e\u0433\u043e \u0441\u043e\u0431\u0435\u0441\u0435\u0434\u043d\u0438\u043a\u0430 \u043e\u0442\u0434\u0435\u043b\u044c\u043d\u044b\u0439 \u043a\u043e\u043d\u0442\u0435\u043a\u0441\u0442 \u0440\u0430\u0437\u0433\u043e\u0432\u043e\u0440\u0430.",
+      "locator": "\ud83e\udd16 Discord-\u0448\u043b\u044e\u0437",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Soul Stage serializes trust levels and social roles into each turn so relationship state persists across many turns without forgetting.",
+      "kind": "docs",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/main/README_RU.md",
+      "quote": "\u0443\u0440\u043e\u0432\u043d\u0438 \u0434\u043e\u0432\u0435\u0440\u0438\u044f \u0438 \u0441\u043e\u0446\u0438\u0430\u043b\u044c\u043d\u044b\u0435 \u0440\u043e\u043b\u0438 \u0441\u0435\u0440\u0438\u0430\u043b\u0438\u0437\u0443\u044e\u0442\u0441\u044f \u0438 \u043f\u0435\u0440\u0435\u0434\u0430\u044e\u0442\u0441\u044f \u0432 \u043a\u0430\u0436\u0434\u044b\u0439 \u0445\u043e\u0434, \u043f\u043e\u044d\u0442\u043e\u043c\u0443 \u0441\u043f\u0443\u0442\u043d\u0438\u043a\u0438 \u0438 NPC \u043d\u0438\u043a\u043e\u0433\u0434\u0430 \u043d\u0435 \u00ab\u0437\u0430\u0431\u044b\u0432\u0430\u044e\u0442\u00bb \u0441\u0432\u043e\u044e \u0434\u0438\u043d\u0430\u043c\u0438\u043a\u0443 \u0441 \u0432\u0430\u043c\u0438, \u0434\u0430\u0436\u0435 \u0441\u043f\u0443\u0441\u0442\u044f \u0434\u0435\u0441\u044f\u0442\u043a\u0438 \u0445\u043e\u0434\u043e\u0432.",
+      "locator": "\ud83c\udfb2 Soul Stage \u2014 \u041d\u0430\u0441\u0442\u043e\u043b\u044c\u043d\u0430\u044f RPG",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Lore backstory injection is distinct from conversational memory: lore entries have two injection modes (passive background vs active system directive) and are retrieved via vector search on situational context.",
+      "kind": "docs",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/main/README_RU.md",
+      "quote": "\u0420\u0435\u0436\u0438\u043c\u044b \u0432\u043d\u0435\u0434\u0440\u0435\u043d\u0438\u044f: \u0432\u044b\u0431\u0438\u0440\u0430\u0439\u0442\u0435 \u043c\u0435\u0436\u0434\u0443 \u043f\u0430\u0441\u0441\u0438\u0432\u043d\u044b\u043c (\u0444\u043e\u043d\u043e\u0432\u044b\u0435 \u0437\u043d\u0430\u043d\u0438\u044f) \u0438 \u0430\u043a\u0442\u0438\u0432\u043d\u044b\u043c (\u0441\u0438\u0441\u0442\u0435\u043c\u043d\u0430\u044f \u0434\u0438\u0440\u0435\u043a\u0442\u0438\u0432\u0430) \u0440\u0435\u0436\u0438\u043c\u043e\u043c \u0432\u043d\u0435\u0434\u0440\u0435\u043d\u0438\u044f.",
+      "locator": "\ud83d\udcd6 \u041e\u0431\u043d\u043e\u0432\u043b\u0451\u043d\u043d\u044b\u0439 \u0434\u0432\u0438\u0436\u043e\u043a \u043b\u043e\u0440\u0431\u0443\u043a\u043e\u0432",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Soul Memory relies on an all-MiniLM-L6-v2 embeddings model for semantic search; when the model is absent the feature silently fails",
+      "kind": "issue",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/issues/57",
+      "quote": "`app/utils/all-MiniLM-L6-v2/` \u2014 \u043c\u043e\u0434\u0435\u043b\u044c \u044d\u043c\u0431\u0435\u0434\u0434\u0438\u043d\u0433\u043e\u0432 | Soul Memory \u0431\u0435\u0437 \u0441\u0435\u043c\u0430\u043d\u0442\u0438\u0447\u0435\u0441\u043a\u043e\u0433\u043e \u043f\u043e\u0438\u0441\u043a\u0430",
+      "locator": "table row, section '\u0421\u0443\u0442\u044c'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Missing model files are wrapped in try/except so the application does not crash; memory simply stops working by meaning without any user-visible error",
+      "kind": "issue",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/issues/57",
+      "quote": "\u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u043e\u0431\u0451\u0440\u043d\u0443\u0442\u0430 \u0432 `try/except`, \u043f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u0430 \u043d\u0435 \u043f\u0430\u0434\u0430\u0435\u0442, \u043f\u0440\u043e\u0441\u0442\u043e \u044d\u043c\u043e\u0446\u0438\u0438 \u043d\u0435 \u043e\u043f\u0440\u0435\u0434\u0435\u043b\u044f\u044e\u0442\u0441\u044f, \u0430 \u043f\u0430\u043c\u044f\u0442\u044c \u043d\u0435 \u0438\u0449\u0435\u0442 \u043f\u043e \u0441\u043c\u044b\u0441\u043b\u0443. \u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c, \u043f\u043e\u0441\u0442\u0430\u0432\u0438\u0432\u0448\u0438\u0439 \u0438\u0437 \u0438\u0441\u0445\u043e\u0434\u043d\u0438\u043a\u043e\u0432, \u0431\u0443\u0434\u0435\u0442 \u0441\u0447\u0438\u0442\u0430\u0442\u044c, \u0447\u0442\u043e \u0442\u0430\u043a \u0438 \u0437\u0430\u0434\u0443\u043c\u0430\u043d\u043e.",
+      "locator": "section '\u041f\u043e\u0447\u0435\u043c\u0443 \u044d\u0442\u043e \u0437\u0430\u043c\u0435\u0442\u043d\u043e'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The embedding model is sourced from Hugging Face and is not bundled in the repository; a source build lacks semantic memory retrieval",
+      "kind": "issue",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/issues/57",
+      "quote": "\u0430 \u043c\u043e\u0434\u0435\u043b\u0438 \u0441\u043a\u0430\u0447\u0438\u0432\u0430\u0442\u044c \u043f\u0440\u0438 \u043f\u0435\u0440\u0432\u043e\u043c \u0437\u0430\u043f\u0443\u0441\u043a\u0435 \u0441 Hugging Face, \u0440\u0430\u0437 \u043e\u0431\u0435 \u043e\u043d\u0438 \u043e\u0442\u0442\u0443\u0434\u0430 \u0438 \u0442\u0430\u043a \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u044b",
+      "locator": "section '\u041f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0435'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "On Russian-language input the current embedder (all-MiniLM-L6-v2) inverts similarity rankings, causing unrelated memories to score higher than related ones and injecting irrelevant fragments into character context \u2014 a continuity failure that appears as the model 'being dumb' rather than a technical fault",
+      "kind": "issue",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/issues/59",
+      "quote": "\u041d\u0430 \u0440\u0443\u0441\u0441\u043a\u043e\u043c \u043f\u043e\u0440\u044f\u0434\u043e\u043a \u043f\u0435\u0440\u0435\u0432\u0451\u0440\u043d\u0443\u0442 \u2014 \u043d\u0435\u0441\u0432\u044f\u0437\u0430\u043d\u043d\u044b\u0435 \u043f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u044f \u043f\u043e\u043b\u0443\u0447\u0438\u043b\u0438 \u0441\u0445\u043e\u0434\u0441\u0442\u0432\u043e \u0432\u044b\u0448\u0435, \u0447\u0435\u043c \u0441\u0432\u044f\u0437\u0430\u043d\u043d\u044b\u0435... \u043f\u0435\u0440\u0441\u043e\u043d\u0430\u0436\u0443 \u043f\u043e\u0434\u0441\u0442\u0430\u0432\u043b\u044f\u044e\u0442\u0441\u044f \u043d\u0435\u0440\u0435\u043b\u0435\u0432\u0430\u043d\u0442\u043d\u044b\u0435 \u0432\u043e\u0441\u043f\u043e\u043c\u0438\u043d\u0430\u043d\u0438\u044f, \u0438 \u0432\u044b\u0433\u043b\u044f\u0434\u0438\u0442 \u044d\u0442\u043e \u043a\u0430\u043a \u00ab\u043c\u043e\u0434\u0435\u043b\u044c \u0442\u0443\u043f\u0438\u0442\u00bb, \u0430 \u043d\u0435 \u043a\u0430\u043a \u0442\u0435\u0445\u043d\u0438\u0447\u0435\u0441\u043a\u0430\u044f \u043d\u0435\u0438\u0441\u043f\u0440\u0430\u0432\u043d\u043e\u0441\u0442\u044c",
+      "locator": "### \u0417\u0430\u043c\u0435\u0440\u044b / ### \u041f\u043e\u0447\u0435\u043c\u0443 \u044d\u0442\u043e \u0442\u0440\u0443\u0434\u043d\u043e \u0437\u0430\u043c\u0435\u0442\u0438\u0442\u044c",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The failure affects a significant portion of users given the product has a Russian-language interface and a Russian-speaking audience",
+      "kind": "issue",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/issues/59",
+      "quote": "\u0423\u0447\u0438\u0442\u044b\u0432\u0430\u044f, \u0447\u0442\u043e \u0443 \u043f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u044b \u0440\u0443\u0441\u0441\u043a\u0438\u0439 \u0438\u043d\u0442\u0435\u0440\u0444\u0435\u0439\u0441 \u0438 \u0440\u0443\u0441\u0441\u043a\u043e\u044f\u0437\u044b\u0447\u043d\u0430\u044f \u0430\u0443\u0434\u0438\u0442\u043e\u0440\u0438\u044f, \u044d\u0442\u043e \u0437\u0430\u0434\u0435\u0432\u0430\u0435\u0442 \u0437\u043d\u0430\u0447\u0438\u0442\u0435\u043b\u044c\u043d\u0443\u044e \u0447\u0430\u0441\u0442\u044c \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u0439",
+      "locator": "### \u041f\u043e\u0447\u0435\u043c\u0443 \u044d\u0442\u043e \u0442\u0440\u0443\u0434\u043d\u043e \u0437\u0430\u043c\u0435\u0442\u0438\u0442\u044c",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Replacing the embedder with paraphrase-multilingual-MiniLM-L12-v2 (same 384-dim, same SentenceTransformer API) restores correct ranking for Russian and achieves 0.944 cross-lingual similarity for the same concept in Russian vs English, bridging user input to English-written memory files",
+      "kind": "issue",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/issues/59",
+      "quote": "\u0421 \u0430\u043d\u0433\u043b\u0438\u0439\u0441\u043a\u043e\u0439 \u043c\u043e\u0434\u0435\u043b\u044c\u044e \u043e\u043d\u0438 \u043d\u0435 \u0441\u043e\u043f\u043e\u0441\u0442\u0430\u0432\u043b\u044f\u044e\u0442\u0441\u044f, \u0441 \u043c\u043d\u043e\u0433\u043e\u044f\u0437\u044b\u0447\u043d\u043e\u0439 \u2014 \u043e\u043a\u0430\u0437\u044b\u0432\u0430\u044e\u0442\u0441\u044f \u0432 \u043e\u0434\u043d\u043e\u043c \u0441\u043c\u044b\u0441\u043b\u043e\u0432\u043e\u043c \u043f\u0440\u043e\u0441\u0442\u0440\u0430\u043d\u0441\u0442\u0432\u0435... RU \u2194 EN, \u043e\u0434\u043d\u0430 \u043c\u044b\u0441\u043b\u044c | 0.944",
+      "locator": "### \u041f\u0440\u0435\u0434\u043b\u043e\u0436\u0435\u043d\u0438\u0435",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Soul Memory is a subsystem that can be enabled per chat and injects long-term memories ('injected facts') as context blocks into the prompt builder.",
+      "kind": "issue",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/issues/74",
+      "quote": "Enable Soul Memory. ... Notice that the Greeting message, User messages, and injected facts are duplicated in the raw prompt.",
+      "locator": "Steps to reproduce, steps 2 and 5",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The prompt builder constructs a chronological log from greeting, user messages, and memory blocks before sending to the LLM; the expected behavior is a clean, non-duplicated prompt.",
+      "kind": "issue",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/issues/74",
+      "quote": "The prompt builder should construct a clean, chronological log without cloning the same messages or memory blocks into the raw prompt.",
+      "locator": "Expected behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A continuity/generation failure occurs at version 2.5.0: after 3\u20134 turns, duplicated memory injection causes the model to output repetitive twin-responses, degrading character response coherence.",
+      "kind": "issue",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/issues/74",
+      "quote": "after 3\u20134 turns of dialogue, the model's attention mechanism breaks down due to the duplicated prompt structure. The model falls into a severe repetition loop, outputting two or three identical variations of the same response in a single turn.",
+      "locator": "Describe the bug",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The Soul Memory archive provides a 'Last Prompt' tab for inspecting the raw prompt, indicating memory state is observable by the user.",
+      "kind": "issue",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/issues/74",
+      "quote": "Open the Soul Memory archive and check the \"Last Prompt\" tab.",
+      "locator": "Steps to reproduce, step 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Database migration corruption was considered as a potential cause, implying Soul Memory uses a persistent database store that can experience migration issues.",
+      "kind": "issue",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/issues/74",
+      "quote": "Tested on a clean install with a fresh character card and manual settings to rule out database migration corruption.",
+      "locator": "Additional context",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Self-healing memory logs exist, but whether the mechanism is a validation pass, rollback, or other is not described.",
+      "kind": "blog",
+      "url": "https://hysenlabs.com/en/projects/jofizcd-soul-of-waifu",
+      "quote": "The README also mentions a personal diary and self-healing memory logs, which suggests the project is aware of the failure mode. Whether the healing logic is a validation pass, a rollback, or something else is not described in the material available.",
+      "locator": "Section: Soul Memory is the actual architectural claim",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Soul Stage relationship tracking claims to never forget grudges or bonds across sessions.",
+      "kind": "blog",
+      "url": "https://hysenlabs.com/en/projects/jofizcd-soul-of-waifu",
+      "quote": "structural relationship tracking that persists grudges and bonds",
+      "locator": "Section: Soul Stage is a rules engine wearing a chat UI",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No migration policy exists for cognitive files across releases, posing a persistence risk on upgrade.",
+      "kind": "blog",
+      "url": "https://hysenlabs.com/en/projects/jofizcd-soul-of-waifu",
+      "quote": "The material does not state a migration policy for those files across releases, so treat that as an open question to verify.",
+      "locator": "Section: Licence, maintenance and upgrade cost",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Local inference is llama.cpp-based; cloud providers are optional add-ons.",
+      "kind": "blog",
+      "url": "https://hysenlabs.com/en/projects/jofizcd-soul-of-waifu",
+      "quote": "the topics list llamacpp, which indicates the local inference path is llama.cpp-based",
+      "locator": "Section: Getting it running: releases, not a pip install",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Uses a local LLM, suggesting on-device processing which may affect how memory is stored or retrieved",
+      "kind": "blog",
+      "url": "https://olud.ai/project/jofizcd-soul-of-waifu.html",
+      "quote": "desktop roleplay & AI companion app featuring Live2D/VRM avatars, voice chat & local LLM",
+      "locator": "About section",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/soul_memory.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/747048b3b3ad7d321a667630018f7ffc04eb5f6d/app/utils/ai_clients/prompt_engine.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/blob/main/README_RU.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/issues/59",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/issues/74",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/issues/57",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://hysenlabs.com/en/projects/jofizcd-soul-of-waifu",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://olud.ai/project/jofizcd-soul-of-waifu.html",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "No description of what Soul Memory persists (facts, summaries, full transcript), how it writes or updates records, or how retrieval results are injected into the turn \u2014 this is the canonical repository issue tracker and the architecture is not described here",
+      "url": "https://github.com/jofizcd/Soul-of-Waifu/issues/57",
+      "kind": "issue"
+    },
+    {
+      "text": "Three of the four Soul Memory cognitive files are not named or described; the README text was truncated at the Psychology Layer.",
+      "url": "https://hysenlabs.com/en/projects/jofizcd-soul-of-waifu",
+      "kind": "blog"
+    },
+    {
+      "text": "The neurohormonal simulation that drives Soul Companion's behavior is named but not explained on this page.",
+      "url": "https://hysenlabs.com/en/projects/jofizcd-soul-of-waifu",
+      "kind": "blog"
+    },
+    {
+      "text": "No migration or versioning policy for the cognitive files across releases is described, leaving persistence continuity on upgrade undefined.",
+      "url": "https://hysenlabs.com/en/projects/jofizcd-soul-of-waifu",
+      "kind": "blog"
+    }
+  ]
+}
