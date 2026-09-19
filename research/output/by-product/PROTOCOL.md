@@ -1,119 +1,136 @@
 # Product memory audit protocol
 
-Frozen before harvest. Mapping study of shipped memory products: what they persist and retrieve, with evidence, so we know what to copy or refuse for companion continuity.
+Mapping study of shipped memory products: what they persist and retrieve, with evidence, so we know what to copy or refuse for companion continuity.
 
-Not a medical systematic review. Steal Kitchenham protocol-first discipline, Wohlin seed+snowball, and an exclusion log. Drop PRISMA diagrams.
+Not a medical systematic review. Kitchenham-style protocol discipline, Wohlin seed list, exclusion log in [`excluded.json`](excluded.json). No PRISMA diagrams.
 
-**Decision.** If we built companion memory tomorrow, what in this system is load-bearing, what is cargo-cult, and what would we refuse? Being wrong means cloning a retrieve-then-speak stack or missing a real technique.
+**Decision lens.** If we built companion memory tomorrow, what is load-bearing, what is cargo-cult, and what would we refuse? Being wrong means cloning retrieve-then-speak or missing a real technique.
 
-Do not write `companion_fit` or 12-axis scores into `audit.json`.
+Do not write `companion_fit` or fixed multi-axis scores into `audit.json`.
 
 ## Research questions
 
-- **RQ1.** What does this product persist, and what does it retrieve, according to its own code and docs?
+- **RQ1.** What does this product persist and retrieve, per its code and docs?
 - **RQ2.** What do users and issues say breaks?
-- **RQ3.** What would we copy, and what would we refuse, for companion continuity?
-- **RQ4.** After several `audit.json` files, which mechanisms recur, and which gaps are shared?
+- **RQ3.** What would we copy or refuse for companion continuity?
+- **RQ4.** After many `audit.json` files, which mechanisms recur and which gaps are shared?
 
 ## Inclusion and exclusion
 
-**Include.** A shipped or actively maintained product or library that stores or injects state across turns for chat or agents.
+**Include.** Shipped or actively maintained product/library that stores or injects state across turns for chat or agents.
 
-**Exclude.** Pure papers. Pure evals. Dead pages with no docs and no repo.
+**Exclude.** Pure papers, pure evals, dead pages with no docs and no repo.
 
-Borderline items go in [`excluded.json`](excluded.json), not the trash.
+Borderline ids go in [`excluded.json`](excluded.json), not the trash. `by-paper/` and `by-eval/` stay reserved.
 
 ## Source quality
 
 | Kind | Treat as |
 |------|----------|
-| Code at a pinned SHA | Behavior |
-| Official docs / `llms.txt` | Supported product behavior (claims) |
+| Code at pinned SHA | Behavior |
+| Official docs / `llms.txt` | Supported behavior (claims) |
 | GitHub issues | Operational limits |
 | First-party blog | Claim, interested party |
-| Third-party blog / search hit | Discovery until a first-party page corroborates |
+| Third-party blog / search hit | Discovery until first-party corroborates |
 
-Vendor LoCoMo numbers are scores under *their* harness. Do not treat them as independent of that reader and scaffold.
+Vendor LoCoMo numbers are scores under *their* harness, not independent companion proof.
 
-Absence needs a search boundary **and the page it was checked on**: "not in the inspected API reference at URL X" is allowed. "Does not exist" is not. `unknowns[].url` is required.
+**Absence claims** need a search boundary and the page checked: “not in API reference at URL X” is allowed; bare “does not exist” is not. Every `unknowns[]` entry needs `url`.
 
-## Search
+Search snippets are not evidence. `ledger.kind` is `docs | code | issue | community | blog`. Files under `search/` are saved prose, not ledger proof by themselves.
 
-**Seed.** Every id in `seed.json`. Then snowball: related-work pages, issues, and blogs that name siblings. Append new ids to the snowball appendix below. Do not auto-harvest snowball ids in v1.
+## Artifacts
 
-**Harvest** (no LLM) into `.cache/by-product/<slug>/`:
+| Path | Role |
+|------|------|
+| [`../../pipeline/seed.json`](../../pipeline/seed.json) | Product census and harvest config (source of truth) |
+| `.cache/by-product/<slug>/` | Harvest manifest, pages, extract shards (gitignored) |
+| `research/output/by-product/<slug>/audit.json` | Published audit (lint-clean before write) |
+| `_synthesis.json` | Optional cross-product themes (`just synthesize`; not required for audits) |
 
-| Lane | Method | Cap |
-|------|--------|-----|
-| Repo | `git clone --depth 1 --single-branch`. Skip if `.git` exists unless `--force`. No submodules. Closed products skip clone. Manifest `repo` is the public https URL, not `ssh://`. License: AGPL before GPL. | **Inclusion list.** `seed.json` `open_code` is the files to copy, picked by looking at the tree (`just harvest-inventory <id>`). Harvest fetches those paths only. No memory-word ranker. No cap-fill. Missing listed paths are skipped and recorded. `open_code: []` means inspected, no code. Missing `open_code` is an error. |
-| Docs | GET the URLs in `seed.json` `open_docs`. First-party only. No sitemap snowball. No llms.txt link expansion. Missing `open_docs` is an error. Empty list means no docs pages. | listed URLs |
-| Issues | GitHub search `is:issue` plus memory/forget/persona/"lost context"/"user experience". Fetch up to 50, drop bots/dependabot/chore/duplicates, rank UX/product language over stack-trace bugs. | 20 |
-| Blog | Census URLs that are not forge hosts. `/blog` on the product site (apex if docs are on `docs.` / `help.`) and `blog.{apex}`. If docs live under a path prefix, keep only blog URLs that name the product. | 10 |
-| Web search | Claim-shaped queries (forget / lost context / LoCoMo / graph). Fetch landing pages into `search/`. First-party extras and third-party pages that name the product. On a shared docs host, only URLs under the product's docs path are first-party; sibling pages on that host are skipped. Skip marketing home when `open_docs` is listed. Wikipedia `site:` only if `clone` is false. Skip community hosts, forge chrome, arxiv, DeepWiki / GitHub Pages mirrors. Do not expand `open_docs`. Snippets are not evidence. | 10 |
-| Community | Seed forum URLs plus web search on HN, Reddit, Product Hunt, Stack Overflow, X/Twitter, Discourse/forums. Thread URL or title must name the product. A snippet-only mention is not enough: one confirm search on that host (`intitle` / Product Hunt `/products/<id>`) keeps or replaces the URL. Harvest stays no LLM. Skip profile/home URLs. Quality `medium`. Reddit `/comments/` and `redd.it` threads fetch post + comments from [Arctic Shift](https://github.com/ArthurHeitmann/arctic_shift) JSON so the JS shell does not empty the body. `url.txt` stays the reddit.com link. | 10 |
-
-Search snippets are not evidence. `ledger.kind` is `docs \| code \| issue \| community \| blog`. The `search/` folder is where the file was saved.
-
-**Prose conversion.** Docs, blog, search, and community GET with `Accept: text/markdown`. Native markdown is stored as-is. HTML is stripped locally. If origin is HTML (or fails / the strip is thin), try the same path with `.md`, then `{path}/index.md` (skip if the URL already has an extension). Then one [markdown.new](https://markdown.new/) POST (`method=auto`). A first-party `.md` URL is the source; markdown.new keeps the origin URL. Reddit thread URLs try Arctic Shift first (`converter: arctic_shift`) and fall back to that HTML path if the API misses. Do not use `/crawl`. Git clone and GitHub issue search stay as they are. markdown.new is 500 requests/day/IP; a 429 disables it for the rest of the process.
-
-## Extraction and fold
-
-One Kiro call per harvested page, temperature 0.1, no tools. Prompt v3: extract **this product only**; memory is persistent cross-session state, not retrieve-then-speak. Quote before claim. Prefer store/reader/forget/conflict/isolation when the page states them. Empty unknowns beat a laundry list. `label` is `measured` for verbatim code/docs behavior, `inferred` for issues/blogs/vendor benches. LoCoMo-class scores stay inferred.
-
-Fold unions pages into one candidate. Drop `claimed_purpose` / `mechanisms` that do not match a ledger quote or overlapping claim text. Do not emit `claim_ids`. Drop a page-local absence unknown ("not on this page/file") unless the same stem appears on two or more URLs. `copy`, `refuse`, `consensus`, `contested` stay empty after fold.
-
-Those four fields are **interpretation**: what we would copy or refuse from this product for companion continuity, and what the sources agree or fight about. They are not quotes. Extract is forbidden from filling them. There is no `just grill` yet. A later human/agent pass writes them into `audit.json`. Apply keeps non-empty values so a harvest rerun does not wipe that work.
-
-Apply replaces `claimed_purpose`, `mechanisms`, `unknowns`, `sources`, and `ledger` from the candidate. Keep non-empty `copy` / `refuse` / `consensus` / `contested`.
-
-Every ledger row needs `url` or `locator`. Lint fails otherwise.
-
-## Synthesis
-
-After `audit.json` files exist, write [`_synthesis.json`](_synthesis.json) over **all of them**. Themes from ledgers, not from a predefined axis list. If several products share retrieve-then-speak with no forget/update, that is a theme. Vendor LoCoMo is not companion proof. Missing seed products are listed in `missing`; they are not a reason to wait.
+Canonical audit fields: `identity`, `claimed_purpose`, `mechanisms`, `ledger`, `sources`, `unknowns`, `copy`, `refuse`, `consensus`, `contested`. Every ledger row needs `url` or `locator` and a non-empty `quote`.
 
 ## Seed
 
-Every id in [`../../pipeline/seed.json`](../../pipeline/seed.json) is in scope. No priority slices.
+Every key in `seed.json` → `products` is in scope (**61** products as of 2026-09-19). No priority slices. Add or change products only in seed, then `just lint-seed` and `just lint-open-code`.
 
-| id | name | repo | docs | notes |
-| --- | --- | --- | --- | --- |
-| mem0 | Mem0 | https://github.com/mem0ai/mem0 | https://docs.mem0.ai/llms.txt | |
-| graphiti | Graphiti | https://github.com/getzep/graphiti | https://help.getzep.com/graphiti | First-party on help.getzep.com is `/graphiti` only. Do not treat Zep Cloud SDK/docs as Graphiti |
-| zep | Zep Cloud | none (closed core) | https://help.getzep.com/llms.txt | Skip clone. Pin Context Lake / graph / retrieval docs in `open_docs` (not search-only). Skip `help.getzep.com/graphiti`, `help.getzep.com/v2`, marketing on `getzep.com`, and the Graphiti GitHub repo. Do not treat Graphiti code or legacy v2 session APIs as Zep Cloud behavior |
-| letta | Letta | https://github.com/letta-ai/letta | https://docs.letta.com/llms.txt | Follow GitHub redirect to letta-code. Current memory is MemFS / dreaming / Agent SDK. Skip `v1-sdk` memory-blocks |
-| cognee | Cognee | https://github.com/topoteretes/cognee | census | |
-| memos | MemOS | https://github.com/MemTensor/MemOS | census | |
-| memoryos | MemoryOS | https://github.com/BAI-LAB/MemoryOS | census | |
-| supermemory | SuperMemory | https://github.com/supermemoryai/supermemory | census | |
-| openviking | OpenViking | https://github.com/volcengine/OpenViking | census | |
-| memori | Memori | https://github.com/MemoriLabs/Memori | census | |
-| memu | memU | https://github.com/NevaMind-AI/memU | census | |
-| everos | EverOS | https://github.com/EverMind-AI/EverOS | census | |
-| lightrag | LightRAG | census | census | Graph-RAG cargo-cult. Same schema |
-| microsoft-graphrag | Microsoft GraphRAG | census | census | Graph-RAG cargo-cult. Same schema |
-| honcho | Honcho | https://github.com/plastic-labs/honcho | https://honcho.dev/docs/llms.txt | |
-| telemem | TeleMem | https://github.com/TeleAI-UAGI/telemem | census | |
-| sillytavern | SillyTavern | https://github.com/SillyTavern/SillyTavern | census | One audit covers worldinfo/vectors/summarize |
-| agnai | Agnai | census | census | If the repo is still alive |
-| risuai | RisuAI | census | census | If the repo is still alive |
-| kindroid | Kindroid | none | census | Closed. Docs/blogs/search only |
-| nomi | Nomi.ai | none | census | Closed. Docs/blogs/search only |
-| characterai | Character.AI | none | census | Closed. Docs/blogs/search only |
-| replika | Replika | none | census | Closed. Docs/blogs/search only |
-| mcp-memory | MCP official knowledge-graph memory | census | census | |
-| langmem | LangMem | census | census | |
-| memobase | Memobase | census | census | |
-| hindsight | Hindsight | census | census | |
-| byterover | ByteRover | census | census | |
-| claude-mem | claude-mem | https://github.com/thedotmack/claude-mem | census | Negative control (`adjacent-coding-agent`) |
+**Required per product:** `id`, `name`, `repo`, `docs`, `clone`, `community`, `skip_url_prefixes`, `open_code`, `open_docs`.
 
-`st-worldinfo`, `st-vectors`, `st-summarize` → `covered_by: sillytavern`. `honcho-sillytavern` → `covered_by: honcho`. `mem0-mcp` → `archived`. `mcp-mem0-community` (coleam00/mcp-mem0) → `covered_by: mem0`. `memorybank`, `generative-agents` → `academic_paper` (arxiv + demo repo; not product harvest). See [`excluded.json`](excluded.json). `by-paper/` stays reserved until a paper protocol exists.
+**Optional:** `body_markers` — string list used in harvest to reject third-party search/community pages whose fetched body does not mention the real product (homonyms: MemoryOS vs Kickstarter app, Memori vs journaling, memU vs Android emulator, short names like Vestige). When omitted, name-based matching only.
+
+**Rules:**
+
+- `clone: true` → non-empty `open_code` (paths under cloned repo; list via `just harvest-inventory <id>`).
+- `clone: false` → empty `repo` and `open_code`; harvest is docs/blog/search/community only (companion SKUs: Kindroid, Nomi, Character.AI, Replika, Zep Cloud).
+- `open_docs` — first-party doc URLs only; may include `llms.txt`. Empty list fails lint.
+- `skip_url_prefixes` — never fetch or keep URLs under these prefixes (e.g. Zep must skip Graphiti repo/docs; disambiguate shared hosts).
+- `community` — extra forum/thread seeds for the community lane.
+
+**Edge cases (details in seed, not duplicated here):**
+
+- **graphiti** vs **zep** — Graphiti is open repo on help.getzep.com/graphiti; Zep Cloud is closed, separate `open_docs`, no Graphiti paths.
+- **letta** — current MemFS / Agent SDK docs; skip legacy v1 memory-block SDK paths in seed skips.
+- **sillytavern** — one audit covers worldinfo / vectors / summarize extensions (`excluded.json` `covered_by`).
+- **claude-mem** — adjacent coding-agent memory (negative control in research notes).
+- **lightrag**, **microsoft-graphrag** — graph-RAG baselines, same audit schema.
+
+Snowball: related products named in harvest can be listed in [Snowball appendix](#snowball-appendix). Do not auto-harvest snowball ids until explicitly added to seed.
+
+## Harvest
+
+No LLM. Output: `.cache/by-product/<slug>/manifest.json` and page trees.
+
+| Lane | Method | Cap |
+|------|--------|-----|
+| Repo | Shallow clone (`--depth 1 --single-branch`). Skip if `.git` exists unless `--force`. No submodules. `open_code` paths only; missing paths logged. `open_code: []` with `clone: true` fails seed lint. | listed paths |
+| Docs | GET `open_docs` URLs. No sitemap snowball, no llms.txt expansion. | listed URLs |
+| Issues | GitHub `is:issue` + memory/forget/persona/UX queries; fetch up to 50, keep 20 ranked for product language. | 20 |
+| Blog | Product `/blog`, `blog.{apex}`; path-aware when docs use a prefix. | 10 |
+| Web search | Forget / lost context / LoCoMo / graph queries; fetch into `search/`. Skip forge chrome, arxiv, mirrors, community hosts, marketing home when docs exist. Third-party pages need product in snippet or `body_markers` in **body** after fetch. | 10 |
+| Community | Seed `community` URLs + HN/Reddit/PH/SO/X/Discourse search. Thread must name product; confirm pass replaces weak snippet hits. Reddit via Arctic Shift JSON (`url.txt` stays reddit.com). `body_markers` on fetched body for third-party. | 10 |
+
+**Prose conversion.** GET with `Accept: text/markdown`; local HTML strip; try `.md` / `index.md`; then one markdown.new POST (`method=auto`, 500/day/IP, 429 disables for process). Reddit: Arctic Shift first. No `/crawl`.
+
+Env: `GITHUB_TOKEN` (issues/clone), optional `BRAVE_API_KEY` (search; falls back to DDG). Client-rendered docs may need Playwright (`research/output/README.md`).
+
+## Extract, fold, apply
+
+1. **Extract** — one Kiro call per harvested page (temp 0.1, no tools). Prompt v3: this product only; memory = cross-session state, not retrieve-then-speak. Quote before claim. Prefer store / read / forget / conflict / isolation. Empty `unknowns` beats a laundry list. `label`: `measured` (code/docs behavior), `inferred` (issues, blogs, vendor benches).
+
+2. **Fold** — union pages into `.cache/.../candidate.json`. Drop mechanisms without ledger support. Drop page-local absence unknowns unless same stem on ≥2 URLs. `copy`, `refuse`, `consensus`, `contested` stay empty.
+
+3. **Apply** — merge candidate into `audit.json` (or temp for dry-run). Replaces `claimed_purpose`, `mechanisms`, `unknowns`, `sources`, `ledger`. Preserves non-empty interpretation fields.
+
+**Interpretation** (`copy`, `refuse`, `consensus`, `contested`) is not extract output. A later human/agent pass fills it for RQ3. There is no `just grill` yet. Re-harvest + apply does not wipe non-empty interpretation.
+
+**Lint:** `just lint-audits` (all published audits). Per file: `uv run --project research/pipeline python -m companmem_pipeline.lint --path research/output/by-product/<slug>/audit.json`.
+
+## Synthesis
+
+Optional. `just synthesize` writes [`_synthesis.json`](_synthesis.json) from **all** lint-clean audits (Kiro). Themes from ledgers, not a fixed axis list. `missing` lists seed ids skipped intentionally. Run only when you want RQ4 rollup; audits do not depend on it.
 
 ## Snowball appendix
 
-None yet. Append ids here when a harvest names a sibling. Do not auto-harvest snowball ids in v1.
+None yet. Append candidate ids here when a harvest names a sibling worth seeding later.
+
+## Commands
+
+```bash
+just harvest <slug>
+just harvest-inventory <slug>
+just harvest-all
+just audit <slug>              # extract → fold → apply (dry-run)
+just audit-write <slug>
+just audit-write-all
+just lint-audits
+just lint-seed                   # structure + optional URL check
+just lint-open-code              # open_code paths exist in clones
+just synthesize
+just test-pipeline
+```
+
+Pipeline implementation: [`../../pipeline/`](../../pipeline/). Operator notes: [`../README.md`](../README.md).
 
 ## Observed
 
-Protocol frozen 2026-09-11. Seed is the full product list; harvest and extract treat every id equally.
+Protocol updated 2026-09-19. Full seed census harvested and audited (`audit.json` per seed id). Interpretation and synthesis are deliberate follow-ons, not gate for publish.
