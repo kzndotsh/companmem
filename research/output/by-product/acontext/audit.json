@@ -1,0 +1,857 @@
+{
+  "identity": {
+    "id": "acontext",
+    "name": "Acontext",
+    "repo": "https://github.com/memodb-io/Acontext",
+    "docs": "https://docs.acontext.io/llms.txt",
+    "license": "Apache-2.0",
+    "version_or_commit": "259d73bfdebeed35ec2d4211ddc060a2d4126bc6",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Acontext positions itself as a memory layer for agents that learns from runs and reuses knowledge in future runs via structured skill files."
+    },
+    {
+      "text": "Acontext describes its skill memory as persistent, filesystem-compatible, and human-readable."
+    },
+    {
+      "text": "Acontext is described as focused on agent context and memory tooling"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Store vs scaffold: the SKILL.md file is the scaffold (instructions for what to capture, how to name files, how to structure entries); the output files (e.g., alice-chen.md) are the persisted store."
+    },
+    {
+      "text": "The agent uses a structured tool interface (SKILL_LEARNER_TOOLS) to act on the skill store; tool names are recorded, separating the curated-write path from the message log (_messages)."
+    },
+    {
+      "text": "Learning from a session is an async write path: a learning record is created from a session and starts in pending status, indicating extract-then-persist behavior."
+    },
+    {
+      "text": "Per-user isolation is available: sessions, disks, and skills can all be associated with user identifiers, and deleting a user cascades to all associated resources."
+    },
+    {
+      "text": "Context editing allows modifying context on-the-fly without modifying stored messages, separating the retrieve/scaffold layer from the persistent store."
+    },
+    {
+      "text": "Skills can be downloaded into a sandbox at a fixed path, representing the retrieve step that makes stored skills available to an agent at runtime."
+    },
+    {
+      "text": "Memory writes to the learning space are serialized per learning_space_id via a Redis lock, preventing concurrent skill writes for the same space."
+    },
+    {
+      "text": "Custom skills (SKILL.md files) allow the agent author to define how the agent remembers, acting as a configurable scaffold layer."
+    },
+    {
+      "text": "Skill content (SKILL.md) is uploaded to S3 and upserted as an Artifact on a Disk, separate from the AgentSkill database record."
+    },
+    {
+      "text": "Memory is isolated per project_id and learning_space_id; the lock key and pending queue are both scoped to these identifiers."
+    },
+    {
+      "text": "Session summaries provide a compact task summary for prompts, representing a scaffold step distinct from raw log retrieval."
+    },
+    {
+      "text": "Acontext provides tools to edit context, but currently lacks a mechanism to tell developers when to trigger those edits."
+    },
+    {
+      "text": "Task tracking can be disabled per session, giving explicit control over which sessions feed the learning pipeline."
+    },
+    {
+      "text": "Curated facts, not full transcript: only information explicitly mentioned by the user is recorded, not a raw log."
+    },
+    {
+      "text": "Learning (distillation and skill writing) runs in the background automatically; the agent does not block on it."
+    },
+    {
+      "text": "Retrieve: agent-driven, tool-based retrieval using get_skill and get_skill_file; no embedding/semantic search."
+    },
+    {
+      "text": "Task tracking is automatic, extracting tasks and progress from agent conversations with zero instrumentation."
+    },
+    {
+      "text": "Recall mechanism: agent calls list_skills or get_skill tools; content appears in context on demand"
+    },
+    {
+      "text": "Skills can be exported as ZIP and reused with any agent or LLM without re-embedding or migration."
+    },
+    {
+      "text": "Learning is asynchronous; callers must wait for task completion before inspecting created files."
+    },
+    {
+      "text": "Skills are deleted by ID, removing the skill and all associated files from the store."
+    },
+    {
+      "text": "Forget/delete: outdated preferences can be deleted manually by editing files directly"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Acontext is an open-source skill memory layer that stores curated learnings as Markdown skill files, not raw transcripts",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/README.md",
+      "quote": "Acontext is an open-source skill memory layer for AI agents. It automatically captures learnings from agent runs and stores them as agent skill files \u2014 files you can read, edit, and share across agents, LLMs, and frameworks.",
+      "locator": "## What is Acontext?",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path is triggered by task completion or failure, not on every message; a distillation LLM pass produces skill updates",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/README.md",
+      "quote": "Task complete or failed \u2014 When a task is marked done or failed (e.g. by agent report or automatic detection), that outcome is the trigger for learning. Distillation \u2014 An LLM pass infers from the conversation and execution trace what worked, what failed, and user preferences.",
+      "locator": "### Store \u2014 How skills get memorized?",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Skill files are Markdown and human-readable; no embeddings are used in storage or retrieval",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/README.md",
+      "quote": "Skill memories are Markdown files. Use them with LangGraph, Claude, AI SDK, or anything that reads files. No embeddings, no API lock-in.",
+      "locator": "## The Philosophy of Acontext",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Skills can be evolved over time whether originally downloaded from Clawhub or created by the user",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/README.md",
+      "quote": "Whether a skill comes from one you downloaded from Clawhub or one you created yourself, Acontext can follow it and evolve it over time.",
+      "locator": "## Skill is All You Need",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Self-hosted backend uses PostgreSQL, S3, Redis, and RabbitMQ for persistence and messaging",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/README.md",
+      "quote": "PostgreSQL \u2026 S3 \u2026 Redis \u2026 RabbitMQ",
+      "locator": "\ud83c\udfd7\ufe0f Architecture",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Skills are stored in a database scoped to a learning_space_id and retrieved by the agent before and during each run.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/llm/agent/skill_learner.py",
+      "quote": "async with DB_CLIENT.get_session_context() as db_session:\n    r = await LS.get_learning_space_skill_ids(db_session, learning_space_id)\n    ...\n    r = await LS.get_skills_info(db_session, skill_ids)",
+      "locator": "skill_learner.py:def _refresh_skills",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Pending distilled contexts are queued in Redis and drained (consumed) by the agent in batches; on failure they are re-queued.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/llm/agent/skill_learner.py",
+      "quote": "initial_pending = await drain_skill_learn_pending(\n    project_id, learning_space_id, max_read=max_contexts\n)",
+      "locator": "skill_learner.py:skill_learner_agent body",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is at least per project_id and learning_space_id; user_id is optional and threaded through but its enforcement is delegated to tool handlers.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/llm/agent/skill_learner.py",
+      "quote": "ctx = SkillLearnerCtx(\n    db_session=db_session,\n    project_id=project_id,\n    learning_space_id=learning_space_id,\n    user_id=user_id,",
+      "locator": "skill_learner.py:SkillLearnerCtx instantiation",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Skill write operations (create, modify) are performed via named tools in SKILL_LEARNER_TOOLS; the specific persist/update/delete API is not visible in this file.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/llm/agent/skill_learner.py",
+      "quote": "tool = SKILL_LEARNER_TOOLS[tool_name]\nwith bound_logging_vars(tool=tool_name):\n    r = await tool.handler(ctx, tool_arguments)",
+      "locator": "skill_learner.py:for tool_call in use_tools",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Input to the skill learner is already-distilled context, implying a separate upstream extraction/distillation step before this write path runs.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/llm/agent/skill_learner.py",
+      "quote": "distilled_context: str,",
+      "locator": "skill_learner.py:skill_learner_agent signature",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Acontext uses a post-task distillation step that routes completed tasks to one of three outcomes: skip (no write), procedural success memory, or factual content memory.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/llm/prompt/skill_distillation.py",
+      "quote": "Use `skip_learning` if the task is trivial and not worth recording",
+      "locator": "skill_distillation.py: SkillDistillationPrompt.success_distillation_prompt",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory writes are curated extractions from task sessions, not raw transcript logs \u2014 the message log is input to distillation, not itself the persisted memory.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/llm/prompt/skill_distillation.py",
+      "quote": "pack_distillation_input(cls, finished_task: TaskSchema, task_messages: List[MessageBlob], all_tasks: List[TaskSchema], skill_descriptions: List[Tuple[str, str]] | None = None)",
+      "locator": "skill_distillation.py: SkillDistillationPrompt.pack_distillation_input",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Failure distillation writes a dedicated correction record that includes what should have been done and a prevention principle, enabling the store to accumulate negative examples alongside successes.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/llm/prompt/skill_distillation.py",
+      "quote": "what_should_have_been_done: the correct approach \u2014 most valuable field (2-3 sentences)",
+      "locator": "skill_distillation.py: SkillDistillationPrompt.failure_distillation_prompt",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Acontext maintains a file-based skill store with distinct get, create, str-replace, delete, and move operations, constituting a full CRUD write path for persisted skills.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/llm/tool/skill_learner_tools.py",
+      "quote": "SKILL_LEARNER_TOOLS[_get_skill_tool.schema.function.name] = _get_skill_tool\nSKILL_LEARNER_TOOLS[_create_skill_tool.schema.function.name] = _create_skill_tool\nSKILL_LEARNER_TOOLS[_str_replace_skill_file_tool.schema.function.name] = _str_replace_skill_file_tool\nSKILL_LEARNER_TOOLS[_delete_skill_file_tool.schema.function.name] = _delete_skill_file_tool\nSKILL_LEARNER_TOOLS[_mv_skill_file_tool.schema.function.name] = _mv_skill_file_tool",
+      "locator": "skill_learner_tools.py: SKILL_LEARNER_TOOLS assembly block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The skill store distinguishes skill objects (_get_skill_tool, _create_skill_tool) from skill files (_get_skill_file_tool, _create_skill_file_tool, _str_replace_skill_file_tool, _delete_skill_file_tool, _mv_skill_file_tool), implying a two-level structure: a skill entity and one or more backing files.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/llm/tool/skill_learner_tools.py",
+      "quote": "from .skill_learner_lib.get_skill import _get_skill_tool\nfrom .skill_learner_lib.get_skill_file import _get_skill_file_tool\nfrom .skill_learner_lib.create_skill_file import _create_skill_file_tool\nfrom .skill_learner_lib.create_skill import _create_skill_tool",
+      "locator": "skill_learner_tools.py: imports",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path is scaffolded: the model must invoke report_thinking before any edit, and the session context tracks whether thinking has been reported.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/llm/tool/skill_learner_tools.py",
+      "quote": "\"description\": \"Use this tool to report your thinking step by step. You MUST call this before making any edits.\"\n...\nctx.has_reported_thinking = True",
+      "locator": "skill_learner_tools.py: _skill_learner_thinking_tool definition and _skill_learner_thinking_handler",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "AgentSkill records are persisted in a relational store scoped to project_id and optionally user_id, representing curated skill definitions rather than a raw conversation log.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/service/data/agent_skill.py",
+      "quote": "skill = AgentSkill(\n        project_id=project_id,\n        user_id=user_id,\n        name=sanitized_name,\n        description=description,\n        disk_id=disk.id,\n        meta=meta,\n    )",
+      "locator": "create_skill function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Skill file content is stored on a Disk as an Artifact (backed by S3), separate from the structured AgentSkill record \u2014 a two-layer persistence model (structured metadata + raw file).",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/service/data/agent_skill.py",
+      "quote": "asset_meta, artifact_info_meta = await upload_and_build_artifact_meta(\n        project_id, \"/\", \"SKILL.md\", content, user_kek=user_kek\n    )\n    artifact_result = await upsert_artifact(\n        db_session, disk.id, \"/\", \"SKILL.md\", asset_meta, meta=artifact_info_meta\n    )",
+      "locator": "create_skill function, step 4",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path for skills involves parsing and sanitizing before persistence \u2014 only the extracted name and description are written to the AgentSkill record, not the raw content.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/service/data/agent_skill.py",
+      "quote": "name, description = _parse_skill_md(content)\n    ...sanitized_name = _sanitize_name(name)",
+      "locator": "create_skill function, steps 1-2",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "updated_at is used as a change-detection signal for incremental sync, implying skills are long-lived persistent entities that can be mutated over time.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/service/data/agent_skill.py",
+      "quote": "Used after skill file mutations (create/edit/delete/move) so that incremental-sync clients (e.g. OpenClaw) detect the change.",
+      "locator": "touch_skill_updated_at docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Distillation is a separate, fast single-LLM-call stage that converts a session into a distilled payload before any skill (memory) write occurs.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/service/skill_learner.py",
+      "quote": "Consumer 1: Distillation \u2014 fast, single LLM call, no lock needed",
+      "locator": "skill_learner.py, section comment before process_skill_distillation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A 'not worth' gate exists: if distillation returns None, no memory is written and the session is marked COMPLETED silently.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/service/skill_learner.py",
+      "quote": "if distilled_payload is None:\n        wide[\"distillation_outcome\"] = \"skipped_not_worth\"",
+      "locator": "skill_learner.py, process_skill_distillation, ~line 78",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Skill writes (curated memory writes) are serialized per learning_space_id using a Redis lock with a configurable TTL.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/service/skill_learner.py",
+      "quote": "lock_key = f\"skill_learn.{body.learning_space_id}\"\n    ...\n    _l = await check_redis_lock_or_set(\n        body.project_id,\n        lock_key,\n        ttl_seconds=DEFAULT_CORE_CONFIG.skill_learn_lock_ttl_seconds,\n    )",
+      "locator": "skill_learner.py, process_skill_agent, ~line 107",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per project_id and learning_space_id; both the lock and the pending queue are scoped to these two dimensions.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/service/skill_learner.py",
+      "quote": "lock_key = f\"skill_learn.{body.learning_space_id}\"\n    ...\n    await push_skill_learn_pending(\n            body.project_id, body.learning_space_id, body.model_dump_json()\n        )",
+      "locator": "skill_learner.py, process_skill_agent, ~line 107 and ~line 117",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are encrypted with a user KEK; the pipeline hard-fails if the KEK is absent or invalid rather than writing plaintext.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/service/skill_learner.py",
+      "quote": "# Hard-fail on invalid KEK \u2014 running without it would store plaintext in the DB.",
+      "locator": "skill_learner.py, process_skill_distillation, ~line 55 and process_skill_agent, ~line 121",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "An original_date field from session configs is passed through both distillation and skill-agent stages, anchoring memory entries to a caller-supplied date.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/service/skill_learner.py",
+      "quote": "original_date = session.configs.get(\"original_date\")",
+      "locator": "skill_learner.py, process_skill_distillation, ~line 47",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "After a skill-agent write completes, exactly one queued task is drained and re-published, serializing deferred writes in FIFO order.",
+      "kind": "code",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/service/skill_learner.py",
+      "quote": "remaining = await drain_skill_learn_pending(\n                body.project_id, body.learning_space_id, max_read=1\n            )",
+      "locator": "skill_learner.py, process_skill_agent, finally block, ~line 152",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Acontext is a memory layer that learns from agent runs and persists knowledge as Markdown skill files for reuse in subsequent runs.",
+      "kind": "docs",
+      "url": "https://docs.acontext.io/llms.txt",
+      "quote": "Agent Skills as a Memory Layer \u2014 learns from runs, writes Markdown skill files, reuses them on the next run",
+      "locator": "index entry: What is Acontext?",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Skill memory is stored as structured, filesystem-compatible, human-readable skill files.",
+      "kind": "docs",
+      "url": "https://docs.acontext.io/llms.txt",
+      "quote": "Persistent agent memory stored as structured skill files \u2014 filesystem-compatible, configurable, and human-readable",
+      "locator": "index entry: What is Skill Memory?",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path for learning is asynchronous: a learning record is created from a session and begins in pending status before processing.",
+      "kind": "docs",
+      "url": "https://docs.acontext.io/llms.txt",
+      "quote": "Create an async learning record from a session. Initially stays in pending status.",
+      "locator": "API reference: Learn from session",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Deletion of a skill removes it and all associated files, constituting a hard delete from the store.",
+      "kind": "docs",
+      "url": "https://docs.acontext.io/llms.txt",
+      "quote": "Delete agent skill and all associated files",
+      "locator": "API reference: Delete agent skill",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is available at the user level: sessions, disks, and skills can be scoped to a user identifier.",
+      "kind": "docs",
+      "url": "https://docs.acontext.io/llms.txt",
+      "quote": "Associate Sessions, Disks, and Skills with user identifiers",
+      "locator": "index entry: Store with User",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Deleting a user cascades to all associated sessions, disks, and skills, providing full user-scoped forget.",
+      "kind": "docs",
+      "url": "https://docs.acontext.io/llms.txt",
+      "quote": "Delete a user by identifier and cascade delete all associated resources (Session, Disk, Skill)",
+      "locator": "API reference: Delete user",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Context editing modifies what the model sees without altering the persistent message store, separating scaffold from log.",
+      "kind": "docs",
+      "url": "https://docs.acontext.io/llms.txt",
+      "quote": "Edit context on-the-fly without modifying stored messages",
+      "locator": "index entry: Context Editing",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Session summary provides a compacted prompt scaffold distinct from the raw message log.",
+      "kind": "docs",
+      "url": "https://docs.acontext.io/llms.txt",
+      "quote": "Compact task summary for prompts",
+      "locator": "index entry: Session Summary",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Task tracking is automatic and zero-instrumentation, extracting tasks from conversation without explicit annotation.",
+      "kind": "docs",
+      "url": "https://docs.acontext.io/llms.txt",
+      "quote": "Automatic task extraction, progress recording, and status detection from agent conversations \u2014 zero instrumentation",
+      "locator": "index entry: What is Task Tracking?",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Task tracking can be disabled per session, giving selective control over the learning pipeline.",
+      "kind": "docs",
+      "url": "https://docs.acontext.io/llms.txt",
+      "quote": "Skip automatic task extraction for specific sessions",
+      "locator": "index entry: Disable Task Tracking",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Skills are retrieved into the agent runtime by downloading them to a sandbox at /skills/{skill_name}/.",
+      "kind": "docs",
+      "url": "https://docs.acontext.io/llms.txt",
+      "quote": "Download all files from an agent skill to a sandbox environment. Files are placed at /skills/{skill_name}/.",
+      "locator": "API reference: Download skill to sandbox",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The agent author controls remembering behavior by writing SKILL.md files that define skill structure.",
+      "kind": "docs",
+      "url": "https://docs.acontext.io/llms.txt",
+      "quote": "Define how your agent remembers by writing SKILL.md files",
+      "locator": "index entry: Custom Skills for Skill Memory",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Learning spaces organize skills and can be deleted with cascade removal of junction records, but skill files themselves require separate deletion.",
+      "kind": "docs",
+      "url": "https://docs.acontext.io/llms.txt",
+      "quote": "Delete a learning space. Junction records are cascade-deleted by the DB.",
+      "locator": "API reference: Delete learning space",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Acontext is an open-source skill memory layer for AI agents that stores learnings as Markdown skill files.",
+      "kind": "docs",
+      "url": "https://github.com/memodb-io/Acontext/blob/main/README.md",
+      "quote": "Acontext is an open-source skill memory layer for AI agents. It automatically captures learnings from agent runs and stores them as agent skill files \u2014 files you can read, edit, and share across agents, LLMs, and frameworks.",
+      "locator": "What is Acontext? section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path is triggered by task completion or failure, not by end-of-session or time.",
+      "kind": "docs",
+      "url": "https://github.com/memodb-io/Acontext/blob/main/README.md",
+      "quote": "Task complete or failed \u2014 When a task is marked done or failed (e.g. by agent report or automatic detection), that outcome is the trigger for learning.",
+      "locator": "Store \u2014 How skills get memorized? section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is agent-driven via tool calls (get_skill, get_skill_file), not automatic embedding search.",
+      "kind": "docs",
+      "url": "https://github.com/memodb-io/Acontext/blob/main/README.md",
+      "quote": "Give your agent Skill Content Tools (get_skill, get_skill_file). The agent decides what it needs, calls the tools, and gets the skill content. No embedding search \u2014 progressive disclosure, agent in the loop.",
+      "locator": "Recall \u2014 How the agent uses skills on the next run section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Skills persist across agents, LLMs, and frameworks with no re-embedding required.",
+      "kind": "docs",
+      "url": "https://github.com/memodb-io/Acontext/blob/main/README.md",
+      "quote": "Download as ZIP, reuse anywhere \u2014 Export skill files as ZIP. Run locally, in another agent, or with another LLM. No vendor lock-in; no re-embedding or migration step.",
+      "locator": "The Philosophy of Acontext section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Learning runs asynchronously in the background in production; wait_for_learning is only a demo helper.",
+      "kind": "docs",
+      "url": "https://github.com/memodb-io/Acontext/blob/main/README.md",
+      "quote": "wait_for_learning is a blocking helper for demo purposes. In production, task extraction and learning run in the background automatically \u2014 your agent never waits.",
+      "locator": "Skill Memory in Action section, code note",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Acontext has a context editing API with dedicated documentation",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/Acontext/issues/137",
+      "quote": "Acontext offers tools to edit context, but we never tell devs when to trigger those tools.",
+      "locator": "Feature Description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A trigger mechanism for context editing is proposed but not yet implemented; affects Python SDK, TypeScript SDK, and API Server (Go)",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/Acontext/issues/137",
+      "quote": "Like claude context editing api, it supports trigger mechanism. We should make something like this",
+      "locator": "Feature Description / Impact Component Area",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Acontext focuses on agent context and memory tooling",
+      "kind": "issue",
+      "url": "https://github.com/memodb-io/Acontext/issues/559",
+      "quote": "Your project focuses on agent context and memory tooling.",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Acontext is open-source, created by memodb-io",
+      "kind": "blog",
+      "url": "https://www.blog.brightcoding.dev/2026/05/27/acontext-the-revolutionary-memory-layer-every-ai-agent-needs",
+      "quote": "Enter Acontext\u2014the breakthrough open-source platform that reimagines agent memory as simple, transparent skill files you can actually read, version, and share.",
+      "locator": "TL;DR / Introduction",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path involves LLM distillation that decides to update existing skills or create new ones after task completion or failure",
+      "kind": "blog",
+      "url": "https://www.blog.brightcoding.dev/2026/05/27/acontext-the-revolutionary-memory-layer-every-ai-agent-needs",
+      "quote": "An LLM analyzes what worked, what failed, and user preferences, then a Skill Agent decides whether to update existing skills or create new ones. This happens without manual intervention.",
+      "locator": "Automatic Skill Capture and Distillation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval is agent-driven via tool calls (progressive disclosure), not automatic similarity search",
+      "kind": "blog",
+      "url": "https://www.blog.brightcoding.dev/2026/05/27/acontext-the-revolutionary-memory-layer-every-ai-agent-needs",
+      "quote": "Your agent uses reasoning to decide what skills it needs, then explicitly calls tools to fetch them. This puts the agent in the loop, making memory retrieval transparent and debuggable.",
+      "locator": "Progressive Disclosure Over Semantic Search",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is per learning space; sessions are scoped within a space",
+      "kind": "blog",
+      "url": "https://www.blog.brightcoding.dev/2026/05/27/acontext-the-revolutionary-memory-layer-every-ai-agent-needs",
+      "quote": "Learning spaces are isolated environments where agents accumulate skills. Sessions track individual conversation streams within a space.",
+      "locator": "Example 2: Creating Learning Spaces and Sessions",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget mechanism is manual file deletion; no documented automated deletion or hide-at-retrieve policy",
+      "kind": "blog",
+      "url": "https://www.blog.brightcoding.dev/2026/05/27/acontext-the-revolutionary-memory-layer-every-ai-agent-needs",
+      "quote": "You can inspect the file anytime to see exactly what the assistant knows about you and delete outdated preferences manually.",
+      "locator": "1. Personal Assistant That Actually Remembers You",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Skills are portable as ZIP downloads and reusable across frameworks without re-embedding",
+      "kind": "blog",
+      "url": "https://www.blog.brightcoding.dev/2026/05/27/acontext-the-revolutionary-memory-layer-every-ai-agent-needs",
+      "quote": "Unlike traditional RAG systems that require expensive re-embedding and migration steps, Acontext skills can be downloaded as ZIP files and reused anywhere instantly.",
+      "locator": "What is Acontext?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Distillation prompt is open-source and customizable per domain",
+      "kind": "blog",
+      "url": "https://www.blog.brightcoding.dev/2026/05/27/acontext-the-revolutionary-memory-layer-every-ai-agent-needs",
+      "quote": "The distillation prompt is open-source and can be customized for your specific domain.",
+      "locator": "Frequently Asked Questions \u2014 What LLMs does Acontext support for distillation?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Acontext uses skill distillation rather than vector embeddings or similarity search as its memory mechanism.",
+      "kind": "blog",
+      "url": "https://scored.tools/blog/acontext-review-2026/",
+      "quote": "Unlike traditional vector databases or embedding approaches, Acontext takes a different route.",
+      "locator": "What Acontext Actually Does",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The product captures agent sessions in the background with minimal performance impact.",
+      "kind": "blog",
+      "url": "https://scored.tools/blog/acontext-review-2026/",
+      "quote": "The analysis happens in the background, so there's minimal performance impact on your agents.",
+      "locator": "Session Capture and Analysis",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agents improve over time through continuous learning from real interactions.",
+      "kind": "blog",
+      "url": "https://scored.tools/blog/acontext-review-2026/",
+      "quote": "Continuous improvement: Agents actually get better over time with real learning",
+      "locator": "What Works Well",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The open source version is available at no cost; cloud pricing is undisclosed.",
+      "kind": "blog",
+      "url": "https://scored.tools/blog/acontext-review-2026/",
+      "quote": "Open Source Free Core features, self-hosted, GitHub integration / Cloud Platform Custom pricing Hosted service, dashboard, team features, backups",
+      "locator": "Pricing Breakdown",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The reviewer characterizes the product as early-stage with sparse documentation and minimal community support.",
+      "kind": "blog",
+      "url": "https://scored.tools/blog/acontext-review-2026/",
+      "quote": "Documentation is sparse and community support is minimal",
+      "locator": "Real Limitations",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The reviewer rates the product 6.8/10 and classifies it as promising but not production-ready.",
+      "kind": "blog",
+      "url": "https://scored.tools/blog/acontext-review-2026/",
+      "quote": "Rating: 6.8/10 - Solid concept, early execution. Worth watching as it matures.",
+      "locator": "The Bottom Line",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Acontext is open source; users can run it themselves on their own infrastructure.",
+      "kind": "blog",
+      "url": "https://acontext.io/blog/agent-skills-as-a-memory-layer",
+      "quote": "Open source: GitHub \u2014 run it yourself; your data, your infra.",
+      "locator": "Section 8, bullet 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The pipeline runs automatically in the background once sessions are connected to a learning space, requiring no 'save memory' call from application code.",
+      "kind": "blog",
+      "url": "https://acontext.io/blog/agent-skills-as-a-memory-layer",
+      "quote": "No need to call 'save memory' from your application code \u2014 it runs in the background once you've connected sessions to a learning space.",
+      "locator": "Section 4, introductory sentence",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Acontext distinguishes skill memory from conversation memory (Mem0, Zep, framework buffers) and RAG, positioning skill memory as capturing behavioral outcomes rather than conversation content or ingested documents.",
+      "kind": "blog",
+      "url": "https://acontext.io/blog/agent-skills-as-a-memory-layer",
+      "quote": "Conversation memory (Mem0, Zep, framework buffers): what was said \u2014 user and assistant messages, sometimes summarized or chunked. Retrieval over ingested content (RAG, vector stores): what you fed in \u2014 docs, chunks, embeddings. Both are input-centric.",
+      "locator": "Section 2, bullet list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Skill memory sits alongside conversation memory and RAG rather than replacing them, with a defined split: chat+RAG for user and corpus memory, skill memory for procedural and outcome knowledge.",
+      "kind": "blog",
+      "url": "https://acontext.io/blog/agent-skills-as-a-memory-layer",
+      "quote": "Chat + RAG \u2192 memory of the user and the corpus. Skill memory \u2192 memory of how we solved (or failed) this kind of problem and how to reuse successful experiences.",
+      "locator": "Section 7, simple split list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Skill files use a structured Markdown format with fields such as date, symptom, root cause, correct approach, and prevention, as shown in the api-error-patterns examples.",
+      "kind": "blog",
+      "url": "https://acontext.io/blog/agent-skills-as-a-memory-layer",
+      "quote": "## Health check timeout on deploy (date: 2026-03-02)\n- Symptom: Deploy marked success but service wasn't ready; next request 503.\n- Root cause: Health check timeout was 10s; DB migration took longer.\n- Correct approach: Set health-check timeout to 30s for deploy; use readiness probe separate from liveness.\n- Prevention: Document min timeout per service type; fail deploy if health doesn't pass in window.",
+      "locator": "Section 6, api-error-patterns/timeouts.md example",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The agent calls get_skill_file with skill_name and file_path arguments to retrieve a specific skill file into context at runtime.",
+      "kind": "blog",
+      "url": "https://acontext.io/blog/agent-skills-as-a-memory-layer",
+      "quote": "it can call the agent tool get_skill_file with skill_name=\"api-error-patterns\" and file_path=\"timeouts.md\" (or auth.md) and use that content in context.",
+      "locator": "Section 6, retrieval description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Acontext defines memory algorithms through user-authored SKILL.md files that govern what to capture, file naming, and entry structure.",
+      "kind": "docs",
+      "url": "https://docs.acontext.io/learn/custom-memory",
+      "quote": "By writing different SKILL.md files, you define different memory algorithms \u2014 each with its own rules for what to capture, how to name files, and how to structure entries.",
+      "locator": "Custom Skills for Skill Memory \u2014 opening paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path is post-session and asynchronous: the pipeline runs after session completion, not in real time.",
+      "kind": "docs",
+      "url": "https://docs.acontext.io/learn/custom-memory",
+      "quote": "Learning is asynchronous. After the session's tasks complete, the learner reads your SKILL.md and creates files like alice-chen.md and bob-martinez.md following your rules.",
+      "locator": "Walkthrough: Using social-contacts \u2014 note after Run a session",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is curated (selected facts) rather than a full transcript log; only explicitly mentioned information is recorded.",
+      "kind": "docs",
+      "url": "https://docs.acontext.io/learn/custom-memory",
+      "quote": "Only record information explicitly mentioned by the user",
+      "locator": "Walkthrough: Using social-contacts \u2014 SKILL.md Guidelines",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per learning space; skills are scoped to a space and sessions are linked to that space for learning.",
+      "kind": "docs",
+      "url": "https://docs.acontext.io/learn/custom-memory",
+      "quote": "client.learning_spaces.learn(space.id, session_id = session.id)",
+      "locator": "Walkthrough: Using social-contacts \u2014 Run a session with mock messages",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The pipeline decides which skills are relevant to a session outcome before writing, implying selective (not always-on) skill activation.",
+      "kind": "docs",
+      "url": "https://docs.acontext.io/learn/custom-memory",
+      "quote": "Decides which skills are relevant to the session outcome",
+      "locator": "How It Works",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/service/skill_learner.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/llm/agent/skill_learner.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/llm/tool/skill_learner_tools.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/service/data/agent_skill.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/llm/prompt/skill_distillation.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.acontext.io/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memodb-io/Acontext/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/memodb-io/Acontext/issues/559",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/memodb-io/Acontext/issues/137",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://acontext.io/blog/agent-skills-as-a-memory-layer",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.acontext.io/learn/custom-memory",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://scored.tools/blog/acontext-review-2026/",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.blog.brightcoding.dev/2026/05/27/acontext-the-revolutionary-memory-layer-every-ai-agent-needs",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Conflict and supersession handling (how contradicting or outdated stored facts/skills are resolved or overwritten) is not described",
+      "url": "https://acontext.io/blog",
+      "kind": "blog"
+    },
+    {
+      "text": "Conflict / supersession policy: when distillation produces a fact that contradicts an existing skill entry, the resolution rule is not described",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "Conflict / supersession logic (how a new distilled fact updates or overrides an existing skill entry) is delegated to SLC.run_skill_agent and is not visible here.",
+      "url": "https://github.com/memodb-io/Acontext/blob/259d73bfdebeed35ec2d4211ddc060a2d4126bc6/src/server/core/acontext_core/service/skill_learner.py",
+      "kind": "code"
+    },
+    {
+      "text": "Conflict / supersession: the page does not describe what happens when new distillation output contradicts existing skill file content.",
+      "url": "https://github.com/memodb-io/Acontext/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "Conflict and supersession policy: the page describes appending or creating entries but does not state how the skill agent handles contradictory or outdated entries within an existing skill file.",
+      "url": "https://acontext.io/blog/agent-skills-as-a-memory-layer",
+      "kind": "blog"
+    }
+  ]
+}
