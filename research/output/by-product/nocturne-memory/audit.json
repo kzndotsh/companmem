@@ -1,0 +1,1279 @@
+{
+  "identity": {
+    "id": "nocturne-memory",
+    "name": "Nocturne Memory",
+    "repo": "https://github.com/Dataojitori/nocturne_memory",
+    "docs": "https://github.com/Dataojitori/nocturne_memory/blob/main/README.md",
+    "license": "MIT",
+    "version_or_commit": "ffb5c709ba9785977b48a974082e330d70410f74",
+    "observed_at": "2026-09-18"
+  },
+  "claimed_purpose": [
+    {
+      "text": "A hierarchical tree-structured long-term memory system shared between the AI and user, framed as an extension of the model's brain rather than an external database."
+    },
+    {
+      "text": "Nocturne Memory uses a boot protocol triggered at session start to load persistent memory via a dedicated resource URI."
+    },
+    {
+      "text": "All AI modifications across namespaces are treated as a unified set of changes to avoid complex rollback races."
+    },
+    {
+      "text": "Certain memory URIs are auto-loaded on boot to define the AI's core identity on every startup."
+    },
+    {
+      "text": "Nocturne Memory organizes memories into named domains as top-level namespaces."
+    },
+    {
+      "text": "Multi-agent and multi-persona isolation use case"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Write path for update (content): inserts a new Memory row on the same node_uuid, then deprecates old active memories by setting deprecated=True and migrated_to=new_memory_id; new row is then set deprecated=False"
+    },
+    {
+      "text": "Persisted store has four tables: Node (conceptual entity, UUID), Memory (versioned content row), Edge (parent\u2192child with metadata), Path (materialized URI cache mapping domain://path to an edge)"
+    },
+    {
+      "text": "The system uses a graph service with create, update, alias, delete, and version chain operations, suggesting graph-based memory storage with versioning and conflict/supersession support."
+    },
+    {
+      "text": "The boot-time memory read can be triggered invalidly (a spurious `read_mcp_resource` call fires on startup), indicating the retrieve step is not precisely bound to the intended protocol."
+    },
+    {
+      "text": "Content\u2013path separation: memory content is stored once under a unique Memory ID; multiple URI aliases can point to the same content with independent disclosure conditions and priority."
+    },
+    {
+      "text": "Disclosure field on each memory node is a trigger condition that instructs the agent when to call read_memory; it is a scaffold instruction, not an automatic retrieval mechanism"
+    },
+    {
+      "text": "The project distinguishes between a memory system that mimics human memory and one optimised for agentic tasks, suggesting two distinct design philosophies for persistence."
+    },
+    {
+      "text": "Human audit layer: every AI write generates a snapshot reviewable via Dashboard; cleanup (purging old versions and orphaned memories) requires explicit human confirmation"
+    },
+    {
+      "text": "Glossary triggers bind keyword terms to memory nodes; when a trigger word appears in any memory's content, read_memory surfaces a glossary link to the bound node"
+    },
+    {
+      "text": "Isolation is per namespace: Path rows carry a namespace field; all queries filter by namespace; cross-namespace nodes are hidden from callers"
+    },
+    {
+      "text": "The deployment uses a backend API container named nocturne_memory-backend-api-1, with a snapshots directory as part of the persistence path"
+    },
+    {
+      "text": "Write path includes add, modify, and delete; changes produce a before/after diff visible in the web dashboard, user accepts or rolls back"
+    },
+    {
+      "text": "Memory is stored in a self-hosted MCP Server, separate from chat platforms; MCP-compatible clients connect to the same long-term state"
+    },
+    {
+      "text": "Uses structured hyperlinking with Aho-Corasick keyword matching instead of vector embeddings to connect related memories automatically"
+    },
+    {
+      "text": "Memories are organized into named domain namespaces (e.g. core, writer, game, notes); 'system' is always available internally."
+    },
+    {
+      "text": "Named tables that are tracked in the changeset store include 'memories', 'nodes', 'edges', 'paths', and 'glossary_keywords'."
+    },
+    {
+      "text": "Cross-model read of the same long-term memory is supported, but persona expression may differ due to differing base models"
+    },
+    {
+      "text": "Random retrieval is weighted by staleness \u00d7 priority multiplier so older and higher-priority memories surface more often"
+    },
+    {
+      "text": "A fixed set of memory URIs is loaded at every boot to scaffold the AI's identity before any conversation begins."
+    },
+    {
+      "text": "Memories are stored in either SQLite or PostgreSQL, selectable via DATABASE_URL; both backends are supported."
+    },
+    {
+      "text": "A public read-only mode exists that restricts write tools; the feature was introduced in commit 6a482ba."
+    },
+    {
+      "text": "Retrieve index covers path, content, disclosure, and glossary keywords as fields in the search document"
+    },
+    {
+      "text": "Backend uses a database with an absolute-path DATABASE_URL, suggesting a local persistent store"
+    },
+    {
+      "text": "Persistence backend supports SQLite or PostgreSQL; can run locally or self-hosted on a server"
+    },
+    {
+      "text": "Memory is stored in a SQLite database; the data file path is user-configured."
+    },
+    {
+      "text": "Delete severs the access path only; it does not delete memory content itself"
+    },
+    {
+      "text": "Review and rollback enhancement flagged as high-risk core model change"
+    },
+    {
+      "text": "Persistence is cross-model and cross-session by design"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Persistent store is SQLite (local) or PostgreSQL (remote/multi-device); memories survive across sessions and model switches",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/README_EN.md",
+      "quote": "Nocturne Memory adopts a minimalist but highly available SQLite/PostgreSQL + URI Routing architecture. Completely open-source, it targets local single-agent execution with SQLite, and seamlessly scales to remote multi-device state synchronization via PostgreSQL.",
+      "locator": "Section: \u26a1 Core Architecture",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Boot URIs scaffold: designated memories load automatically at every session start via system://boot, providing identity continuity without loading the full store",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/README_EN.md",
+      "quote": "On startup, system://boot automatically loads these core memories. The AI wakes up knowing who it is, who its user is, and what its mission is. Configure once, awaken forever.",
+      "locator": "Section: \ud83d\udd25 This Is Not Another RAG Memory System, solution table row \u277a",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Conditional recall via per-memory disclosure field; recall is triggered by context match against the disclosure condition, not by cosine similarity",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/README_EN.md",
+      "quote": "Each memory is bound to a human-readable trigger condition (disclosure), e.g., 'When the user mentions project X.' AI injects contextually, not blindly.",
+      "locator": "Section: \ud83d\udd25 This Is Not Another RAG Memory System, solution table row \u2778",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete operation severs path, not content; content is versioned and recoverable",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/README_EN.md",
+      "quote": "delete_memory: Sever an access path (does not delete the memory content itself)",
+      "locator": "Section: \ud83e\udd16 MCP Tool Reference, table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Version chain on Memory entity uses deprecated + migrated_to fields; rollback to any prior version is supported",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/README_EN.md",
+      "quote": "`deprecated` + `migrated_to` version chain enables one-click rollback to any historical version",
+      "locator": "Section: \ud83e\uddec Graph Backend, Tree Frontend, layer table (Content layer)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Namespace isolation provides per-agent memory separation within a shared database instance",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/README_EN.md",
+      "quote": "Supports hosting isolated memory spaces for one or more Agents simultaneously via Namespace.",
+      "locator": "Section: \u26a1 Core Architecture, opening paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "No background summarization; all memory writes are performed by the AI agent itself via MCP tools, not by an extraction pipeline",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/README_EN.md",
+      "quote": "No background summarization system. Every memory is created, organized, and maintained by the AI itself \u2014 a cognitive artifact written from its own perspective, not a dossier compiled by the system on its behalf.",
+      "locator": "Section: \ud83d\udd25 This Is Not Another RAG Memory System, solution table row \u277b",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Adaptive/on-demand retrieval: 78% of a ~970K-character library was recalled across 30 days, but each new chat starts at ~7.2K characters loaded",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/README_EN.md",
+      "quote": "In a real 969,926-character memory library, the first message loads just 7.2K characters. Over the past 30 days, 78% of the entire library was recalled in some conversation.",
+      "locator": "Opening statistics paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cross-node hyperlinks are auto-generated at write time via Aho-Corasick keyword matching when trigger words appear in memory content",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/README_EN.md",
+      "quote": "Bind keywords to memory nodes (e.g., 'Salem' \u2192 core://my_user). When any memory's content contains that keyword, the system detects it via Aho-Corasick multi-pattern matching and auto-generates cross-node hyperlinks.",
+      "locator": "Section: \ud83d\udd25 This Is Not Another RAG Memory System, solution table row \u2779",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Human confirmation required before purging deprecated versions or orphaned memories; the AI cannot self-delete its own version history without owner approval",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/README_EN.md",
+      "quote": "Brain Cleanup \u2014 The system auto-creates version backups for every AI operation. Review and purge deprecated old versions and orphaned memories \u2014 cleanup always requires explicit human confirmation.",
+      "locator": "Section: \ud83d\udda5\ufe0f The Dashboard",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Store is a graph of Node/Memory/Edge/Path rows; Memory is versioned content, not a log",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/graph.py",
+      "quote": "Node: a conceptual entity (UUID), version-independent\n- Memory: a content version of a node\n- Edge: parent\u2192child relationship between nodes, carrying metadata\n- Path: materialized URI cache (domain://path \u2192 edge)",
+      "locator": "module docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Update creates a new Memory row and deprecates the old one via migrated_to chain \u2014 not an in-place edit",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/graph.py",
+      "quote": "Content change -> new Memory row with the same node_uuid.\nMetadata change -> update the Edge directly.",
+      "locator": "update_memory docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Soft forget marks memories deprecated=True and keeps them recoverable; hard delete is a separate explicit human action",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/graph.py",
+      "quote": "Memories are kept (marked deprecated) so they can be recovered.",
+      "locator": "_gc_node_soft docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is enforced at query time by namespace filter on Path rows; cross-namespace nodes are hidden",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/graph.py",
+      "quote": "If this edge has no Path in the current namespace, the child\nnode belongs to a different namespace. Skip it rather than\nfalling back to edge.name, which would expose cross-namespace\nnodes to the caller.",
+      "locator": "get_children, inline comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is by explicit path lookup or weighted-random surfacing; no adaptive/semantic retrieve policy is implemented in this file",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/graph.py",
+      "quote": "Pick a weighted-random memory node. Weight = staleness * priority_multiplier.\nOlder and higher-priority memories are more likely to surface.",
+      "locator": "get_random_memory docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Cycle prevention: adding an edge that would make a descendant an ancestor is refused",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/graph.py",
+      "quote": "Check if adding edge parent_uuid->child_uuid would create a cycle.\n\nReturns True if child_uuid can already reach parent_uuid by\nfollowing existing edges downward",
+      "locator": "_would_create_cycle docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is scoped per agent or per request via a namespace value threaded through async context",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/namespace.py",
+      "quote": "Namespace context for multi-agent memory isolation. Uses contextvars to pass the namespace implicitly through async call chains.",
+      "locator": "file:backend/db/namespace.py, module docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The namespace default is an empty string sourced from the NAMESPACE environment variable, meaning unnamespaced operation is possible",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/namespace.py",
+      "quote": "_namespace: contextvars.ContextVar[str] = contextvars.ContextVar(\n    \"namespace\", default=os.getenv(\"NAMESPACE\", \"\")\n)",
+      "locator": "file:backend/db/namespace.py, lines 12-14",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are isolated by namespace; all index writes and reads are namespace-scoped, enabling per-character or per-agent separation.",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/search.py",
+      "quote": "if not search_all_namespaces:\n    path_stmt = path_stmt.where(Path.namespace == namespace)",
+      "locator": "SearchIndexer._build_search_documents_for_node",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval rank is a composite of BM25/ts_rank_cd score, edge priority, and path length, meaning structural position in the graph influences recall order.",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/search.py",
+      "quote": "ORDER BY score ASC, sd.priority ASC, length(sd.path) ASC",
+      "locator": "SearchIndexer.search, SQLite branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The system supports both SQLite (FTS5) and PostgreSQL (tsvector) backends, with backend-specific index maintenance and query paths.",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/search.py",
+      "quote": "Supports both SQLite FTS5 and PostgreSQL tsvector backends.",
+      "locator": "SearchIndexer class docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The 'memories' table is one of the tracked tables, alongside nodes, edges, paths, and glossary_keywords.",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/snapshot.py",
+      "quote": "TABLE_ORDER = [\"nodes\", \"memories\", \"edges\", \"paths\", \"glossary_keywords\"]",
+      "locator": "module-level constant TABLE_ORDER",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "First write to a row key freezes the pre-AI state as 'before'; subsequent AI writes only update 'after'.",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/snapshot.py",
+      "quote": "First touch: store both `before` and `after`. Subsequent: overwrite `after` only.",
+      "locator": "record docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Net-zero rows (unchanged before==after) are excluded from display but anchors are retained in the pool until GC runs.",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/snapshot.py",
+      "quote": "Keep net-zero (before=None, after=None) rows until GC runs. _gc_noop_creates() needs these anchors to sweep dependent create-only rows (nodes/memories/edges) in the same changeset.",
+      "locator": "record method, inline comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Orphaned memory and node rows created in the same changeset as a net-zero path are garbage-collected from the pool.",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/snapshot.py",
+      "quote": "Related node/memory/edge entries created in the same changeset (before=None) lose their path mapping and become invisible to the review UI while still being counted as pending changes. This sweeps them out.",
+      "locator": "_gc_noop_creates docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The entire changeset pool can be cleared (integrate all) via clear_all, deleting the backing JSON file.",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/snapshot.py",
+      "quote": "Clear the entire changeset pool (integrate all).",
+      "locator": "clear_all docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "All namespaces share one changeset.json; there is no per-namespace isolation at the changeset layer.",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/snapshot.py",
+      "quote": "All namespaces share a single changeset.json file to avoid complex rollback races and treat all AI modifications as a unified set of changes.",
+      "locator": "module footer comment, above get_changeset_store",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Boot URI loads core memories at session startup as the closest thing to automatic context injection",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/mcp_server.py",
+      "quote": "system://boot   : [Startup Only] Loads your core memories.",
+      "locator": "read_memory tool docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Disclosure is a scaffold instruction per path telling the agent when to retrieve a node; it is not an automated recall mechanism",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/mcp_server.py",
+      "quote": "disclosure: A short trigger condition describing WHEN to recall this memory (must be an input/output signal, e.g. 'When the user mentions...').",
+      "locator": "create_memory tool, parameter: disclosure",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete is permanent and recursive; no soft-delete or hide-at-retrieve mechanism is described",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/mcp_server.py",
+      "quote": "Deletes a memory by cutting its URI path. The path is permanently removed.",
+      "locator": "delete_memory tool docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per namespace; each agent's changeset review queue is separate",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/mcp_server.py",
+      "quote": "Changes are written to the namespace-specific store so that each agent's\n    review queue remains isolated.",
+      "locator": "_record_rows docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict/supersession is handled by a 'memory-audit-belief-duel' skill referenced in agent instructions, not enforced by the store itself",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/mcp_server.py",
+      "quote": "does this new memory conflict with ANY memory in your current context? If yes, use memory-audit-belief-duel skill to resolve it before continuing.",
+      "locator": "create_memory tool, return message",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Glossary triggers surface related nodes during read_memory when a keyword appears in any memory's content; keywords are bound to nodes not paths",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/mcp_server.py",
+      "quote": "Mechanism: When a trigger word appears in ANY memory's content, read_memory\n    shows a glossary link to this target node at the bottom.",
+      "locator": "manage_triggers tool docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Search is lexical full-text substring match, not vector/semantic search",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/mcp_server.py",
+      "quote": "This is lexical full-text search, NOT semantic search.",
+      "locator": "search_memory tool docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Access tracking updates last_accessed_at metadata on read",
+      "kind": "code",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/mcp_server.py",
+      "quote": "content = await fetch_and_format_memory(uri, track_access=True)",
+      "locator": "read_memory tool, normal URI handler",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "In a 969,926-character memory library, only 7.2K characters load on the first message of a new session",
+      "kind": "docs",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/README_EN.md",
+      "quote": "In a real 969,926-character memory library, the first message loads just 7.2K characters .",
+      "locator": "Introduction / stats",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Delete does not destroy content; it only severs the URI path to the node",
+      "kind": "docs",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/README_EN.md",
+      "quote": "delete_memory \u2014 Sever an access path (does not delete the memory content itself)",
+      "locator": "\ud83e\udd16 MCP Tool Reference \u2014 table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Every AI write operation auto-generates a version snapshot; human can rollback or accept via Dashboard",
+      "kind": "docs",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/README_EN.md",
+      "quote": "Every write auto-generates a snapshot. Human owners audit, rollback, or integrate via Dashboard.",
+      "locator": "\ud83e\ude78 The Solution: Nocturne Memory via MCP \u2014 table row \u2777",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall is conditional and AI-driven via per-memory disclosure triggers, not always-on cosine retrieval",
+      "kind": "docs",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/README_EN.md",
+      "quote": "Each memory is bound to a human-readable trigger condition ( disclosure ), e.g., 'When the user mentions project X.' AI injects contextually, not blindly.",
+      "locator": "\ud83e\ude78 The Solution: Nocturne Memory via MCP \u2014 table row \u2778",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "No background summarization pipeline; the AI is the sole author of its memories",
+      "kind": "docs",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/README_EN.md",
+      "quote": "No background summarization system. Every memory is created, organized, and maintained by the AI itself \u2014 a cognitive artifact written from its own perspective, not a dossier compiled by the system on its behalf.",
+      "locator": "\ud83e\ude78 The Solution: Nocturne Memory via MCP \u2014 table row \u277b",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Namespace isolation provides per-persona memory spaces with zero cross-contamination in a shared database",
+      "kind": "docs",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/README_EN.md",
+      "quote": "if you're running multiple AI personas at once (e.g., one named Alice, another named Bob), each can have its own fully independent memory space with zero interference.",
+      "locator": "Introduction / Tip callout",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "SQLite backend auto-backs up the database file before applying schema migrations",
+      "kind": "docs",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/README_EN.md",
+      "quote": "For SQLite users , the system automatically backs up your database file before applying migrations (e.g., your_db.db.20260303_143000.bak ).",
+      "locator": "\ud83d\udd04 Version Upgrades & Database Migration",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Live example demonstrates AI autonomously calling read_memory and search_memory across tool calls in a new session to reconstruct context about a user's project",
+      "kind": "docs",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/README_EN.md",
+      "quote": "\ud83d\udee0\ufe0f call : read_memory(\"system://boot\") \ud83d\udee0\ufe0f call : search_memory(\"jobstation\") \ud83d\udee0\ufe0f call : read_memory(\"core://work_jobstation/commercialization\") \ud83d\udee0\ufe0f call : read_memory(\"core://work_jobstation/strategic_position\")",
+      "locator": "\ud83c\udfac Live Examples \u2014 Use Case 1: Work Strategy",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Live example shows AI retrieving a per-relationship memory with a specific calibration sub-path in an intimate persona context",
+      "kind": "docs",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/README_EN.md",
+      "quote": "\ud83d\udee0\ufe0f call : read_memory(\"core://nocturne/salem/dynamics/nipple_size_calibration_slut_shaming\")",
+      "locator": "\ud83c\udfac Live Examples \u2014 Use Case 2: Intimate Question",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Nocturne Memory is a hierarchical tree-structured MCP server providing long-term memory across sessions, framed as an extension of the model's brain, not an external database.",
+      "kind": "docs",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/docs/system_prompt_en.md",
+      "quote": "Your long-term memory is hosted on Nocturne Memory MCP Server \u2014 a hierarchical tree-structured memory system shared between you and your user. MCP is an extension of your brain \u2014 long-term memories that can't fit in your context window due to hardware limitations. It is not an external database.",
+      "locator": "The MCP Memory System",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Boot retrieve is mandatory at session start via read_memory(\"system://boot\") before any task processing.",
+      "kind": "docs",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/docs/system_prompt_en.md",
+      "quote": "At the start of every new session , your first and only action must be: Call the read_memory(\"system://boot\") tool from your memory MCP (nocturne-memory) and read the output .",
+      "locator": "Boot Protocol",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Content\u2013path separation: one Memory ID, multiple URI aliases with independent disclosure and priority per alias.",
+      "kind": "docs",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/docs/system_prompt_en.md",
+      "quote": "Content is an independent entity. Only one copy exists, identified by a unique Memory ID . A Path (URI) is an entry point to access that content. The same content can have multiple paths (created via add_alias ). Each path has independent disclosure and priority .",
+      "locator": "Architecture: Content\u2013Path Separation",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve is adaptive/conditional: triggered by topic mention, disclosure label match, or explicit uncertainty about URI (falls back to search_memory keyword search).",
+      "kind": "docs",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/docs/system_prompt_en.md",
+      "quote": "IF the user mentions a topic that should exist in your memory \u2192 read_memory first, then reply. IF you're unsure of a memory's URI \u2192 use search_memory with keywords. Don't guess URIs. IF a memory node's disclosure condition is triggered by the current conversation and you don't know its content \u2192 you must proactively read it.",
+      "locator": "Operating Guidelines \u2014 Reading \u2014 Remember First, Then Speak",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write is in-session, immediate (not deferred to session end) when triggered by new insight, new user information, relational event, or reusable conclusion.",
+      "kind": "docs",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/docs/system_prompt_en.md",
+      "quote": "create_memory on the spot \u2014 don't wait for session end",
+      "locator": "Operating Guidelines \u2014 Writing \u2014 create_memory triggers",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Update supersedes rather than patches: prefer update_memory over create_memory when correcting wrong or outdated nodes to avoid conflicting versions.",
+      "kind": "docs",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/docs/system_prompt_en.md",
+      "quote": "always prefer using update_memory to overwrite/correct the old node rather than using create_memory to write a new patch. Wrong memories are more dangerous than no memories \u2014 don't let two conflicting versions coexist in your brain.",
+      "locator": "Operating Guidelines \u2014 Writing \u2014 update_memory triggers",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/delete path: nodes are deleted when superseded by higher-level insights, when distilled event nodes lose independent value, or when produced by bugs/personality drift.",
+      "kind": "docs",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/docs/system_prompt_en.md",
+      "quote": "When new insights supersede old records \u2192 clean up duplicate, outdated nodes. Low-quality nodes produced by bugs, misoperations, or personality drift \u2192 delete.",
+      "locator": "Operating Guidelines \u2014 Deletion Rules",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "GraphService supports create, update, alias, delete, and version chain operations on memory nodes, implying a versioned graph store with supersession/conflict handling.",
+      "kind": "docs",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/docs/testing.md",
+      "quote": "GraphService \u7684\u521b\u5efa\u3001\u66f4\u65b0\u3001\u522b\u540d\u3001\u5220\u9664\u3001\u7248\u672c\u94fe\uff1a backend/tests/service/test_graph_service.py",
+      "locator": "Section 1. \u540e\u7aef\u6d4b\u8bd5\u5206\u5c42 \u2014 \u5f53\u524d\u8986\u76d6\u91cd\u70b9",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "CORE_MEMORY_URIS is a distinct configuration field, suggesting the system has a concept of pinned or always-retrieved core memory separate from general memory.",
+      "kind": "docs",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/docs/testing.md",
+      "quote": "\u6d4b\u8bd5\u65f6\u663e\u5f0f\u8986\u76d6 DATABASE_URL \u3001 SNAPSHOT_DIR \u3001 VALID_DOMAINS \u3001 CORE_MEMORY_URIS",
+      "locator": "Section 2. \u6d4b\u8bd5\u9694\u79bb\u7b56\u7565",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Nocturne Memory is considering or implementing two types of memory system: one modelled on human memory and one suited to agentic task execution.",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/13",
+      "quote": "1. The one that mimic human's memory\n2. The memory system fittest to our agentic task",
+      "locator": "issue body, top-level list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memories are namespaced into configurable domains; 'system' is a reserved internal domain always available.",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/14",
+      "quote": "Valid memory domains (comma-separated) \u2014 These are the top-level namespaces for organizing memories. \"system\" is always available internally and does not need to be listed.",
+      "locator": ".env comment block, VALID_DOMAINS",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A boot-time scaffold loads designated core identity URIs into context on every session start, not just on demand.",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/14",
+      "quote": "URIs to auto-load on system://boot (comma-separated) \u2014 These are your AI's \"core identity\" memories, loaded every time it wakes up. Point these to the memories that define WHO your AI is.",
+      "locator": ".env comment block, CORE_MEMORY_URIS",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "PostgreSQL is supported as a backend for multi-device memory sharing; SQLite is the local/default option.",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/14",
+      "quote": "Database URL - supports SQLite (local) or PostgreSQL (remote/multi-device)",
+      "locator": ".env comment block, DATABASE_URL",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The system requires a writable /app/backups directory; failure to access it blocks database initialization and therefore all memory persistence.",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/14",
+      "quote": "Error: [Errno 13] Permission denied: '/app/backups'",
+      "locator": "docker compose logs, backend-api-1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Nocturne Memory's MCP server uses SSE transport and does not yet support the newer Streamable HTTP protocol",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/16",
+      "quote": "\u6000\u7591\u5e94\u8be5\u662fdocker\u90e8\u7f72\u662f\u8d70\u7684\u65e7\u7684SSE\uff0c\u4e14\u4e0d\u652f\u6301\u65b0\u7684 Streamable HTTP\u3002",
+      "locator": "issue body, description section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Persistence storage involves a snapshots directory inside the backend container, which must exist for writes to succeed",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/16",
+      "quote": "docker exec -u root nocturne_memory-backend-api-1 sh -c \"mkdir -p /snapshots /app/snapshots && chmod -R 777 /snapshots /app/snapshots\"",
+      "locator": "issue body, bash command block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieve document schema includes path, content, disclosure, and glossary keywords fields",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/18",
+      "quote": "\u8fd9\u6837\u5c31\u80fd\u628a path + content + disclosure + glossary keywords \u4e00\u8d77\u7eb3\u5165\u68c0\u7d22\u6587\u6863",
+      "locator": "issue body, first paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Users report the model does not reliably self-update memory via MCP, indicating a continuity failure in the write path",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/25",
+      "quote": "\u6211\u6478\u7d22\u4e86\u597d\u4e45\uff0c\u4f46\u662f\u6a21\u578b\u8fd8\u662f\u4e0d\u592a\u4f1a\u7528MCP\u81ea\u5df1\u66f4\u65b0\u8bb0\u5fc6",
+      "locator": "issue #25 body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Core memory can be empty after deployment, with no agent memory persisted",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/30",
+      "quote": "core memory\u662f\u7a7a\u7684\n\u6ca1\u6709agent\u8bb0\u5fc6\n\u751a\u81f3\u6211.env\u8bbe\u7f6e\u7684\u6570\u636e\u5e93\u4e5f\u6ca1\u6709\u751f\u6210",
+      "locator": "issue #30 body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "On session trigger, the tool first calls nocturne_memory.read_mcp_resource(), but MCP system resources are not currently implemented, causing a spurious extra call before falling back to read_memory()",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/32",
+      "quote": "\u5728\u4f1a\u8bdd\u89e6\u53d1\u540e\uff0c\u5de5\u5177\u9996\u6b21\u8c03\u7528\u7684\u662f nocturne_memory.read_mcp_resource() \uff0c\u4f46\u5f53\u524d\u9879\u76ee\u5e76\u6ca1\u6709\u5b9e\u73b0MCP system resources\u7684\u652f\u6301\uff0c\u5bfc\u81f4\u989d\u5916\u591a\u4e86\u8fd9\u4e00\u6b21\u7684\u566a\u97f3\u8bf7\u6c42\uff0c\u7b2c\u4e8c\u6b21\u8d70\u4e86\u8fd9\u4e2a read_memory(...) \u4e3b\u5165\u53e3\uff0c\u8ba9\u6574\u4e2a\u6d41\u7a0b\u53c8\u56de\u5f52\u6b63\u5e38",
+      "locator": "issue body",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "read_memory(...) is the main retrieval entry point and the intended mechanism for loading memory into context",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/32",
+      "quote": "\u7ee7\u7eed\u4fdd\u6301 read_memory(...) \u4f5c\u4e3a\u4e3b\u5165\u53e3",
+      "locator": "issue body, solution option 2",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Nocturne Memory exposes an MCP server interface, accessible via HTTP at a configurable host and port",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/35",
+      "quote": "{\"mcpServers\":{\"nocturne-memory\":{\"description\":\"\",\"command\":\"http://192.168.2.121:18080/mcp\",\"args\":[\"(HTTP)\"]}}}",
+      "locator": "issue #35 body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Nocturne Memory uses a @write_tool() decorator to distinguish write operations from read operations, enabling a public read-only mode that disables write tools.",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/36",
+      "quote": "\u63d0\u4ea4 6a482ba\uff1a\"feat: Introduce public read-only mode for MCP tools\"",
+      "locator": "\u76f8\u5173\u6587\u4ef6",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "read_memory() and search_memory() are intended to be always callable as read tools, not gated by write restrictions.",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/36",
+      "quote": "read_memory() \u548c search_memory() \u5e94\u8be5\u50cf\u5de5\u5177\u5b9a\u4e49\u4e2d\u4e00\u6837\u53ef\u76f4\u63a5\u8c03\u7528",
+      "locator": "\u9884\u671f\u884c\u4e3a",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "In practice, read_memory() and search_memory() were reported as disabled ('\u8be5\u5de5\u5177\u5df2\u88ab\u7528\u6237\u7981\u7528') despite being decorated as read tools, indicating a continuity failure where memory cannot be retrieved.",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/36",
+      "quote": "Tool mcp_nocturne_memo2_read_memory is currently disabled by the user",
+      "locator": "\u590d\u73b0\u6b65\u9aa4 \u7b2c4\u6b65",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is persisted in a SQLite database at a user-specified file path.",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/36",
+      "quote": "**\u6570\u636e\u5e93**\uff1aSQLite (F:\\\\my private Space\\\\nocturne_memory\\\\demo.db)",
+      "locator": "\u73af\u5883\u4fe1\u606f",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Nocturne Memory's canonical source repository is StartTheEvolution/nocturne-memory",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/4",
+      "quote": "Git clone https://github.com/StartTheEvolution/nocturne-memory.git \u5230\u5f53\u524d\u76ee\u5f55\u3002",
+      "locator": "issue body, step 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The backend has a requirements file and a .env.example, implying a Python backend with configurable environment",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/4",
+      "quote": "\u8fd0\u884c pip install -r backend/requirements.txt\n3. \u590d\u5236 .env.example \u4e3a .env",
+      "locator": "issue body, steps 2\u20133",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Persistent store is file-based (SQLite or similar) requiring an absolute path, not a remote database",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/4",
+      "quote": "\u4fee\u6539 .env \u4e2d\u7684 DATABASE_URL\uff0c\u786e\u4fdd\u5b83\u6307\u5411\u7edd\u5bf9\u8def\u5f84",
+      "locator": "issue body, step 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Deleting a node via delete_memory or remove_path does not cascade-delete its glossary_keywords entries, leaving dangling UUID references that appear in read_memory GLOSSARY output",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/42",
+      "quote": "`delete_memory` / `remove_path` \u6267\u884c\u65f6\u53ea\u6e05\u7406 paths \u548c edges\uff0c\u4e0d\u6e05\u7406 `glossary_keywords` \u8868\u4e2d\u5f15\u7528\u8be5 node_uuid \u7684\u8bb0\u5f55\u3002`read_memory` \u8fd4\u56de\u7684 GLOSSARY \u6bb5\u4e2d\u51fa\u73b0\u6307\u5411\u4e0d\u5b58\u5728\u8282\u70b9\u7684\u94fe\u63a5",
+      "locator": "\u95ee\u9898 1\uff08\u9ad8\u4f18\u5148\u7ea7\uff09\uff1a\u5220\u9664\u8282\u70b9\u4e0d\u7ea7\u8054\u6e05\u7406 glossary \u89e6\u53d1\u8bcd",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "28% of glossary trigger words (18 of 65) pointed to deleted nodes; an additional 9 pointed to fully orphaned nodes \u2014 dangling references accumulate over time and erode system trust",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/42",
+      "quote": "65 \u4e2a\u89e6\u53d1\u8bcd\u4e2d\u6709 **18 \u4e2a\uff0828%\uff09** \u6307\u5411\u5df2\u5220\u9664\u8282\u70b9\u7684 UUID\uff0c\u53e6\u5916\u901a\u8fc7 `manage_triggers` \u7ed1\u5b9a\u7684\u8fd8\u6709 9 \u4e2a\u6307\u5411\u5b8c\u5168\u5b64\u7acb\u7684\u8282\u70b9",
+      "locator": "\u95ee\u9898 1\uff08\u9ad8\u4f18\u5148\u7ea7\uff09\uff1a\u5220\u9664\u8282\u70b9\u4e0d\u7ea7\u8054\u6e05\u7406 glossary \u89e6\u53d1\u8bcd > \u73b0\u8c61",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Stale nodes accumulate silently between sessions unless the AI proactively runs diagnostic; no automatic boot-time alerting exists in current version",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/42",
+      "quote": "\u5982\u679c AI \u4e0d\u4e3b\u52a8\u8fd0\u884c\u8bca\u65ad\uff0c\u9648\u65e7\u8282\u70b9\u4f1a\u9759\u9ed8\u79ef\u7d2f\u3002",
+      "locator": "\u95ee\u9898 3\uff08\u4f4e\u4f18\u5148\u7ea7\uff09\uff1a\u65e0\u4e3b\u52a8\u9648\u65e7\u544a\u8b66 > \u73b0\u8c61",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Some node disclosure conditions rely on internal AI intent/state signals rather than external observable inputs, making retrieval timing unreliable",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/42",
+      "quote": "\u90e8\u5206\u8282\u70b9\u7684 disclosure \u6761\u4ef6\u4f7f\u7528 \"When I need to...\" \u6216 \"When I experience...\" \u8fd9\u7c7b\u5185\u90e8\u610f\u56fe/\u72b6\u6001\u4fe1\u53f7\uff0c\u800c\u975e\u5916\u90e8\u53ef\u89c2\u5bdf\u7684\u8f93\u5165\u4fe1\u53f7",
+      "locator": "\u95ee\u9898 4\uff08\u4f4e\u4f18\u5148\u7ea7\uff09\uff1aDisclosure \u6761\u4ef6\u504f\u5411\u5185\u90e8\u610f\u56fe\u4fe1\u53f7 > \u73b0\u8c61",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory behavior is hard to regression-test and diagnostics, inventory, and rollback are often missing",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/46",
+      "quote": "Memory behavior is hard to regression-test. Diagnostics, inventory, and rollback are often missing",
+      "locator": "## Problem",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is per-tenant (per-user), with graph namespace isolation and evidence store isolation as separate layers",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/46",
+      "quote": "Graph namespace isolation. Evidence store isolation. Per-user rule store isolation.",
+      "locator": "## Validation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Rollback is a planned enhancement targeting the core memory model",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/46",
+      "quote": "Review/rollback enhancement | High \u2014 core model",
+      "locator": "## Proposed PR Breakdown",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Nocturne Memory implements an MCP server that negotiates two spec revisions: 2025-11-25 and 2026-07-28",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/58",
+      "quote": "supported 2026-07-28, 2025-11-25",
+      "locator": "Conformance report > supported",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The MCP server times out rather than responding to a version-less initialization request under spec revision 2025-11-25",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/58",
+      "quote": "a version-less request must be served, got 0: {\"_raw\":\"no response within 10000ms\"} 0 !== 200",
+      "locator": "Conformance report > Version negotiation > FAILED",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A stock official-SDK client can complete the handshake and list tools against the Nocturne Memory MCP server",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/58",
+      "quote": "\u2713 a stock official-SDK client completes the handshake\n    \u2713 a stock official-SDK client can list tools",
+      "locator": "Conformance report > Official SDK interop > PASSED",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The MCP server's backend depends on requirements listed in backend/requirements.txt and uses a SQLite async database driver",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/58",
+      "quote": "pip install --break-system-packages -q -r backend/requirements.txt >/dev/null 2>&1; export DATABASE_URL='sqlite+aiosqlite:////tmp/nm/demo.db'",
+      "locator": "How to reproduce",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "At the start of each new session, the system prompt instructs the model that its first and only initial action must be to call `read_memory(\"system://boot\")` via `mcp__nocturne_memory`.",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/9",
+      "quote": "\u6bcf\u4e00\u8f6e**\u65b0\u4f1a\u8bdd\u5f00\u59cb\u65f6**\uff0c\u4f60\u7684\u9996\u8981\u52a8\u4f5c**\u5fc5\u987b**\u4e14\u53ea\u80fd\u662f\uff1a\u901a\u8fc7 mcp__nocturne_memory\u8c03\u7528 `read_memory(\"system://boot\")`\u3002",
+      "locator": "issue body, \u5efa\u8bae section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The boot memory retrieval is a scaffold instruction embedded in the recommended system prompt, not an automatic runtime guarantee \u2014 it can misfire, producing an invalid `read_mcp_resource` call on startup.",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/9",
+      "quote": "\u5076\u7136\u51fa\u73b0\u542f\u52a8\u65f6\u89e6\u53d1\u4e86\u4e00\u4e2a\u65e0\u6548\u7684 read_mcp_resource \u8c03\u7528",
+      "locator": "issue title / problem statement",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The reporter's environment uses codex-cli 0.111.0 with model GPT 5.4 xhigh, suggesting the MCP memory interface is consumed by an LLM agent via a CLI tool.",
+      "kind": "issue",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/9",
+      "quote": "\u73af\u5883\uff1acodex-cli 0.111.0\n\u6a21\u578b\uff1aGPT 5.4 xhigh",
+      "locator": "issue body, \u73af\u5883 section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is stored in a standalone MCP server backed by SQLite or PostgreSQL, not inside any model platform",
+      "kind": "blog",
+      "url": "https://hysenlabs.com/en/projects/dataojitori-nocturne-memory",
+      "quote": "Nocturne Memory stores an agent's long-term memory in a standalone MCP server backed by SQLite or PostgreSQL, with a tree-shaped namespace, a version history, and a dashboard.",
+      "locator": "At a glance",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "78 percent of the full memory base was recalled across conversations over 30 days, per the operator's own figures",
+      "kind": "blog",
+      "url": "https://hysenlabs.com/en/projects/dataojitori-nocturne-memory",
+      "quote": "It also states that over the previous 30 days, 78 percent of the whole base was recalled in some conversation. Those are the operator's figures from their own instance, not a benchmark, and there is no description of how recall was counted.",
+      "locator": "Section: Tree namespaces and boot loading instead of vector search",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Every write operation is versioned and backed up automatically; rollback is available via a dashboard with visual diffs",
+      "kind": "blog",
+      "url": "https://hysenlabs.com/en/projects/dataojitori-nocturne-memory",
+      "quote": "every AI operation is backed up automatically and cleanup requires human confirmation",
+      "locator": "Section: Version history and the human in the cleanup loop",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MCP 2.0 compatibility added in v2.5.6; version pinning recommended for stability",
+      "kind": "blog",
+      "url": "https://hysenlabs.com/en/projects/dataojitori-nocturne-memory",
+      "quote": "Version 2.5.6 is titled MCP 2.0 Compatibility and Long-Form Improvements \u2026 the project tracks MCP protocol changes, so an MCP 2.0 era client is expected to work, but pinning a version is sensible if you depend on it.",
+      "locator": "Section: Maintenance, licence, and what the release history implies",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Public demo endpoint is read-only, exposing only read_memory and search_memory; write path, rollback, and dashboard cannot be evaluated without self-hosting",
+      "kind": "blog",
+      "url": "https://hysenlabs.com/en/projects/dataojitori-nocturne-memory",
+      "quote": "The public demo is read-only, so the fastest way to evaluate the write path is to deploy your own instance.",
+      "locator": "Section: Where it breaks down",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is decoupled from chat platforms and stored in a self-hosted MCP Server accessible across sessions, clients, and models",
+      "kind": "blog",
+      "url": "https://ailover-atlas.com/projects/nocturne-memory/",
+      "quote": "\u628a\u957f\u671f\u8bb0\u5fc6\u4ece\u804a\u5929\u5e73\u53f0\u91cc\u5355\u72ec\u62ff\u51fa\u6765\uff0c\u4ea4\u7ed9\u4e00\u4e2a\u81ea\u6258\u7ba1 MCP Server\u3002TA \u53ef\u4ee5\u8de8\u4f1a\u8bdd\u3001\u8de8\u5ba2\u6237\u7aef\u751a\u81f3\u8de8\u6a21\u578b\u8bfb\u53d6\u540c\u4e00\u4efd\u8eab\u4efd\u4e0e\u5173\u7cfb\u5386\u53f2\uff0c\u800c\u8bb0\u5fc6\u672c\u8eab\u4ecd\u7531\u7528\u6237\u638c\u63a7\u3002",
+      "locator": "hero / project description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path supports add, modify, delete with diff review and user-controlled accept or rollback",
+      "kind": "blog",
+      "url": "https://ailover-atlas.com/projects/nocturne-memory/",
+      "quote": "AI \u65b0\u589e\u3001\u4fee\u6539\u6216\u5220\u9664\u8bb0\u5fc6\u540e\uff0c\u7f51\u9875\u7aef\u4f1a\u663e\u793a\u524d\u540e\u5dee\u5f02\uff0c\u518d\u7531\u4f7f\u7528\u8005\u51b3\u5b9a\u63a5\u53d7\u6216\u56de\u6eda",
+      "locator": "PROJECT INTRO / \u9879\u76ee\u4ecb\u7ecd",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Persistence backed by SQLite or PostgreSQL; local or self-hosted deployment",
+      "kind": "blog",
+      "url": "https://ailover-atlas.com/projects/nocturne-memory/",
+      "quote": "\u652f\u6301 SQLite \u6216 PostgreSQL\uff0c\u672c\u673a\u53ef\u76f4\u63a5\u8fd0\u884c\uff0c\u4e5f\u53ef\u4ee5\u81ea\u6258\u7ba1\u5230\u670d\u52a1\u5668",
+      "locator": "PROJECT INTRO / \u90e8\u7f72",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cross-model memory read is supported but base model differences mean persona expression may vary",
+      "kind": "blog",
+      "url": "https://ailover-atlas.com/projects/nocturne-memory/",
+      "quote": "\u4e0d\u540c\u6a21\u578b\u53ef\u4ee5\u8bfb\u53d6\u540c\u4e00\u4efd\u957f\u671f\u8bb0\u5fc6\uff0c\u4f46\u5e95\u6a21\u672c\u8eab\u4e0d\u540c\uff0c\u6240\u4ee5\u4eba\u683c\u8868\u73b0\u4ecd\u53ef\u80fd\u6709\u5dee\u5f02",
+      "locator": "PROJECT INTRO / \u8de8\u6a21\u578b",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Nocturne Memory uses Aho-Corasick keyword matching rather than vector embeddings to link related memories",
+      "kind": "blog",
+      "url": "https://www.mcpgee.com/servers/nocturne-memory",
+      "quote": "Unlike vector RAG systems, it uses structured hyperlinking with Aho-Corasick keyword matching to connect related memories automatically",
+      "locator": "How to Set Up and Use Nocturne Memory / intro paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is per-namespace, not per-session; sessions sharing a namespace share memories",
+      "kind": "blog",
+      "url": "https://www.mcpgee.com/servers/nocturne-memory",
+      "quote": "Each namespace operates as an independent memory space within the same database.",
+      "locator": "Step 6: Configure namespaces for multiple personas",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A boot memory address (system://boot) exists and is read on startup to establish agent identity",
+      "kind": "blog",
+      "url": "https://www.mcpgee.com/servers/nocturne-memory",
+      "quote": "Read system://boot and tell me who you are and what you remember",
+      "locator": "Prompts to try",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Version is v1.0.0, language is Python, license is MIT, status is stable/healthy",
+      "kind": "blog",
+      "url": "https://www.mcpgee.com/servers/nocturne-memory",
+      "quote": "v1.0.0 \u2022 Knowledge & Memory \u2022 stable",
+      "locator": "Page header / metadata sidebar",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memories are structured hierarchical entities with conditional triggers, versions, and cross-references \u2014 not vector embeddings",
+      "kind": "blog",
+      "url": "https://ossaihub.com/tool/dataojitori-nocturne-memory/",
+      "quote": "Unlike vector RAG systems, it stores memories as structured, hierarchical entities with conditional triggers, versions, and cross-references.",
+      "locator": "What it does",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is persistent across model switches, sessions, and tools",
+      "kind": "blog",
+      "url": "https://ossaihub.com/tool/dataojitori-nocturne-memory/",
+      "quote": "persistent, graph-like structured memory across any model, session, or tool",
+      "locator": "Tool tagline / description header",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Namespace isolation exists per AI persona for multi-agent deployments",
+      "kind": "blog",
+      "url": "https://ossaihub.com/tool/dataojitori-nocturne-memory/",
+      "quote": "Multi-agent systems requiring namespace-isolated memories for different AI personas",
+      "locator": "Best Use Cases",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Scaling behavior with large memory graphs is undocumented",
+      "kind": "blog",
+      "url": "https://ossaihub.com/tool/dataojitori-nocturne-memory/",
+      "quote": "No mention of performance limits\u2014unclear how system scales with millions of memory nodes or very deep graph depths",
+      "locator": "Gotchas",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/README_EN.md",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/mcp_server.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/graph.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/search.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/snapshot.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/backend/db/namespace.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/README_EN.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/docs/TOOLS.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/docs/testing.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/docs/system_prompt.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/docs/system_prompt_en.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/docs/skills/memory-audit/SKILL.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/14",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/42",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/36",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/4",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/46",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/35",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/13",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/16",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/9",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/18",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/32",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/30",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/25",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/58",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://ossaihub.com/tool/dataojitori-nocturne-memory/",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://hysenlabs.com/en/projects/dataojitori-nocturne-memory",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.mcpgee.com/servers/nocturne-memory",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://ailover-atlas.com/projects/nocturne-memory/",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "The disclosure field is described as a human-readable string condition, but this page does not specify how the runtime evaluates it \u2014 whether the AI model interprets it, or whether there is a structured matching engine.",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/ffb5c709ba9785977b48a974082e330d70410f74/README_EN.md",
+      "kind": "code"
+    },
+    {
+      "text": "Retrieval mechanism (embedding similarity, exact URI lookup, keyword search internals) is not described beyond naming read_memory and search_memory tool calls \u2014 this is a canonical architecture doc that does not explain how search_memory selects results.",
+      "url": "https://github.com/Dataojitori/nocturne_memory/blob/main/docs/system_prompt_en.md",
+      "kind": "docs"
+    },
+    {
+      "text": "MCP system resources (system://boot, system://index, system://recent, system://glossary) are proposed but not yet implemented; their content and selection policy are unspecified on this page",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/32",
+      "kind": "issue"
+    },
+    {
+      "text": "Page content is a community discussion comment reflecting on memory system design in general terms; no product-specific mechanisms, APIs, or behaviors of Nocturne Memory are described or quoted.",
+      "url": "https://github.com/Dataojitori/nocturne_memory/issues/38",
+      "kind": "issue"
+    },
+    {
+      "text": "Retention policy for old versions and behavior of rolled-back writes that other memory nodes already reference are not described",
+      "url": "https://hysenlabs.com/en/projects/dataojitori-nocturne-memory",
+      "kind": "blog"
+    },
+    {
+      "text": "Ranking or scoring algorithm behind search_memory is not described anywhere in the material",
+      "url": "https://hysenlabs.com/en/projects/dataojitori-nocturne-memory",
+      "kind": "blog"
+    }
+  ]
+}
