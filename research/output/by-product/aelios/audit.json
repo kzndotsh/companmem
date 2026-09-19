@@ -1,0 +1,1122 @@
+{
+  "identity": {
+    "id": "aelios",
+    "name": "Aelios",
+    "repo": "https://github.com/wusaki0723/Aelios",
+    "docs": "https://github.com/wusaki0723/Aelios/blob/main/README.md",
+    "license": "AGPL-3.0",
+    "version_or_commit": "9e65c802ec1c13a68d22a68c5c9d7cdce385e041",
+    "observed_at": "2026-09-18"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Aelios is scoped to three functions: store, on-demand recall, and nightly secretary. Daytime intelligence is delegated to agents and client system prompts."
+    },
+    {
+      "text": "Aelios acts as a gateway that sanitizes requests, manages session identity, records raw requests, and injects memory into the current turn."
+    },
+    {
+      "text": "Gateway layer that injects recalled memory into the request payload sent to an upstream LLM, on human turns only."
+    },
+    {
+      "text": "MCP server named 'companion-memory-mcp' exposing memory tools for a companion agent"
+    },
+    {
+      "text": "Aelios uses a dream / daily digest path as an automatic long-term memory mechanism"
+    },
+    {
+      "text": "Cold-start boot package delivered once per session for stable, cached context"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Write path splits by trust source: agent writes via MCP/REST go directly to the database (upsert); dream nightly extraction output goes entirely into a candidates review queue and never directly to the store, regardless of confidence."
+    },
+    {
+      "text": "The drop_block mode instructs upstream to discard mismatched thinking blocks and affected subsequent blocks; it sacrifices some reasoning continuity and prior mismatched history is not restored if the user switches back."
+    },
+    {
+      "text": "The lifecycle table tracks supersession chains (`supersedes_id`, `superseded_by_id`) and a `fact_key`, supporting conflict/supersession modeling, though population of these fields is not shown in this file."
+    },
+    {
+      "text": "Model-level memory gate: only the registered primary model for an assistant gets memory recording and recall; unregistered models (e.g. small helper models) pass through without being remembered."
+    },
+    {
+      "text": "Recall (memory_recall) queries glossary + active memories + world_fact + longtail but does NOT query precious (precious lives in boot) and does NOT apply the 2-item auto-injection budget"
+    },
+    {
+      "text": "Message log (ingest) is stored separately from curated memory: messages are saved to a conversations/messages table via saveIngestMessages; memory extraction is a separate optional step"
+    },
+    {
+      "text": "Multiple named memory kinds are distinguished: 'authored' (from remember_now or a human author), 'distilled' (from dream, judge, or extract pipelines), and the raw type otherwise."
+    },
+    {
+      "text": "When a tool_result is followed by independent user text, recall fires on the new user input and memory is appended after the result and user text, not inserted before the result."
+    },
+    {
+      "text": "Messages are stored in D1 using INSERT OR IGNORE with a partial unique index for deduplication; idempotency is achieved via a time-bucketed hash on the user-message write path."
+    },
+    {
+      "text": "Write path (automated): nightly cron job extracts facts from that day's conversations and puts candidates into a review queue; also writes diary, weekly, and monthly entries."
+    },
+    {
+      "text": "Write operations (create, delete) are eventually consistent; newly created records may not be immediately visible via get, and deleted records may persist for a few seconds."
+    },
+    {
+      "text": "Forget/delete: memories can be deleted via the admin panel or via the memory_delete MCP tool; expired memories are flagged at 180 days and hard-deleted 30 days later."
+    },
+    {
+      "text": "Memory candidates are a review queue; they can be approved (creating or superseding a memory), discarded, merged into an existing memory, or explicitly superseded."
+    },
+    {
+      "text": "Human utterances are persisted (and optionally indexed for remember) before recall runs; a rememberStatus tracks whether the write was saved, indexed, or failed."
+    },
+    {
+      "text": "Human-in-the-loop review: nightly-extracted candidate memories appear in an audit queue; the user approves or discards them before they become long-term memory."
+    },
+    {
+      "text": "Natural-language queries use vector similarity search against stored content; retrieval is controlled by MEMORY_MIN_SCORE and MEMORY_FILTER_MIN_SCORE thresholds"
+    },
+    {
+      "text": "Isolation: memory is per-assistant; each assistant has its own write space and can optionally read from additional spaces (e.g. a legacy or shared namespace)."
+    },
+    {
+      "text": "Two storage backends: v1 uses Vectorize (vector store only); v2 uses D1 (primary/canonical) plus Vectorize (mirror), gated by MEMORY_LIFECYCLE_ENABLED"
+    },
+    {
+      "text": "Delete is a soft delete: the DB row is soft-deleted and its embedding is removed from the vector store; a legacy vector-only path is also handled."
+    },
+    {
+      "text": "Memory entries already carry a source_message_ids field for traceability; the proposal is that dream output should also attach this field"
+    },
+    {
+      "text": "Forget/delete: messages expire ~7 days; expired memories marked at 180 days; invalidated records hard-deleted 30 days after that"
+    },
+    {
+      "text": "Memories carry an E-axis protection flag and an authored_by field distinguishing hand-authored entries from automated ones."
+    },
+    {
+      "text": "Nightly dream pipeline handles extraction; memory_extract_dryrun is deprecated in v3 in favour of dream dry_run endpoints"
+    },
+    {
+      "text": "Vector memory upsert path exists but has no durable retry; failures are logged and execution continues."
+    },
+    {
+      "text": "Soft-archive (status='archived') is a non-destructive forget that does not touch the supersede chain"
+    },
+    {
+      "text": "response_tendency is a per-memory instruction on how the model should act when that memory fires"
+    },
+    {
+      "text": "digest_get and digest_set are deprecated in v3; digest now lives in the client system prompt"
+    },
+    {
+      "text": "Superseded versions are hidden from recall by default; include_history flag exposes them"
+    },
+    {
+      "text": "Glossary is L5 literal recall, not in the vector index, upserted by (namespace, term)"
+    },
+    {
+      "text": "Auto-injection is a separate short patch distinct from explicit recall tools"
+    },
+    {
+      "text": "The store backend is SQLite, used in the actual Worker path under test."
+    },
+    {
+      "text": "Hard delete in v2 removes from both D1 and Vectorize simultaneously"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Memory isolation is per-assistant and per-named-space; cross-space read is configurable",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/README.md",
+      "quote": "\u4e00\u4e2a\u52a9\u624b\u53ef\u4ee5\u5199\u4e00\u4e2a\u7a7a\u95f4\u3001\u8bfb\u597d\u51e0\u4e2a\u7a7a\u95f4\u3002\u6bd4\u5982\u65b0\u5bf9\u8bdd\u5199 `coder`\uff0c\u540c\u65f6\u8fd8\u80fd\u8bfb\u65e7\u5e93 `coder-old` \u548c\u5171\u4eab\u7684 `shared-docs`\u3002",
+      "locator": "README.md, \u5b83\u5b9e\u9645\u5728\u505a\u4ec0\u4e48",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Scaffold: recalled memories are appended as clean raw text at the tail of the current message, not as a separate system prompt section; envelope metadata excluded",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/README.md",
+      "quote": "\u628a\u5e72\u51c0\u539f\u6587\u8d34\u5230\u5f53\u524d\u6d88\u606f\u672b\u5c3e\u3002\u2026 \u4f20\u8f93\u4fe1\u5c01\u3001\u54c8\u5e0c\u548c\u6d88\u606f ID \u4e0d\u8fdb\u5165\u65e5\u5e38\u63d0\u793a",
+      "locator": "README.md, \u8bb0\u5fc6\u600e\u4e48\u8d70",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is a three-stage hard-delete: message log ~7 days, memory soft-expire at 180 days, hard-delete 30 days after invalidation",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/README.md",
+      "quote": "\u6e05\u7406\uff1a\u6d88\u606f\u7ea6 7 \u5929\uff0c\u8fc7\u671f\u8bb0\u5fc6 180 \u5929\u6807\u8bb0\uff0c\u5931\u6548\u8bb0\u5f55\u518d\u8fc7 30 \u5929\u786c\u5220\u3002",
+      "locator": "README.md, \u6e05\u7406",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Embedding model is @cf/baai/bge-m3 via Workers AI, 1024-dim cosine Vectorize index named memo-kb",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/README.md",
+      "quote": "Embedding | `workers-ai/@cf/baai/bge-m3`",
+      "locator": "README.md, \u7ed9\u7ef4\u62a4\u7684\u4eba (resource table)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Admin review queue is the human-in-the-loop gate between nightly extraction candidates and committed long-term memory",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/README.md",
+      "quote": "\u5ba1\u6838\u961f\u5217\uff1a\u591c\u95f4\u6574\u7406\u51fa\u6765\u7684\u5019\u9009\u8bb0\u5fc6\uff0c\u70b9\u901a\u8fc7\u6216\u4e22\u6389",
+      "locator": "README.md, \u5e73\u65f6\u600e\u4e48\u7ba1",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Aelios exposes a JSON-RPC MCP server called 'companion-memory-mcp' for companion agent memory",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "quote": "serverInfo: { name: \"companion-memory-mcp\", version: \"0.1.0\" }",
+      "locator": "handleRpc / initialize branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "v2 stores canonical memory records in D1 (SQLite) and mirrors vectors to Vectorize; v1 used Vectorize only",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "quote": "v2: \u8d70 D1 (\u672c\u4f53)\uff0c\u80fd\u5217\u51fa fact_key upsert \u5199\u5165\u7684\u8bb0\u5f55\u3002v1: \u8d70 Vectorize (\u5411\u91cf\u662f\u5f53\u65f6\u552f\u4e00\u5b58\u50a8)\u3002",
+      "locator": "callTool / memory_list branch, comment block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hard delete in v2 removes from both D1 and Vectorize; returns false if not found",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "quote": "v2: \u786c\u5220 D1 + \u5411\u91cf (\u672c\u4f53\u548c\u955c\u50cf\u4e00\u8d77\u5220)\uff0c\u627e\u4e0d\u5230\u8fd4\u56de false\u3002",
+      "locator": "callTool / memory_delete branch, comment block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Message ingest (log) and memory extraction are separate operations; ingest saves raw messages, extraction is optional",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "quote": "Save chat messages and optionally extract memories from them.",
+      "locator": "getTools() / memory_ingest description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hand-authored memories (authored_by set, source=mcp/manual/api) rank above dream-distilled memories and are protected from dream/judge overwrite",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "quote": "hand-authored memories rank above distilled ones and are protected from dream/judge overwrite.",
+      "locator": "getTools() / memory_upsert description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Supersession links old and new memory entries in a chain; old entry status becomes 'superseded'",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "quote": "Mark old_id as superseded and insert a new active entry, linking the supersede chain. Used for world_fact updates that invalidate older entries.",
+      "locator": "getTools() / memory_supersede description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Superseded versions are hidden from recall by default; opt-in via include_history=true",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "quote": "When true, include superseded memory versions (status/version_status=superseded). Default false.",
+      "locator": "getTools() / memory_recall inputSchema / include_history description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Soft-archive sets status='archived' without touching the supersede chain \u2014 a non-destructive forget",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "quote": "Soft-archive a memory (status='archived'). Does not touch the supersede chain.",
+      "locator": "getTools() / memory_archive description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Precious memories (L3) are pinned, exempt from dedup/decay/delete, and stored with surrounding context",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "quote": "Mark a memory as precious (L3, pinned, exempt from dedup/decay/delete). Store with surrounding context so a single line stays interpretable later.",
+      "locator": "getTools() / memory_pin description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Glossary is L5 literal recall stored outside the vector index, upserted by (namespace, term)",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "quote": "Add or update a glossary term (L5, literal recall, not in vector index). Upsert by (namespace, term).",
+      "locator": "getTools() / glossary_set description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Boot package (session start) retrieves yesterday's log + top pinned precious + all glossary; precious injection is tracked asynchronously",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "quote": "Cold-start package: yesterday log + top pinned precious + all glossary. Output is stable and deterministically ordered so the client can cache it. Call once on SessionStart.",
+      "locator": "getTools() / memory_boot description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "memory_recall covers glossary + active memories + world_fact + longtail but excludes precious (in boot) and excludes the auto-injection budget",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "quote": "Explicit recall with complete hit records (id, score, source). Glossary + active memories + world_fact + longtail. Does not apply the 2-item auto-injection budget. Precious is not queried here (it lives in boot).",
+      "locator": "getTools() / memory_recall description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A separate short auto-injection patch runs outside of explicit recall tools (budget: 2 items)",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "quote": "This is explicit recall, not the short auto-injection patch.",
+      "locator": "getTools() / memory_search description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "response_tendency is a per-memory scaffold instruction telling the model how to act when that memory fires",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "quote": "response_tendency: { type: \"string\", description: \"E-axis: how to respond when this memory fires\" }",
+      "locator": "getTools() / memory_upsert inputSchema",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Diary entries (daily_log / weekly_log) are impressions, not verified facts; daily entries roll up to weekly_log",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "quote": "These are impressions, not verified facts. Omit date for today+yesterday (recent). Use week (e.g. 2026-W29) for weekly_log. Rolled-up daily dates fall back to weekly_log. Fetch explicitly when needed; do not treat diary as ground truth.",
+      "locator": "getTools() / diary_get description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Nightly dream pipeline handles memory extraction from ingested messages; v3 removed the dry-run extraction tool in favour of dream endpoints",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "quote": "memory_extract_dryrun is deprecated in v3; extraction runs via the dream nightly pipeline. Use dream dry_run endpoints instead.",
+      "locator": "callTool / memory_extract_dryrun branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per namespace; namespace is resolved from the API key profile and can be overridden per call",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "quote": "namespace: resolveNamespace(profile, args.namespace)",
+      "locator": "callTool / multiple branches",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "In v3 the digest moved out of the memory store into the client system prompt",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "quote": "digest_get / digest_set is deprecated in v3; digest lives in the client system prompt. Use diary_get for daily_log.",
+      "locator": "callTool / digest_get / digest_set branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are persisted per namespace in a D1 database with type, content, importance, confidence, tags, source, and optional expiry fields.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/memories.ts",
+      "quote": "const created = await createMemory(env.DB, { namespace: resolveNamespace(profile, body.namespace), type, content, summary: readOptionalString(body.summary), importance: readNumber(body.importance, 0.5), confidence: readNumber(body.confidence, 0.8), pinned: readBoolean(body.pinned), tags: readStringArray(body.tags), source: readOptionalString(body.source) || profile.source, sourceMessageIds: readStringArray(body.source_message_ids), expiresAt: readOptionalString(body.expires_at) });",
+      "locator": "src/api/memories.ts:handleCreateMemory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "v2 write path uses fact-keyed upsert, enabling idempotent create-or-update by semantic key rather than by row ID.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/memories.ts",
+      "quote": "const result = await upsertMemoryByFactKey(env, { namespace, factKey, type, content, importance: readNumber(body.importance, 0.6), confidence: readNumber(body.confidence, 0.8), ... });",
+      "locator": "src/api/memories.ts:handleCreateMemory (isV2Enabled branch)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete is soft: the DB row is soft-deleted and its vector embedding is removed; a legacy vector-only delete path is also handled.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/memories.ts",
+      "quote": "const deleted = await softDeleteMemory(env.DB, { namespace: profile.namespace, id }); if (deleted) await deleteMemoryEmbeddingBestEffort(env, deleted);",
+      "locator": "src/api/memories.ts:handleDeleteMemory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict resolution uses supersession: conflicting active memories are replaced by a new record; the old record is retained with superseded status.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/memories.ts",
+      "quote": "const result = await supersedeMemory(env, { namespace, oldId: hit.memory.id, newContent: input.content, newType: input.type, newFactKey: null, importance: input.importance, confidence: input.confidence, tags, source: input.source, sourceMessageIds: input.sourceMessageIds, reason: \"dedup_gate_supersede\" });",
+      "locator": "src/api/memories.ts:createApprovedMemoryFromCandidate",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Week-block summaries are retrieved alongside individual memory hits and injected into the prompt as labeled context chunks, not as individual memory records.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/memories.ts",
+      "quote": "// #35: \u5468\u5757\u4e0e data \u5e73\u884c\u4e0b\u53d1\uff0c\u4e0d\u6df7\u8fdb data \u2014\u2014 \u5b83\u662f\u4e0a\u4e0b\u6587\u5757\uff0c\u4e0d\u662f\u547d\u4e2d\u3002\nweek_blocks: result.week_blocks, ...result.week_blocks.map( (b) => `- [\u5468\u8bb0 ${b.week} ${b.start_date}~${b.end_date}] ${b.title}\uff1a${b.summary}` )",
+      "locator": "src/api/memories.ts:handleRecallMemories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Raw conversation messages (log layer) are stored separately from curated memory records; ingest saves to a messages table keyed by conversation and namespace.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/memories.ts",
+      "quote": "const ids = await saveIngestMessages(env.DB, { conversationId: conversation.id, namespace, source, messages }); return json({ data: { conversation_id: conversation.id, message_ids: ids, auto_extract: body.auto_extract !== false } });",
+      "locator": "src/api/memories.ts:handleIngestMemories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A daily digest (dream) pipeline extracts curated memory candidates from the raw message log; it runs per namespace and date.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/memories.ts",
+      "quote": "const result = await runDailyMemoryDigest(env, namespace, { dateLabel: target, force: force && i === 0, trigger: \"manual\" });",
+      "locator": "src/api/memories.ts:handleRunDigest",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory candidates are a human-reviewable queue; each can be approved (creating or superseding a memory), discarded, merged, or explicitly superseded.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/memories.ts",
+      "quote": "if (action === \"approve\") { ... } if (action === \"discard\") { ... } if (action === \"merge\") { ... } if (action === \"supersede\") { ... }",
+      "locator": "src/api/memories.ts:handleMemoryCandidates",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hand-authored (E-axis) memories are protected from automated pipeline overwrites; attempts return HTTP 409 with an explicit error.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/memories.ts",
+      "quote": "return openAiError( \"\u76ee\u6807\u8bb0\u5fc6\u662f\u4eb2\u7b14\u5199\u5165\uff08E \u8f74\u4fdd\u62a4\uff09\uff0c\u5ba1\u6838\u94fe\u53ea\u53ef\u63d0\u6848\u3001\u4e0d\u53ef\u8986\u5199\u3002\u8fd9\u6761\u5019\u9009\u8bf7\u9009\u300c\u4e22\u5f03\u300d\uff1b\u786e\u8981\u66f4\u65b0\u539f\u6587\uff0c\u53bb\u91cd\u8981\u8bb0\u5fc6\u9875\u4eb2\u624b\u7f16\u8f91\u6216\u53d6\u4ee3\u90a3\u6761\u8bb0\u5fc6\u3002\", 409, \"hand_authored_protected\" );",
+      "locator": "src/api/memories.ts:handAuthoredConflict",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Precious notes are a distinct, append-only, human-authored store separate from the main memory table; they are returned at session boot.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/memories.ts",
+      "quote": "const row = await createPrecious(env.DB, { namespace: resolveNamespace(auth.profile, body.namespace), content, contextMessageIds: readStringArray(body.context_message_ids), source: readString(body.source) || \"human\" });",
+      "locator": "src/api/memories.ts:handlePrecious",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session boot aggregates daily log, precious notes, glossary, recent raw messages, pending candidate count, and memory type counts into a single response for context initialization.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/memories.ts",
+      "quote": "const [dailyLog, precious, glossary, todayMessages, todayRawCount, pendingCount, typeCounts] = await Promise.all([ getDailyLog(...), listPrecious(...), listGlossary(...), listMessagesByNamespaceInRange(...), countMessagesInRange(...), countMemoryCandidates(...), countActiveMemoriesByType(...) ]);",
+      "locator": "src/api/memories.ts:handleMemoryBoot",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per namespace; all reads and writes resolve and enforce a namespace derived from the API key profile.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/memories.ts",
+      "quote": "const namespace = resolveNamespace(profile, body.namespace);",
+      "locator": "src/api/memories.ts:handleCreateMemory (and throughout)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Longtail memories have a separate hard-delete path that removes both the DB record and the vector, unlike the soft-delete path for normal memories.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/memories.ts",
+      "quote": "const result = await deleteLongtail(env, { namespace, id }); if (result === \"not_found\") return openAiError(\"Longtail entry not found\", 404); if (result === \"vector_error\") { return openAiError(\"Longtail vector delete failed\", 503, \"memory_error\"); }",
+      "locator": "src/api/memories.ts:handleLongtailApi",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Search supports optional filter-and-compress post-processing to reduce the retrieved set before injection.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/memories.ts",
+      "quote": "const shouldFilter = readBoolean(body.filter, false); const filterResult = shouldFilter ? await filterAndCompressMemoriesWithMeta(env, { query, memories: raw }) : null;",
+      "locator": "src/api/memories.ts:handleSearchMemories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory kinds are explicitly typed: 'authored' for user-directed writes, 'distilled' for pipeline-extracted memories, and the raw DB type for everything else.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/gateway/handler.ts",
+      "quote": "if (source === \"remember_now\" || authoredBy) return \"authored\";\n  if (source === \"dream\" || source === \"judge\" || source === \"extract\") return \"distilled\";\n  return type;",
+      "locator": "memoryKind function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Precious entries are a curated pinned-fact store selected lexically, distinct from the vector recall log.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/gateway/handler.ts",
+      "quote": "const precious = await listPrecious(env.DB, { namespace, limit: 80 });\n        const relevantPrecious = selectRelevantPrecious(precious, shaped.lexicalTokens);",
+      "locator": "recallPatch, per-namespace block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Weekly impression blocks are a summarised temporal memory layer retrieved only when the query is classified as temporal.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/gateway/handler.ts",
+      "quote": "const weekBlocks = temporal\n      ? recall.week_blocks.filter((block) =>\n        isPreciousRelevant(`${block.week} ${block.title} ${block.summary}`, shaped.lexicalTokens)\n      )\n      : [];",
+      "locator": "recallPatch, weekBlocks filter",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A verbatim quote store exists separate from the main memory store; it is queried only for evidence-classified queries.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/gateway/handler.ts",
+      "quote": "evidence\n        ? searchQuotes(env.DB, {\n            namespace,\n            query,\n            tokens: shaped.lexicalTokens,\n            limit: 4,\n            excludeIds: options.excludeMessageIds,\n            excludeVisibleIn: options.excludeVisibleIn\n          })\n        : Promise.resolve([])",
+      "locator": "recallPatch, quotes fetch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall is gated by a budget (maxItems, maxChars) and by a selectRecall step that makes per-entry include/exclude decisions with a model, threshold, and reason.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/gateway/handler.ts",
+      "quote": "const selection = await selectRecall(env, {\n    query, recent, visible: options.excludeVisibleIn, entries, maxItems: budget.maxItems\n  });\n  const assembled = assembleRecallSurface(selection.entries, {\n    budget: identity.maxMemoryChars || 6000,\n    maxItems: budget.maxItems,\n    maxChars: budget.maxChars\n  });",
+      "locator": "recallPatch, selectRecall and assembleRecallSurface calls",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Injected memory IDs are marked in the DB after each turn, allowing the system to track injection history per memory item.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/gateway/handler.ts",
+      "quote": "ctx.waitUntil(\n        markMemoriesInjected(env.DB, { namespace, ids: injectedMemoryIds })\n          .catch(() => console.error(\"gateway recall accounting failed\"))\n      );",
+      "locator": "recallPatch, injection accounting block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Every recall run writes a structured recall_explain event to the memory_events table, forming an audit log of what was retrieved and why.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/gateway/handler.ts",
+      "quote": "INSERT INTO memory_events (id, namespace, event_type, memory_id, payload_json, created_at)\n       VALUES (?, ?, 'recall_explain', NULL, ?, ?)",
+      "locator": "recallPatch, recall_explain insert",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Human utterances are persisted to storage before recall; a separate remember path indexes them, with status tracked as saved or indexed.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/gateway/handler.ts",
+      "quote": "const captured = await persistHumanUtterance(env, exchange);\n      if (captured.remember.wrote) rememberStatus = captured.remember.indexed ? \"indexed\" : \"saved\";",
+      "locator": "handleGateway, human utterance persist block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is only active for 'main' model identities; auxiliary or non-main models pass through without any recall or persistence.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/gateway/handler.ts",
+      "quote": "Only main models carry memory and feed Dream; every other model passes through quietly.",
+      "locator": "handleGateway, inline comment before main check",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall only fires on human turns; assistant or system turns are skipped.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/gateway/handler.ts",
+      "quote": "if (main && turn.kind === \"human\" && turn.text) {\n    try {\n      const prior = recentHumanTexts(body, protocol).slice(0, -1).slice(-3);\n      patch = await recallPatch(...)",
+      "locator": "handleGateway, recall guard condition",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per identity namespace; write namespace and read namespaces are derived separately from the identity, allowing cross-namespace reads.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/gateway/handler.ts",
+      "quote": "const namespace = identityNamespace(identity);\n  const namespaces = identityReadNamespaces(identity);",
+      "locator": "recallPatch, namespace derivation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The digest pipeline uses a cursor to track which log entries have been processed, enabling incremental and backfill runs",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/memory/dailyDigest.ts",
+      "quote": "readDailyCursor, readDreamCursorValue \u2026 runDreamBackfill",
+      "locator": "export list, dailyDigest.ts",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The dream/daily-digest pipeline is the public memory surface of the src/memory/dream/ module, with implementation details kept internal",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/memory/dailyDigest.ts",
+      "quote": "Stable import path for the dream/daily-digest pipeline. Implementation lives under src/memory/dream/ \u2014 this file re-exports the public surface.",
+      "locator": "file header comment, dailyDigest.ts",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Aelios persists memories to a dual store: Cloudflare D1 (SQL, `memories` table) and Cloudflare Vectorize (vector index), with both written on create and updated on patch.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/memory/vectorStore.ts",
+      "quote": "await insertMemoryRecord(env, record);\n\n  try {\n    await requireVectorize(env).upsert([{\n      id: vectorId,\n      namespace: normalized.namespace,\n      values: vector,\n      metadata: toMetadata(normalized)\n    }]);",
+      "locator": "createVectorMemory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory records are namespace-isolated: every create, read, update, and search operation is scoped to a caller-supplied namespace string.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/memory/vectorStore.ts",
+      "quote": "namespace: input.namespace,\n...WHERE namespace = ? AND id = ?",
+      "locator": "VectorMemoryInput / updateMemoryRecord / markMemoryRecordDeleted",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory deletion is a two-step soft-then-hard operation: D1 row is marked status='deleted' and removed from FTS, then the Vectorize vector is deleted by id.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/memory/vectorStore.ts",
+      "quote": "await markMemoryRecordDeleted(env, { namespace: existing.namespace, id: existing.id, updatedAt: nowIso() });\n\n  if (vectorIds.length > 0) {\n    try {\n      await requireVectorize(env).deleteByIds(vectorIds);",
+      "locator": "deleteVectorMemory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Inactive memories (status deleted/archived/expired) are hidden at retrieval by default; they can be included via an explicit option.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/memory/vectorStore.ts",
+      "quote": "if (!options?.includeInactive && status !== \"active\") return null;",
+      "locator": "vectorMetadataToMemoryRecord",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A lifecycle table supports supersession chains and recall tracking (last_seen_at, seen_count, last_injected_at), but its population beyond creation defaults is not in this file.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/memory/vectorStore.ts",
+      "quote": "`INSERT OR IGNORE INTO memory_lifecycle (\n        memory_id, namespace, fact_key, supersedes_id, superseded_by_id,\n        review_reason, valid_as_of, last_seen_at, seen_count, last_injected_at\n      ) VALUES (?, ?, NULL, NULL, NULL, NULL, NULL, ?, 0, NULL)`",
+      "locator": "insertMemoryRecord",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The recall pipeline applies a low embedding score floor (default 0.1) before a downstream reranker (bge-reranker-base) and LLM compressor, to avoid silently dropping semantically relevant but reworded memories.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/memory/vectorStore.ts",
+      "quote": "// Recall floor on the raw embedding score from Vectorize, applied BEFORE the\n// reranker. Kept low: embeddinggemma under-scores on-topic-but-reworded hits\n// (~0.15\u20130.20), so a high floor silently drops relevant memories. The reranker\n// (bge-reranker-base) and the LLM compressor downstream handle precision.",
+      "locator": "getMinScore",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory writes store the originating message ids (`source_message_ids`), linking curated memory records back to the conversation log.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/memory/vectorStore.ts",
+      "quote": "sourceMessageIds?: string[];\n...source_message_ids: JSON.stringify(input.sourceMessageIds),",
+      "locator": "VectorMemoryInput / toMemoryRecord",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Aelios separates raw exchange persistence from memory retention via two distinct queue message types, indicating a log vs. curated-memory architecture.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/queue/consumer.ts",
+      "quote": "case \"gateway_exchange\": await persistExchange(env, message);\n    return;\n    case \"retention\": await runMemoryRetention(env, message.namespace);",
+      "locator": "src/queue/consumer.ts:handleQueueMessage",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory retention is namespaced, implying isolation boundaries (per user, session, or agent) exist in the store.",
+      "kind": "code",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/queue/consumer.ts",
+      "quote": "await runMemoryRetention(env, message.namespace);",
+      "locator": "src/queue/consumer.ts:handleQueueMessage, retention branch",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "User-message write path deduplicates within 10-minute buckets using a hash of conversationId, role, normalized content, and time bucket, stored via INSERT OR IGNORE.",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/NOTES-hotpath.md",
+      "quote": "saveUserMessages hashes conversationId:role:normalizeContent(content):bucket where bucket = Math.floor(Date.now() / 600_000) (10-minute windows). Client retries seconds apart still dedupe via INSERT OR IGNORE + lookup-by-hash; the same text in a different 10-minute bucket inserts as a new row.",
+      "locator": "Idempotency semantics (P0 fixup)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Boot package (precious/glossary content scaffolded into context) is cached per worker isolate for 60 seconds with no write-triggered invalidation, meaning the model may see stale memory content for up to 60 seconds after a write.",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/NOTES-hotpath.md",
+      "quote": "Boot package cache is per-worker-isolate with plain 60s TTL and no invalidation on precious/glossary writes. Stale boot content for up to 60s is accepted by SPEC; explicit invalidation would need write-path hooks.",
+      "locator": "Observed during implementation (not changed)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Vector memory upsert failures are not retried durably; the system logs the error and continues, meaning vector recall may be incomplete after transient failures.",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/NOTES-hotpath.md",
+      "quote": "updateVectorMemory / vector upsert paths still console.error and continue on Vectorize failure; no durable retry queue.",
+      "locator": "Explicitly out of scope (from SPEC)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Aelios is a memory gateway on Cloudflare that persists conversations and recalls them across sessions, clients, and models",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/README.md",
+      "quote": "\u7ed9 AI \u52a0\u4e00\u9897\u957f\u671f\u8bb0\u5fc6\u3002\u6362\u7a97\u53e3\u3001\u6362\u5ba2\u6237\u7aef\u3001\u6362\u6a21\u578b\uff0c\u8bb0\u5fc6\u8ddf\u7740\u4f60\u8d70\u3002\u5b83\u662f\u4e00\u4e2a\u8dd1\u5728 Cloudflare \u4e0a\u7684\u8bb0\u5fc6\u7f51\u5173\uff1a\u4f60\u7684 Chatbox / Claude Code / Codex \u5148\u8fde\u5b83\uff0c\u5b83\u518d\u628a\u8bf7\u6c42\u8f6c\u7ed9\u6a21\u578b\u3002\u5bf9\u8bdd\u4f1a\u88ab\u8bb0\u4e0b\u6765\uff0c\u4e0b\u6b21\u81ea\u52a8\u60f3\u8d77\u6765\u3002",
+      "locator": "README.md, top description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path: assistant can write directly via memory_upsert; nightly cron (10 20 * * *) extracts facts from that day's conversations into the review queue and writes diary/weekly/monthly entries",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/README.md",
+      "quote": "\u5199\u5165\uff1a\u52a9\u624b\u76f4\u5199 memory_upsert \uff1b\u591c\u91cc cron\uff08 10 20 * * * \uff09\u4ece\u5f53\u5929\u5bf9\u8bdd\u62bd\u4e8b\u5b9e \u2192 \u8fdb\u5ba1\u6838\u961f\u5217\uff0c\u5e76\u5199\u65e5\u8bb0 / \u5468\u8bb0 / \u6708\u8bb0\u3002",
+      "locator": "README.md, \u8bb0\u5fc6\u600e\u4e48\u8d70 section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Log vs memory distinction: raw conversation text is stored first; nightly Dream process curates it into long-term memories; raw messages expire ~7 days, long-term memories up to 210+ days",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/README.md",
+      "quote": "\u5bf9\u8bdd\u539f\u6587\u5148\u5b58\u4e0b\u6765\uff1b\u591c\u91cc\u81ea\u52a8\u6574\u7406\u6210\u957f\u671f\u8bb0\u5fc6\uff08Dream\uff09\uff0c\u91cd\u8981\u7684\u4f1a\u8fdb\u5ba1\u6838\u961f\u5217\u3002\u2026\u6e05\u7406\uff1a\u6d88\u606f\u7ea6 7 \u5929\uff0c\u8fc7\u671f\u8bb0\u5fc6 180 \u5929\u6807\u8bb0\uff0c\u5931\u6548\u8bb0\u5f55\u518d\u8fc7 30 \u5929\u786c\u5220\u3002",
+      "locator": "README.md, \u5b83\u5b9e\u9645\u5728\u505a\u4ec0\u4e48 / \u8bb0\u5fc6\u600e\u4e48\u8d70 sections",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-assistant with configurable multi-space read: one assistant writes to one namespace and can optionally read from additional namespaces",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/README.md",
+      "quote": "\u4e00\u4e2a\u52a9\u624b\u53ef\u4ee5\u5199\u4e00\u4e2a\u7a7a\u95f4\u3001\u8bfb\u597d\u51e0\u4e2a\u7a7a\u95f4\u3002\u6bd4\u5982\u65b0\u5bf9\u8bdd\u5199 coder \uff0c\u540c\u65f6\u8fd8\u80fd\u8bfb\u65e7\u5e93 coder-old \u548c\u5171\u4eab\u7684 shared-docs \u3002\u4e0d\u586b\u53ec\u56de\u7a7a\u95f4\u5c31\u53ea\u8bfb\u81ea\u5df1\u90a3\u4e2a\u3002",
+      "locator": "README.md, \u5b83\u5b9e\u9645\u5728\u505a\u4ec0\u4e48 section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict/supersession supported via memory_supersede MCP tool",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/README.md",
+      "quote": "memory_upsert memory_supersede memory_archive memory_pin",
+      "locator": "README.md, MCP \u5de5\u5177 section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Only the primary model registered to an assistant has memory; other models pass through without recording or recall",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/README.md",
+      "quote": "\u4e3b\u6a21\u578b\u624d\u6709\u8bb0\u5fc6\u3002\u6ca1\u767b\u8bb0\u7684\u6a21\u578b\uff08\u6bd4\u5982 Claude Code \u91cc\u7684\u5c0f\u6a21\u578b\uff09\u53ea\u662f\u8def\u8fc7\uff0c\u4e0d\u8bb0\u4e5f\u4e0d\u53ec\u3002",
+      "locator": "README.md, 2. \u52a0\u4e00\u4e2a\u52a9\u624b section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Store uses Cloudflare D1 (relational) and Vectorize (1024-dim cosine, bge-m3 embeddings); memory is not tied to any chat window",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/README.md",
+      "quote": "\u8bb0\u5fc6\u5b58\u5728\u4f60\u81ea\u5df1\u7684 Cloudflare\uff08D1 + Vectorize\uff09\uff0c\u4e0d\u7ed1\u67d0\u4e2a\u804a\u5929\u7a97\u53e3\u3002\u2026Embedding: workers-ai/@cf/baai/bge-m3",
+      "locator": "README.md, \u5b83\u5b9e\u9645\u5728\u505a\u4ec0\u4e48 / \u7ed9\u7ef4\u62a4\u7684\u4eba sections",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Human review gate: nightly candidate memories surface in an audit queue; user approves or discards before promotion to long-term memory",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/README.md",
+      "quote": "\u5ba1\u6838\u961f\u5217\uff1a\u591c\u95f4\u6574\u7406\u51fa\u6765\u7684\u5019\u9009\u8bb0\u5fc6\uff0c\u70b9\u901a\u8fc7\u6216\u4e22\u6389",
+      "locator": "README.md, \u5e73\u65f6\u600e\u4e48\u7ba1 section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Processing pipeline includes a dedicated recall/record step followed by an inject step before final outbound validation.",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/docs/request-contract.md",
+      "quote": "\u9274\u6743\u548c\u8eab\u4efd\u9009\u62e9 \u2192 \u6309\u534f\u8bae\u51c0\u5316 \u2192 \u4e3b\u6a21\u578b thinking \u7b56\u7565 \u2192 \u5408\u6cd5\u6027\u9884\u68c0 \u2192 \u517c\u5bb9\u7f13\u5b58\u8f6c\u6362 \u2192 \u539f\u6587\u8bb0\u5f55/\u53ec\u56de \u2192 \u6ce8\u5165 \u2192 \u6700\u7ec8\u51fa\u7ad9\u6821\u9a8c \u2192 CF\u3002",
+      "locator": "\u5904\u7406\u987a\u5e8f",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall fires on new user input when a tool_result is followed by independent user text; injected memory is appended after both result and user text.",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/docs/request-contract.md",
+      "quote": "tool_result \u540e\u6709\u72ec\u7acb\u7528\u6237\u6587\u672c / \u6309\u65b0\u7528\u6237\u8f93\u5165\u53ec\u56de / \u8bb0\u5fc6\u8ffd\u52a0\u5728\u7ed3\u679c\u548c\u7528\u6237\u6587\u5b57\u4e4b\u540e\uff0c\u4e0d\u63d2\u5230\u7ed3\u679c\u524d",
+      "locator": "Thinking \u5ba1\u8ba1\u77e9\u9635",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "drop_block sacrifices reasoning continuity and previously mismatched history is not recoverable after mode change.",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/docs/request-contract.md",
+      "quote": "drop_block \u53ea\u8ba9\u4e0a\u6e38\u4e22\u5f03\u5931\u914d\u7684\u5757\u53ca\u53d7\u5176\u5f71\u54cd\u7684\u540e\u7eed\u5757\uff0c\u4e0d\u662f\u7f51\u5173\u5220\u9664\u5168\u90e8 thinking\u3002\u5b83\u4f1a\u727a\u7272\u90e8\u5206\u63a8\u7406\u8fde\u7eed\u6027\u3002\u7528\u6237\u6539\u56de passthrough \u6216 disabled \u540e\uff0c\u5148\u524d\u5df2\u5931\u914d\u7684\u5386\u53f2\u4e0d\u4f1a\u81ea\u52a8\u6062\u590d\u3002",
+      "locator": "Thinking \u5ba1\u8ba1\u77e9\u9635 (below matrix)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The backing store is SQLite, exercised via the actual Worker path in tests.",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/docs/request-contract.md",
+      "quote": "npm run test:gateway \u8fd0\u884c\u5b9e\u9645 Worker/SQLite \u8def\u5f84\u4e0e\u72ec\u7acb\u5951\u7ea6\u6d4b\u8bd5",
+      "locator": "\u9a8c\u8bc1\u8303\u56f4",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Aelios's stated purpose is to be a store, on-demand recall layer, and nightly secretary; daytime reasoning is explicitly out of scope.",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/docs/specs/v3-slim.md",
+      "quote": "Aelios \u53ea\u505a\u4e09\u4ef6\u4e8b\u2014\u2014\u4ed3\u5e93\u3001\u6309\u9700\u53ec\u56de\u3001\u591c\u95f4\u79d8\u4e66\u3002\u767d\u5929\u7684\u667a\u80fd\u5f52 agent \u548c\u5ba2\u6237\u7aef system prompt\u3002",
+      "locator": "opening paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path is bifurcated by trust: agent/MCP writes land directly in the database; dream extraction output is always queued for human review in candidates before any fact reaches the memory store.",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/docs/specs/v3-slim.md",
+      "quote": "\u5199\u5165\u6309\u4fe1\u4efb\u6765\u6e90\u5206\u6d41\uff1aagent \u7ecf MCP/REST \u76f4\u5199\uff08upsert\uff09\u2192 \u76f4\u63a5\u843d\u5e93\uff1bdream \u591c\u95f4\u62bd\u53d6\u4ea7\u7269 \u2192 \u5168\u90e8\u8fdb candidates \u5ba1\u6838\u961f\u5217\uff0c\u4e00\u6761\u90fd\u4e0d\u76f4\u63a5\u843d\u5e93 \uff0c\u65e0\u8bba\u7f6e\u4fe1\u5ea6\u3002",
+      "locator": "\u8bbe\u8ba1\u88c1\u5b9a / bullet 1",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Supersede/conflict resolution for world facts exists and is handled inside the dream pipeline; merge/update/delete suggestions route through the candidates review queue.",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/docs/specs/v3-slim.md",
+      "quote": "dream \u4fdd\u7559\uff1adaily_log \u751f\u6210\uff08title+summary \u5199 daily_log \u8868\uff09\u3001world_fact supersede\u3001\u91cd\u8981\u539f\u6587\u6458\u5f55\u3002\nmerge/update/delete \u5efa\u8bae\u540c\u6837\u53ea\u843d candidates\uff08\u7528\u73b0\u6709 merge/supersede \u5ba1\u6838\u52a8\u4f5c\u627f\u63a5\uff09",
+      "locator": "Phase A \u00b7 A2",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is not always-inject: daily_log / diary content is explicitly never auto-injected; proxy-mode auto-injection applies only to recalled memories with k=3, min_score=0.15.",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/docs/specs/v3-slim.md",
+      "quote": "\u65e5\u8bb0\uff08daily_log\uff09\u5347\u683c\u4e3a\u4e00\u7b49\u516c\u6c11\u7aef\u70b9\uff0cagent \u81ea\u5df1 fetch\uff0c \u6c38\u4e0d\u81ea\u52a8\u6ce8\u5165 \u3002\n\u4ee3\u7406\u6a21\u5f0f\u81ea\u52a8\u6ce8\u5165\u4fdd\u7559\uff0c\u9ed8\u8ba4 k=3\u3001 min_score=0.15 \u3002",
+      "locator": "\u8bbe\u8ba1\u88c1\u5b9a / bullet 4; Phase B \u00b7 B1",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "L1 digest (a curated summary layer) is fully removed from store, REST, and MCP. Existing digest rows in D1 are orphaned but not deleted.",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/docs/specs/v3-slim.md",
+      "quote": "L1 digest \u5168\u7ebf\u79fb\u9664\uff0cpersona \u5f52\u5ba2\u6237\u7aef\u7ba1\u7406\u3002\nD1 \u91cc\u5df2\u6709\u7684 digest \u6570\u636e\u4e0d\u8fc1\u79fb\u4e0d\u5220\u9664\uff0c\u8868\u7ed3\u6784\u4e0d\u52a8\uff08\u53ea\u662f\u6ca1\u4eba\u8bfb\u5199\u4e86\uff09\u3002",
+      "locator": "\u8bbe\u8ba1\u88c1\u5b9a / bullet 3; Phase B \u00b7 B2",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-turn compression at recall time is removed; the reranker is retained. Recall returns raw memory text after dedup and score-floor filtering.",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/docs/specs/v3-slim.md",
+      "quote": "src/memory/filter.ts \uff1a\u5220 per-turn \u538b\u7f29\u6a21\u578b\u8c03\u7528\uff08MEMORY_FILTER_MODEL \u76f8\u5173\u5168\u90e8\u4ee3\u7801\u8def\u5f84\uff09\uff1breranker\uff08 MEMORY_RERANKER_MODEL / ENABLE_MEMORY_RERANKER \uff09\u539f\u6837\u4fdd\u7559\u3002\n\u53ec\u56de\u4ea7\u7269\u6539\u4e3a\u8bb0\u5fc6\u539f\u6587\u76f4\u51fa\uff08\u53bb\u91cd\u3001\u5206\u6570\u5730\u677f\u7167\u65e7\uff09",
+      "locator": "Phase B \u00b7 B1",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Nightly dream extraction runs once at 20:10; the previous 4-hour extraction cron is deleted. Dream is the only automated fact-extraction path.",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/docs/specs/v3-slim.md",
+      "quote": "wrangler.toml \uff1acrons \u5220 \"0 */4 * * *\" \uff0c\u4fdd\u7559 dream \u7684 \"10 20 * * *\" \u3002",
+      "locator": "Phase A \u00b7 A1",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Aelios exposes a REST API served by a Worker, authenticated with an API key; the hook calls only that API and requires no LLM provider keys.",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/integrations/claude-code/README.md",
+      "quote": "COMPANION_MEMORY_API_KEY is the Aelios Worker API key, usually the same value as CHATBOX_API_KEY . It is only used to call your Aelios REST API. This hook does not need any model-provider or LLM API keys.",
+      "locator": "Configure / environment variables",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path buffers messages locally before uploading to Aelios in batches; deduplication state is also stored locally to prevent re-ingesting the same messages.",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/integrations/claude-code/README.md",
+      "quote": "Local buffer, lock, dedupe state, and audit log directory.",
+      "locator": "Configure / Common Options table \u2014 COMPANION_MEMORY_STATE_DIR",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The page describes retrieve-then-inject scaffolding only; there is no description of how Aelios selects, summarises, or consolidates memories on the server side.",
+      "kind": "docs",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/integrations/claude-code/README.md",
+      "quote": "searches long-term memory and injects relevant context",
+      "locator": "Claude Code Hook / introduction",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Vector embedding quality is tightly coupled to the shape of the content field; wrapping quotes with metadata labels causes retrieval failure even when the vector was successfully written",
+      "kind": "issue",
+      "url": "https://github.com/wusaki0723/Aelios/issues/12",
+      "quote": "Exact content search can find the record, which indicates the vector was written. Natural-language search cannot find it, which points to poor embedding text shape rather than a storage failure.",
+      "locator": "Actual",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Create and delete operations on the memory store are eventually consistent, not immediately consistent.",
+      "kind": "issue",
+      "url": "https://github.com/wusaki0723/Aelios/issues/11",
+      "quote": "Create has a short consistency delay before get can see the new record, and delete also appears eventually consistent after a few seconds",
+      "locator": "Notes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dream/daily digest is the automatic long-term memory write path; a failure in this path means memories exist in the store but are not naturally retrievable \u2014 effectively lost",
+      "kind": "issue",
+      "url": "https://github.com/wusaki0723/Aelios/issues/12",
+      "quote": "For deployments that rely on dream / daily digest as an automatic long-term memory path, a memory that exists but is not naturally retrievable behaves like a lost memory.",
+      "locator": "Why this matters",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Lowering vector score thresholds (MEMORY_MIN_SCORE, MEMORY_FILTER_MIN_SCORE) to 0.1 did not recover natural-language retrieval of poorly shaped dream excerpts",
+      "kind": "issue",
+      "url": "https://github.com/wusaki0723/Aelios/issues/12",
+      "quote": "After lowering `MEMORY_MIN_SCORE=0.1` and `MEMORY_FILTER_MIN_SCORE=0.1`, the same natural-language query still produced `raw_count=0`.",
+      "locator": "Observed behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "E-axis flag and authored_by field gate hand-authored memory protection, blocking automated overwrites.",
+      "kind": "issue",
+      "url": "https://github.com/wusaki0723/Aelios/issues/33",
+      "quote": "\u5019\u9009\u7684\u76ee\u6807\u8bb0\u5fc6\u662f hand-authored\uff08E-axis \u6807\u8bb0\uff0c`authored_by` \u975e\u7a7a\uff09",
+      "locator": "\u6839\u56e0 section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conflict between automated candidate and hand-authored memory is a known continuity-integrity scenario requiring human supersede rather than auto-approval.",
+      "kind": "issue",
+      "url": "https://github.com/wusaki0723/Aelios/issues/33",
+      "quote": "\u8be5\u8bb0\u5fc6\u4e3a\u624b\u5199\uff0c\u9700\u4eba\u5de5\u6539\u7528 supersede",
+      "locator": "\u5efa\u8bae section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dream candidates are derived from chat material (\u804a\u5929\u539f\u6599), establishing a log-to-memory extraction write path.",
+      "kind": "issue",
+      "url": "https://github.com/wusaki0723/Aelios/issues/33",
+      "quote": "dream \u4ece\u804a\u5929\u539f\u6599\u4ea7\u51fa\u4e00\u6761\u6307\u5411\u5b83\u7684 `dream_update` \u5019\u9009",
+      "locator": "\u590d\u73b0 section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The system runs as a self-hosted fork (fork kagamiurayama/Aelios) deployed on Cloudflare Workers, confirmed in live operation on 2026-08-15.",
+      "kind": "issue",
+      "url": "https://github.com/wusaki0723/Aelios/issues/33",
+      "quote": "\u81ea\u90e8\u7f72\u5b9e\u4f8b\uff08fork kagamiurayama/Aelios\uff09\uff0cWorker `ashuo-companion-memory-proxy`\uff0c2026-08-15 \u5b9e\u8dd1\u89e6\u53d1",
+      "locator": "\u73af\u5883 section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Dream distillation (daily summary) fabricated a specific event \u2014 user complained about something after work \u2014 that did not exist in any of the 33 direct messages or ~200 group messages that day",
+      "kind": "issue",
+      "url": "https://github.com/wusaki0723/Aelios/issues/35",
+      "quote": "agent \u628a\u8fd9\u53e5\u5f53\u4e8b\u5b9e\u590d\u8bfb\u7ed9\u7528\u6237\uff0c\u7528\u6237\u8868\u793a\u6beb\u65e0\u5370\u8c61\uff0c\u5e76\u68c0\u7d22\u4e86\u4e24\u4eba\u7684\u5168\u90e8\u5386\u53f2\u5bf9\u8bdd\u2014\u2014\u6ca1\u6709\u8fd9\u6761\u5185\u5bb9",
+      "locator": "issue body, \u73b0\u8c61 / \u6838\u5b9e\u8fc7\u7a0b sections",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The hallucinated content had realistic texture \u2014 agent could not self-verify and user could not detect it without manually checking every raw message",
+      "kind": "issue",
+      "url": "https://github.com/wusaki0723/Aelios/issues/35",
+      "quote": "agent \u5f88\u96be\u81ea\u67e5\uff08\u5185\u5bb9\u8bfb\u8d77\u6765\u5b8c\u5168\u50cf\u771f\u7684\uff09\n\u7528\u6237\u4e5f\u96be\u5bdf\u89c9\uff08\u8fd9\u6b21\u662f\u300c\u6211\u5b8c\u5168\u6ca1\u5370\u8c61\u300d+ \u9010\u6761\u7ffb\u539f\u59cb\u8bb0\u5f55\u624d\u6293\u5230\uff09",
+      "locator": "issue body, \u4e3a\u4ec0\u4e48\u8fd9\u4e2a\u95ee\u9898\u503c\u5f97\u5355\u5217 section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory entries already have a source_message_ids field; the same traceability should be added to dream diary entries",
+      "kind": "issue",
+      "url": "https://github.com/wusaki0723/Aelios/issues/35",
+      "quote": "dream \u4ea7\u7269\u6302\u4e0a source_message_ids\uff08memory \u6761\u76ee\u5df2\u6709\u8fd9\u4e2a\u5b57\u6bb5\uff09\uff0c\u8ba9\u65e5\u8bb0\u9010\u53e5\u53ef\u6eaf\u6e90",
+      "locator": "issue body, \u5efa\u8bae section",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/gateway/handler.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/memory/vectorStore.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/memory/dailyDigest.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/memories.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/api/mcp.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/src/queue/consumer.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/docs/memory-gateway.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/docs/request-contract.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/docs/specs/v3-slim.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/integrations/claude-code/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/NOTES-hotpath.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/SPEC-starmap-v2.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/wusaki0723/Aelios/issues/35",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/wusaki0723/Aelios/issues/33",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/wusaki0723/Aelios/issues/11",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/wusaki0723/Aelios/issues/12",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "docs/memory-gateway.md is cited as the canonical routing, record, and recall architecture doc but is not included in this page; precise retrieval scoring formula and rerank model identity are not stated here",
+      "url": "https://github.com/wusaki0723/Aelios/blob/9e65c802ec1c13a68d22a68c5c9d7cdce385e041/README.md",
+      "kind": "code"
+    },
+    {
+      "text": "docs/memory-gateway.md is referenced for routing, recording, and recall details but is not included on this page",
+      "url": "https://github.com/wusaki0723/Aelios/blob/main/docs/memory-gateway.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The page does not describe how or whether memories are selected into a conversation turn (retrieval/scaffold policy) despite this being a canonical issue report against the memory API.",
+      "url": "https://github.com/wusaki0723/Aelios/issues/11",
+      "kind": "issue"
+    },
+    {
+      "text": "How the dream distillation step selects which raw messages feed into the summary, and what prompt or model is used \u2014 this is the canonical write-path for the diary store and the page does not describe it",
+      "url": "https://github.com/wusaki0723/Aelios/issues/35",
+      "kind": "issue"
+    }
+  ]
+}
