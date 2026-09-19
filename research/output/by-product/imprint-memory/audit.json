@@ -1,0 +1,765 @@
+{
+  "identity": {
+    "id": "imprint-memory",
+    "name": "imprint-memory",
+    "repo": "https://github.com/Qizhan7/imprint-memory",
+    "docs": "https://github.com/Qizhan7/imprint-memory/blob/main/README.md",
+    "license": "AGPL-3.0",
+    "version_or_commit": "f5a210cbe50ab78055305ba430b5fdf7632e6ed2",
+    "observed_at": "2026-09-18"
+  },
+  "claimed_purpose": [
+    {
+      "text": "A local-first persistent conversational memory system that captures each conversation turn across multiple chat entry points and unifies them into local storage with hybrid retrieval."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Conversation messages are persisted to a separate `conversation_log` table; chunked summaries go to `conversation_chunks`; these are distinct from curated memories"
+    },
+    {
+      "text": "Every conversation turn is stored verbatim via a Stop hook (Claude Code), Chrome sync extension (claude.ai), or channel adapters; no 'decide to save' step."
+    },
+    {
+      "text": "Experiences are persisted to a markdown file at a path derived from the IMPRINT_DATA_DIR environment variable, under a 'memory/bank/' directory structure."
+    },
+    {
+      "text": "Auto-surfacing: a UserPromptSubmit hook calls surfacing_search before the LLM sees the prompt and injects a <recall> block with ~6 related events."
+    },
+    {
+      "text": "Vector embeddings for memories: each memory can have a stored embedding blob (default model bge-m3), enabling semantic retrieval alongside FTS."
+    },
+    {
+      "text": "The bus is auto-pruned on every write: only the most recent MESSAGE_BUS_LIMIT (default 40) messages are retained; older rows are hard-deleted."
+    },
+    {
+      "text": "Multi-entry-point isolation resolved by design: different entry points all write into the same memory index."
+    },
+    {
+      "text": "Tasks are persisted to a database with status, prompt, session_id, and timestamps on submission"
+    },
+    {
+      "text": "memory_pin marks a row so it bypasses importance/recency decay."
+    },
+    {
+      "text": "PRIVATE-tagged memories are filtered out of all search results"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Every conversation turn is stored verbatim to conversation_log automatically with no LLM decision step",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/README.md",
+      "quote": "Every message stored verbatim \u2014 A Claude Code `Stop` hook + claude.ai sync + channel adapters call `log_message()` on every in/out turn. No \"decide to save\" step.",
+      "locator": "README.md, table 'Automatic pipeline \u2014 the whole system'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Curated memory_remember writes to a separate memories table distinct from the conversation_log, with a ranking boost",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/README.md",
+      "quote": "Stores it in the curated `memories` table so future searches surface it with a small ranking boost",
+      "locator": "README.md, table 'Optional curation tools'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Mixing embedding providers mid-lifecycle silently corrupts semantic search because cross-dimension cosine similarity returns 0",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/README.md",
+      "quote": "Cross-boundary cosine sim always returns 0, search goes quietly blind \u2014 FTS still works, but the semantic channel goes dark for all data written before the switch",
+      "locator": "README.md, section '\u26a0\ufe0f Embedding consistency \u2014 do not mix'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Conversation log is distinct from curated memory: chunker LLM summaries may drop proper nouns, causing memory_search to miss hits that conversation_search (raw FTS5) would find",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/README.md",
+      "quote": "`memory_search` only sees the chunk-layer index \u2014 the chunker's LLM summary may drop proper nouns (external system names, paper titles, library names). Then `memory_search` returns empty, but the raw `conversation_log` still has 20+ relevant messages.",
+      "locator": "README.md, section 'CLAUDE.md search prompt recommendation'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall counter is updated on retrieval and influences future ranking",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/README.md",
+      "quote": "Update recall count (frequently recalled memories maintain relevance)",
+      "locator": "README.md, search mechanics step 7",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "All data is stored locally in a SQLite database at ~/.imprint/memory.db; no cloud storage",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/README.md",
+      "quote": "Your memory lives in a local database \u2014 not the cloud. ... `IMPRINT_DB` | `$IMPRINT_DATA_DIR/memory.db`",
+      "locator": "README.md, opening description and configuration table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-user local machine; no multi-user or per-session isolation described",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/README.md",
+      "quote": "Everything you tell it stays \u2014 searchable across conversations, private, on your machine.",
+      "locator": "README.md, opening tagline",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The message bus is a rolling log, not a curated memory store: it retains only the N most recent raw messages and hard-deletes older ones on every write.",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/bus.py",
+      "quote": "DELETE FROM message_bus WHERE id NOT IN (SELECT id FROM message_bus ORDER BY id DESC LIMIT ?)",
+      "locator": "bus.py:bus_post",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Content stored in the bus is lossy: messages longer than 200 characters are truncated before persistence.",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/bus.py",
+      "quote": "content: message content (auto-truncated to 200 chars)",
+      "locator": "bus.py:bus_post docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The bus is read into context via bus_format, which renders it as a human-readable block labeled '# Recent Messages' with timestamps and direction arrows.",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/bus.py",
+      "quote": "lines = [\"# Recent Messages\\n\"]",
+      "locator": "bus.py:bus_format",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Messages are written to conversation_log by log_message(); dedup is handled by external_id collision so the same transcript entry is never stored twice",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/cc_capture.py",
+      "quote": "external_id (the transcript entry uuid) lets log_message drop anything that slips through twice",
+      "locator": "export_transcript docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Capture is triggered by a Claude Code Stop hook; stdin carries transcript_path and session_id",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/cc_capture.py",
+      "quote": "A `Stop` hook hands this script the current transcript path; we incrementally read the new lines",
+      "locator": "module docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Stored message content is truncated to 8000 chars with an ellipsis appended; no summarization or extraction is performed",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/cc_capture.py",
+      "quote": "if len(text) > MAX_CHARS:\n                text = text[:MAX_CHARS] + \"...\"",
+      "locator": "export_transcript, truncation block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Capture errors are silently swallowed so a capture failure cannot interrupt the Claude Code turn",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/cc_capture.py",
+      "quote": "Stays silent and never raises so a capture hiccup can't break the turn.",
+      "locator": "main docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory write path: raw messages in conversation_log are chunked, summarized by LLM into a recap + extracted memories (facts), and stored in conversation_chunks and chunk_facts \u2014 curated memory is separate from the raw log",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/conversation_chunker.py",
+      "quote": "INSERT OR IGNORE INTO conversation_chunks (start_msg_id, end_msg_id, msg_count, platforms, summary, keywords, embedding, start_time, end_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "locator": "chunk_and_summarize, INSERT statement",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy: all chunks with non-null embeddings are always scored; there is no adaptive or conditional skip \u2014 every chunk participates in every search",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/conversation_chunker.py",
+      "quote": "rows = db.execute(\n            \"\"\"SELECT id, start_msg_id, end_msg_id, msg_count, platforms,\n                      summary, keywords, embedding, start_time, end_time\n               FROM conversation_chunks\n               WHERE embedding IS NOT NULL\"\"\"",
+      "locator": "search_chunks, SELECT statement",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per session_id within a batch: messages from different sessions are grouped separately before chunking, so memory chunks are never cross-session",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/conversation_chunker.py",
+      "quote": "by_session: dict[str, list[dict]] = {}\n        order: list[str] = []\n        for m in messages:\n            sid = m.get(\"session_id\") or \"\"\n            if sid not in by_session:\n                by_session[sid] = []\n                order.append(sid)\n            by_session[sid].append(m)",
+      "locator": "_split_into_chunks",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget / deletion: chunk_facts uses ON DELETE CASCADE from conversation_chunks, so deleting a chunk row removes its extracted facts; no other explicit forget or hide-at-retrieve path is present in this file",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/conversation_chunker.py",
+      "quote": "chunk_id INTEGER NOT NULL REFERENCES conversation_chunks(id) ON DELETE CASCADE",
+      "locator": "_ensure_table, chunk_facts DDL",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Thinking blocks from assistant messages are stripped before summarization, so internal chain-of-thought is not persisted into memory",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/conversation_chunker.py",
+      "quote": "THINK_RE = re.compile(r\"<think>.*?</think>\", re.DOTALL)\n...\ndef _strip_thinking(content: str, direction: str) -> str:\n    \"\"\"Remove hidden thinking blocks from assistant messages before summarizing.\"\"\"\n    if direction == \"out\":\n        return THINK_RE.sub(\"\", content).strip()",
+      "locator": "_strip_thinking",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Causal edge blacklist filters generic emotional/relationship topic words from keyword-overlap gating, to avoid spurious causal links between unrelated emotional conversations",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/conversation_chunker.py",
+      "quote": "CAUSAL_BLACKLIST = {\n    '\u4eb2\u5bc6\u4e92\u52a8', '\u966a\u4f34', '\u60c5\u611f\u4f9d\u8d56', '\u89d2\u8272\u626e\u6f14',\n    '\u601d\u8003\u94fe', '\u5360\u6709\u6b32', '\u5173\u5fc3', '\u4eb2\u5bc6\u5173\u7cfb', '\u5173\u7cfb\u786e\u8ba4', '\u4e92\u52a8',\n    '\u60c5\u611f\u4e92\u52a8', '\u60c5\u611f\u8fde\u63a5', '\u60c5\u611f\u786e\u8ba4', '\u60c5\u611f\u8054\u7ed3', '\u60c5\u611f\u62c9\u626f', '\u60c5\u611f\u4ea4\u6d41',\n    '\u60c5\u611f\u652f\u6301',\n}",
+      "locator": "module-level CAUSAL_BLACKLIST",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Routine/heartbeat chunks (reminders to drink water, daily briefings, memory maintenance tasks) are filtered out before causal edge building",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/conversation_chunker.py",
+      "quote": "routine_kw = ['\u559d\u6c34', '\u65e9\u5b89\u7b80\u62a5', '\u8bb0\u5fc6\u6574\u7406', '\u8bb0\u5fc6\u8870\u51cf', '\u53bb\u91cd',\n                      'send_telegram', '\u8865\u5242', '\u6c34\u676f', '\u63d0\u9192\u559d']\n        def is_routine(r):\n            s = (r.get('summary','') + r.get('keywords','')).lower()\n            return any(kw in s for kw in routine_kw) or r.get('platforms') == 'heartbeat'",
+      "locator": "build_causal_edges, routine filter",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Summarizer provider chain: OpenAI-compatible endpoint (when SUMMARY_API_KEY set) \u2192 Cloudflare Workers AI \u2192 Gemini \u2192 Ollama local fallback",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/conversation_chunker.py",
+      "quote": "for fn in (_call_openai, _call_cloudflare, _call_gemini, _call_ollama):\n        result = fn(prompt)\n        if result:\n            return result",
+      "locator": "_call_llm, auto-fallback chain",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "conversation_log is a raw message log (every turn stored), not a curated memory extract. conversation_vectors is a companion index of per-message embeddings over that log.",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/conversation_search.py",
+      "quote": "SELECT c.id, c.platform, c.direction, c.speaker, c.content,\n                      c.session_id, c.entrypoint, c.created_at, v.embedding\n               FROM conversation_vectors v\n               JOIN conversation_log c ON c.id = v.msg_id",
+      "locator": "search_conversations_semantic, lines 73-76",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy is always-retrieve over the full vector table with no score threshold beyond sim > 0; limit is capped at 50.",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/conversation_search.py",
+      "quote": "limit = max(1, min(int(limit or 10), 50))\n...if sim <= 0:\n                continue",
+      "locator": "search_conversations_semantic, lines 69 and 81-82",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Edge strength update on retrieval acts as a reinforcement/decay mechanism: frequently surfaced topic links grow stronger; dormant links are reactivated on access.",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/conversation_search.py",
+      "quote": "strength = min(strength + 0.1, 5.0),\n                       last_surfaced_at = datetime('now'),\n                       status = CASE WHEN status='dormant' THEN 'active' ELSE status END",
+      "locator": "_fetch_linked_topics, lines 150-152",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories and conversation log are distinct stores: `memories` holds curated facts with importance and category; `conversation_log` is the raw turn-by-turn archive.",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/db.py",
+      "quote": "CREATE TABLE IF NOT EXISTS memories (\n            id INTEGER PRIMARY KEY AUTOINCREMENT,\n            content TEXT NOT NULL,\n            category TEXT DEFAULT 'general',\n            source TEXT DEFAULT 'cc',\n            tags TEXT DEFAULT '[]',\n            importance INTEGER DEFAULT 5,\n            recalled_count INTEGER DEFAULT 0, ...",
+      "locator": "db.py _init_tables(), memories table DDL",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory deletion cascades to the vector embedding and tag tables via ON DELETE CASCADE, meaning deleting a memory also removes its embedding and tags.",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/db.py",
+      "quote": "CREATE TABLE IF NOT EXISTS memory_vectors (\n            memory_id INTEGER PRIMARY KEY REFERENCES memories(id) ON DELETE CASCADE,\n            embedding BLOB NOT NULL,\n            model TEXT DEFAULT 'bge-m3'\n        );",
+      "locator": "db.py _init_tables(), memory_vectors table DDL",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "FTS index strips <think> blocks from conversation_log content at index time to prevent hidden reasoning from polluting keyword search results, while preserving full content in the archive column.",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/db.py",
+      "quote": "We keep the full content (incl. think) in conversation_log for archival, and strip it only at the index/display layer.",
+      "locator": "db.py strip_think() function comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory edges track `surfaced_count` and `used_count` separately, distinguishing when an association was shown to the user from when it was actually acted upon.",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/db.py",
+      "quote": "surfaced_count INTEGER DEFAULT 0,\n            used_count INTEGER DEFAULT 0,",
+      "locator": "db.py _init_tables(), memory_edges table DDL",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A separate `bank_chunks` table with file path and mtime supports a lore/backstory bank of chunked documents distinct from in-conversation memory writes.",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/db.py",
+      "quote": "BANK_DIR = DATA_DIR / \"memory\" / \"bank\"",
+      "locator": "db.py Config section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Test messages are isolated from memory surfacing and search by an `is_test` flag on conversation_log, not by a separate table or session boundary.",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/db.py",
+      "quote": "is_test=1 so the chunker, surfacing, and search pools all skip them.",
+      "locator": "db.py _init_tables(), is_test migration block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Curated memories are persisted to SQLite with content, category, source, tags, importance, timestamp, and a separate embedding blob table",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/memory_manager.py",
+      "quote": "cursor = db.execute(\n        \"\"\"INSERT INTO memories (content, category, source, tags, importance, created_at)\n           VALUES (?, ?, ?, ?, ?, ?)\"\"\",\n        (content, category, source, tags_json, importance, ts),\n    )",
+      "locator": "def remember",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Three distinct stores: memories (curated facts), conversation_log (raw message log), conversation_chunks (chunk summaries); these are separate pools, not one unified log",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/memory_manager.py",
+      "quote": "pools:    subset of [\"memory\", \"bank\", \"chunk\", \"conversation\"]; None = [\"memory\", \"bank\", \"chunk\"]\n          - memory: curated facts extracted by the extractor\n          - bank:   markdown notes under memory/bank/\n          - chunk:  conversation chunks (index layer; hits expand to raw messages)\n          - conversation: raw conversation_log rows (opt-in; used by conversation_search)",
+      "locator": "def unified_search docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict/supersession on write: semantic similarity 0.85\u20130.92 marks old memory as historical (superseded_by set), not deleted; \u22650.92 skips the new write entirely",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/memory_manager.py",
+      "quote": "- Semantic similarity \u2265 0.92 \u2192 skip (nearly identical)\n    - Semantic similarity 0.85~0.92 \u2192 supersede: old memory marked historical, new one stored",
+      "locator": "def remember docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is a hard delete from both memories and memory_vectors tables, triggered by keyword substring match",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/memory_manager.py",
+      "quote": "db.execute(\"DELETE FROM memory_vectors WHERE memory_id = ?\", (row[\"id\"],))\n        db.execute(\"DELETE FROM memories WHERE id = ?\", (row[\"id\"],))",
+      "locator": "def forget",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Decay is a soft-delete path: memories reaching importance=0 get superseded_by=-1 (archived), not hard-deleted",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/memory_manager.py",
+      "quote": "UPDATE memories SET importance = 0, superseded_by = -1, updated_at = ? WHERE id = ?",
+      "locator": "def decay",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Recency time decay is disabled in search scoring; old memories rank by relevance not age",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/memory_manager.py",
+      "quote": "WEIGHT_RECENCY = 0.0  # time decay disabled \u2014 old hits rank by relevance, not age",
+      "locator": "module-level constants",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve uses RRF fusion across FTS5 and vector channels; minimum score threshold of 0.40 applied before ranking",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/memory_manager.py",
+      "quote": "MIN_SCORE = 0.40\n    ranked = [r for r in results.values() if r[\"final_score\"] >= MIN_SCORE]",
+      "locator": "def search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Surfacing auto-recall skips content already in the current Claude Code session context by reading the session JSONL to find the earliest visible timestamp",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/memory_manager.py",
+      "quote": "surfacing skips anything already visible in cc's prompt\n    context \u2014 both content authored in the live session AND content that\n    a forge-reload carried over from a previous session. Detection: read\n    the session's JSONL, take the earliest message timestamp as the\n    context cutoff",
+      "locator": "def surfacing_search docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "PRIVATE-tagged memories are filtered from all search results",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/memory_manager.py",
+      "quote": "# Filter out PRIVATE-tagged memories\n    results = [r for r in results if not (r.get(\"content\", \"\").startswith(\"[PRIVATE]\"))]",
+      "locator": "def unified_search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Pinned memories bypass time-decay in search reranking",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/memory_manager.py",
+      "quote": "def _rerank_memory(rrf_score: float, row: dict) -> float:\n    \"\"\"Memory rerank: activation x importance x specificity, blended with RRF.\n    Time decay is disabled \u2014 a 3-month-old memory that matches the query\n    well shouldn't lose to a recent irrelevant hit just because it's old.\"\"\"\n    if row.get(\"pinned\"):\n        return rrf_score",
+      "locator": "def _rerank_memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session-level surfacing dedup: surfaced IDs are written to a per-session file so the same item is not re-surfaced in the same session",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/memory_manager.py",
+      "quote": "_surfaced_file = (_surfaced_dir / f\"{current_session}.ids\") if current_session else None\n    _seen_surfaced: set[str] = set()\n    if _surfaced_file and _surfaced_file.exists():\n        _seen_surfaced = set(_surfaced_file.read_text().split())",
+      "locator": "def surfacing_search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Daily log is append-only and stored separately from curated memories; it is not searchable via the same hybrid search path",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/memory_manager.py",
+      "quote": "def daily_log(text: str) -> str:\n    \"\"\"Append to today's daily log.\"\"\"",
+      "locator": "def daily_log",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Embedding provider must not be switched mid-store; mixing dimensions corrupts cosine similarity; no auto-fallback to a different provider",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/memory_manager.py",
+      "quote": "No cross-provider fallback. Switching providers mid-store mixes vector\n    dimensions and silently breaks cosine search, so a failure surfaces a\n    throttled warning and returns None (callers degrade to FTS5/LIKE) rather\n    than quietly embedding with a different backend.",
+      "locator": "def _embed docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MEMORY.md is a lightweight index rebuilt after each write; it contains date + keyword per line and is not the primary search surface",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/memory_manager.py",
+      "quote": "def _rebuild_index():\n    \"\"\"Rebuild MEMORY.md as a lightweight index (date + keyword per line).\n    Full content is available via memory_search.\"\"\"",
+      "locator": "def _rebuild_index",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Curated memory store separates facts, events, and insights from a raw conversation log and a daily log",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/server.py",
+      "quote": "category: facts (persistent truths/preferences/commitments) / events (things that happened, with dates) / insights (reflections/observations/lessons)",
+      "locator": "memory_remember tool docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Decay moves memories to an archived (hidden from search) state at importance 0 rather than deleting them",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/server.py",
+      "quote": "Reaches 0 \u2192 archived (hidden from search).",
+      "locator": "memory_decay tool docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Pinned memories are exempt from time-decay in search, providing a stable high-priority recall layer",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/server.py",
+      "quote": "Pinned memories bypass time-decay in search. Keep under 20.",
+      "locator": "memory_pin tool docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is hybrid: FTS5 keyword, vector semantic, and exact-match channels fused with RRF across memory, bank, and chunk pools",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/server.py",
+      "quote": "Combines FTS5 keyword, vector semantic, and exact-match channels with per-pool reranking.\n    Falls back to keyword-only if no embedding provider is configured.",
+      "locator": "memory_search tool docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "recalled_count is tracked per memory and used in stale detection, implying retrieval events are logged",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/server.py",
+      "quote": "imp={m_item['importance']} recalled={m_item['recalled_count']}",
+      "locator": "memory_find_stale tool, lines block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph edges track surfaced_count and used_count per edge, distinguishing retrieval from actual use",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/server.py",
+      "quote": "(surfaced:{e['surfaced_count']}, used:{e['used_count']})",
+      "locator": "memory_get_graph tool, lines block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Task records including prompt, status, session_id, and timestamps are persisted in a database table cc_tasks",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/tasks.py",
+      "quote": "INSERT INTO cc_tasks (prompt, status, source, session_id, created_at) VALUES (?, 'pending', ?, ?, ?)",
+      "locator": "submit_task function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session resumption is implemented by passing a stored session_id to the --resume flag of the claude subprocess",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/tasks.py",
+      "quote": "Pass session_id to resume a previous session.\n...\nif session_id:\n            cmd.extend([\"--resume\", session_id])",
+      "locator": "submit_task docstring; _execute_task function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The session_id is updated in the store after each task run, propagating the new session state for subsequent turns",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/tasks.py",
+      "quote": "new_session_id = parsed.get(\"session_id\", \"\")\n...\ndb.execute(\n        \"UPDATE cc_tasks SET status = ?, result = ?, session_id = ?, completed_at = ? WHERE id = ?\",\n        (status, output_text, new_session_id or session_id, now_str(), task_id),\n    )",
+      "locator": "_execute_task function, JSON parse block and final db.execute",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Task store contains the full prompt text and result output, making it a message/task log rather than a curated memory store",
+      "kind": "code",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/tasks.py",
+      "quote": "SELECT id, prompt, status, result, session_id, created_at, started_at, completed_at FROM cc_tasks WHERE id = ?",
+      "locator": "check_task function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Every turn is stored verbatim automatically via log_message(); no LLM decision required to persist.",
+      "kind": "docs",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/main/README.md",
+      "quote": "A Claude Code Stop hook + claude.ai sync + channel adapters call log_message() on every in/out turn. No \"decide to save\" step.",
+      "locator": "README.md, table \"Automatic pipeline \u2014 the whole system\", row \"Every message stored verbatim\"",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Conversations are segmented into events with LLM-generated summaries (chunk log, not raw transcript) as the primary retrieval unit above conversation_log.",
+      "kind": "docs",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/main/README.md",
+      "quote": "incremental_chunk_update runs on a schedule, groups consecutive messages into chunks, generates a one-paragraph LLM summary + keywords per chunk",
+      "locator": "README.md, table \"Automatic pipeline \u2014 the whole system\", row \"Segment conversations into 'events'\"",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve path injects ~6 related events as a <recall> block into the prompt before the LLM sees it, on every user prompt.",
+      "kind": "docs",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/main/README.md",
+      "quote": "A UserPromptSubmit hook calls surfacing_search before the LLM sees the prompt and injects a <recall> block with ~6 related events",
+      "locator": "README.md, table \"Automatic pipeline \u2014 the whole system\", row \"Auto-surface relevant context on every prompt\"",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is supported at three levels: memory_delete (single row by ID), memory_forget (bulk delete by keyword), memory_decay (gradual importance fade).",
+      "kind": "docs",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/main/README.md",
+      "quote": "memory_forget: Delete all memories containing a keyword. \u2026 memory_decay: Gradually fade memories that haven't been recalled. Preview first, then apply.",
+      "locator": "README.md, MCP Tools table \"Memory CRUD\" and \"Memory Maintenance\"",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Pinning prevents decay; unpinning restores normal aging \u2014 explicit decay bypass mechanism.",
+      "kind": "docs",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/main/README.md",
+      "quote": "Marks the row pinned \u2014 bypasses any importance/recency decay",
+      "locator": "README.md, section \"Optional curation tools\", table row memory_pin",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic search silently degrades (returns 0 cosine similarity) if embedding provider is switched mid-database; FTS still functions but semantic channel is dead for pre-switch data.",
+      "kind": "docs",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/main/README.md",
+      "quote": "search silently goes half-blind \u2014 FTS still works, but the semantic channel is dead for everything written before the switch",
+      "locator": "README.md, section \"\u26a0\ufe0f Embedding consistency \u2014 DO NOT MIX\"",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Chunker LLM summaries can drop proper nouns, causing memory_search to return nothing for named entities even when conversation_log contains 20+ matching raw messages \u2014 a known retrieval continuity gap.",
+      "kind": "docs",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/main/README.md",
+      "quote": "the chunker's LLM summaries can drop proper nouns (e.g. system names, paper titles, library names). When that happens, memory_search returns nothing even though the raw conversation_log still has 20+ matching messages.",
+      "locator": "README.md, section \"Recommended CLAUDE.md hint\"",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories are typed into categories: facts (preferences, truths), events (things that happened), insights (reflections).",
+      "kind": "docs",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/main/README.md",
+      "quote": "Store a memory. Categories: facts (preferences, truths), events (things that happened), insights (reflections). Auto-deduplicates.",
+      "locator": "README.md, MCP Tools table \"Memory CRUD\", row memory_remember",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph edges between memories carry typed relations (causal, analogy, evolution, contradiction); linked memories surface together in search.",
+      "kind": "docs",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/main/README.md",
+      "quote": "Link two memories with a relationship (causal, analogy, evolution, contradiction, etc). Linked memories show up together in search.",
+      "locator": "README.md, MCP Tools table \"Graph Structure\", row memory_add_edge",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Store is per-user-machine (local SQLite at ~/.imprint/memory.db); no per-session or per-agent isolation described.",
+      "kind": "docs",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/main/README.md",
+      "quote": "Your memory lives in a local database \u2014 not the cloud. \u2026 Data lives in ~/.imprint/",
+      "locator": "README.md, top description and Quick Start",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The experience_append tool writes to a file at memory/bank/experience.md, with the base directory controlled by the IMPRINT_DATA_DIR environment variable, defaulting to the current directory.",
+      "kind": "issue",
+      "url": "https://github.com/Qizhan7/imprint-memory/issues/4",
+      "quote": "exp_path = Path(os.environ.get(\"IMPRINT_DATA_DIR\", \".\")) / \"memory\" / \"bank\" / \"experience.md\"",
+      "locator": "imprint_memory/server.py, line 343",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The experience_append tool was non-functional due to a missing import, meaning experience write path was broken at time of issue filing.",
+      "kind": "issue",
+      "url": "https://github.com/Qizhan7/imprint-memory/issues/4",
+      "quote": "When calling `experience_append`, the tool fails with `name 'os' is not defined` because `import os` is missing in `server.py`",
+      "locator": "Bug report body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "imprint-memory is a local-first persistent conversational memory system capturing every turn across multiple entry points into a unified local database with hybrid FTS5+vector retrieval.",
+      "kind": "blog",
+      "url": "https://www.ailover-atlas.com/projects/imprint-memory/",
+      "quote": "imprint-memory \u662f\u4e00\u4e2a\u672c\u5730\u4f18\u5148\u7684\u6301\u4e45\u5bf9\u8bdd\u8bb0\u5fc6\u7cfb\u7edf\u3002\u5b83\u901a\u8fc7 Claude Code Hook\u3001claude.ai \u6269\u5c55\u548c Telegram \u9002\u914d\u5668\u6355\u83b7\u6bcf\u8f6e\u5bf9\u8bdd\uff0c\u518d\u7528 FTS5 \u4e0e\u8bed\u4e49\u5411\u91cf\u8fdb\u884c\u6df7\u5408\u68c0\u7d22\u3002",
+      "locator": "PROJECT INTRO / \u9879\u76ee\u4ecb\u7ecd",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "All entry-point adapters write into a single shared memory index, so switching platforms does not break continuity.",
+      "kind": "blog",
+      "url": "https://www.ailover-atlas.com/projects/imprint-memory/",
+      "quote": "\u591a\u4e2a\u804a\u5929\u5165\u53e3\u5199\u8fdb\u540c\u4e00\u4efd\u8bb0\u5fc6\u7d22\u5f15",
+      "locator": "page header / diagram heading",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Platform is Python, self-hosted, supporting stdio and HTTP MCP interfaces.",
+      "kind": "blog",
+      "url": "https://www.ailover-atlas.com/projects/imprint-memory/",
+      "quote": "\u5e73\u53f0\uff1a Python Self-host\uff0c\u652f\u6301 stdio \u4e0e HTTP MCP\u3002",
+      "locator": "PROJECT INTRO / \u5e73\u53f0",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/memory_manager.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/conversation_search.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/conversation_chunker.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/db.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/server.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/cc_capture.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/bus.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/f5a210cbe50ab78055305ba430b5fdf7632e6ed2/imprint_memory/tasks.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/Qizhan7/imprint-memory/issues/4",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.ailover-atlas.com/projects/imprint-memory/",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Auto-deduplication mechanism: memory_remember is documented as 'auto-deduplicates' but the page does not describe the deduplication algorithm or threshold.",
+      "url": "https://github.com/Qizhan7/imprint-memory/blob/main/README.md",
+      "kind": "docs"
+    }
+  ]
+}
