@@ -1,0 +1,1848 @@
+{
+  "identity": {
+    "id": "hermes-agent",
+    "name": "Hermes Agent",
+    "repo": "https://github.com/NousResearch/hermes-agent",
+    "docs": "https://hermes-agent.nousresearch.com/docs/llms.txt",
+    "license": "MIT",
+    "version_or_commit": "1e4952ddba1bc585416ad43438d60183380035cd",
+    "observed_at": "2026-09-18"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Memory is provided via pluggable provider plugins, each declaring a config schema; a generic UI renderer and a REST API pair drive configuration."
+    },
+    {
+      "text": "Hermes Agent is described as always-on, on-device, tool-running infrastructure \u2014 the persistent runtime layer for local agentic workflows."
+    },
+    {
+      "text": "Memory feature page is described as covering how Hermes remembers across sessions using specific named files."
+    },
+    {
+      "text": "Architecture spans durable facts, procedural skills, and session search for past conversation recall"
+    },
+    {
+      "text": "Hermes Agent includes a conversation loop, context compression, and memory as core components"
+    },
+    {
+      "text": "Bot Mode gives each bot its own memory alongside other per-bot configuration."
+    },
+    {
+      "text": "Hermes is described as having a learning loop combining skills and memory."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Full session archive: every session is stored in a local SQLite database (~/.hermes/hermes_state.db) including user messages, agent responses, tool calls, reasoning steps, and token/cost data. Default retention is 90 days with automatic 24-hour pruning."
+    },
+    {
+      "text": "Pre-compression checkpoint: before context compression, providers are notified via on_pre_compress() with the raw transcript; a checkpoint provider must succeed when require_checkpoint=True, otherwise the uncompressed transcript is preserved."
+    },
+    {
+      "text": "Session messages are persisted in a SQLite `messages` table; each row carries role, content, tool_name, tool_calls, timestamp, active, compacted, and display_kind columns. This is a full message log, not a curated memory store."
+    },
+    {
+      "text": "The agent loaded accumulated guidance (from prior sessions) to prepare assignments for subagents without requiring the user to re-brief each worker, demonstrating retrieval of stored memory into active task context."
+    },
+    {
+      "text": "Live cwd state ($currentCwd) is a reactive store value that is seeded from the remembered folder; it gates to non-empty values only, meaning an absent remembered value leaves the previous gateway's folder in place."
+    },
+    {
+      "text": "Hermes automatically extracts reusable lessons from sessions and saves them as persistent skills \u2014 readable Markdown documents with reference files and scripts \u2014 that the agent can load for later tasks."
+    },
+    {
+      "text": "When a write would exceed the character limit, the tool returns an error with current entries and instructs the agent to consolidate or remove entries before retrying in the same turn."
+    },
+    {
+      "text": "Retrieve (prefetch): at turn start, each provider's prefetch() is called with the user query; results are merged and wrapped in a fenced <memory-context> block injected into the turn."
+    },
+    {
+      "text": "The agent uses distinct files for different context roles: SOUL.md, USER.md, MEMORY.md, and AGENTS.md, with documented differences in who writes each and when the agent sees them."
+    },
+    {
+      "text": "Within-session context is available from the conversation even before the next-session snapshot refresh; saved entries appear in the system prompt from the next session onward."
+    },
+    {
+      "text": "Memory is bounded: MEMORY.md capped at 2,200 characters and USER.md at 1,375; over-capacity writes fail visibly so the agent can consolidate instead of silently evicting a fact"
+    },
+    {
+      "text": "Write path for built-in memory tools mirrors add, replace, and remove actions to the provider, with provenance metadata including write_origin, session_id, and tool_name."
+    },
+    {
+      "text": "Memory entries are scanned for prompt injection and credential exfiltration patterns before being accepted; matching content and invisible Unicode characters are blocked."
+    },
+    {
+      "text": "v0.21.0 introduced a minimum context length gate (MINIMUM_CONTEXT_LENGTH = 64_000) enforced at agent spawn time, gating which models may be used for agent-type cron jobs."
+    },
+    {
+      "text": "Memory is persisted to disk immediately when saved mid-session, but the system prompt snapshot is frozen at session start and does not refresh until the next session."
+    },
+    {
+      "text": "Compaction handoff rows (context summary content injected as role='user') are excluded from the recent-user-messages list, distinguishing them from real user turns."
+    },
+    {
+      "text": "Background-review harness messages (curator prompts written into real sessions by older builds) are stripped on resume to prevent replay hijacking the session"
+    },
+    {
+      "text": "Memory has two isolated targets: 'memory' (environment facts, conventions, lessons learned) and 'user' (user identity, preferences, communication style)."
+    },
+    {
+      "text": "Migration imports curated memory files (MEMORY.md, USER.md) and persona file (SOUL.md) \u2014 indicating memory is stored as named files, not raw transcript"
+    },
+    {
+      "text": "Gateway switch wipes session lists and machine context but does not reset the live workspace cwd, which is the root of the stale-state continuity bug."
+    },
+    {
+      "text": "Context files including a global SOUL.md and project-level files are automatically injected into every conversation, functioning as a scaffold layer."
+    },
+    {
+      "text": "Project context files (AGENTS.md, .hermes.md) are loaded at session start with a priority chain; only one project context type is loaded per session."
+    },
+    {
+      "text": "Agent turns are scoped to a session identifier (HERMES_UI_SESSION_ID), which is used to route blocking UI prompts between the agent and the renderer."
+    },
+    {
+      "text": "A troubleshooting guide addresses memory failure modes including the agent forgetting things mid-session and a 'frozen memory snapshot' condition."
+    },
+    {
+      "text": "Cron jobs store a model pin (provider and model fields) in a jobs.json file that is intended to be propagated to the spawned agent subprocess."
+    },
+    {
+      "text": "Resume is guarded by a configurable message-count ceiling; sessions too large to reload safely raise an error rather than silently truncating"
+    },
+    {
+      "text": "Community-reported continuity failures: recall or compaction failures, auxiliary timeout failures, memory broken after Hindsight installation"
+    },
+    {
+      "text": "Two small markdown files (MEMORY.md and USER.md) are injected wholesale into every prompt \u2014 no retrieval step, always visible to the model."
+    },
+    {
+      "text": "Provider config schemas are cached by resolved file path rather than by name, so that user (per-profile) plugins are isolated per profile."
+    },
+    {
+      "text": "The agent wrote a CLI workaround into its long-term memory after a tool failure, and that memory outlived the fix it was responding to"
+    },
+    {
+      "text": "Hermes Agent uses a 'local_embedded' memory provider backed by Hindsight, checked via is_available() -> _check_local_runtime()"
+    },
+    {
+      "text": "Durable facts persisted to MEMORY.md; stable user preferences persisted to USER.md; both stored under ~/.hermes/memories/"
+    },
+    {
+      "text": "No silent deletion: over-capacity add and replace operations return an error, requiring explicit consolidation or removal"
+    },
+    {
+      "text": "Hub cache TTL is 5 seconds, causing the full per-plugin catalog fetch sequence to repeat on essentially every page visit"
+    },
+    {
+      "text": "Context pollution is a named continuity failure: project-specific facts (paths, ports) appear in wrong-project sessions"
+    },
+    {
+      "text": "Session identity is tracked with a timestamp-based session ID, indicating sessions are discrete and identified."
+    },
+    {
+      "text": "Memory store includes MEMORY.md and USER.md files; migratable from OpenClaw, indicating file-based persistence"
+    },
+    {
+      "text": "Config schema is scoped per field to either 'host' (per-profile) or 'root'; flat-json storage ignores scope."
+    },
+    {
+      "text": "Memory entries are arbitrary text; no structured schema; tags are text prefixes in entry content"
+    },
+    {
+      "text": "Hermes Agent supports agentic workflows including tool calls, file edits, and multi-turn plans."
+    },
+    {
+      "text": "Hermes Agent uses a profile-based provider configuration to point at a local model endpoint."
+    },
+    {
+      "text": "External memory provider plugins are supported, naming specific third-party backends."
+    },
+    {
+      "text": "Session persistence and resume are supported, with per-platform session tracking."
+    },
+    {
+      "text": "Exact duplicate entries are automatically rejected rather than silently added."
+    },
+    {
+      "text": "FTS5 full-text session search with LLM summarization for cross-session recall"
+    },
+    {
+      "text": "Memory isolation is per-bot in Bot Mode; each bot has its own memory."
+    },
+    {
+      "text": "Hermes Agent has built-in recall that third-party tools extend."
+    },
+    {
+      "text": "Agent-curated memory with periodic nudges to persist knowledge"
+    },
+    {
+      "text": "Memory provider can be disabled entirely with a CLI command."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Session search uses FTS5 (SQLite full-text search) with LLM summarization, implying sessions are logged and indexed separately from curated memory",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/README.md",
+      "quote": "FTS5 session search with LLM summarization for cross-session recall.",
+      "locator": "README.md, feature list \u2014 'A closed learning loop'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is stored as distinct named files (MEMORY.md, USER.md), separate from session transcripts and the persona file (SOUL.md)",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/README.md",
+      "quote": "SOUL.md \u2014 persona file | Memories \u2014 MEMORY.md and USER.md entries",
+      "locator": "README.md, Migrating from OpenClaw \u2014 'What gets imported'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is retrieved per-turn via prefetch() called with the user query, merged across providers, and injected as a fenced context block before model invocation.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/agent/memory_manager.py",
+      "quote": "Merge non-empty prefetch context from all providers (failures are non-fatal).",
+      "locator": "file:memory_manager.py, prefetch_all() docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Writes (add/replace/remove) are dispatched asynchronously on a single serialized background worker to preserve turn order.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/agent/memory_manager.py",
+      "quote": "The single worker also serializes writes (turn N before N+1).",
+      "locator": "file:memory_manager.py, sync_all() docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Before context compression, providers are checkpointed with the transcript; the compression is aborted if a required checkpoint provider fails.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/agent/memory_manager.py",
+      "quote": "With ``require_checkpoint`` at least one checkpoint provider must succeed \u2014 its exception propagates so the caller keeps the uncompressed transcript.",
+      "locator": "file:memory_manager.py, on_pre_compress() docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Session boundary triggers extraction of the old session followed by provider rebinding, run as one serialized task to prevent transcript misattribution.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/agent/memory_manager.py",
+      "quote": "an ad-hoc thread raced the inline switch and misattributed transcripts.",
+      "locator": "file:memory_manager.py, commit_session_boundary_async() docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory provider tools and system-prompt blocks are withheld together when the memory toolset is gated off, so the model is never told about tools it cannot use.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/agent/memory_manager.py",
+      "quote": "provider tools and system-prompt block are both withheld.",
+      "locator": "file:memory_manager.py, inject_memory_provider_tools()",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The memory store distinguishes between a staged (pending approval) write and a committed write; only committed writes are mirrored to external providers.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/agent/memory_manager.py",
+      "quote": "True only when the built-in memory tool actually committed a write. Fails closed (non-JSON, non-dict, missing ``success``, staged for approval) so providers never mirror a write that did not land.",
+      "locator": "file:memory_manager.py, _memory_tool_result_succeeded() docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Providers resolve storage relative to a per-profile hermes_home path, implying per-user (profile-scoped) isolation at the storage layer.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/agent/memory_manager.py",
+      "quote": "injecting ``hermes_home`` so they resolve profile-scoped paths.",
+      "locator": "file:memory_manager.py, initialize_all() docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory retrieval is skipped for trivial prompts (greetings, acknowledgements, empty input, slash commands) to avoid stale context on one-word replies.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/agent/memory_provider.py",
+      "quote": "skipping recall saves a round-trip and keeps stale context from derailing one-word replies",
+      "locator": "is_trivial_prompt docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Prefetch is designed to run in the background and return cached results rather than blocking the turn.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/agent/memory_provider.py",
+      "quote": "Must be fast \u2014 recall in the background and return cached results",
+      "locator": "prefetch docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path supports three operations: add, replace, and remove, mirrored to providers with provenance metadata.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/agent/memory_provider.py",
+      "quote": "Mirror a built-in memory-tool write (``action``: add | replace | remove; ``target``: memory | user; ``metadata``: provenance such as write_origin, session_id, tool_name).",
+      "locator": "on_memory_write docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is enforced at the profile level via ContextVar-scoped HERMES_HOME; failing to propagate context causes silent fallback to default profile.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/agent/memory_provider.py",
+      "quote": "a worker started with an empty context silently lands on the default profile (or fails closed on secrets)",
+      "locator": "ctx_bound docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "All memory-provider background threads (prefetch, sync, writer loops) must use spawn_context_thread to inherit the caller's contextvars.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/agent/memory_provider.py",
+      "quote": "Every memory-provider background job (prefetch, sync, writer loops) must go through this.",
+      "locator": "spawn_context_thread docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session switch is handled without process teardown, distinguishing new-conversation reset (flush buffers) from transcript rewind (same session id, truncated history).",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/agent/memory_provider.py",
+      "quote": "``reset`` is True only for a genuinely new conversation (flush buffers); ``rewound``: same id but the transcript was truncated.",
+      "locator": "on_session_switch docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Pre-compression v2 checkpoint adds fail-closed behavior and normalized evidence handoff; v1 is best-effort.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/agent/memory_provider.py",
+      "quote": "v1 = best-effort on_pre_compress() with the raw message list; v2 = opt-in fail-closed checkpoint (normalized evidence handoff + strict-mode failure propagation).",
+      "locator": "PRE_COMPRESS_CHECKPOINT_API_VERSION comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory configuration uses a plugin architecture with per-provider declarative schemas and a REST API for UI-driven config management.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/plugins/memory/config_schema.py",
+      "quote": "Declarative config schema for memory provider plugins: each declares its fields in a `config_schema.py` beside `__init__.py`; one generic renderer and one `GET/PUT /api/memory/providers/{name}/config` pair drive the UI.",
+      "locator": "module docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation fields available at initialization include per-user (user_id, user_id_alt), per-session (session_id, parent_session_id), per-agent (agent_identity, agent_context, agent_workspace) dimensions.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/agent/memory_provider.py",
+      "quote": "may include ``agent_context`` (\"primary\" | \"subagent\" | \"cron\" | \"flush\" \u2014 skip writes for non-primary contexts), ``agent_identity``, ``agent_workspace``, ``parent_session_id``, ``user_id``, ``user_id_alt``.",
+      "locator": "initialize docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Resume reloads the transcript up to a configurable ceiling; exceeding it raises an error with an explicit user action",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/hermes_state.py",
+      "quote": "This session is too long to reload safely ({message_count} messages; limit {limit}). Start a fresh chat and use `hermes sessions export` to keep a copy, or raise the limit with `hermes config set sessions.max_resume_messages 0`.",
+      "locator": "SessionResumeTooLargeError.__init__",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Compression archives rows and stores a _compressed_summary inline; archived rows are distinguished by the 'active' column",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/hermes_state.py",
+      "quote": "``active`` rides along so a display read can split compaction-archived rows without a second query.",
+      "locator": "_CONVERSATION_ROW_COLUMNS comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A background curator review harness existed that wrote curator turns into real sessions; those turns are stripped on load to prevent replay",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/hermes_state.py",
+      "quote": "Persisted harness prompt (older builds wrote the forked curator's turns into real sessions; replaying them hijacks the session).",
+      "locator": "_is_background_review_harness_message docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The curator harness prompted the model to update a skill library and consider saving to memory, indicating a separate curated-memory write path exists outside this file",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/hermes_state.py",
+      "quote": "_REVIEW_HARNESS_PREFIXES = (\n    \"Review the conversation above and update the skill library\",\n    \"Review the conversation above and consider saving to memory\",\n)",
+      "locator": "_REVIEW_HARNESS_PREFIXES",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "System prompts are deduplicated by SHA-256 hash; orphaned prompts are deleted when no session references them",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/hermes_state.py",
+      "quote": "DELETE FROM system_prompts WHERE NOT EXISTS (SELECT 1 FROM sessions WHERE sessions.system_prompt_hash = system_prompts.hash)",
+      "locator": "SessionDB._delete_unreferenced_system_prompts",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Title authority levels prevent user-typed titles from being overwritten by LLM-derived auto-titles",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/hermes_state.py",
+      "quote": "auto-titling may only replace a strictly lower-authority title (``derived`` -> ``llm`` once; never a user-typed name).",
+      "locator": "SessionDB TITLE_SOURCE_* comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hermes Agent persists the full message log (role, content, tool_name, tool_calls, timestamp, active/compacted flags) in a SQLite messages table per session \u2014 this is a log, not curated memory.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/hermes_state_search.py",
+      "quote": "SELECT m.id, m.session_id, m.role,\n                   {snippet_sql},\n                   {_SEARCH_SELECT_TAIL}\n            FROM {from_sql}\n            JOIN sessions s ON s.id = m.session_id",
+      "locator": "_search_select_sql",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Model-facing scaffold messages (display_kind='hidden') are excluded from search, preventing internal system messages from surfacing as memory hits.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/hermes_state_search.py",
+      "quote": "# display_kind=\"hidden\" rows are model-facing scaffolding the person never saw; a hit would confuse.\n            where.append(\"COALESCE(m.display_kind, '') <> 'hidden'\")",
+      "locator": "_search_filter_clauses",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Compaction produces summary handoff rows injected as role='user'; these are identified and excluded from the recent-user-message list so undo/rewind counts stay correct.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/hermes_state_search.py",
+      "quote": "if ContextCompressor._is_context_summary_content(decoded):\n                continue  # compaction handoff \u2014 never a user-originated turn",
+      "locator": "list_recent_user_messages",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Search retrieve policy is on-demand (called explicitly); no evidence on this page of automatic injection into every turn.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/hermes_state_search.py",
+      "quote": "def search_messages(\n        self, query: str, ...\n    ) -> List[Dict[str, Any]]:",
+      "locator": "search_messages",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Tool-result rows are indexed with a truncated prefix only; full tool content is accessible only via explicit tool-role LIKE scan, not standard FTS retrieval.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/hermes_state_search.py",
+      "quote": "New oversized tool results index only a bounded prefix; an explicit tool-role search is the opt-in full-body path and scans canonical rows via LIKE.",
+      "locator": "_search_messages_impl",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session is the isolation unit: all message storage and retrieval is scoped to session_id; cross-session search is possible but filtered by source, role, and time bounds.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/hermes_state_search.py",
+      "quote": "source_filter: List[str] = None, exclude_sources: List[str] = None,\n        role_filter: List[str] = None, limit: int = 20, offset: int = 0, sort: str = None,\n        include_inactive: bool = False, fields: Optional[Collection[str]] = None,\n        after_ts: Optional[int] = None, before_ts: Optional[int] = None,",
+      "locator": "search_messages signature",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Project-local memory providers require explicit opt-in via HERMES_ENABLE_PROJECT_PLUGINS to prevent implicit activation.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/plugins/memory/__init__.py",
+      "quote": "if not _env_enabled(\"HERMES_ENABLE_PROJECT_PLUGINS\"): return None",
+      "locator": "_get_project_plugins_dir",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Skills registered by an inactive provider are pruned from the registry; isolation is per Hermes home.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/plugins/memory/__init__.py",
+      "quote": "pruning under one multiplexed profile must only retract that profile's provider skills, never a sibling profile's.",
+      "locator": "_REGISTERED_MEMORY_PROVIDER_SKILLS comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Provider availability is probed without importing, to avoid running arbitrary code at discovery time.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/plugins/memory/__init__.py",
+      "quote": "resolved WITHOUT importing it (discovery runs from the dashboard/argparse before a provider is selected; importing every candidate would run arbitrary code)",
+      "locator": "_entry_point_package_dir docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Two distinct storage backends exist for memory provider config: flat JSON and a Honcho host-block store.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/plugins/memory/config_schema.py",
+      "quote": "STORAGE_FLAT_JSON = \"flat_json\"\nSTORAGE_HONCHO_HOST_BLOCK = \"honcho_host_block\"",
+      "locator": "module-level constants",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-profile isolation is implemented at the config-schema cache level by keying on resolved file path.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/plugins/memory/config_schema.py",
+      "quote": "Cached by resolved file path, not name: user plugins are per-profile.",
+      "locator": "get_provider_config_schema docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Field-level scope ('host' per-profile vs 'root') is declared in the schema but only honoured by the Honcho host-block backend; flat-json ignores it.",
+      "kind": "code",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/plugins/memory/config_schema.py",
+      "quote": "# Host-block placement: \"host\" (per-profile) or \"root\"; flat-json ignores it.\nscope: str = \"host\"",
+      "locator": "ProviderField dataclass, scope field",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hermes Agent maintains agent-curated memory with periodic nudges to persist knowledge across sessions",
+      "kind": "docs",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/main/README.md",
+      "quote": "Agent-curated memory with periodic nudges. Autonomous skill creation after complex tasks. Skills self-improve during use.",
+      "locator": "README.md, feature list \u2014 'A closed learning loop'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User modeling across sessions is handled via Honcho dialectic user modeling",
+      "kind": "docs",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/main/README.md",
+      "quote": "Honcho dialectic user modeling. \u2026 builds a deepening model of who you are across sessions.",
+      "locator": "README.md, feature list \u2014 'A closed learning loop' and opening description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is stored in named files (MEMORY.md, USER.md) indicating a file-based, curated-facts store rather than a raw transcript log",
+      "kind": "docs",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/main/README.md",
+      "quote": "Memories \u2014 MEMORY.md and USER.md entries",
+      "locator": "README.md, section 'Migrating from OpenClaw' \u2014 'What gets imported'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The agent nudges itself to write to memory rather than writing passively on every turn",
+      "kind": "docs",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/main/README.md",
+      "quote": "nudges itself to persist knowledge",
+      "locator": "README.md, opening description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hermes Agent has persistent memory as a named core feature, stored across sessions.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/llms.txt",
+      "quote": "The self-improving AI agent built by Nous Research. A terminal-native autonomous coding and task agent with persistent memory, agent-created skills, and a messaging gateway",
+      "locator": "top-level description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The primary store for cross-session memory is MEMORY.md, supplemented by USER.md; session search provides a retrieval path.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/llms.txt",
+      "quote": "How Hermes Agent remembers across sessions \u2014 MEMORY.md, USER.md, and session search",
+      "locator": "Core Features > Memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The agent maintains distinct files for personality/lore (SOUL.md), user context (USER.md), memory (MEMORY.md), and agent instructions (AGENTS.md), with documented authorship and injection rules.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/llms.txt",
+      "quote": "SOUL.md vs USER.md vs MEMORY.md vs AGENTS.md \u2014 a one-page map of the agent's files, who writes each one, and when the agent actually sees them",
+      "locator": "Using Hermes > Which File Does What?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context/scaffold files are automatically injected into every conversation turn.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/llms.txt",
+      "quote": "Project context files \u2014 .hermes.md, AGENTS.md, CLAUDE.md, global SOUL.md, and .cursorrules \u2014 automatically injected into every conversation",
+      "locator": "Core Features > Context Files",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory isolation is per-bot when using Bot Mode.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/llms.txt",
+      "quote": "Turn your Hermes profiles into a roster of named Bots \u2014 each with its own chat, role, model, memory, skills, and avatar.",
+      "locator": "Using Hermes > Bot Mode",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "External memory provider plugins are supported, with at least eight named backends available.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/llms.txt",
+      "quote": "External memory provider plugins \u2014 Honcho, OpenViking, Mem0, Hindsight, Holographic, RetainDB, ByteRover, Supermemory",
+      "locator": "Core Features > Memory Providers",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Known continuity failure modes include forgetting things mid-session and a 'frozen memory snapshot' condition.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/llms.txt",
+      "quote": "A diagnostic checklist for when Hermes seems less capable than before or forgets things mid-session \u2014 model switches, context pressure, wrong context detection, and the frozen memory snapshot",
+      "locator": "Guides & Tutorials > Troubleshooting: \"My Agent Feels Dumber\"",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session persistence includes resume and per-platform session tracking.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/llms.txt",
+      "quote": "Session persistence, resume, search, management, and per-platform session tracking",
+      "locator": "Using Hermes > Sessions",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Gateway session isolation is documented at a developer level covering multi-user isolation.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/llms.txt",
+      "quote": "SessionSource, SessionEntry, SessionStore, session-key rules and multi-user isolation in the gateway",
+      "locator": "Developer Guide > Gateway Session Lifecycle",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Persistent store is two markdown files (MEMORY.md, USER.md) with character limits, stored at ~/.hermes/memories/ and injected into the system prompt at session start.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory",
+      "quote": "Two files make up the agent's memory... Both are stored in ~/.hermes/memories/ and are injected into the system prompt as a frozen snapshot at session start.",
+      "locator": "How It Works",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory provider isolation is per Hermes profile, not per session or per user within a session.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory-providers",
+      "quote": "Each provider's data is isolated per profile",
+      "locator": "Profile Isolation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The external memory provider can be disabled (forget/omit path: provider disabled, built-in memory remains).",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory-providers",
+      "quote": "hermes memory off # disable external provider",
+      "locator": "Quick Start",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hermes is built by Nous Research and licensed MIT.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory-providers",
+      "quote": "Built by Nous Research \u00b7 MIT License \u00b7 2026",
+      "locator": "Page footer",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path supports add, replace (substring match), and remove (substring match); no read action exists.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory",
+      "quote": "add \u2014 Add a new memory entry\nreplace \u2014 Replace an existing entry with updated content (uses substring matching via old_text)\nremove \u2014 Remove an entry that's no longer relevant (uses substring matching via old_text)\n\nThere is no read action \u2014 memory content is automatically injected into the system prompt at session start.",
+      "locator": "Memory Tool Actions",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Frozen snapshot: memory is loaded once at session start and does not update in the system prompt mid-session; disk writes are immediate but only visible next session.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory",
+      "quote": "The system prompt injection is captured once at session start and never changes mid-session. This is intentional \u2014 it preserves the LLM's prefix cache for performance. When the agent adds/removes memory entries during a session, the changes are persisted to disk immediately but won't appear in the system prompt until the next session starts.",
+      "locator": "How Memory Appears in the System Prompt \u2014 Frozen snapshot pattern",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget path: remove action deletes entries from the store; journey delete removes memory chunks permanently (skills are archived/restorable).",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory",
+      "quote": "remove \u2014 Remove an entry that's no longer relevant... hermes journey delete <node> [-y] Delete a node. Skills are archived (restorable), memory chunks are removed.",
+      "locator": "Memory Tool Actions; Learning Journey (/journey)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict / capacity management: writes that exceed the character limit are rejected with an error and current entries list; the agent must consolidate or remove entries before retrying in the same turn.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory",
+      "quote": "when a write would exceed the limit, the memory tool returns an error instead of silently dropping entries. The agent then makes room itself \u2014 consolidating or removing entries in the same turn before retrying",
+      "locator": "How It Works \u2014 info callout",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Duplicate prevention: exact duplicate entries are rejected automatically.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory",
+      "quote": "The memory system automatically rejects exact duplicate entries. If you try to add content that already exists, it returns success with a 'no duplicate added' message.",
+      "locator": "Duplicate Prevention",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per profile (Hermes home directory); two agents sharing a home will corrupt each other's memory state.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory",
+      "quote": "Memory is scoped per profile by design \u2014 give a second agent its own profile, and if they need shared memory, use an external memory provider instead.",
+      "locator": "How It Works \u2014 warning callout",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session search (separate from memory) uses SQLite FTS5 over all past sessions, returning raw messages with no LLM summarization; it is on-demand, not always injected.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory",
+      "quote": "All CLI and messaging sessions are stored in SQLite (~/.hermes/state.db) with FTS5 full-text search\nSearch queries return actual messages from the DB \u2014 no LLM summarization, no truncation",
+      "locator": "Session Search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Background review runs after each turn and may write memory entries or skills; it operates as a consent-aware learning loop and can be gated by write_approval.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory",
+      "quote": "This is Hermes' consent-aware learning loop: repeated corrections and durable workflow lessons become compact memory entries or procedural skills, while write_approval can stage those writes for review before they affect future sessions.",
+      "locator": "Background review notifications",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write approval gate: write_approval: true stages all writes (foreground and background review) for explicit user approval; /memory pending lists them tagged [auto] for background writes.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory",
+      "quote": "If you'd rather approve saves first, set memory.write_approval: true. It's a simple on/off gate applied to both foreground turns and the background review... /memory pending # list staged memory writes (auto ones tagged [auto])",
+      "locator": "Controlling memory writes (write_approval)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory stores are separated by semantic type: 'memory' target for environment/workflow facts, 'user' target for user identity and preferences.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory",
+      "quote": "memory \u2014 Agent's Personal Notes\nFor information the agent needs to remember about the environment, workflows, and lessons learned...\nuser \u2014 User Profile\nFor information about the user's identity, preferences, and communication style",
+      "locator": "Two Targets Explained",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy: memory is always injected (fixed cost ~1,300 tokens per session); session_search is adaptive/on-demand and free of token cost until invoked.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory",
+      "quote": "Memory is for critical facts that should always be in context... Token cost Fixed per session (~1,300 tokens) On-demand (searched when needed)",
+      "locator": "session_search vs memory \u2014 table",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Security scanning blocks prompt injection, credential exfiltration patterns, SSH backdoors, and invisible Unicode in memory entries before persistence.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory",
+      "quote": "Memory entries are scanned for injection and exfiltration patterns before being accepted, since they're injected into the system prompt. Content matching threat patterns (prompt injection, credential exfiltration, SSH backdoors) or containing invisible Unicode characters is blocked.",
+      "locator": "Security Scanning",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The agent proactively saves without being asked, including user preferences, environment facts, corrections, conventions, completed work, and explicit requests.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory",
+      "quote": "The agent saves automatically \u2014 you don't need to ask. It saves when it learns:\nUser preferences... Environment facts... Corrections... Conventions... Completed work... Explicit requests",
+      "locator": "What to Save vs Skip \u2014 Save These (Proactively)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistent memory is split into two files: USER.md (user profile) and MEMORY.md (agent-learned facts), both written by the agent via the memory tool.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/which-file-does-what",
+      "quote": "USER.md \u2014 User profile \u2014 your name, role, preferences, communication style, expectations \u2014 The agent, via the memory tool \u2026 MEMORY.md \u2014 Agent's personal notes \u2014 environment facts, project conventions, tool quirks, things learned \u2014 The agent, via the memory tool",
+      "locator": "The Master Table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is injected as a frozen snapshot at session start; mid-session saves persist to disk immediately but do not update the live system prompt.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/which-file-does-what",
+      "quote": "Memory (MEMORY.md and USER.md) is injected into the system prompt as a frozen snapshot captured once at session start \u2014 when the agent saves something mid-session, the change is persisted to disk immediately but won't appear in the system prompt until the next session starts.",
+      "locator": "Why did it forget what I just said?",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "SOUL.md content is injected verbatim as the first slot of the system prompt and is never overwritten by the agent.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/which-file-does-what",
+      "quote": "its content is injected verbatim as slot #1 of the prompt \u2026 Hermes seeds a starter file automatically if one doesn't exist; existing files are never overwritten",
+      "locator": "The Master Table / Common Mix-Ups \u2014 I put facts about myself in SOUL.md",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "SOUL.md and USER.md are isolated from each other: editing SOUL.md does not populate USER.md memory, and memory entries do not alter the persona.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/which-file-does-what",
+      "quote": "editing SOUL.md won't populate memory, and memory entries won't change the persona.",
+      "locator": "Common Mix-Ups \u2014 I put facts about myself in SOUL.md",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Within a session, facts told to the agent are available via conversation context even before the next-session snapshot refresh.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/which-file-does-what",
+      "quote": "The agent can still use what you told it within the current conversation (it's in the context), and the saved entry will be in the system prompt from the next session onward.",
+      "locator": "Common Mix-Ups \u2014 I told it my name mid-session",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Only one project context file type is loaded per session via a priority chain; SOUL.md is always loaded independently.",
+      "kind": "docs",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/which-file-does-what",
+      "quote": "Only one project context type is loaded per session, first match wins: .hermes.md \u2192 AGENTS.md \u2192 CLAUDE.md \u2192 .cursorrules. SOUL.md is always loaded independently as the agent identity \u2014 it is not part of that priority chain.",
+      "locator": "One project context file per session (callout)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Continuity failure: the cron agent-spawn path does not carry forward the pinned model into the spawned agent, causing the agent to use a different model than configured \u2014 a form of mistimed/incorrect state resolution across the job lifecycle.",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/100437",
+      "quote": "The `agent`-type spawn no longer propagates the job's `provider`/`model` to the spawned agent subprocess.",
+      "locator": "Root Cause Analysis, Bug 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Per-job model pin (provider and model) is persisted in jobs.json and is intended to survive across cron invocations.",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/100437",
+      "quote": "Confirmed via `jobs.json` that the pin IS stored correctly: { \"name\": \"gsc-weekly-check\", \"provider\": \"google\", \"model\": \"gemini-2.5-flash\", \"no_agent\": false }",
+      "locator": "Actual Behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A hardcoded minimum context length of 64,000 tokens gates which models can be used by agent-type cron jobs, located at agent/model_metadata.py:413.",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/100437",
+      "quote": "`MINIMUM_CONTEXT_LENGTH = 64_000` (`agent/model_metadata.py:413`) is a hardcoded constant.",
+      "locator": "Root Cause Analysis, Bug 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "config.yaml supports a model.context_length override intended to let users declare a model's true context window for the gate, but this is not honored by the cron agent-spawn path in v0.21.0.",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/100437",
+      "quote": "set model.context_length in config.yaml to the real value (this must be at least 64K)",
+      "locator": "Actual Behavior (error message)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agent turns are bound to a HERMES_UI_SESSION_ID, scoping tool calls and UI events to a specific session.",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/113348",
+      "quote": "read_pane emits a blocking prompt via HERMES_UI_SESSION_ID and waits for a preview.read.respond event from the renderer.",
+      "locator": "## Diagnosis (from source inspection)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Sessions are identified by a timestamp-based ID, suggesting per-session isolation of agent state.",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/113348",
+      "quote": "First observed on 2026-09-16 in session 20260916_023642_d9f997.",
+      "locator": "## Version where first observed",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Renderer reconnection (new WebSocket peer IDs after app update) does not restore the read path, suggesting the session binding is not re-established on reconnect.",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/113348",
+      "quote": "After app update, gui.log shows new WebSocket connections opening (new peer IDs), confirming the renderer reconnected \u2014 but the read path still fails.",
+      "locator": "## Evidence from logs",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The preview read path is broken under Tailscale/containerized deployment: the agent receives no content from the renderer, making it blind to previously opened pages.",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/113348",
+      "quote": "Without the read path, the agent is effectively blind in the preview pane, making the preview pane an output-only display (no interaction, no reading).",
+      "locator": "## Severity",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hub rebuild cache TTL is 5 seconds (_PLUGINS_HUB_CACHE_TTL_SECONDS = 5.0), making the per-plugin fetch storm recur on every dashboard Plugins page visit",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/113677",
+      "quote": "_PLUGINS_HUB_CACHE_TTL_SECONDS is 5.0, so this repeats on essentially every visit to the Plugins page",
+      "locator": "Root cause section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Suggested fix includes negative-caching failures for N minutes so a dead network costs one timeout rather than plugins \u00d7 timeout",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/113677",
+      "quote": "Negative-cache failures. Remember a failed fetch for N minutes so a dead network costs one timeout, not plugins \u00d7 timeout. Today every plugin re-attempts.",
+      "locator": "Suggested fix section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Departed agents persist in other bots' prompts for the life of the Desktop process when the roster-clear push fails",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/113862",
+      "quote": "That gateway keeps the departed machine's agents for the life of the Desktop process: they stay in the \"Teammates on OTHER connected machines\" section of every bot's prompt on that gateway",
+      "locator": "Impact",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The roster-clear one-shot flag is recorded before confirming delivery, so any transient socket failure (lid close, gateway restart, SSH drop) permanently disables the retry",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/113862",
+      "quote": "A laptop closing its lid, a gateway restarting, or an SSH connection dropping all produce \"one connection left, and its socket is briefly unavailable\"",
+      "locator": "Steps to Reproduce / Environment",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Expected behavior is that the clear is recorded only after the gateway has confirmed it has forgotten the departed agents; failed pushes should be retried on the next tick",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/113862",
+      "quote": "The clear is recorded only once the gateway has actually forgotten; a failed push is retried on the next tick",
+      "locator": "Expected",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Validation failure persists across full app quit/relaunch and clean redownload cycles \u2014 the broken state is not session-transient",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/115237",
+      "quote": "Fully quitting/relaunching the app, and a complete delete + clean redownload through the same in-app flow, produce the identical error. The button can never succeed for these models.",
+      "locator": "Summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "seedLiveCwd silently skips setting the cwd when the remembered value is empty, causing the previous gateway's cwd to persist as the live value after a switch.",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/114306",
+      "quote": "seedLiveCwd is guarded by if (\u2026 && cwd && \u2026). For a gateway with nothing remembered it is a no-op, so $currentCwd keeps the outgoing gateway's value.",
+      "locator": "Root Cause Analysis \u00a7 1, referencing apps/desktop/src/store/session.ts#L314-L326",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "_is_reasoning_field_rejection was introduced in issue #112781 to recover from reasoning-field rejections by retrying with reasoning fields omitted",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/114460",
+      "quote": "the existing _is_reasoning_field_rejection rung (#112781) was designed to recover from exactly this class of failure by retrying with reasoning fields omitted",
+      "locator": "Bug Description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Gateway switch clears session and machine context but not the live workspace cwd, meaning cross-gateway cwd isolation is incomplete.",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/114306",
+      "quote": "beginGatewaySwitch wipes the session lists and machine context but does not touch $currentCwd.",
+      "locator": "Root Cause Analysis \u00a7 3, referencing apps/desktop/src/store/gateway-switch.ts#L86",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "There is no user-facing control to correct a wrong workspace folder; changeSessionCwd is not wired to any UI control.",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/114306",
+      "quote": "changeSessionCwd from use-cwd-actions.ts does not appear to be wired to any control, so a user who notices the wrong folder has no obvious way to correct it.",
+      "locator": "Side note at end of issue",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conversation turns die as non-retryable client errors when the reasoning-field rejection is not recognized",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/114460",
+      "quote": "ERROR [20260917_102834_5258b3a9] agent.conversation_loop: Non-retryable client error: Error code: 400 - {'error': {'message': \"reasoning_effort 'none' unsupported; use minimal|low|medium|high|xhigh\"",
+      "locator": "Debug Report",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The affected component is identified as Agent Core, covering conversation loop, context compression, and memory",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/114460",
+      "quote": "Agent Core (conversation loop, context compression, memory)",
+      "locator": "Affected Component",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hermes version 0.21.3 is affected",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/114460",
+      "quote": "0.21.3",
+      "locator": "Hermes Version",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agent wrote an incorrect workaround into long-term memory after a silent tool failure, and the memory persisted after the underlying problem was resolved \u2014 a continuity failure where stale memory overrode correct behavior for roughly a day",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/114628",
+      "quote": "the agent instead concluded messaging was broken, wrote a CLI workaround into its long-term memory (`<venv>/bin/hermes -p <profile> chat -Q --query-file \u2026`), and routed around `message_agent` for roughly a day \u2014 including after the underlying `PATH` problem had been fixed, because the memory outlived the fix.",
+      "locator": "### Why this is worse than a normal failure",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "When another surface switches boards, the desktop view silently changes on next open \u2014 a continuity failure where users conclude their board disappeared",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/114642",
+      "quote": "When anything else switches boards (another project's worker flow, another surface), the desktop view silently changes on next open \u2014 which reads as \"the app is flaky / my board disappeared.\"",
+      "locator": "## Motivation, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Proposed fix is per-surface or per-session board memory with the global pointer as fallback",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/114642",
+      "quote": "Consider per-surface board memory (desktop session, dashboard, CLI) with the global pointer as fallback, so opening the desktop app doesn't silently land on whatever board another surface switched to last.",
+      "locator": "## Proposed Solution",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory provider is called 'holographic memory' and is enabled via a config key memory.provider",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/115131",
+      "quote": "Enable the memory provider in config (`memory.provider` set to a real provider). \u2026 the memory provider (holographic memory) is enabled",
+      "locator": "Summary; Repro step 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory subsystem is lazily initialised during session creation (session/new), implying memory state is set up per session rather than at process start",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/115131",
+      "quote": "The memory subsystem lazily imports numpy during `session/new`, and numpy's DLL init contends with the ACP stdin reader thread and deadlocks.",
+      "locator": "Root cause (isolated repro), final paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hermes Agent has a learning loop that includes memory and skills as core components.",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/115234",
+      "quote": "Hermes is the only agent with a learning loop (skills + memory).",
+      "locator": "## Why it fits Hermes",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "The documented behavior states downloaded community models behave exactly like catalog models",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/115237",
+      "quote": "This contradicts the documented behavior in `docs/user-guide/local-models`: \"Anything you download behaves exactly like a catalog model.\"",
+      "locator": "Root cause",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The Use button is documented to set local_runtime.enabled automatically for downloaded models",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/115237",
+      "quote": "The desktop 'Use' button sets this automatically\" for `local_runtime.enabled`, and downloads \"behave exactly like a catalog model\"",
+      "locator": "Expected behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hermes Agent has an auxiliary title generation subsystem that fires at new session start and is part of the agent core memory/conversation loop component",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/115277",
+      "quote": "Affected Component: Agent Core (conversation loop, context compression, memory)",
+      "locator": "Affected Component section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The retry ladder for reasoning-field rejections strips reasoning wire controls and retries once, intended to be transparent to the user",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/115277",
+      "quote": "the #112781 rung fires (strip all reasoning wire controls, retry once, let the route default apply) and the title is generated transparently",
+      "locator": "Expected Behavior section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Title generation failure results in a WARNING log with no recovery, meaning the session title is not generated \u2014 a continuity-adjacent failure in session labeling",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/115277",
+      "quote": "Result: `WARNING agent.title_generator: Title generation failed: Error code: 400 - ...` with no recovery.",
+      "locator": "Actual Behavior section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hermes Agent version 0.21.3 is confirmed affected; the bug was not introduced by a Hermes change but by an external aggregator tightening its validation",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/115277",
+      "quote": "this wording appeared between 2026-09-19 01:03 and 01:57 with identical request kwargs on both sides of a Hermes 0.21.1\u21920.21.3 upgrade ... the aggregator tightened its validation server-side; Hermes' request did not change",
+      "locator": "Debug Report section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context pollution continuity failure: wrong-project memory entries appear in unrelated sessions (cert-manager paths while debugging invoices)",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/33638",
+      "quote": "cert-manager paths appear while debugging invoices",
+      "locator": "Motivation / table row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "11 mixed entries injected per session before scoping; ~2,144 chars of cross-project content",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/33638",
+      "quote": "Memory entries injected\t11 entries, mixed cert-manager / invoice / Codex / global\nToken waste per session\t~2,144 chars of mixed content",
+      "locator": "Motivation / table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieve policy today: always inject all entries. Proposed policy: inject [global] + matching [project:<scope>] entries when scoping enabled",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/33638",
+      "quote": "When `project_scope` is empty \u2192 current behavior (inject all entries)\nWhen `project_scope` is set \u2192 filter entries by tag prefix, e.g. `[global]` or `[project:cert-manager]`",
+      "locator": "Proposed Solution / 1. Add a `project_scope` parameter to MemoryStore",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory entries are flat text with no structured metadata or schema; arbitrary text supported by the memory() tool",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/33638",
+      "quote": "These tags are just text in the entry content \u2014 no schema migration needed. The `memory()` tool already supports arbitrary text.",
+      "locator": "Proposed Solution / 4. User-facing convention",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No isolation between projects today; proposed fix is tag-prefix filtering keyed to cwd-detected project root",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/33638",
+      "quote": "Without scoping, every session pays the full cross-project memory tax. With it, token waste drops by ~65% for any single-project session.",
+      "locator": "Motivation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session end events (/quit, /new, session timeout) trigger agent lifecycle release() which unconditionally kills all processes registered to that session",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/41225",
+      "quote": "Session end (`/quit`, `/new`, session timeout)\n- Context compression cycles (automatic memory management)\n- Error recovery (tool call failure chain, network error)\n- Max iteration limit hit",
+      "locator": "Problem section, bullet list",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "ProcessSession has no opt-out flag for lifecycle cleanup; kill_all() is called unconditionally during AIAgent.release()",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/41225",
+      "quote": "`ProcessSession` has no opt-out flag for lifecycle cleanup. `kill_all()` is called unconditionally during `AIAgent.release()` and there is no configuration to exclude specific processes.",
+      "locator": "Root Cause section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Proposed fix adds persist_on_release flag to ProcessSession to allow processes to survive agent lifecycle cleanup",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/41225",
+      "quote": "It adds a `persist_on_release` field to `ProcessSession` and skips it in `kill_all()`.",
+      "locator": "Related / PR #41217 description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Continuity failure: routing metadata injected by Hermes was stored as user-authored content, causing the memory provider to produce false durable conclusions about user intent that survived deletion of those conclusions because the polluted source transcript remained.",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/71304",
+      "quote": "Honcho then created multiple durable conclusions falsely claiming that the user supplied message IDs and requested reply/react/pin actions. Deleting the false conclusions was insufficient because the polluted source transcript remained available, allowing the same claims to be inferred again.",
+      "locator": "Real-world impact observed",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Merged PR #55595 moved the volatile Discord message ID from the cached system prompt into per-turn user content for prompt-cache stability, which is the upstream change that created the current persistence path for the triggering-message note.",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/71304",
+      "quote": "Merged PR #55595 moved the volatile Discord message ID from the cached system prompt into per-turn user content for prompt-cache stability.",
+      "locator": "Bug Description \u2014 Related but not duplicate",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hermes Agent ships a 'local_embedded' memory provider using Hindsight; provider availability is checked at runtime via is_available() / _check_local_runtime() and gates the recall pipeline",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/95855",
+      "quote": "`is_available()` -> `_check_local_runtime()` -> `import hindsight` fails -> provider marked unavailable, recall pipeline disabled.",
+      "locator": "Symptom section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The memory manager can fall back to running the Hindsight daemon in an isolated uvx environment when the in-venv probe fails, but the plugin still reports unavailable",
+      "kind": "issue",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/95855",
+      "quote": "The embedded daemon itself still runs: the manager falls back to `uvx hindsight-api@<version>`, whose isolated env resolves the consistent set `mcp 1.29.1 + fastmcp 3.4.7`. But the in-venv `_check_local_runtime()` probe still fails, so the plugin reports unavailable regardless.",
+      "locator": "Extra notes section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hermes Agent is always-on, runs on local machine, and executes tools.",
+      "kind": "blog",
+      "url": "https://goldiebench.com/blog/best-local-model-for-hermes-agent",
+      "quote": "Hermes Agent is the body: always on, on your machine, running tools.",
+      "locator": "intro paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hermes Agent uses profiles to configure the model provider, pointing to a local Ollama endpoint.",
+      "kind": "blog",
+      "url": "https://goldiebench.com/blog/best-local-model-for-hermes-agent",
+      "quote": "set it as the provider in your Hermes profile ( provider: ollama, base_url: http://localhost:11434/v1 )",
+      "locator": "How to wire it into Hermes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hermes Agent can operate fully offline with no API dependency.",
+      "kind": "blog",
+      "url": "https://goldiebench.com/blog/best-local-model-for-hermes-agent",
+      "quote": "the whole agent loop works with no internet and no API bill.",
+      "locator": "FAQ \u2014 Can I run Hermes Agent fully offline with these?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hermes Agent supports multi-turn agentic loops involving tool calls, file edits, and multi-step plans.",
+      "kind": "blog",
+      "url": "https://goldiebench.com/blog/best-local-model-for-hermes-agent",
+      "quote": "For long agentic loops (tool calls, file edits, multi-turn plans) that speed is the difference between a snappy agent and a coffee break.",
+      "locator": "Best speed-to-quality section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hermes Agent supports sub-agent delegation, allowing a local model to handle auxiliary tasks under a frontier main model.",
+      "kind": "blog",
+      "url": "https://goldiebench.com/blog/best-local-model-for-hermes-agent",
+      "quote": "a frontier model (Claude, GPT-5.6) as the main planner, and the local model as the sub-agent for grunt work \u2014 summaries, file reads, boilerplate.",
+      "locator": "Main model vs sub-agent section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hermes Agent uses a three-layer memory architecture: durable facts (MEMORY.md/USER.md), procedural skills, and session search (SQLite)",
+      "kind": "blog",
+      "url": "https://hermes-agent.ai/blog/hermes-agent-memory-system",
+      "quote": "Hermes Agent memory has three practical layers: durable memory for stable facts and preferences, skills for reusable procedures, and session search for recalling past conversations.",
+      "locator": "Quick answer",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Durable memory is declarative and fact-oriented; task logs and ephemeral progress notes are explicitly excluded",
+      "kind": "blog",
+      "url": "https://hermes-agent.ai/blog/hermes-agent-memory-system",
+      "quote": "Good memory is declarative \u2026 Bad memory is a task log: Fixed bug X today. Opened PR Y. Those details expire quickly and belong elsewhere.",
+      "locator": "Layer 1: durable facts",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Skills are loaded adaptively only when relevant, not injected every turn",
+      "kind": "blog",
+      "url": "https://hermes-agent.ai/blog/hermes-agent-memory-system",
+      "quote": "A skill can be more detailed than memory because it is loaded only when relevant.",
+      "locator": "Layer 2: procedural skills",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session search retrieves prior conversations on demand rather than persisting transcripts as durable facts",
+      "kind": "blog",
+      "url": "https://hermes-agent.ai/blog/hermes-agent-memory-system",
+      "quote": "Session search is for recall \u2026 This keeps permanent memory small while still making old work discoverable. It also reduces the temptation to store raw transcripts as permanent facts.",
+      "locator": "Layer 3: session search",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MEMORY.md has a 2,200-character cap and USER.md a 1,375-character cap; overflow fails visibly rather than silently evicting facts",
+      "kind": "blog",
+      "url": "https://hermes-agent.ai/blog/hermes-agent-memory-system",
+      "quote": "MEMORY.md is capped at 2,200 characters and USER.md at 1,375; over-capacity writes fail visibly so the agent can consolidate instead of silently evicting a fact.",
+      "locator": "Memory is bounded, reviewable, and auditable",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Profiles provide per-context isolation so memory from one deployment (work, personal, bot) cannot leak into another",
+      "kind": "blog",
+      "url": "https://hermes-agent.ai/blog/hermes-agent-memory-system",
+      "quote": "A work deployment preference should not affect a personal assistant. A Telegram bot's public response style should not affect private research. Use Hermes profiles to separate these contexts cleanly.",
+      "locator": "Profiles prevent context collisions",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Community reports recall/compaction failures and auxiliary timeout failures as live continuity issues",
+      "kind": "blog",
+      "url": "https://hermes-agent.ai/blog/hermes-agent-memory-system",
+      "quote": "Recent Discord threads around how to fix Hermes memory, Local hindsight memory installation broke Hermes, and auxiliary timeout failures show that memory architecture is only half the story.",
+      "locator": "Recent community troubleshooting note",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The product is MIT-licensed and self-hostable",
+      "kind": "blog",
+      "url": "https://hermes-agent.ai/blog/hermes-agent-memory-system",
+      "quote": "Open Source \u2022 MIT License \u2014 Hermes Agent is open-source and designed to grow with you over time.",
+      "locator": "footer",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Durable facts and user preferences are persisted to separate markdown files under ~/.hermes/memories/",
+      "kind": "blog",
+      "url": "https://hermes-agent.ai/features/persistent-memory",
+      "quote": "Built-in durable memory lives in ~/.hermes/memories/: MEMORY.md holds concise environment facts and reusable lessons, while USER.md holds stable user preferences.",
+      "locator": "Under the Hood",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Store capacity is hard-bounded; overflow fails visibly with an error rather than silently evicting older facts",
+      "kind": "blog",
+      "url": "https://hermes-agent.ai/features/persistent-memory",
+      "quote": "Over-capacity add and replace operations return an error. The agent must consolidate or remove entries and retry, which keeps memory changes visible and reviewable.",
+      "locator": "Frequently asked questions \u2014 Does Hermes silently delete old memories when the store is full?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Continuity failures ('Hermes forgot') are diagnosed by checking memory enablement, profile match, session length, and provider/auxiliary-model failures",
+      "kind": "blog",
+      "url": "https://hermes-agent.ai/features/persistent-memory",
+      "quote": "Check whether memory is enabled, whether the fact is durable enough to be saved, whether you are in the same profile, and whether the current session is too long and needs /compress. Also inspect provider or auxiliary-model failures, because memory and context maintenance can fail even when normal chat still works.",
+      "locator": "Frequently asked questions \u2014 Why does Hermes Agent not remember something I told it?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Product is open-source under MIT license",
+      "kind": "blog",
+      "url": "https://hermes-agent.ai/features/persistent-memory",
+      "quote": "Open Source \u2022 MIT License \u2014 Hermes Agent is open-source and designed to grow with you over time.",
+      "locator": "Footer",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MEMORY.md and USER.md are always injected into every prompt wholesale \u2014 no retrieval step.",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/guide/memory/",
+      "quote": "At the start of every session, Hermes pastes the entire contents of both files into the prompt sent to the model. So everything in these files is always \"in front of\" the agent. No retrieval needed, it just sees them.",
+      "locator": "Section: The two markdown files",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The 80% consolidation threshold is a prompt instruction shown via a real-time fill gauge, not enforced in code; the model decides whether to act.",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/guide/memory/",
+      "quote": "There is no automatic consolidation - the 80% rule is a prompt instruction, not code. The system prompt header shows the agent a real-time fill gauge - something like \"MEMORY: 1,847/2,200 chars (84 percent)\" - along with the instruction \"when memory is above 80% capacity, consolidate entries before adding new ones.\"",
+      "locator": "Section: What happens when the files fill up?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Session database at ~/.hermes/hermes_state.db stores full transcripts including reasoning steps and token/cost data; 90-day default retention with 24-hour auto-pruning.",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/guide/memory/",
+      "quote": "Hermes stores every session in a SQLite database file at ~/.hermes/hermes_state.db. Every user message, every agent response, every tool call, every reasoning step, plus economic data like token counts and dollar cost per session - all of it lands here. Default retention is 90 days; older sessions get pruned automatically every 24 hours unless you change the setting.",
+      "locator": "Section: The database (and how it relates to the markdown files)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Switching Layer 2 providers is a clean start \u2014 no data inherited from prior provider \u2014 but Layer 1 files persist.",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/guide/memory/",
+      "quote": "Switching providers is a clean start - the new provider doesn't inherit the old one's data, but the Layer 1 native files keep running underneath either way.",
+      "locator": "Section: Layer 1 overview",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget in native layer is unreliable: telling the agent to forget does not guarantee deletion; an internal summary may quietly persist.",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/guide/memory/",
+      "quote": "when you tell the agent to forget something, it doesn't actually forget - it keeps an internal summary that quietly influences future recall",
+      "locator": "Section: Others worth knowing about (hermes-agentmemory)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory-as-skill is a non-pattern in practice; all credible persistent memory flows through the MemoryProvider ABC.",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/guide/memory/",
+      "quote": "memory-as-skill is effectively a non-pattern. The agentskills.io standard means a \"skill\" could in principle implement memory. In practice all credible persistent memory flows through the MemoryProvider ABC.",
+      "locator": "Section: One thing I expected to find that doesn't exist",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hermes Agent has built-in recall capability that community memory providers extend.",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/lists/best-memory-providers",
+      "quote": "these tools extend its built-in recall with long-term semantic memory, graph-based retrieval, and cross-session persistence.",
+      "locator": "page intro paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hermes Agent is versioned at v0.21.3 at time of page publication.",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/lists/best-memory-providers",
+      "quote": "hermes\u00b7v0.21.3",
+      "locator": "site header",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A tool for reducing Hermes Agent tool-schema overhead exists, targeting v0.14.0, suggesting the agent exposes a tool schema that consumes prompt tokens.",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/lists/best-memory-providers",
+      "quote": "Reduce Hermes Agent tool-schema overhead with keyword selection and Tool Search support",
+      "locator": "breakdown: alias8818/hermes-tool-slimmer",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hermes automatically saves reusable lessons from sessions as persistent, revisable Markdown skill documents.",
+      "kind": "blog",
+      "url": "https://nousresearch.com/refactoring-hermes-with-1393-agents",
+      "quote": "When we worked out a procedure or I corrected a mistake, Hermes (automatically) noticed this and saved the reusable lesson. Over time, it accumulated instructions about how to prepare a PR, which shortcuts to avoid, and how to verify a change. Skills are readable Markdown documents, with reference files and scripts where needed, that the agent can load for later tasks. Hermes writes and revises them as it works.",
+      "locator": "section: Self-improvement (for real)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Skills persist across sessions and are loaded into new tasks, enabling the agent to act on past corrections without repeating prior sessions.",
+      "kind": "blog",
+      "url": "https://nousresearch.com/refactoring-hermes-with-1393-agents",
+      "quote": "By the time I asked for this refactor, it had learned my preferred procedures and standards and could apply them to a much larger job",
+      "locator": "section: intro paragraph before TLDR quote",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Accumulated guidance (stored memory) is retrieved and used autonomously to brief subagents, without requiring user re-input.",
+      "kind": "blog",
+      "url": "https://nousresearch.com/refactoring-hermes-with-1393-agents",
+      "quote": "It used my objective and the accumulated guidance to prepare written assignments, without my having to brief each worker.",
+      "locator": "section: Running the refactor",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Skills are automatically updated after a task completes and can be redistributed to the team.",
+      "kind": "blog",
+      "url": "https://nousresearch.com/refactoring-hermes-with-1393-agents",
+      "quote": "My Hermes skills were automatically updated with lessons from this refactor, which I can share with the team. All for 1% of the cost and 1% of the time we'd estimated it would take if we attempted it manually.",
+      "locator": "section: Lessons learned",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hermes Agent splits persistent memory into three layers: markdown files loaded every session (SOUL.md, MEMORY.md, USER.md), skills as procedures (SKILL.md per skill), and a full-log SQLite DB with FTS5 queried adaptively.",
+      "kind": "blog",
+      "url": "https://lumadock.com/tutorials/hermes-memory-architecture-explained",
+      "quote": "Hermes splits memory across three places, each with a different lifetime, granularity and intended purpose.",
+      "locator": "The three layers",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Layer 1 files are always loaded into the system prompt at session start \u2014 retrieve policy is unconditional for these files.",
+      "kind": "blog",
+      "url": "https://lumadock.com/tutorials/hermes-memory-architecture-explained",
+      "quote": "These get loaded into the system prompt at the start of every session. Stable, slow-changing, hand-curated.",
+      "locator": "The three layers \u2014 Layer 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "state.db is a full log (every message ever sent), not a curated memory store; curated facts live in MEMORY.md/USER.md.",
+      "kind": "blog",
+      "url": "https://lumadock.com/tutorials/hermes-memory-architecture-explained",
+      "quote": "state.db is where every message ever sent through Hermes lives. Each row is a message: who sent it, when, on what channel, with what content.",
+      "locator": "Layer 3, the session DB",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path to memory files is append-only with timestamp comments; pruning (deletion) is a manual user operation.",
+      "kind": "blog",
+      "url": "https://lumadock.com/tutorials/hermes-memory-architecture-explained",
+      "quote": "The agent appends to the relevant file with a timestamp comment... If the agent writes too much... prune. Open the file, delete entries that aren't useful any more, save.",
+      "locator": "How auto-write works (and how to control it)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Reflective phase writes synthesised summaries back to MEMORY.md and may generate new skills; trigger is heuristic and can be disabled.",
+      "kind": "blog",
+      "url": "https://lumadock.com/tutorials/hermes-memory-architecture-explained",
+      "quote": "Periodically, Hermes runs a reflection pass that synthesises across stored memory: it reads recent sessions, distills patterns and writes summaries back into MEMORY.md or generates new skills... hermes config set memory.reflection_enabled false",
+      "locator": "The reflective phase",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget is implemented as deletion from files and/or SQL DELETE from state.db rows; no hide-at-retrieve or generation-time omission mechanism is described.",
+      "kind": "blog",
+      "url": "https://lumadock.com/tutorials/hermes-memory-architecture-explained",
+      "quote": "Find the entry in MEMORY.md or USER.md, delete it, save the file. The agent forgets it on the next session start... delete those rows if needed: sqlite3 ~/.hermes/state.db \"DELETE FROM messages WHERE content LIKE '%embarrassing thing%'; VACUUM;\"",
+      "locator": "FAQ \u2014 How do I make the agent forget a specific embarrassing thing it remembers?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Per-user isolation is implemented via per-user USER.md files keyed by user identity from the messaging gateway; MEMORY.md remains shared global context.",
+      "kind": "blog",
+      "url": "https://lumadock.com/tutorials/hermes-memory-architecture-explained",
+      "quote": "Hermes does this via per-user memory files under ~/.hermes/memories/users/<user-id>/USER.md ; each user gets their own facts file, separated by user identity from the messaging gateway.",
+      "locator": "Multi-user memory considerations",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Skills are lore/procedure memory, distinct from factual memory; auto-generated after repeated successful task patterns and lockable against regeneration.",
+      "kind": "blog",
+      "url": "https://lumadock.com/tutorials/hermes-memory-architecture-explained",
+      "quote": "Skills are the mid-grained memory layer. They capture procedures, not facts... After three or four successful runs of similar work, Hermes generates a skill that captures the procedure. You can read it, edit it, delete it.",
+      "locator": "Layer 2, the skills system",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "An auto-generated recent-session summary block (~500\u20131500 tokens) is included in the system prompt each session, separate from raw log retrieval.",
+      "kind": "blog",
+      "url": "https://lumadock.com/tutorials/hermes-memory-architecture-explained",
+      "quote": "An auto-generated context block summarising recent sessions (~500 to 1500 tokens, generated each session).",
+      "locator": "What the agent sees on each session start",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/agent/memory_manager.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/agent/memory_provider.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/plugins/memory/__init__.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/plugins/memory/config_schema.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/hermes_state.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/hermes_state_search.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory-providers",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/which-file-does-what",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/issues/41225",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/issues/100437",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/issues/95855",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/issues/33638",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/issues/115237",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/issues/115131",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/issues/114628",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/issues/71304",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/issues/113677",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/issues/113348",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/issues/114306",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/issues/115277",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/issues/114642",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/issues/113862",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/issues/114460",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/NousResearch/hermes-agent/issues/115234",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://hermes-agent.nousresearch.com/docs/",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://goldiebench.com/blog/best-local-model-for-hermes-agent",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://nousresearch.com/refactoring-hermes-with-1393-agents",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://hermesatlas.com/guide/memory/",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://hermesatlas.com/lists/best-memory-providers",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://hermes-agent.ai/blog/hermes-agent-memory-system",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://hermes-agent.ai/features/persistent-memory",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://lumadock.com/tutorials/hermes-memory-architecture-explained",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Concrete retrieval policy for prefetch (semantic search, recency, keyword, adaptive threshold) is not specified in this abstract base class; the mechanism is deferred to provider implementations.",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/agent/memory_provider.py",
+      "kind": "code"
+    },
+    {
+      "text": "What each memory provider actually persists across sessions (facts, summaries, full transcript, embeddings) is not described in this config-schema file; the provider __init__ implementations are needed.",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/1e4952ddba1bc585416ad43438d60183380035cd/plugins/memory/config_schema.py",
+      "kind": "code"
+    },
+    {
+      "text": "The page does not describe how session_search decides when to invoke itself (adaptive trigger policy) versus waiting for the agent to call it explicitly.",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory",
+      "kind": "docs"
+    },
+    {
+      "text": "Capacity limits: the page references 'capacity limits' in the linked Persistent Memory doc but does not describe them here.",
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/which-file-does-what",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of how HERMES_UI_SESSION_ID is assigned, persisted, or invalidated across sessions or reconnects \u2014 relevant because reconnection breaks the read path.",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/113348",
+      "kind": "issue"
+    },
+    {
+      "text": "How context compression selects what to summarize or discard \u2014 the page names it as a trigger for release() but does not describe the memory management mechanism itself",
+      "url": "https://github.com/NousResearch/hermes-agent/issues/41225",
+      "kind": "issue"
+    },
+    {
+      "text": "session_search ranking and selection criteria: the page states the agent 'decides search is useful' and returns 'matching rows' but does not describe how results are ranked, how many rows are returned by default, or what the selection policy is beyond FTS5 matching.",
+      "url": "https://lumadock.com/tutorials/hermes-memory-architecture-explained",
+      "kind": "blog"
+    }
+  ]
+}
