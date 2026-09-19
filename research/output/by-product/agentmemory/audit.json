@@ -1,0 +1,1621 @@
+{
+  "identity": {
+    "id": "agentmemory",
+    "name": "agentmemory",
+    "repo": "https://github.com/rohitg00/agentmemory",
+    "docs": "https://github.com/rohitg00/agentmemory/blob/main/README.md",
+    "license": "Apache-2.0",
+    "version_or_commit": "e04ba88819c365c9acf9d6661ea802143e728bd6",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Memory consolidation engine that synthesizes related observations from coding sessions into single long-term memories"
+    },
+    {
+      "text": "agentmemory captures observations from agent activity and compresses them via LLM into a persistent memory store"
+    },
+    {
+      "text": "Explicitly saves curated insights, decisions, and patterns to long-term memory (distinct from raw session log)"
+    },
+    {
+      "text": "Persistent memory for AI coding agents, local-first with no external databases required."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Write path: PostToolUse hook fires, SHA-256 dedup in a 5-minute window, privacy filter strips secrets and API keys, stores raw observation, then synthetic or LLM-written compression, then vector embedding when a provider is active, then indexes in BM25 plus vectors"
+    },
+    {
+      "text": "A known bug where Buffer pool slicing caused phantom '2048 dimensions on disk' reads was fixed by passing byteOffset and byteLength explicitly in the base64 encode/decode round-trip. Tracked in issues #455, #469, #584, #587."
+    },
+    {
+      "text": "The shutdown save is issued but the iii engine requires ~2 s to flush its file-based KV to .bin; under docker stop the engine is killed before the flush completes, silently losing the index update."
+    },
+    {
+      "text": "The engine loads the bin file into an in-memory copy at boot; the file store and the live in-memory state are separate \u2014 fixing the file alone does not restore reads until restart"
+    },
+    {
+      "text": "Vectors (embeddings) are stored in an in-memory Map keyed by obsId, each entry also carrying a sessionId, providing per-observation and per-session isolation at the vector level."
+    },
+    {
+      "text": "Store distinguishes curated memory writes from raw session observations: memory_save persists explicit facts/decisions; observations are a separate log searched by memory_recall"
+    },
+    {
+      "text": "The store holds multiple distinct memory object types: sessions, observation scopes, lessons, summaries, semantic memories, crystals, insights, and a graph of nodes and edges"
+    },
+    {
+      "text": "Memory slots are editable, size-limited, pinnable units injected into context across sessions; pinned slots are included in context injection by default"
+    },
+    {
+      "text": "Memory provenance tracing: memory_verify traces a memory's citation chain back to source observations and session context, returning confidence scores"
+    },
+    {
+      "text": "Saving a near-duplicate memory supersedes the existing one into a version chain; recall returns only current versions while history remains queryable."
+    },
+    {
+      "text": "Memory isolation is per-project: a scoped consolidation run only evolves memories belonging to the same project, preventing cross-project corruption."
+    },
+    {
+      "text": "No existing supported lifecycle operation can detach a single provenance reference from a single node or edge without destructive side effects."
+    },
+    {
+      "text": "Retrieval is cosine-similarity search over all stored vectors, returning the top-N results by score with their obsId, sessionId, and score."
+    },
+    {
+      "text": "The memory_smart_search MCP tool is a named interface to the smart-search endpoint, and silently swallows errors by returning empty results"
+    },
+    {
+      "text": "agentmemory maintains a persistent store of observations; a local instance can accumulate hundreds of thousands of entries across sessions"
+    },
+    {
+      "text": "Memory decay and auto-eviction modeled on Ebbinghaus curve; frequently accessed memories strengthen; contradictions detected and resolved"
+    },
+    {
+      "text": "No supported prune path exists; collection reset is the only workaround \u2014 store treats a missing collection file as healthy-and-empty"
+    },
+    {
+      "text": "Write path: memory_save triggers mem::remember with content, type (default 'fact'), concepts, files, project, and optional agentId."
+    },
+    {
+      "text": "Sketch (temporary memory) can be promoted to a permanent memory via mem::sketch-promote, implying a two-stage write path."
+    },
+    {
+      "text": "Lessons support soft-delete: deleted lessons are excluded from recall; re-saving the same content creates a fresh lesson"
+    },
+    {
+      "text": "Related issue #1171 confirms absence of a per-node update endpoint and notes unbounded provenance growth as a known gap."
+    },
+    {
+      "text": "Forget (hard delete) with audit trail: memory_governance_delete removes specific memories by ID and records a reason"
+    },
+    {
+      "text": "A dedicated smart-search endpoint performs hybrid/vector search distinct from the keyword/BM25 search path"
+    },
+    {
+      "text": "Superseded memory versions are excluded from recall paths; version chain in KV keeps full history"
+    },
+    {
+      "text": "Persistent state is stored on disk in a platform data directory and survives stop/restart"
+    },
+    {
+      "text": "Default stream weights are BM25=0.4, vector=0.6, graph=0.3, applied during RRF fusion."
+    },
+    {
+      "text": "Automatic context injection into agent turns is opt-in via AGENTMEMORY_INJECT_CONTEXT"
+    },
+    {
+      "text": "4-tier memory consolidation pipeline: working -> episodic -> semantic -> procedural"
+    },
+    {
+      "text": "Memory is scoped per session; sessions can be forgotten (deleted) and re-imported"
+    },
+    {
+      "text": "Auto-forgetting via TTL expiry, contradiction detection, and importance eviction"
+    },
+    {
+      "text": "Individual observations can be removed (deleted) from the vector index by obsId."
+    },
+    {
+      "text": "Slot scope is per-project or global (shared across projects)"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Memory pipeline: raw observation stored first, then synthetic or LLM-written compression, then vector embedding, then BM25/vector indexing \u2014 distinguishing log (raw observation) from curated memory write",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/README.md",
+      "quote": "PostToolUse hook fires\n-> SHA-256 dedup (5min window)\n-> Privacy filter (strip secrets, API keys)\n-> Store raw observation\n-> Synthetic compression by default\n(LLM-written compression only with a provider + AGENTMEMORY_AUTO_COMPRESS=true)\n-> Vector embedding when an embedding provider is active\n-> Index in BM25, plus vectors when enabled",
+      "locator": "README.md, section 'Memory Pipeline'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "4-tier consolidation with decay: working \u2192 episodic \u2192 semantic \u2192 procedural; Ebbinghaus decay curve; stale memories auto-evict; contradictions detected and resolved",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/README.md",
+      "quote": "Memories decay over time (Ebbinghaus curve). Frequently accessed memories strengthen. Stale memories auto-evict. Contradictions are detected and resolved.",
+      "locator": "README.md, section '4-Tier Memory Consolidation'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Superseded memory versions leave search indexes (retrieve-time hide); version chain in KV retains full history",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/README.md",
+      "quote": "Superseded memory versions are excluded from every recall path; the version chain keeps their history.",
+      "locator": "README.md, section before 'Embedding providers'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is implemented via TTL expiry, contradiction detection, importance eviction, and explicit deletion endpoint/tool with audit trail",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/README.md",
+      "quote": "**Auto-forgetting** | TTL expiry, contradiction detection, importance eviction |",
+      "locator": "README.md, section 'Key Capabilities'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-agent isolation via AGENT_ID tagging and AGENTMEMORY_AGENT_SCOPE; shared mode (default) tags writes but does not filter recall; isolated mode filters recall to the writing agent only",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/README.md",
+      "quote": "`AGENTMEMORY_AGENT_SCOPE` controls whether recall filters by that tag... `shared` (default) | yes | no ... `isolated` | yes | yes | Strict separation. Architect never sees developer's observations / memories / sessions.",
+      "locator": "README.md, section 'Multi-agent memory'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "SessionStart injects context only when AGENTMEMORY_INJECT_CONTEXT=true; this is off by default; observations are captured via PostToolUse regardless",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/README.md",
+      "quote": "AGENTMEMORY_INJECT_CONTEXT=false # OFF by default. When on:\n# - SessionStart may inject ~1-2K\n# chars of project context into\n# the first turn of each session\n# Observations are still captured via\n# PostToolUse regardless of this flag.",
+      "locator": "README.md, section 'Environment Variables'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LLM-written compression requires both a provider key and AGENTMEMORY_AUTO_COMPRESS=true; without both, synthetic compression is used by default",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/README.md",
+      "quote": "LLM-written observation compression requires both lines: access to an LLM provider (including this explicit subscription fallback) and `AGENTMEMORY_AUTO_COMPRESS=true`. A provider by itself leaves the default synthetic compression path in place.",
+      "locator": "README.md, section 'Config File'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Token cost benchmark: ~170K tokens/year (~1,900 tokens/session) vs 19.5M+ for paste-full-context; claimed 92% less than built-in CLAUDE.md approach",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/README.md",
+      "quote": "| **agentmemory** | **~170K** | **~$10** |",
+      "locator": "README.md, section 'Token Savings'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LongMemEval-S R@5 of 95.2% is vendor's own measured result on a reproducible harness; mem0 and Letta figures are their published LoCoMo numbers on a different dataset",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/README.md",
+      "quote": "Benchmark note: only agentmemory's R@5 is our own measured result (LongMemEval-S, reproducible from benchmark/COMPARISON.md). The mem0 and Letta figures are their published LoCoMo numbers (a different dataset).",
+      "locator": "README.md, section 'vs Competitors' benchmark note",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistent state uses SQLite (via iii KV state); no separate Postgres or Redis required",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/README.md",
+      "quote": "**External deps** | None (SQLite + iii-engine) |",
+      "locator": "README.md, section 'vs Competitors' comparison table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Knowledge graph: entity extraction plus BFS traversal; graph extraction off by default, enabled via GRAPH_EXTRACTION_ENABLED=true",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/README.md",
+      "quote": "**Knowledge graph** | Entity extraction + BFS traversal |\n...\nGRAPH_EXTRACTION_ENABLED=false",
+      "locator": "README.md, sections 'Key Capabilities' and 'Environment Variables'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Claude Code's cleanupPeriodDays (default 30) auto-deletes JSONL transcripts, creating a continuity gap if agentmemory is installed after the window; mitigated by import-jsonl on a cron or by wiring live auto-capture hooks",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/README.md",
+      "quote": "Claude Code's `cleanupPeriodDays` (in `~/.claude/settings.json`, default **30**) auto-deletes JSONL transcripts older than that window from `~/.claude/projects/`. If you install agentmemory fresh on a months-old Claude Code history, anything older than 30 days is already gone before the first import.",
+      "locator": "README.md, section 'Session Replay'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "agentmemory distinguishes a raw observation log from curated long-term memory: observations are compressed event records; memories are LLM-synthesized insight records written only when enough observations accumulate.",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/functions/consolidate.ts",
+      "quote": "You are a memory consolidation engine. Given a set of related observations from coding sessions, synthesize them into a single long-term memory.",
+      "locator": "CONSOLIDATION_SYSTEM prompt string",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path for memory is: filter observations by importance, group by concept, call LLM to synthesize, parse XML response, then write to KV store \u2014 with title-based deduplication triggering versioned evolution rather than overwrite.",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/functions/consolidate.ts",
+      "quote": "const existingMatch = existingMemories.find( (m) => m.title.toLowerCase() === parsed.title.toLowerCase() && (!scopedProject || !m.project || m.project === scopedProject), );",
+      "locator": "registerConsolidateFunction, existingMatch find",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory supersession does not delete old records; it marks them isLatest=false and chains them via parentId and supersedes, preserving full memory history in the KV store.",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/functions/consolidate.ts",
+      "quote": "existingMatch.isLatest = false; await kv.set(KV.memories, existingMatch.id, existingMatch);",
+      "locator": "registerConsolidateFunction, existingMatch branch, mark_non_latest step",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per-project: the scoped consolidation path enforces that a memory can only be evolved by a run sharing the same project value, preventing cross-project title collisions from corrupting each other's memory chains.",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/functions/consolidate.ts",
+      "quote": "A scoped consolidation run must only evolve memories that belong to the same project. Without this guard, two projects that happen to consolidate observations into an identically-titled memory would cause one project's memory to silently evolve the other's \u2014 the exact class of cross-project corruption this fix is designed to prevent.",
+      "locator": "registerConsolidateFunction, comment above existingMatch find",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory typed categories (pattern, preference, architecture, bug, workflow, fact) are enforced at parse time; invalid LLM-returned types fall back to 'fact'.",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/functions/consolidate.ts",
+      "quote": "type: (validTypes.has(type) ? type : \"fact\") as Memory[\"type\"],",
+      "locator": "parseMemoryXml, type assignment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Observations are scoped per session (KV.observations(s.id)); memories share a single flat namespace (KV.memories) differentiated by an optional project field.",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/functions/consolidate.ts",
+      "quote": "kv.list<CompressedObservation>(KV.observations(s.id)) ... const existingMemories = await kv.list<Memory>(KV.memories);",
+      "locator": "registerConsolidateFunction, KV read calls",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "memory_save persists a curated memory (not a raw log entry) with explicit type, concepts, files, project, and agentId fields via mem::remember",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/server.ts",
+      "quote": "const result = await sdk.trigger({ function_id: \"mem::remember\", payload: { content: args.content, type, concepts, files, ...(project !== undefined && { project }), ...(saveAgentId !== undefined && { agentId: saveAgentId }) } });",
+      "locator": "case \"memory_save\"",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "memory_recall supports three output formats (full, compact, narrative) and a token_budget parameter, indicating adaptive retrieval shaping rather than raw dump",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/server.ts",
+      "quote": "const format = typeof args.format === \"string\" ? args.format.trim().toLowerCase() : \"full\"; if (![ \"full\", \"compact\", \"narrative\"].includes(format)) {",
+      "locator": "case \"memory_recall\"",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "recall_context prompt combines search results (mem::search) and a filtered latest-memory feed into a single context block for injection into a turn",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/server.ts",
+      "quote": "text: `Here is relevant context from past sessions for the task: \"${taskDesc}\"\\n\\n## Past Observations\\n${JSON.stringify(searchResult, null, 2)}\\n\\n## Relevant Memories\\n${JSON.stringify(relevant, null, 2)}`",
+      "locator": "case \"recall_context\"",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memories have an isLatest flag distinguishing the current curated state from historical versions in the same store",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/server.ts",
+      "quote": "memories.filter((m) => m.isLatest).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).slice(0, 10)",
+      "locator": "case uri === \"agentmemory://memories/latest\"",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Governance delete is the explicit forget mechanism, accepting multiple memoryIds and an optional reason",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/server.ts",
+      "quote": "const result = await sdk.trigger({ function_id: \"mem::governance-delete\", payload: { memoryIds: ids, reason: args.reason as string } });",
+      "locator": "case \"memory_governance_delete\"",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session summaries are stored separately from sessions (KV.summaries vs KV.sessions) and used for handoff context between sessions",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/server.ts",
+      "quote": "const session = await kv.get<Session>(KV.sessions, sessionId); const summaries = await kv.list<SessionSummary>(KV.summaries); const summary = summaries.find((s) => s.sessionId === sessionId);",
+      "locator": "case \"session_handoff\"",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Sketch is a temporary/provisional memory that can be promoted to a permanent memory, implementing a two-stage write/commit path",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/server.ts",
+      "quote": "const skpResult = await sdk.trigger({ function_id: \"mem::sketch-promote\", payload: { sketchId, project: args.project } });",
+      "locator": "case \"memory_sketch_promote\"",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Named slots (label-keyed) form a distinct persistent store supporting append and replace, separate from semantic memories",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/server.ts",
+      "quote": "if (!label || !text) return { status_code: 400, body: { error: \"label and text required\" } }; const result = await sdk.trigger({ function_id: \"mem::slot-append\", payload: { label, text } });",
+      "locator": "case \"memory_slot_append\"",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Knowledge graph stores typed GraphNode and GraphEdge records in KV; relation traversal supports maxHops and minConfidence filtering",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/server.ts",
+      "quote": "const result = await sdk.trigger({ function_id: \"mem::get-related\", payload: { memoryId: args.memoryId, maxHops: Number.isFinite(rawMaxHops) ? rawMaxHops : 2, minConfidence: Number.isFinite(rawMinConf) ? Math.max(0, Math.min(1, rawMinConf)) : 0 } });",
+      "locator": "case \"memory_relations\"",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "memory_recall retrieves from a log of past session observations, not a curated memory store",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/tools-registry.ts",
+      "quote": "Search past session observations for relevant context. Use when you need to recall what happened in previous sessions, find past decisions, or look up how a file was modified before.",
+      "locator": "CORE_TOOLS: memory_recall description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "memory_save is the curated write path \u2014 explicit, typed, concept- and file-tagged, project- and agent-scoped",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/tools-registry.ts",
+      "quote": "Explicitly save an important insight, decision, or pattern to long-term memory.",
+      "locator": "CORE_TOOLS: memory_save description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Project scoping requires a stable canonical identifier; filesystem paths or ad-hoc names will silently break scoping",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/tools-registry.ts",
+      "quote": "Do not use filesystem paths or ad-hoc display names \u2014 those change across machines and will silently break project scoping.",
+      "locator": "CORE_TOOLS: memory_save inputSchema: project description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Lessons decay when not used and strengthen when reinforced; duplicate saves reinforce rather than create duplicates",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/tools-registry.ts",
+      "quote": "Lessons have confidence scores that strengthen when reinforced and decay when not used. Duplicate content auto-strengthens the existing lesson.",
+      "locator": "V070_TOOLS: memory_lesson_save description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Soft-delete on lessons: deleted lessons excluded from recall; re-saving same content starts a fresh record",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/tools-registry.ts",
+      "quote": "Soft-delete a lesson by id. Deleted lessons are excluded from recall and list; re-saving the same content creates a fresh lesson.",
+      "locator": "V070_TOOLS: memory_lesson_delete description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Hard delete with audit trail available via memory_governance_delete",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/tools-registry.ts",
+      "quote": "Delete specific memories with audit trail.",
+      "locator": "V040_TOOLS: memory_governance_delete description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "4-tier consolidation pipeline compresses working memory upward through episodic, semantic, and procedural tiers",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/tools-registry.ts",
+      "quote": "Run the 4-tier memory consolidation pipeline (working -> episodic -> semantic -> procedural).",
+      "locator": "V040_TOOLS: memory_consolidate description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Pinned slots are injected into context automatically; non-pinned slots must be explicitly read",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/tools-registry.ts",
+      "quote": "Slots are editable, size-limited memory units the agent can read and modify across sessions.",
+      "locator": "V010_SLOTS_TOOLS: memory_slot_list description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Slot scope separates per-project from global (cross-project) memory",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/tools-registry.ts",
+      "quote": "'project' (default) or 'global' (shared across projects)",
+      "locator": "V010_SLOTS_TOOLS: memory_slot_create inputSchema: scope description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Reflection synthesizes higher-order insights from concept clusters via LLM, producing new and reinforced insights",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/tools-registry.ts",
+      "quote": "Traverse the knowledge graph, group related memories by concept clusters, and synthesize higher-order insights via LLM. Returns new and reinforced insights.",
+      "locator": "V073_TOOLS: memory_reflect description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Provenance chain from memory back to source observations is traceable with confidence scores",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/tools-registry.ts",
+      "quote": "Verify a memory or observation by tracing its citation chain back to source observations and session context. Returns provenance information including confidence scores.",
+      "locator": "V061_TOOLS: memory_verify description",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval fuses BM25, vector, and graph streams via RRF with configurable weights (BM25=0.4, vector=0.6, graph=0.3 by default).",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/state/hybrid-search.ts",
+      "quote": "private bm25Weight = 0.4,\n    private vectorWeight = 0.6,\n    private graphWeight = 0.3,",
+      "locator": "hybrid-search.ts: HybridSearch constructor",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Silent (empty) retrieval streams are excluded from normalization so a missing stream does not penalize results from active streams.",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/state/hybrid-search.ts",
+      "quote": "const activeWeight =\n      (bm25Results.length > 0 ? this.bm25Weight : 0) +\n      (vectorResults.length > 0 ? this.vectorWeight : 0) +\n      (graphResults.length > 0 ? this.graphWeight : 0);",
+      "locator": "hybrid-search.ts: tripleStreamSearch, activeWeight calculation",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The store distinguishes session observations (CompressedObservation at KV.observations) from curated memories (Memory at KV.memories); both are surfaced by search.",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/state/hybrid-search.ts",
+      "quote": "// Fallback: indexed entry may originate from mem::remember, which\n        // writes to KV.memories with a synthetic sessionId (\"memory\" or the\n        // memory's first associated session). Coerce the Memory record into\n        // a CompressedObservation so search/recall surface saved memories.",
+      "locator": "hybrid-search.ts: enrichResults, fallback comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session-level diversification caps results at maxPerSession=3 per session in the retrieval window.",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/state/hybrid-search.ts",
+      "quote": "maxPerSession = 3,",
+      "locator": "hybrid-search.ts: diversifyBySession default parameter",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph retrieval is seeded both by entities extracted from the query and by the top-5 vector result IDs, expanding the neighborhood by 1 hop with up to 5 results.",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/state/hybrid-search.ts",
+      "quote": "const expansionResults =\n          await this.graphRetrieval.expandFromChunks(topVectorObs, 1, 5);",
+      "locator": "hybrid-search.ts: tripleStreamSearch, graph expansion block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Query expansion uses reformulations and temporal concretizations from a QueryExpansion object; results are merged keeping the highest combinedScore per observation.",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/state/hybrid-search.ts",
+      "quote": "const allQueries = [\n      query,\n      ...expansion.reformulations,\n      ...expansion.temporalConcretizations,\n    ];",
+      "locator": "hybrid-search.ts: searchWithExpansion",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Reranking is opt-in via RERANK_ENABLED=true and applies only to the top 20 results, appending the remainder unchanged.",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/state/hybrid-search.ts",
+      "quote": "private rerankEnabled = process.env.RERANK_ENABLED === \"true\",\n    ...const head = enriched.slice(0, rerankWindow);\n        const tail = enriched.slice(rerankWindow);\n        const reranked = await rerank(query, head, rerankWindow);\n        return reranked.concat(tail).slice(0, limit);",
+      "locator": "hybrid-search.ts: constructor and tripleStreamSearch rerank block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Vector store is keyed by obsId with sessionId metadata, providing isolation at the observation and session level.",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/state/vector-index.ts",
+      "quote": "private vectors: Map<string, { embedding: Float32Array; sessionId: string }> = new Map();",
+      "locator": "VectorIndex class, field declaration",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is cosine similarity with a configurable top-N limit (default 20), not filtered by sessionId at this layer.",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/state/vector-index.ts",
+      "quote": "search( query: Float32Array, limit = 20, ): Array<{ obsId: string; sessionId: string; score: number }>",
+      "locator": "VectorIndex.search",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Delete (forget) is supported at the individual observation level via remove(obsId).",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/state/vector-index.ts",
+      "quote": "remove(obsId: string): void { this.vectors.delete(obsId); }",
+      "locator": "VectorIndex.remove",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The index is persisted to disk as serialized JSON with base64-encoded Float32 embeddings; on load it is validated for dimension consistency before being accepted.",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/state/vector-index.ts",
+      "quote": "Empty `mismatches` plus a single-entry `seenDimensions` matching `expected` is the only clean state.",
+      "locator": "VectorIndex.validateDimensions, block comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A class of continuity failure (wrong-dimension vectors read back from disk) was reported across at least four issues (#455, #469, #584, #587) and was caused by Node Buffer pool slicing in the base64 serialization path.",
+      "kind": "code",
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/state/vector-index.ts",
+      "quote": "Reported as a phantom \"2048 dimensions on disk\" crash in #455 / #469 / #584 / #587.",
+      "locator": "float32ToBase64 / base64ToFloat32, block comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistent storage survives server stop and restart, proving state is on disk not only in memory",
+      "kind": "docs",
+      "url": "https://github.com/rohitg00/agentmemory/blob/main/INSTALL_FOR_AGENTS.md",
+      "quote": "This restart check proves the selected platform data directory is persistent rather than only proving the in-memory index.",
+      "locator": "Step 7: Verify save, recall, and restart persistence",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "On-device semantic embedding uses Xenova/all-MiniLM-L6-v2, downloaded on first use",
+      "kind": "docs",
+      "url": "https://github.com/rohitg00/agentmemory/blob/main/INSTALL_FOR_AGENTS.md",
+      "quote": "set EMBEDDING_PROVIDER=local for on-device Xenova/all-MiniLM-L6-v2 , or configure a supported remote embedding provider. Local inference is free, but the first embedding request downloads the model",
+      "locator": "What you are installing",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Context injection into agent turns (retrieve-then-prompt) is opt-in, not default behavior",
+      "kind": "docs",
+      "url": "https://github.com/rohitg00/agentmemory/blob/main/INSTALL_FOR_AGENTS.md",
+      "quote": "AGENTMEMORY_INJECT_CONTEXT=true makes the SessionStart and PreToolUse hooks inject past memory into the agent's context automatically. Cost: spends session tokens proportional to tool-call frequency.",
+      "locator": "Optional: richer features",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Instance isolation is supported: separate --instance values yield separate data directories and port sets",
+      "kind": "docs",
+      "url": "https://github.com/rohitg00/agentmemory/blob/main/INSTALL_FOR_AGENTS.md",
+      "quote": "For a second isolated daemon, add --instance 1 ; it stores data and lifecycle metadata under instance-1",
+      "locator": "Step 2: Start the server",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "4-tier memory consolidation (working, episodic, semantic, procedural) with Ebbinghaus decay, strengthening on access, auto-eviction, and contradiction resolution",
+      "kind": "docs",
+      "url": "https://github.com/rohitg00/agentmemory/blob/main/README.md",
+      "quote": "Memories decay over time (Ebbinghaus curve). Frequently accessed memories strengthen. Stale memories auto-evict. Contradictions are detected and resolved.",
+      "locator": "Section: 4-Tier Memory Consolidation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write path includes SHA-256 dedup with 5-minute window and privacy filter stripping secrets before storage",
+      "kind": "docs",
+      "url": "https://github.com/rohitg00/agentmemory/blob/main/README.md",
+      "quote": "PostToolUse hook fires\n-> SHA-256 dedup (5min window)\n-> Privacy filter (strip secrets, API keys)\n-> Store raw observation",
+      "locator": "Section: Memory Pipeline",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Forget is implemented via TTL expiry, contradiction detection, and importance eviction; superseded versions leave search indexes but version chain is retained in KV",
+      "kind": "docs",
+      "url": "https://github.com/rohitg00/agentmemory/blob/main/README.md",
+      "quote": "Auto-forgetting: TTL expiry, contradiction detection, importance eviction... Superseded memory versions leave the search indexes; the version chain in KV keeps full history",
+      "locator": "Section: Key Capabilities table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval uses BM25 + vector + graph fused with RRF (k=60), session-diversified to max 3 per session; lesson recall uses a dedicated in-memory BM25 index",
+      "kind": "docs",
+      "url": "https://github.com/rohitg00/agentmemory/blob/main/README.md",
+      "quote": "Fused with Reciprocal Rank Fusion (RRF, k=60) and session-diversified (max 3 results per session)... Lesson recall runs on a dedicated in-memory BM25 index instead of scanning the whole corpus per query.",
+      "locator": "Section: How It Works / retrieval description",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Per-agent isolation controlled by AGENT_ID and AGENTMEMORY_AGENT_SCOPE; shared mode is default (tags writes, no filter); isolated mode filters recall per agent role",
+      "kind": "docs",
+      "url": "https://github.com/rohitg00/agentmemory/blob/main/README.md",
+      "quote": "AGENT_ID tags every write with the role that made it. AGENTMEMORY_AGENT_SCOPE controls whether recall filters by that tag... shared (default): tag writes, no filter. isolated: tag writes, filter recall.",
+      "locator": "Section: Multi-agent memory (AGENT_ID + AGENTMEMORY_AGENT_SCOPE)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Context injection at SessionStart injects ~1-2K chars; retrieval token budget defaults to 2000 tokens vs 22K+ for loading everything",
+      "kind": "docs",
+      "url": "https://github.com/rohitg00/agentmemory/blob/main/README.md",
+      "quote": "SessionStart may inject ~1-2K chars of project context into the first turn of each session... Token budget (default: 2000 tokens)",
+      "locator": "Section: Environment Variables / Memory Pipeline",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "agentmemory scores R@5=95.2%, R@10=98.6%, MRR=88.2% on LongMemEval-S (500 questions, ICLR 2025), with BM25-only fallback at R@5=86.2%",
+      "kind": "docs",
+      "url": "https://github.com/rohitg00/agentmemory/blob/main/README.md",
+      "quote": "agentmemory: R@5 95.2%, R@10 98.6%, MRR 88.2%. BM25-only fallback: R@5 86.2%, R@10 94.6%, MRR 71.5%.",
+      "locator": "Section: Benchmarks / LongMemEval-S",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Persistent store lives in platform-specific user data directories; configurable via --data-dir or AGENTMEMORY_DATA_DIR; backed by SQLite + iii-engine KV",
+      "kind": "docs",
+      "url": "https://github.com/rohitg00/agentmemory/blob/main/README.md",
+      "quote": "Persistent iii state lives in ~/Library/Application Support/agentmemory on macOS, $XDG_DATA_HOME/agentmemory or ~/.local/share/agentmemory on Linux, and %APPDATA%\\agentmemory on Windows.",
+      "locator": "Section: Install",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Shutdown index save is lost to a container teardown race: save() completes but the iii engine is killed ~2 s before its flush to .bin lands, causing all memories indexed since last restart to become permanently unsearchable while KV data and exit codes appear intact.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1335",
+      "quote": "The shutdown save is issued and acknowledged, then lost in transit. `save()` completes and `process.exit(0)` is reached ~0.3 s later, while the `iii` engine needs ~2 s to flush its file-based KV to `.bin`. Under `docker stop`, the engine is a child of PID 1 and is SIGKILLed along with the container before the flush lands.",
+      "locator": "Summary",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Snapshot auto-restore on restart fails when HTTP routes are lost, compounding potential data loss",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1013",
+      "quote": "snapshot auto-restore on restart fails (the restore API call returns 404), daily audit scripts report daemon as \"DOWN\"",
+      "locator": "Operational impact",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Issue #915 (HTTP 404 on memory_lesson_recall endpoint) is likely the same root cause \u2014 route lost after reconnection, reported as a single missing endpoint",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1013",
+      "quote": "**#915** \u2014 HTTP 404 on `memory_lesson_recall` endpoint: likely the same root cause (route lost after reconnection), but reported as a single missing endpoint rather than all endpoints",
+      "locator": "Related issues",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "agentmemory status reports 'Memories: 0' in the degraded state, meaning memory count becomes invisible/unreachable via HTTP even if memories are stored",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1013",
+      "quote": "`agentmemory status` | Health: healthy | Health: unknown, Memories: 0",
+      "locator": "Impact table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is structured into distinct typed objects: sessions, observation scopes, lessons, summaries, semantic memories, crystals, insights, and a knowledge graph",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1124",
+      "quote": "339 sessions, 160 observation scopes, 300 lessons, 108 summaries, 3273 semantic memories, 404 crystals, 921 insights, graph 9474 nodes / 8663 edges",
+      "locator": "Environment table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The store is durable across worker crashes \u2014 339 sessions remain readable immediately after the worker recovers",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1124",
+      "quote": "+5s | 200, `function_count: 271` | 200, 339 sessions, 0.0s",
+      "locator": "Measured timeline table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "smart-search performs hybrid vector+keyword retrieval; keyword-only search (BM25) is a separate endpoint that does not crash",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1124",
+      "quote": "plain `POST /agentmemory/search` with the same query returns 200 with results and leaves the worker alive, so the keyword/BM25 path is healthy. That isolates the fault to the hybrid/vector portion reached only via `smart-search`.",
+      "locator": "Narrowing it down section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A crash in smart-search causes the MCP tool to silently return empty results, so agents experience continuity failure (no memories returned) rather than an explicit error",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1124",
+      "quote": "The `memory_smart_search` MCP tool silently returns `{\"results\": []}` instead of surfacing the error, so agents get \"no results\" rather than \"the backend just crashed\" \u2014 and each call knocks the worker out for the next ~5 seconds.",
+      "locator": "Impact section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Recall hook never fires in the OpenClaw integration because before_agent_start is not a valid typed plugin hook, causing recall injection to silently not happen",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1161",
+      "quote": "[plugins] unknown typed hook \"before_agent_start\" ignored (plugin=agentmemory, ...) and recall injection never happens",
+      "locator": "issue body, section 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Capture (observe) silently fails with HTTP 400 when project and cwd fields are missing from the POST body",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1161",
+      "quote": "The `agent_end` observe 400 (`project`/`cwd` missing) reported in #1058 also reproduces here verbatim on OpenClaw 2026.7.2-beta.7 + server 0.9.28",
+      "locator": "issue body, section 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No agent identity isolation is applied in the OpenClaw plugin: all agents share one undifferentiated memory pool even though the server supports per-call agentId",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1161",
+      "quote": "On a multi-agent gateway every agent reads and writes one undifferentiated pool.",
+      "locator": "issue body, section 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The integration is version-skewed against the server (plugin 0.9.4 vs server 0.9.28), and there is no CI test to verify compatibility",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1161",
+      "quote": "The integration appears version-skewed against the server in both directions (plugin 0.9.4 vs server 0.9.28). A compatibility note or CI test that boots the plugin against the current server would catch all three.",
+      "locator": "issue body, Meta section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A single file node for MEMORY.md accumulated 8,750 sourceObservationIds (256 KB) because nothing caps re-observation of a hot path",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1168",
+      "quote": "The worst node is a single file node for a MEMORY.md path. Nothing caps how many times a hot path can be re-observed.",
+      "locator": "The two fields",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "mem::reflect timed out (180 s) on 5 of 6 runs and dropped 6 clusters before fix; after file-level reset of bloated collections it succeeded in 15.2 s with 0 skipped clusters",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1168",
+      "quote": "mem::reflect: Invocation timeout after 180000ms, failing 5 of 6 runs \u2192 success in 15.2 s; clusters processed: 1, with 6 skipped \u2192 4, with 0 skipped",
+      "locator": "Measured impact, and a data point for #655",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "AGENTMEMORY_REFLECT env flag does not disable the reflect consolidation tier; the tier runs unconditionally from consolidate-pipeline",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1168",
+      "quote": "Verified: with AGENTMEMORY_REFLECT=false live in /proc/<pid>/environ, the next cycle still logged \"reflect\":{\u2026,\"success\":true}",
+      "locator": "Operator-facing gaps / There is no way to disable the reflect tier",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "No per-record prune or delete API exists for insights or graph nodes; operator workaround is a destructive file-level reset",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1168",
+      "quote": "No supported prune exists. mem::graph-reset only resets the snapshot; mem::export/mem::import round-trips the whole store through the same bottleneck",
+      "locator": "Workaround, for anyone who lands here",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "memory_diagnose has 14 internal categories but only 8 are documented, hiding the ability to bisect a poisoned category via the categories parameter",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1168",
+      "quote": "memory_diagnose's description lists 8 categories; ALL_CATEGORIES has 14. \u2026 Passing categories explicitly is the only way to work around a single poisoned category, so the description being wrong hides the workaround.",
+      "locator": "Operator-facing gaps / memory_diagnose's description",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The /agentmemory/health endpoint computes memory severity as heapUsed/heapTotal rather than heapUsed/heap_size_limit, causing false critical alerts and HTTP 503 on healthy processes",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1223",
+      "quote": "evaluateHealth measures memory severity against heapTotal, which is the heap V8 has already committed, not the ceiling it is allowed to grow to. V8 sizes heapTotal to demand, so a busy healthy process sits near 100% of it more or less permanently.",
+      "locator": "issue body, opening paragraph",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A critical health status maps to HTTP 503 at the /agentmemory/health endpoint",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1223",
+      "quote": "const statusCode = status === \"critical\" ? 503 : 200;",
+      "locator": "src/triggers/api.ts:274",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The /agentmemory/livez endpoint returns 200 even when /agentmemory/health returns 503, so the two liveness signals can diverge",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1223",
+      "quote": "/agentmemory/livez returned 200 at the same moment. So an uptime monitor pointed at /health reads the service as down while it is serving normally.",
+      "locator": "issue body, 'What I saw' section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A memoryRssFloorBytes default of 512 MB was introduced after issue #158 to suppress alerts on small processes, but the underlying heapUsed/heapTotal ratio was never corrected",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1223",
+      "quote": "The fix that landed added memoryRssFloorBytes (512 MB, src/health/thresholds.ts:20) so the alert stays quiet on small processes. That covers the case as reported, but the ratio itself was never corrected, so the bug comes back for any process whose RSS clears the floor.",
+      "locator": "src/health/thresholds.ts:20, issue body 'How this relates to #158' section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Health thresholds are not configurable from the environment; evaluateHealth always uses DEFAULTS with no config argument",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1223",
+      "quote": "src/health/monitor.ts:87 calls evaluateHealth(snapshot) with no config argument, so DEFAULTS always wins and neither the percentages nor the RSS floor are reachable from the environment.",
+      "locator": "src/health/monitor.ts:87",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The viewer UI recomputes the same heapUsed/heapTotal ratio client-side, rendering the HEAP gauge red on a healthy process",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1223",
+      "quote": "src/viewer/index.html:1582 recomputes the identical heapUsed / heapTotal ratio client-side, so the HEAP gauge renders red on a healthy process.",
+      "locator": "src/viewer/index.html:1582",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The Railway deployment template sets healthcheckPath to /agentmemory/livez, accidentally avoiding the false-503 restart loop",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1223",
+      "quote": "deploy/railway/railway.json sets healthcheckPath to /agentmemory/livez, so Railway's own check keeps passing and the service never restart-loops. The shipped template dodges this by accident.",
+      "locator": "deploy/railway/railway.json",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Observations captured in raw form persist permanently if LLM compression fails; no automatic retry or recovery path exists",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1228",
+      "quote": "observations themselves were still written to the store, but uncompressed (no `title`/`narrative`) and left in a permanent dead state: they will never be recompressed on their own.",
+      "locator": "Symptom",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "There is no public idempotent API to recompress a stored raw observation or session",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1228",
+      "quote": "agentmemory has no command or endpoint to recompile an already-stored raw observation.",
+      "locator": "Short version",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "forget deletes both compressed observations and the session summary from the store",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1228",
+      "quote": "it first `forget`s the session (deleting existing compressed observations and the summary), then re-observes",
+      "locator": "Workarounds I tried (none work for raw observations)",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Observations are tagged with a hook (e.g. post_tool_use) and a sessionId at write time",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1228",
+      "quote": "Observation captured {\"obsId\":\"obs_...\",\"sessionId\":\"20260601_120000_\",\"hook\":\"post_tool_use\",\"compress\":\"llm\"}",
+      "locator": "Real log excerpt",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "GRAPH_EXTRACTION_ENABLED=false does not stop graph writes; structural heuristic extraction runs unconditionally and the session-stop trigger has no flag guard.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1238",
+      "quote": "Setting `GRAPH_EXTRACTION_ENABLED=false` does not stop the knowledge graph from growing. The flag only gates the LLM relation half.",
+      "locator": "issue body, paragraph 1",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Unbounded graph growth with duplicated provenance arrays causes mem::reflect to crash and overall RSS to balloon to 15.4 GB, a continuity-breaking failure.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1238",
+      "quote": "At that size `mem::reflect` died with `{\"error\":\"Invocation stopped\"}` in 0.7s, since reflect enumerates graphNodes and graphEdges with no pagination (#655, #825).",
+      "locator": "issue body, impact paragraph",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "There is currently no supported way to stop graph writes entirely; either the flag must gate the structural path or a separate flag is needed.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1238",
+      "quote": "right now there is no supported way to stop graph writes at all",
+      "locator": "issue body, proposed fixes paragraph",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "19% first-attempt parse failure rate on mem::summarize at v0.9.29, measured over a 1.5-hour window with deepseek/deepseek-v4-flash-0731 via OpenRouter.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1240",
+      "quote": "summaries succeeded: 42 / XML fail attempt 1: 10 -> 19% first-attempt failure (10/52) / XML fail attempt 2: 4 / validation failed: 2 / wasted LLM calls: 16",
+      "locator": "body, measurement block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Over 7 days the journal recorded 702 'Failed to parse summary XML' lines, making it the most frequent warning in the log.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1240",
+      "quote": "Over the previous 7 days the journal has 702 Failed to parse summary XML lines - by a wide margin the most frequent warning in the log, more than all the invocation timeouts combined.",
+      "locator": "body, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Issue #783 previously fixed a markdown-fenced-XML parse failure case in v0.9.25; the failure mode on v0.9.29 is a different root cause.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1240",
+      "quote": "#783 fixed the markdown-fenced-XML case in v0.9.25, so on 0.9.29 this is something else.",
+      "locator": "body, section 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A separate, unreported validation failure path rejects near-empty narrative fields via zod schema before the summarize result is accepted.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1240",
+      "quote": "Summary validation failed {\"errors\":[\"narrative: Too small: expected string to have >=20 characters\"]}. This one I could not find reported anywhere.",
+      "locator": "body, section 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The default model gpt-5.6-luna in v0.9.29 causes 400 errors on every compress/summarize call because OpenAIProvider sends max_tokens to a reasoning model.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1240",
+      "quote": "#1219 (v0.9.29's default gpt-5.6-luna 400s every compress/summarize call because OpenAIProvider sends max_tokens to a reasoning model)",
+      "locator": "body, final issue paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A fragment that recalled 'never restart on ROUTE_MISSING_404' during an outage had to be deleted by hand \u2014 a concrete continuity/correctness failure caused by truncated lesson extraction.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1292",
+      "quote": "That specific lesson was recalled during an outage on my machine and had to be deleted by hand.",
+      "locator": "Root cause",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "702 of 775 fragments have reinforcements > 0 (one reinforced 225 times), yet 639 remain at initial confidence 0.4 \u2014 the decay mechanism has not removed them over weeks.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1292",
+      "quote": "**702 of the 775 fragments have `reinforcements > 0`**, one of them 225 times. 639 of those are still sitting at the initial `confidence: 0.4`, untouched by weeks of decay sweeps.",
+      "locator": "The fragments are self-perpetuating \u2014 they cannot decay out, and they rank *higher*",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The lesson store has no update path; a bad lesson's only repair is deletion, and duplicate IDs prevent overwrite via mem::lesson-save.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1292",
+      "quote": "A bad lesson cannot be re-tagged, demoted, or corrected in place \u2014 the only lever is deletion. And `mem::lesson-save` fingerprints as `lsn_\u2026` while `deriveCrystalAndLessons` fingerprints as `lesson_\u2026`, so re-saving identical content creates a second record rather than overwriting the first.",
+      "locator": "Two more things that make this harder to live with",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "agentmemory 0.9.29 pins iii-sdk at exact version 0.11.2 with no range specifier",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1312",
+      "quote": "agentmemory 0.9.29 pins `iii-sdk: 0.11.2` (exact pin, no caret)",
+      "locator": "Summary section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The current operational mitigation for RSS growth is cgroup memory limits combined with a daily forced restart, which itself often terminates via SIGKILL",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1312",
+      "quote": "We currently mitigate with `MemoryHigh=6G` / `MemoryMax=8G` cgroup limits plus a daily scheduled restart (which itself mostly exits via SIGKILL \u2014 see Problem 2).",
+      "locator": "Problem 1 section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "agentmemory's graceful shutdown hangs regardless of memory size, apparently due to in-flight LLM-backed triggers or KV flush operations not being aborted on SIGINT",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1312",
+      "quote": "more likely pending in-flight operations (LLM-backed triggers / KV flush) that are not aborted on shutdown",
+      "locator": "Problem 2 section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "agentmemory is deployed as a long-running single-worker service receiving hooks from coding agents, with ~84k observations persisted",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1312",
+      "quote": "Single worker, moderate write load (hooks from a few coding agents)",
+      "locator": "Environment section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The product's write path has no supported primitive to remove or replace a single provenance reference on a single graph node or edge without deleting the record or its source.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1316",
+      "quote": "no supported lifecycle operation could detach one exact provenance reference from one exact node or edge",
+      "locator": "## Actual incident",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Provenance growth on individual nodes is unbounded and no per-node update endpoint exists (as of the time of issue #1171).",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1316",
+      "quote": "#1171 addresses unbounded provenance growth and notes the lack of a per-node update endpoint",
+      "locator": "## Related issues and why this is not a duplicate",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A permanent incorrect provenance association (wrong source linked to a graph node) cannot be safely corrected through any supported lifecycle operation; the only alternatives are destructive or require direct storage mutation.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1316",
+      "quote": "Without a narrow correction path, a small provenance mistake becomes permanent or requires a destructive project-wide rebuild. That undermines auditability because the system can record the bad association but cannot safely correct it through the supported lifecycle.",
+      "locator": "## Impact",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Boot reconciliation is gated on size === 0: a partially stale index (size > 0) suppresses rebuildIndex(kv), so the state produced by the shutdown race is precisely the state that boot repair cannot fix, and it persists across every subsequent restart.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1335",
+      "quote": "The consequence is that reconciliation is all-or-nothing. A partial gap is exactly the case it cannot repair, because a partially-stale index still has `size > 0`. So the state produced by defect 1 is the one state defect 2 will not fix, and it persists across every subsequent restart.",
+      "locator": "The reconcile gate",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The debounce write path (DEBOUNCE_MS = 5000) does not fire during runtime, making the entire session's indexed memories dependent on a single shutdown write that is subject to the teardown race.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1335",
+      "quote": "`DEBOUNCE_MS = 5e3` appears never to fire during runtime. Four memories plus 60 s of idling produced no BM25 shard at all; every generation observed was minted at boot or at a shutdown that was allowed to complete. If that is right, boot and shutdown are the only durable write paths \u2014 and shutdown is the racing one. That is what turns this from 'you lose the last five seconds' into 'you lose everything since the last restart'.",
+      "locator": "Why the loss window is a whole session",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "An unexplained third behaviour was observed: a memory stored after the last successful shard mtime was still retrievable at the same score after restart, despite the size > 0 gate that should have suppressed rebuild.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1335",
+      "quote": "In one clean-room run a stale shard (mtime 17:35) was present, no new generation was written on restart, and yet the memory stored at 17:37:20 was still found afterwards at the identical pre-stop score. Under the gate described above it should have been missing.",
+      "locator": "One thing we could not explain",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Related issues #1180 and #1179 describe adjacent symptoms: index saves scheduled only at boot, and rebuild running only on an empty index (from the embeddings side).",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1335",
+      "quote": "#1180 (index saves scheduled only at boot) describes an adjacent symptom; this report identifies the teardown race and the `size === 0` gate as the mechanism. #1179 (rebuild only runs on an empty index) is the same gate seen from the embeddings side.",
+      "locator": "Related",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write path is non-atomic, appending bytes in a way that can produce trailing garbage and corrupt the store",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1364",
+      "quote": "The garbage was appended by the write side, repeatedly and with varying length (observed 8-byte and 10/12-byte variants at different times), so this looks like a partial/concurrent-write artifact in the file-based KV persistence",
+      "locator": "Root cause section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The read path does a strict whole-file JSON.parse with no tolerance for corruption, surfacing a bare 'Invocation stopped' 500 error indistinguishable from load timeouts",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1364",
+      "quote": "The read path does a strict whole-file JSON.parse, which throws on the trailing bytes \u2192 invocation aborts \u2192 REST 500 \u2026 which is indistinguishable from load timeouts",
+      "locator": "Root cause and Suggested fix sections",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Runtime state is held in an in-memory copy loaded from the bin file at boot; the live in-memory copy and the file store can diverge until restart",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1364",
+      "quote": "the engine serves reads from its in-memory copy loaded at boot; the file fix alone does not restore the endpoint until restart",
+      "locator": "Workaround section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "REFLECT consolidation runs continuously and writes new insights even when the read endpoint is broken, so the write path and read path can be independently healthy or broken",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1364",
+      "quote": "REFLECT generation itself is healthy (consolidation log shows reflect.success:true, newInsights:5 every round, usedFallback:false), and the bin file keeps being written \u2014 only the read path is broken",
+      "locator": "Symptom section",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graph node and edge files grew to 192 MB for a logically small 4,062-node graph due to unbounded sourceObservationIds arrays (~15 KB per node/edge)",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1374",
+      "quote": "mem%3Agraph%3Aedges.bin 114M # 7,357 edges -> ~15 KB per edge\nmem%3Agraph%3Anodes.bin 62M # 4,062 nodes -> ~15 KB per node",
+      "locator": "## The bloat is per-record, and it is `sourceObservationIds`",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Worker process dies on any graph traversal, taking all 282 registered functions (including search and memory_recall) offline for ~5 seconds",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1374",
+      "quote": "curl -s http://127.0.0.1:3111/agentmemory/health\n# 500 {\"error\":\"Function middleware::api-auth not found\"} <- all 282 functions gone, ~5s",
+      "locator": "## Traversal kills the worker; summary reads do not",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "memory_recall (MCP tool) returns empty results when the graph worker is down, even though observations are intact \u2014 a continuity failure where the product silently forgets everything",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1374",
+      "quote": "memory_recall (MCP) | {\"results\":[]} \u2026 after [graph removed]: 5 scored hits (0.99\u20130.59), 399 tokens",
+      "locator": "## Confirmed fix: removing the graph files restores search entirely",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graph bloat presents as 'search is broken' rather than 'graph is broken', making continuity failures hard to diagnose; operators spent significant time on the wrong subsystem",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1374",
+      "quote": "This is the part worth highlighting, because it makes graph bloat present as 'search is broken' rather than 'the graph is broken', which is a much harder thing to diagnose \u2026 We spent a long time chasing the search index before finding the graph",
+      "locator": "## `/search` is collateral damage, and `AGENTMEMORY_GRAPH_WEIGHT=0` does not avoid it",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "AGENTMEMORY_DROP_STALE_INDEX=true drops BM25 in addition to the stale vector index, which was likely unintended and forces a full-corpus rebuild on every boot until complete",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1378",
+      "quote": "On a dimension-mismatch drop, consider discarding **only the vector index**, not BM25 \u2014 that alone would keep the provider-switch path off the full-rebuild code path at scale.",
+      "locator": "## Suggestions",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Any vector result on a large legacy graph corpus triggers a blocking expandFromChunks call that locks the event loop for 4\u20136 s, causing the worker to be declared dead and the REST surface to enter a 404/500 oscillation",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1378",
+      "quote": "the worker's event loop blocks for 4\u20136 s per call, the iii engine declares it dead, and the REST surface enters a `404`/`500 \"Invocation stopped\"` oscillation that does not self-heal",
+      "locator": "State (issue header)",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The vector-leg gate creates a deterministic failure boundary: vector index empty is healthy, vector index non-empty causes the death loop",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1378",
+      "quote": "The trigger boundary is deterministic: vector index empty \u2192 healthy; vector index non-empty \u2192 death loop.",
+      "locator": "## Trigger 2",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "rebuildIndex runs synchronously on the worker event loop in batches of 10 sessions, blocking heartbeats for 4.2\u20136.3 s per search and causing ~1 reconnect/minute with no self-heal after 10 minutes",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1378",
+      "quote": "Same death loop: `search` 500 at 4.2\u20136.3 s, reconnects ~1/min, **10 minutes of quiet observation with no self-heal**.",
+      "locator": "## Trigger 1 (variant)",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Related issue #814 concerns kv.list enumeration and heartbeat budget; #825 concerns legacy >25K-node corpora crashing graph endpoints \u2014 both affect retrieval correctness at scale",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1378",
+      "quote": "#814 (kv.list enumeration / heartbeat budget), #825 (legacy >25K-node corpora crash graph endpoints)",
+      "locator": "## Related",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "agentmemory has a REST API with a DELETE endpoint for Memories but not yet for Actions or Crystals as of version 0.9.12",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/496",
+      "quote": "Currently, the agentmemory REST API only provides a DELETE endpoint for Memories (`/agentmemory/governance/memories`), but not for Actions and Crystals.",
+      "locator": "Problem section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Project memory fragmentation occurs when the same repository is accessed via different worktree paths, creating multiple disconnected project identities in the store.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/515",
+      "quote": "project memory becomes fragmented by disposable worktree path",
+      "locator": "Impact",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The session start API stores project and cwd as separate fields, and the project field determines which stored lessons, profiles, and memories are surfaced at context generation time.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/515",
+      "quote": "store `session.project` as the main repo root when available, keep `session.cwd` as the actual worktree path",
+      "locator": "Suggested fix",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A canonicalization fix resolves the worktree path to the main repo root at session start and restores access to project lessons, confirmed by HasProjectLesson: true in the patched response.",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/515",
+      "quote": "\"HasProjectLesson\": true",
+      "locator": "Local validation",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "agentmemory's persistent store can hold at least ~214k observations in a local deployment",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/609",
+      "quote": "With an existing local agentmemory store containing about 214k observations",
+      "locator": "Real-world reproduction observed",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The `mem-live` WebSocket stream sends a `sync` event on connect whose `data` array contains the full current observation backlog",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/609",
+      "quote": "This printed a `sync` event with 214,887 items in the affected environment.",
+      "locator": "Direct WebSocket probe",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Observations are keyed by sessionId, suggesting per-session isolation of stored memory entries",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/609",
+      "quote": "sessionId: 'session_repro'",
+      "locator": "Minimal maintainer reproduction without a huge local DB",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No per-observation filtering or bounded subscription exists on the stream API at the time of the issue; requested features include `sync: false`, `since`, `limit`, or live-only modes",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/609",
+      "quote": "Consider a stream API option such as `sync: false`, `since`, `limit`, or live-only subscriptions for viewer consumers.",
+      "locator": "Suggested fixes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graph traversal crashes (worker heartbeat starvation) past ~25K nodes due to full kv.list enumeration of KV.graphNodes and KV.graphEdges, affecting freshly-built corpora post-#816",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/828",
+      "quote": "the full `kv.list<GraphNode>(KV.graphNodes)` + `kv.list<GraphEdge>(KV.graphEdges)` pair (graph.ts ~L661-662), then filters/walks in memory. That's the same crashing primitive \u2014 but it's the **actual graph-traversal feature**, and it has no size guard, so it bites every user who crosses ~25K, **including those who built the graph cleanly via incremental extraction post-#816**.",
+      "locator": "section: Why this is separate from #814/#816 and #825",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The timeout fallback meant to degrade to the top-N snapshot cannot fire because the worker heartbeat deadline (~0.35s) is shorter than the 6s budget and a synchronous parse blocks the timer",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/828",
+      "quote": "The `withTimeout(..., LIVE_ENUMERATION_BUDGET_MS)` race intended to fall back to the snapshot can't fire \u2014 the heartbeat deadline (~0.35s) is far shorter than the 6s budget, and a synchronous parse blocks the timer too.",
+      "locator": "section: Verified mechanism",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "For corpora past ~25K nodes, the entity graph is buildable and viewable as top-N overview but not queryable or traversable \u2014 graph-traversal recall has no production path at scale",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/828",
+      "quote": "For any corpus past ~25K nodes, the entity graph is **buildable and viewable as a top-N snapshot, but not queryable or traversable**. The graph-traversal recall capability (search the graph, expand from a node) \u2014 arguably the differentiating feature of having a graph at all \u2014 has no production path at scale.",
+      "locator": "section: Impact",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "The issue reproduces on a corpus of 680 sessions / ~75K nodes / 344 MB at commit b494f23",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/828",
+      "quote": "We have the >50K repro (680 sessions / ~75K nodes / 344 MB), a backup, and a one-command rebuild-and-test loop.",
+      "locator": "section: Standing offer",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "A related issue (#345) tracks concept-edge recall using KV.conceptEdges BFS for co-occurrence ranking, noted as potentially hitting the same scaling wall without targeted-index access",
+      "kind": "issue",
+      "url": "https://github.com/rohitg00/agentmemory/issues/828",
+      "quote": "#345 \u2014 concept-edge recall graph (a *different* graph: `concepts[]` co-occurrence for ranking, not the entity graph) \u2014 flagging because its `KV.conceptEdges` BFS could hit the same scaling wall if it lands without targeted-index access",
+      "locator": "section: Related",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "agentmemory is positioned as persistent memory for AI coding agents running fully locally.",
+      "kind": "blog",
+      "url": "https://www.agent-memory.dev/docs",
+      "quote": "Persistent memory for AI coding agents. Local first, zero external databases.",
+      "locator": "page tagline",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The product distinguishes a log layer (Observations) from curated memory layers (Memories, Lessons, Crystals), separating raw transcript from distilled facts.",
+      "kind": "blog",
+      "url": "https://www.agent-memory.dev/docs",
+      "quote": "Observations \u2014 Raw session events from hooks: prompts, tool calls, results | Memories \u2014 Durable typed facts \u2026 with version chains | Crystals \u2014 Frozen one-session summaries kept after raw observations are pruned",
+      "locator": "What it stores table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conflict/supersession on write: a near-duplicate triggers version-chain update rather than duplicate storage; recall surfaces only the current version.",
+      "kind": "blog",
+      "url": "https://www.agent-memory.dev/docs",
+      "quote": "Saving a near-duplicate of an existing memory supersedes it into a version chain. Recall returns only current versions; history stays queryable.",
+      "locator": "Design points",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/server.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/mcp/tools-registry.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/state/hybrid-search.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/state/vector-index.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/blob/e04ba88819c365c9acf9d6661ea802143e728bd6/src/functions/consolidate.ts",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/blob/main/DESIGN.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/blob/main/INSTALL_FOR_AGENTS.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/1312",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/496",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/1013",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/515",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/1228",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/1124",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/1238",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/1378",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/609",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/1168",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/1223",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/1364",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/828",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/1316",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/1292",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/1240",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/1161",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/1374",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/rohitg00/agentmemory/issues/1335",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://www.agent-memory.dev/docs",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "Synthetic compression: the page distinguishes synthetic compression (default) from LLM-written compression but does not describe what synthetic compression does",
+      "url": "https://github.com/rohitg00/agentmemory/blob/main/README.md",
+      "kind": "docs"
+    },
+    {
+      "text": "This page is a spam/promotional issue posted by a third-party vendor (ViBo) and contains no claims about agentmemory's own memory mechanisms, architecture, or behavior.",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1194",
+      "kind": "issue"
+    },
+    {
+      "text": "No documentation of how compressed observations (title/narrative) are selected into a turn at retrieval time \u2014 retrieval policy is unspecified on this page",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1228",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the structural-always-on behaviour is intentional or a bug is unresolved on this page; no maintainer response is quoted.",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1238",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how mem::lesson-recall selects which lessons to surface into context (top-N, threshold cutoff, or other policy) beyond the scoring formula.",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1292",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of how or when observations are written to the graph (extraction trigger, batching, or session boundary)",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1374",
+      "kind": "issue"
+    },
+    {
+      "text": "No documentation on how or whether rebuild progress is checkpointed across restarts; the issue explicitly flags this as a gap ('every restart resets the rebuild to zero')",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1378",
+      "kind": "issue"
+    },
+    {
+      "text": "No documentation on the intended behavior when switching embedding providers on an existing corpus \u2014 the reporter explicitly requests this be stated",
+      "url": "https://github.com/rohitg00/agentmemory/issues/1378",
+      "kind": "issue"
+    },
+    {
+      "text": "What Crystals represent as a memory construct \u2014 whether they are summaries, distilled facts, lore, or another abstraction \u2014 is not explained on this page",
+      "url": "https://github.com/rohitg00/agentmemory/issues/496",
+      "kind": "issue"
+    }
+  ]
+}
