@@ -1,0 +1,2345 @@
+{
+  "identity": {
+    "id": "taosmd",
+    "name": "taOSmd",
+    "repo": "https://github.com/jaylfc/taosmd",
+    "docs": "https://github.com/jaylfc/taosmd/blob/master/README.md",
+    "license": "MIT",
+    "version_or_commit": "97543e42ccf337eea4196761c341e6b11873574c",
+    "observed_at": "2026-09-19"
+  },
+  "claimed_purpose": [
+    {
+      "text": "taOSmd provides a retrieval/memory layer that indexes documents into collections, enforces currency-correct retrieval by excluding superseded content by default, and acts as the persistent store for a multi-agent bus architecture."
+    },
+    {
+      "text": "taOSmd maintains a session catalog that is enriched with topic, description, and category metadata per session, supporting a librarian persona for memory organization."
+    },
+    {
+      "text": "taOSmd has a librarian component that handles per-agent retrieval configuration, suggesting it is a system with agent-scoped memory retrieval."
+    },
+    {
+      "text": "Append-only daily archive of every event in the system, never modified or deleted, kept indefinitely as the raw truth"
+    },
+    {
+      "text": "taOSmd provides a Librarian that enriches session archive rows, used by a job worker in a multi-agent install"
+    },
+    {
+      "text": "The rules block is promised by the README to be reliably present in agent templates as a memory contract."
+    },
+    {
+      "text": "Full-text search described as the key method for LongMemEval-style recall over raw verbatim text"
+    },
+    {
+      "text": "taOSmd is designed to be usable as a standalone product without taOS in front of it."
+    },
+    {
+      "text": "Positioning of the product as 'comms-in-memory' is planned documentation work"
+    },
+    {
+      "text": "taosmd provides a local HTTP/REST memory API and inspection UI"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Forget/supersession: corrected facts supersede old facts across both the knowledge graph (via valid_to invalidation) and vector recall (matching chunks soft-hidden, not deleted); unsupported claims are demoted at recall but never deleted"
+    },
+    {
+      "text": "Store: three distinct persistence layers \u2014 Temporal Knowledge Graph (structured facts with validity windows), Vector Memory (hybrid semantic + keyword search), and Zero-Loss Archive (append-only JSONL with FTS5 full-text search)"
+    },
+    {
+      "text": "Retrieve policy is layer-dependent: recent or exact wording queries go to archive (FTS5), topic-based queries go to catalog and crystals, truth verification goes to KG then archive, semantic similarity goes to vector."
+    },
+    {
+      "text": "Conflict resolution: when layers disagree the archive wins; when two archive entries contradict each other (user self-contradiction over time), both are reported with timestamps for the agent to decide."
+    },
+    {
+      "text": "Agent renaming is performed by moving the agent's directory and updating its rules block; splitting an agent moves some session_ids to the new agent; merging concatenates then re-indexes"
+    },
+    {
+      "text": "Log vs memory distinction: the archive is a full verbatim transcript log (append-only); the vector store is a derived embedded index of the same content, used for semantic recall."
+    },
+    {
+      "text": "Store: append-only archive (zero-loss) persists every conversation turn, tool call, decision, and error; summaries and structure are layered on top, never replacing the source"
+    },
+    {
+      "text": "Databases not in the REGISTRY silently fail to receive schema changes on already-deployed databases because CREATE TABLE IF NOT EXISTS does not alter existing tables"
+    },
+    {
+      "text": "Write path: transcript ingest triggers archive write first, then enrichment runs, with enrichment outputs referencing the originating archive entry for traceability."
+    },
+    {
+      "text": "Isolation: per-agent isolation enforced by an agent tag on every row, not by separate files; multiple agents share one service process and one shared set of stores"
+    },
+    {
+      "text": "Claims gate prefer_verified eliminates served-hallucination (0.040 to 0.000) at no measured accuracy or recall cost; confirmed under all three judges at n=250."
+    },
+    {
+      "text": "Axis A is intended to test contradiction/staleness \u2014 superseded facts that should be demoted \u2014 but current fixtures are too shallow to force a retrieval choice"
+    },
+    {
+      "text": "Archive is append-only JSONL and is never edited or deleted; it is the source of truth from which all other memory layers are derived, never overwritten"
+    },
+    {
+      "text": "Session enrichment extracts structured metadata (topic, description, category) from session content via an LLM prompt, stored per session in a catalog."
+    },
+    {
+      "text": "Binary embedding quantization (opt-in): stores 1 bit per dimension, 32x smaller footprint, fixed at store creation time and cannot be changed after"
+    },
+    {
+      "text": "Cross-agent reads are off by default; a supervisor agent can explicitly query other agents' memory by passing an inclusion list to the search call"
+    },
+    {
+      "text": "Retrieval is isolated by project and by agent; post-filter drops results whose metadata project or agent field does not match the requested scope"
+    },
+    {
+      "text": "Fan-out retrieval depth (K) is resolved per-agent and per-worker via a dedicated resolver function alongside an existing task-enablement helper."
+    },
+    {
+      "text": "On wheel installs the rules file is not bundled, so agents boot with no memory contract in their system prompt \u2014 a silent continuity failure."
+    },
+    {
+      "text": "Isolation is per-project and per-agent via metadata tags; untagged rows are visible to all scopes to preserve standalone/pre-project memory"
+    },
+    {
+      "text": "A Librarian component indexes messages; a `defer_index` flag on import lets the Librarian see history in sequence rather than out-of-order"
+    },
+    {
+      "text": "When depth='auto', an intent classifier determines per-layer token budget weights (kg_weight, archive_weight, qmd_weight) before assembly"
+    },
+    {
+      "text": "The agent_name parameter binds the librarian persona to the correct shelf, indicating per-agent isolation of memory scaffolding."
+    },
+    {
+      "text": "Agent-to-agent bus messages are stored as append-only archive events, making inter-agent communication auditable and replayable"
+    },
+    {
+      "text": "A SQLite index (archive_index table) is maintained alongside the JSONL files for fast lookup; the JSONL is the source of truth"
+    },
+    {
+      "text": "Confidence threshold advisory: agents should treat a top hit with confidence < 0.6 as no result rather than invent an answer."
+    },
+    {
+      "text": "Per-agent memory is stored in separate SQLite index files under a named directory, isolating each agent's memory from others"
+    },
+    {
+      "text": "Per-agent memory settings include enabled, tasks, and fanout \u2014 these are behavioural toggles distinct from the model choice."
+    },
+    {
+      "text": "No transactional consistency between archive and vector writes; a crash mid-write leaves data in archive but not searchable"
+    },
+    {
+      "text": "knowledge-graph.db has split schema ownership between two modules, creating ambiguity for migrations and version stamping"
+    },
+    {
+      "text": "A2A bus messages are stored as append-only archive events, inheriting archive durability and automatic secret redaction"
+    },
+    {
+      "text": "The verbatim archive write is unconditional \u2014 ingested content is always stored regardless of enrichment task settings."
+    },
+    {
+      "text": "Hybrid semantic plus keyword vector search with cross-encoder rerank and LLM-assisted query expansion (Librarian layer)"
+    },
+    {
+      "text": "Knowledge graph supports time-travel: graph can be reconstructed as of a past unix timestamp for the Explorer scrubber"
+    },
+    {
+      "text": "Write path: bi-temporal fact storage \u2014 facts carry valid_from, valid_to, and superseded_by fields populated at ingest."
+    },
+    {
+      "text": "Inbox cursor is persisted in the archive store, survives restarts, visible to every process sharing the same data dir"
+    },
+    {
+      "text": "Token counting uses a character-division heuristic rather than a proper tokenizer, risking silent context overflow"
+    },
+    {
+      "text": "USER_NAMESPACE reserved namespace separates the human's own memory from each AI agent's working-memory namespace."
+    },
+    {
+      "text": "Crystals store narrative-form memory with session_id, outcomes, and lessons; text is the narrative field"
+    },
+    {
+      "text": "Enrichment tasks default to on; gating is opt-in and disabling them does not affect retrieval baselines."
+    },
+    {
+      "text": "Contradiction detection only covers hardcoded predicates, leaving silent knowledge corruption for others"
+    },
+    {
+      "text": "A custom data directory can be specified, indicating the store is file-backed and location-configurable"
+    },
+    {
+      "text": "Cross-document contradiction is handled by a verified-memory claims gate, default-on as of issue #173."
+    },
+    {
+      "text": "Bus messages are append-only archive events with server-stamped time; the message store is write-once"
+    },
+    {
+      "text": "Temporal boosting is silently broken: writes to wrong field and has no effect in the main pipeline"
+    },
+    {
+      "text": "enrich_session operates over a session's archive rows, invoking the Librarian to enrich them"
+    },
+    {
+      "text": "Per-agent model configuration currently leads to inconsistent memory quality across agents."
+    },
+    {
+      "text": "KG edge directionality is broken; incoming and outgoing branches are identical dead code"
+    },
+    {
+      "text": "Naive entity normalization collapses legitimate distinctions (e.g. O'Brien \u2192 obrien)"
+    },
+    {
+      "text": "Secret filtering auto-redacts sensitive patterns on all ingest paths before storage"
+    },
+    {
+      "text": "taOSmd currently exposes a Python API/SDK and a CLI as its primary access surfaces"
+    },
+    {
+      "text": "LLM reranker exists as an API but is never called in the retrieve() orchestrator"
+    },
+    {
+      "text": "Core operations are ingest and retrieve/search, exposed via Python API and CLI."
+    },
+    {
+      "text": "Write path: retention scoring uses Ebbinghaus decay with hot/warm/cold tiers"
+    },
+    {
+      "text": "Secrets are redacted from summary and selected data fields before storage"
+    },
+    {
+      "text": "decay_all() silently skips first-run decay when last_decayed_at is NULL"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Archive is append-only and never edited or deleted; all other memory is derived from it, never written over it",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/README.md",
+      "quote": "Everything lands first in an append-only archive that is never edited or deleted, and the memory you search is derived from that archive, never written over it.",
+      "locator": "README, paragraph 1",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Five named persistent stores form the memory stack: Temporal Knowledge Graph, Vector Memory, Zero-Loss Archive, Session Catalog, Crystal Store",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/README.md",
+      "quote": "Memory Layers:\n\u251c\u2500\u2500 Temporal Knowledge Graph structured facts with validity windows\n\u251c\u2500\u2500 Vector Memory hybrid search (semantic + keyword boost, ONNX MiniLM or Nomic)\n\u251c\u2500\u2500 Zero-Loss Archive append-only JSONL, FTS5 full-text search\n\u251c\u2500\u2500 Session Catalog LLM-derived timeline directory over archives\n\u2514\u2500\u2500 Crystal Store compressed session digests with lessons",
+      "locator": "README, Architecture section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Contradiction / supersession: KG facts are invalidated via valid_to field (not deleted); vector layer soft-hides superseded chunks (not deleted)",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/README.md",
+      "quote": "Contradiction detection, corrected facts supersede across both the typed knowledge graph (via valid_to invalidation) and the vector recall layer (matching chunks soft-hidden, not deleted); recall returns only the active fact",
+      "locator": "README, Key Features section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "prefer_verified gate ships on by default after tri-judge confirm (E-018) showed it eliminated served-hallucination (0.040 \u2192 0.000) at no measured accuracy cost",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/README.md",
+      "quote": "A full tri-judge confirm at n=250 (E-018) then reproduced that under all three judges \u2026 served-hallucination dropped to 0.000 every time, judged accuracy stayed within the 0.02 noise bound \u2026 With that evidence the gate is now on by default",
+      "locator": "README, Provable Memory section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Per-agent isolation is enforced by an agent tag on every row in a single shared service; not separate files or processes",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/README.md",
+      "quote": "The taOSmd service stays one process with one shared set of stores; per-agent isolation is enforced by an agent tag on every row, not by separate files.",
+      "locator": "README, Getting Started / Multiple agents section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Archive ingest records conversation, tool calls, decisions, and errors; summary is a short label, the full payload is kept",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/README.md",
+      "quote": "await archive.record(\"conversation\", {\"role\": \"user\", \"content\": message}, summary=message[:80])",
+      "locator": "README, Tell Your Agent section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Vector memory add and hybrid search API; hybrid=True combines semantic and keyword; fusion strategy is configurable per call",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/README.md",
+      "quote": "await vmem.add(\"Jay created taOS, a personal AI operating system\")\nresults = await vmem.search(\"What is taOS?\", hybrid=True)",
+      "locator": "README, Quick Start section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Reconcile command detects and repairs gaps between archive (source of truth) and vector store; safe to run after crash or via cron; never resurrects intentionally superseded turns",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/README.md",
+      "quote": "The archive is the source of truth; reconcile detects and repairs that gap \u2026 The repair path re-adds only turns that are genuinely absent; it never resurrects turns that were intentionally superseded by a correction.",
+      "locator": "README, Maintenance: reconcile the vector store section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Binary quantization is fixed at store creation time; a binary-quant store cannot be switched back to full-precision after creation",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/README.md",
+      "quote": "binary_quant is fixed for the store's lifetime: a binary-quant store persists packed sign bits, not float vectors, so an existing DB cannot be flipped between modes. Choose it at creation.",
+      "locator": "README, Binary embedding quantization section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "graph_expansion control is default-off pending EventQA validation (E-025); it injects derived (not verbatim-turn) facts into context",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/README.md",
+      "quote": "Ships default-off: EventQA validation (E-025) is still pending, and it injects derived (not verbatim-turn) facts.",
+      "locator": "README, Configuration and controls, Live controls table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is isolated per agent name and optionally per project fingerprint; cross-agent reads require explicit also_include within the same project.",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/api.py",
+      "quote": "When set, memories are tagged with this project ID so that different agents working on the same project can find each other's memories via ``search(..., also_include=[...])``.",
+      "locator": "ingest docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The archive is the source of truth; the vector store is a derived index that can be reconstructed via reconcile() or reindex().",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/api.py",
+      "quote": "The append-only archive is the source of truth (Option A). The vector store is a derived index.",
+      "locator": "reconcile docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Soft-supersede (not hard delete) is used to retire stale vector chunks; raw rows are retained.",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/api.py",
+      "quote": "Zero-loss: the matched rows are retained, only stamped ``valid_to`` so ``search()`` skips them.",
+      "locator": "supersede_vectors docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "KG contradiction resolution also soft-supersedes matching vector chunks holding the stale value.",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/api.py",
+      "quote": "await vmem.supersede_matching(obj_name)",
+      "locator": "resolve_pending_decision, kg invalidation block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Claims are extracted from ingested text, stored unverified, and an async verify-pass later checks them; a recall gate (prefer_verified, on by default) filters search results by claim status.",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/api.py",
+      "quote": "Stored unverified; the verify-pass checks them async.",
+      "locator": "ingest, inline comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Pending KG-update decisions are never auto-resolved; they are surfaced to the user at session start.",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/api.py",
+      "quote": "Never silently auto-resolve; the queue exists because automatic resolution was the wrong call.",
+      "locator": "list_pending_decisions docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A confidence threshold of 0.6 is the agent-rules boundary below which a search result should be treated as no result.",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/api.py",
+      "quote": "If the top hit has ``confidence < 0.6`` per the rules block, agents should treat it as \"she didn't find anything\" rather than invent.",
+      "locator": "search docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "ingest_batch() deduplicates by a caller-supplied stable content-hash id, so the same batch can be safely re-POSTed.",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/api.py",
+      "quote": "items whose ``id`` is already stored are counted in ``skipped`` instead of duplicated.",
+      "locator": "ingest_batch docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A USER_NAMESPACE reserved agent namespace separates human memory from AI agent working-memory namespaces.",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/api.py",
+      "quote": "Reserved namespace for the human's own memory (share-to-collect + ambient capture write here). Distinct from each AI agent's working-memory namespace.",
+      "locator": "USER_NAMESPACE comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The archive is append-only and events are never modified, deleted, or summarised; JSONL files are the source of truth kept indefinitely",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/archive.py",
+      "quote": "Append-only daily archive of every event in the system. Never modified, never deleted, never summarised. The raw truth, kept indefinitely.",
+      "locator": "module docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A SQLite index with FTS5 full-text search is maintained for fast lookup; it is a derived index and not the source of truth",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/archive.py",
+      "quote": "Index schema for fast lookups (the JSONL files are the source of truth)",
+      "locator": "INDEX_SCHEMA comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "User activity tracking (app_usage, content_view, search event types) is opt-in and disabled by default",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/archive.py",
+      "quote": "User activity events are opt-in",
+      "locator": "USER_ACTIVITY_EVENTS comment",
+      "confidence": "unknown",
+      "label": "measured"
+    },
+    {
+      "claim": "Secrets are redacted from summary and key data fields before being written to the archive",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/archive.py",
+      "quote": "Redact secrets before storage",
+      "locator": "ArchiveStore.record, inline comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is by agent_name and app_id; all queries and statistics can be scoped to a single agent",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/archive.py",
+      "quote": "agent_name TEXT, app_id TEXT",
+      "locator": "INDEX_SCHEMA, archive_index table definition",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The SQLite index rows can be updated by migrations for backfill without touching the JSONL source files",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/archive.py",
+      "quote": "The JSONL source files are never modified; only the derived index is updated.",
+      "locator": "ArchiveStore.update_event_data_json docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Full-text search is described as the key method for LongMemEval-style recall over raw verbatim text, not extracted triples",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/archive.py",
+      "quote": "This is the key method for LongMemEval-style recall: it searches the raw verbatim text, not just extracted triples.",
+      "locator": "ArchiveStore.search_fts docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is structured as four layers (L0\u2013L3) with fixed token budgets; L0 and L1 are always loaded, L2 is loaded at standard/deep depth, L3 is on-demand/deep only",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/context_assembler.py",
+      "quote": "L0: Identity: who is the agent, who is the user (~100 tokens, always loaded)\n  L1: Active facts: current KG facts about the user + project (~200 tokens)\n  L2: Relevant memories: semantic search results from recent context (~500 tokens)\n  L3: Deep recall: archive search, full KG traversal (on-demand, ~1000 tokens)",
+      "locator": "module docstring, Layers section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Core/archival split: pinned facts always consume 30% of L1 budget; items auto-demote from core when core budget is exceeded based on score",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/context_assembler.py",
+      "quote": "Core memories (pinned=True) always get 30% of the L1 budget.\n  Archival memories are scored by retention and paged by score * recency.\n  When core exceeds its budget, lowest-scored core items are auto-demoted.",
+      "locator": "module docstring, Core/Archival Split section",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "L1 reads from a TemporalKnowledgeGraph via query_entity(); archival facts are scored by an 'importance' field and sorted descending before budget truncation",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/context_assembler.py",
+      "quote": "results = await self._kg.query_entity(entity, direction=\"outgoing\")\n                for r in results:\n                    importance = r.get(\"importance\", 0)\n                    text = f\"{entity} {r['predicate']} {r.get('object_name', '?')}\"\n                    archival_scored.append((importance, text))",
+      "locator": "assemble_l1, Assemble archival facts block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "L2 combines four sources per query: ArchiveStore (event summaries), TemporalKnowledgeGraph (entity relations), SessionCatalog (session timeline), and QMD vector search (workspace snippets)",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/context_assembler.py",
+      "quote": "# Search archive for recent relevant events\n        if self._archive:\n        ...\n        # Search KG for related entities\n        if self._kg:\n        ...\n        # Catalog search for timeline-relevant content\n        if self._catalog:\n        ...\n        # QMD semantic search\n        if self._http and self._qmd_url:",
+      "locator": "assemble_l2",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "ArchiveStore stores typed events with event_type, summary, and data_json fields; L2 retrieves by summary, L3 retrieves raw data_json content \u2014 representing an event log, not a curated fact store",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/context_assembler.py",
+      "quote": "data_str = e.get(\"data_json\", \"{}\")\n                    ...\n                    content = data.get(\"content\", data.get(\"text\", data.get(\"msg\", \"\")))\n                    if content:\n                        parts.append(f\"[archive:{e['event_type']}] {str(content)[:150]}\")\n                    elif e.get(\"summary\"):\n                        parts.append(f\"[archive:{e['event_type']}] {e['summary']}\")",
+      "locator": "assemble_l3, Full archive search block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Adaptive retrieve policy: depth='auto' uses an intent classifier to weight which memory sources receive more token budget per query",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/context_assembler.py",
+      "quote": "if depth == \"auto\":\n            from .intent_classifier import get_search_strategy\n            strategy = get_search_strategy(query)\n            intent = strategy[\"intent\"]\n            # Adjust token budgets based on intent weights\n            kg_budget = int(200 * strategy[\"kg_weight\"])\n            archive_budget = int(500 * strategy[\"archive_weight\"])\n            qmd_budget = int(500 * strategy[\"qmd_weight\"])",
+      "locator": "assemble, Intent-aware depth selection block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "taOSmd maintains five distinct persistent memory stores: vector memory, knowledge graph, session catalog, archive, and crystals",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/retrieval.py",
+      "quote": "Normalises results from vector memory, knowledge graph, session catalog,\narchive, and crystals into a common format for ranking and fusion.",
+      "locator": "retrieval.py:module docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Crystals store narrative-form summaries with outcomes and lessons \u2014 a curated memory write distinct from a raw message log",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/retrieval.py",
+      "quote": "Input fields: id, narrative, session_id, outcomes, lessons.\n\nText is the narrative.",
+      "locator": "retrieval.py:_adapt_crystals() docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Archive stores event records with summary and data_json \u2014 closer to a structured event log than curated facts",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/retrieval.py",
+      "quote": "Input fields: id, summary, data_json, event_type, timestamp.",
+      "locator": "retrieval.py:_adapt_archive() docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Session catalog stores session-level metadata (topic, description, date, time range, category) \u2014 a log of sessions, not individual turns",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/retrieval.py",
+      "quote": "Input fields: id, topic, description, date, start_str, end_str, category.",
+      "locator": "retrieval.py:_adapt_catalog() docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Knowledge graph stores subject-predicate-object triples with confidence and bi-temporal support (valid-time as_of=now); Phase 2 as_of query surface not yet exposed",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/retrieval.py",
+      "quote": "Bi-temporal fact readback (Phase 1). Reads the already-populated fact store\nback into the answer context...the currently-valid facts (``query_entity`` defaults to\n``as_of=now``)...Phase 1 is valid-time only; no ``as_of`` query surface is exposed\n(that is Phase 2).",
+      "locator": "retrieval.py:_append_graph_expansion() docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is isolated by agent and by project; results whose metadata agent or project field mismatches the requested scope are dropped post-retrieval",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/retrieval.py",
+      "quote": "Post-filter results by project and agent scope.\n\nApplied after all sources return results. Handles the different metadata\nshapes from each source (archive uses ``agent_name`` and stores project\ninside ``data_json``, vector uses ``agent``/``project`` in metadata,\nKG has no agent field).",
+      "locator": "retrieval.py:_filter_project_scope() docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieve policy is adaptive: intent classifier selects primary/secondary sources; thorough queries all sources; fast/minimal query only primary (with secondary fallback for fast); custom restricts to caller-specified layers",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/retrieval.py",
+      "quote": "strategy: One of \"thorough\", \"fast\", \"minimal\", or \"custom\".",
+      "locator": "retrieval.py:retrieve() docstring, strategy parameter",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict detection is built into the verification stage: a 'contradicts' verdict marks the hit with conflict=True and penalises its score by -0.4",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/retrieval.py",
+      "quote": "elif verdict == \"contradicts\":\n            adjusted[idx][\"rrf_score\"] = score - 0.4\n            adjusted[idx][\"conflict\"] = True\n            adjusted[idx][\"verification\"] = \"contradicts\"",
+      "locator": "retrieval.py:apply_verification_verdicts()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Adjacent neighbour fetch (+0.089 LoCoMo same-tier at adj=2) is noted as benchmarked but defaults to off; full LLM reranker and temporal validation on LoCoMo-1540 are still pending",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/retrieval.py",
+      "quote": "Worth +0.089 on LoCoMo same-tier at adj=2; see\n``docs/benchmarks.md``.\n...Default is off**: full-scale validation on LoCoMo-1540 is still\npending. Enabling this without benchmarking on your data is\ndiscouraged.",
+      "locator": "retrieval.py:retrieve() docstring, adjacent_neighbors and llm_reranker parameters",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Ingest shelves a transcript and embeds it for vector search; keyed per agent; returns archived/agent/data_dir",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/service.py",
+      "quote": "Shelve a transcript and embed it for later search. \u2026 text may be a string, a turn dict, or an iterable of either \u2026 Returns {\"archived\", \"agent\", \"data_dir\"}.",
+      "locator": "ingest() docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Bulk ingest is idempotent: items whose id was already ingested are skipped",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/service.py",
+      "quote": "items whose ``id`` was already ingested are skipped. Returns ``{\"ingested\", \"skipped\", \"agent\", \"data_dir\"}``.",
+      "locator": "ingest_batch() docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Search returns ranked hits with text/source/timestamp/confidence/metadata shape",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/service.py",
+      "quote": "Returns ranked hits in the agent-rules contract shape (``text``/``source``/``timestamp``/``confidence``/``metadata``).",
+      "locator": "search() docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Supersede soft-deletes from vector recall while retaining raw rows and archive entries (zero-loss forget)",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/service.py",
+      "quote": "matching chunks leave active recall while the raw rows + archive entries are retained (zero-loss), mirroring how the typed KG invalidates a corrected triple.",
+      "locator": "supersede() docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Archive is append-only and the source of truth; vector store is a derived index that can be reconciled or reindexed from the archive",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/service.py",
+      "quote": "The append-only archive is the source of truth; the vector store is a derived index.",
+      "locator": "reindex() docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory isolation is per-agent (ingest, search, reindex, reconcile, stats all require agent parameter)",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/service.py",
+      "quote": "async def ingest(text, *, agent: str, data_dir=None, **opts)",
+      "locator": "ingest() signature",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Pending KG decisions queue is scoped per data dir, not per agent",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/service.py",
+      "quote": "the pending-decisions queue is keyed per data dir (per install), not per agent, so it is not used to filter here.",
+      "locator": "pending_list() docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph supports time-travel reconstruction as of a past timestamp",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/service.py",
+      "quote": "``as_of`` (unix seconds) reconstructs the graph as of that instant for the time-travel scrubber; ``None`` (default) returns the current graph.",
+      "locator": "graph() docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A2A acknowledgement mutates the archived event envelope in place (acked_by list); JSONL source files are never touched",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/service.py",
+      "quote": "it mutates the message envelope in place by appending ``by`` to an ``acked_by`` list on the archived event, via :meth:`taosmd.archive.ArchiveStore.update_event_data_json`. The JSONL source files are never touched; only the derived index is updated.",
+      "locator": "a2a_ack() docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Thread membership removal is zero-loss (marks inactive, does not delete row)",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/service.py",
+      "quote": "The store is zero-loss: removal marks a membership inactive rather than deleting the row.",
+      "locator": "a2a_membership section comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Inbox cursor persisted in archive store, survives restarts, shared across processes on same data dir",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/service.py",
+      "quote": "The cursor is persisted in the archive store so it survives restarts and is visible to every process sharing the same data dir.",
+      "locator": "a2a_inbox_advance() docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Supersede (soft-hide) sets valid_to but never deletes the raw row, maintaining an append-only zero-loss store",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/vector_memory.py",
+      "quote": "The raw row (text, embedding, and metadata) is *retained*; it is only excluded from recall, never deleted. The append-only archive entry is likewise untouched, so zero-loss is preserved.",
+      "locator": "VectorMemory.supersede docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is implemented via TTL (forget_after metadata field): row is hidden from retrieval when the timestamp passes, but not physically deleted",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/vector_memory.py",
+      "quote": "TTL filter: rows whose metadata forget_after is a number and is less than now are excluded from retrieval exactly like superseded rows. The raw row is never deleted (zero-loss); only recall hides it.",
+      "locator": "VectorMemory._load_active_rows docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-project and per-agent via metadata tags on stored rows; untagged rows are visible across all scopes",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/vector_memory.py",
+      "quote": "Project filter: skip rows positively tagged with a different project. Untagged (pre-project) rows are kept so existing standalone memory is never hidden... Agent filter: skip rows positively tagged with an out-of-scope agent. Untagged rows are kept (preserves standalone behaviour).",
+      "locator": "VectorMemory._load_active_rows",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict/supersession by content: supersede_matching stamps valid_to on all active rows containing a substring, retiring stale facts when a correction is written",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/vector_memory.py",
+      "quote": "Used to wire corrections by content: when a fact is corrected, the chunk(s) still carrying the *old* value are excluded from active recall so the stale fact stops resurfacing in vector search too.",
+      "locator": "VectorMemory.supersede_matching docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Hard delete is available (clear) but the append-only archive is untouched; deleted rows can be rebuilt via reindex",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/vector_memory.py",
+      "quote": "The append-only archive is never touched, so the deleted rows can always be rebuilt by re-adding the archive turns (this is what taosmd.api.reindex does when an embedder changes).",
+      "locator": "VectorMemory.clear docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Store format is versioned and mode-locked; switching embedder or storage format requires re-embedding from archive",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/vector_memory.py",
+      "quote": "vector store at {self._db_path} was built with {recorded} but is being opened with {current} (conflict on {conflict}). The storage format or embedding space is incompatible. Re-embed from the archive in the new mode (the archive is zero-loss) rather than mixing them.",
+      "locator": "VectorMemory._check_store_mode",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Secrets are redacted from text before it is written to the vector store",
+      "kind": "code",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/vector_memory.py",
+      "quote": "# Redact secrets before storage\n        from .secret_filter import redact_secrets\n        text, _ = redact_secrets(text)",
+      "locator": "VectorMemory.add",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "End-to-end Judge baseline is 42.8% (strict Qwen judge) / 51.2% (llama3.1:8b) with qwen3.5:9b generator; factual-recall profile (gemma4:12b) reaches 53.8 / 61.4",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/AGENTS.md",
+      "quote": "The end-to-end Judge baseline (corrected, post-PR #176) is 42.8% under a strict Qwen judge / 51.2% under llama3.1:8b with the shipped qwen3.5:9b generator; the factual-recall generator profile (gemma4:12b at 12 GB) reaches 53.8 / 61.4",
+      "locator": "What taOSmd Does",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Archive is the fallback when structured retrieval fails and provides a full verbatim log (log, not curated memory)",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/AGENTS.md",
+      "quote": "The archive is your fallback when structured retrieval fails.",
+      "locator": "Archive every conversation turn (mandatory)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Knowledge Graph persists temporal fact triples; Crystal Store persists session digests; Vector Memory persists embedded text chunks; Archive persists raw JSONL conversation logs",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/AGENTS.md",
+      "quote": "knowledge-graph.db Temporal fact triples \u2026 vector-memory.db Embedded text chunks \u2026 archive/ Raw JSONL conversation logs \u2026 crystals.db Session digests and lessons",
+      "locator": "Data Location",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Session catalogue classifies sessions by topic and links related sessions; used by the Librarian layer to route uncertain queries",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/AGENTS.md",
+      "quote": "The catalogue is what the shipped Librarian layer uses to route uncertain queries. Keep it current.",
+      "locator": "Organising Sessions into Projects",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The archive is append-only and never overwritten; derived memory layers are built on top of it, not over it",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/README.md",
+      "quote": "Everything lands first in an append-only archive that is never edited or deleted, and the memory you search is derived from that archive, never written over it.",
+      "locator": "README.md, opening 'Provable Memory' paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The prefer_verified gate eliminated served hallucination (0.04 rate dropped to 0.00) at no measured accuracy or recall cost, confirmed under three judges",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/README.md",
+      "quote": "A full tri-judge confirm at n=250 (E-018) then reproduced that under all three judges (strict llama3.1:8b, strict qwen3-4b-instruct, lenient gemma4:e2b): served-hallucination dropped to 0.000 every time, judged accuracy stayed within the 0.02 noise bound",
+      "locator": "README.md, section 'Provable Memory (recall gate on by default)'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Per-agent isolation is enforced by an agent tag on every row in shared stores, not by separate files",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/README.md",
+      "quote": "The taOSmd service stays one process with one shared set of stores; per-agent isolation is enforced by an agent tag on every row, not by separate files.",
+      "locator": "README.md, section 'Getting Started / Let your agent install it'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Contradiction/supersession: knowledge graph uses valid_to invalidation; vector store soft-hides (does not delete) superseded chunks",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/README.md",
+      "quote": "corrected facts supersede across both the typed knowledge graph (via valid_to invalidation) and the vector recall layer (matching chunks soft-hidden, not deleted); recall returns only the active fact",
+      "locator": "README.md, section 'Key Features'",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The Librarian layer adds LLM-assisted query expansion and produced +15.4% on a vocabulary-gap coherence axis in preliminary results",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/README.md",
+      "quote": "+15.4% on the vocabulary-gap axis. The cross-encoder alone adds nothing when the target fact is excluded from its candidate pool, only the Librarian's expansion bridges category\u2192specific-name gaps (e.g. query: 'code editor', fact: 'Neovim lua config done'). These are preliminary results on one class of retrieval failure",
+      "locator": "README.md, section 'Librarian Layer, Vocabulary-Gap Benchmark'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Secret filtering with 23 regex patterns auto-redacts sensitive data on all ingest paths before any persistence",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/README.md",
+      "quote": "Secret Filtering 23 regex patterns, auto-redact on all ingest paths",
+      "locator": "README.md, section 'Architecture', Processing block",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "An earlier end-to-end Judge score of 74.6% was inflated by a judge-parser bug that counted INCORRECT verdicts as passes; corrected range is 43\u201351% on shipped config",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/README.md",
+      "quote": "An earlier 74.6% figure for it was inflated by a verdict-scoring bug (the judge parser counted INCORRECT verdicts as passes), found and fixed on 2026-06-23 (PR #176); corrected, the end-to-end Judge is in the 43 to 51 percent range on the shipped config",
+      "locator": "README.md, opening benchmark summary paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A2A bus messages are stored as append-only archive events, making inter-agent communication auditable and replayable",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/README.md",
+      "quote": "Every message is an append-only archive event, so the whole conversation is auditable and replayable, not a separate mutable log.",
+      "locator": "README.md, section 'Key Features', A2A bus bullet",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Corrected full-500 LongMemEval-S baseline is 42.8% qwen3.5:9b / 51.2% llama3.1:8b; granite4.1:8b factual-recall combo reaches 54.8 / 60.4",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/INTEGRATION-memory-config.md",
+      "quote": "the corrected full-500 baseline is 42.8% qwen3.5:9b / 51.2% llama3.1:8b, and the granite4.1:8b factual-recall combo reaches 54.8 / 60.4, parity with MemOS-lossless and the earlier gemma4:12b combo's 53.8 / 61.4, F-016",
+      "locator": "The cost, pros, and cons paragraph (after Presets table)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LoCoMo scores for 12 GB GPU tier: 0.557 strict / 0.748 lenient (tri-judge)",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/INTEGRATION-memory-config.md",
+      "quote": "LoCoMo 0.557 strict / 0.748 lenient (tri-judge)",
+      "locator": "Per-tier generator and retrieval defaults table \u2014 12 GB GPU row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LoCoMo score for Orange Pi 5 Plus (RK3588 NPU) tier: 0.490; 97.0% Recall@5 reference stack",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/INTEGRATION-memory-config.md",
+      "quote": "LoCoMo 0.490; this is the 97.0% Recall@5 reference stack",
+      "locator": "Per-tier generator and retrieval defaults table \u2014 16 GB Orange Pi 5 Plus row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LoCoMo score for 4 GB GPU tier: 0.530 (qwen3:4b)",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/INTEGRATION-memory-config.md",
+      "quote": "LoCoMo 0.530 (qwen3:4b)",
+      "locator": "Per-tier generator and retrieval defaults table \u2014 4 GB GPU row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Store controls require a re-index of the existing store; POST /controls rejects them with a clear message when a change is attempted",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/INTEGRATION-memory-config.md",
+      "quote": "store controls (the embedder, binary quantization, late-interaction) change how memories are indexed, so they need a re-index of the existing store and POST /controls rejects them with a clear message.",
+      "locator": "The controls contract \u2014 Scope paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "graph_expansion (bi-temporal KG fact readback) is off by default pending EventQA validation; valid-time only, no as-of surface yet in Phase 2",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/INTEGRATION-memory-config.md",
+      "quote": "Bi-temporal fact readback (Phase 1): appends a derived block of currently-valid KG facts connected to the served hits. The int is the block's token budget; 0 is off. Valid-time only, no as-of surface yet (Phase 2). Default off pending EventQA validation (E-025).",
+      "locator": "Controls by scope table \u2014 graph_expansion row",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Every control is defined once in taosmd/controls.py; the standalone dashboard, integration handoff, and taOS app all read that registry through one API so they cannot drift",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/INTEGRATION-memory-config.md",
+      "quote": "Every control is defined once in taosmd/controls.py. The standalone dashboard, this handoff, and the taOS app all read that registry through one API, so they cannot drift.",
+      "locator": "The controls contract \u2014 opening paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Embedder, reranker, and judge run as CPU ONNX on every tier; GPU or NPU VRAM is reserved for the generator only",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/INTEGRATION-memory-config.md",
+      "quote": "Embedder, reranker, and judge run as CPU ONNX on every tier; GPU or NPU VRAM is for the generator only. Do not run the judge on the same device as the generator.",
+      "locator": "Per-tier generator and retrieval defaults \u2014 footnote paragraph",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "taOSmd achieves 97.0% Recall@5 on LongMemEval-S (500 questions, all-MiniLM-L6-v2 embedder, hybrid+query-expansion, top_k=5). This is a retrieval metric only \u2014 whether the correct evidence session appeared in the top-5 retrieved; not end-to-end generation accuracy.",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/benchmarks.md",
+      "quote": "Honesty note (corrected 2026-06-14): an earlier edition of this section labelled the 97.0% as 'end-to-end Judge accuracy.' That was a mislabel. The number is and always was Recall@5 (top_k=5), as the source result file shows.",
+      "locator": "LongMemEval-S \u2014 97.0% Recall@5",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "End-to-end Judge on LongMemEval-S (retrieve, generate, grade) is 42.8% strict Qwen judge / 51.2% cross-family llama judge for qwen3.5:9b; lifts to 53.8% / 61.4% with gemma4:12b generator \u2014 corrected from an inflated 74.6% caused by a verdict-parser bug (PR #176).",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/benchmarks.md",
+      "quote": "The corrected full-500 end-to-end Judge on the shipped qwen3.5:9b config is 42.8% on the strict Qwen judge and 51.2% on a cross-family llama judge. A gemma4:12b generator upgrade lifts it to 53.8% on the strict Qwen judge and 61.4% on the cross-family llama judge",
+      "locator": "End-to-end Judge on LongMemEval-S (the generation-side number) \u2014 CORRECTION (2026-06-23, N-017)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Full-context no-retrieval (stuffing entire conversation into 128K window) collapses LoCoMo Judge to 0.090 vs 0.516 with retrieval \u2014 a 5.7\u00d7 degradation \u2014 establishing that retrieval is essential even when context is long enough to hold the whole conversation.",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/benchmarks.md",
+      "quote": "feed every turn of the conversation (no retrieval) to qwen3.5:9b's 128K window. LoCoMo conversations fit (~30\u201360K tokens). Result: 0.090 ext judge \u2014 worse than mem0 with retrieval (0.060 floor)",
+      "locator": "Retrieval is essential \u2014 even at long-context scale",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "HyDE (hypothetical document embedding) regresses on memory-recall datasets at all tested stack depths: standalone -0.060, stacked on leader recipe -0.071 vs leader. Root cause: small generators hallucinate hypothetical answer structure, matching the hallucination rather than the evidence.",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/benchmarks.md",
+      "quote": "HyDE assumes the generator can imagine a good hypothetical answer; on memory-recall datasets a small generator hallucinates the answer's structure, the embedding lookup matches that hallucination, and recall collapses.",
+      "locator": "Negative results \u2014 levers we tested that regressed at 9B + adj=2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Extraction-hallucination rate: ~1 in 5 LLM-extracted facts is not fully supported by its source text (18.8% PARTIAL+UNSUPPORTED over 526 claims, per-conversation 12.6\u201322.0%). Reported as a finding exceeding the 3\u20135% threshold.",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/benchmarks.md",
+      "quote": "Over 526 claims from three conversations the PARTIAL plus UNSUPPORTED rate was 18.8 percent (per-conversation 12.6 to 22.0 percent; verifier error 0.2 percent). Close to one in five extracted facts is not fully supported by its source. The reporting threshold was 3 to 5 percent, so this is a finding.",
+      "locator": "v2 pillar kill-shots (Jun 2026) \u2014 Extraction-hallucination rate (E-002)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Binary quantization (1-bit/dim, Hamming) is recall-neutral on full-1540 LoCoMo (qwen3:4b strict: 0.519 vs 0.520; gemma4:e2b lenient: 0.699 vs 0.694) while reducing vector footprint 32\u00d7. Shipped as opt-in default-off via VectorMemory(binary_quant=True).",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/benchmarks.md",
+      "quote": "full-precision cosine (baseline) 0.520 / 0.694; binary-quant 0.519 (\u22120.001) / 0.699 (+0.005) \u2026 32\u00d7 smaller vectors (1 bit vs 32-bit float per dimension) and integer-friendly distance",
+      "locator": "Binary embedding quantization \u2014 recall-neutral, ships as an SBC footprint option",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "EMem-EDU (no LLM filter) is the first architectural lever to clear baseline on Single-hop since adjacent_turns: +0.07 SH gemma4:e2b / +0.10 SH qwen3:4b at full-1540, at a cost of -0.02 Overall. One LLM call per session at ingest (~5-10 s/session), no per-query LLM cost.",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/benchmarks.md",
+      "quote": "The subset-200 win generalises. Subset 200 said +0.05 SH g4:e2b / +0.14 SH q3:4b; full 1540 lands at +0.07 SH g4:e2b / +0.10 SH q3:4b \u2026 One LLM call per session at ingest (~5-10 s/session via llama3.1:8b on a 12 GB GPU). No per-query LLM cost at retrieval \u2014 filter step disabled.",
+      "locator": "EMem-EDU full-1540 validation (May 17)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The same retrieval improvement gives ~12\u00d7 more lift on the 4B NPU generator than on the 9B GPU generator (BGE-reranker-v2-m3 swap: +0.074 on Pi NPU vs +0.006 on 12 GB GPU), because smaller in-weight knowledge makes the generator more dependent on retrieval quality.",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/benchmarks.md",
+      "quote": "A stronger cross-encoder gives the 4 B model on the Pi NPU much more useful candidates than its baseline already retrieves; the 9 B model on the 12 GB GPU was already doing fine on the simpler reranker.",
+      "locator": "Architecture matters more at smaller compute tiers",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Judge strictness varies 2\u00d7 on Single-hop for the same predictions: gemma4:e2b (lenient) scores 0.53, qwen3:4b (strict) scores 0.28. Single-hop ceiling attributed to judge strictness, not unmovable architectural limits.",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/benchmarks.md",
+      "quote": "Same predictions, four different judges, Single-hop ranges 0.26 \u2192 0.53 \u2014 a 2\u00d7 variation. The 0.28 floor we attributed to 'the architecture is unmovable' was largely 'the judge is strict.'",
+      "locator": "Judge sensitivity \u2014 what we are really measuring",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "At full-1540 LoCoMo, taOSmd with MaxSim+rerank leads all tested configs: 0.748 lenient / 0.394 strict llama / 0.659 strict qwen3-instruct. qwen3.5:9b + mem0_additive + temp 0.2 is the shipped production default.",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/benchmarks.md",
+      "quote": "The current leader is MaxSim + reranking: qwen3.5:9b --retrieval-top-k 50 --adjacent-turns 2 --reranker bge-v2-m3 --fusion mem0_additive \u2026 Scored on the full 1540 under three judges: MaxSim + rerank 0.748 / 0.394 / 0.659",
+      "locator": "Full-1540 leader (tri-judge, Jun 2026)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "taOSmd stores conversation turns in a zero-loss append-only archive; the archive is never pruned.",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/research-report.md",
+      "quote": "It stores conversation turns in a zero-loss append-only archive, layers hybrid retrieval on top, and runs offline on modest hardware without cloud dependencies.",
+      "locator": "1. Abstract",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "97.0% Recall@5 on LongMemEval-S full 500-question test set (retrieval metric, not end-to-end judge).",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/research-report.md",
+      "quote": "97.0% Recall@5 on LongMemEval-S, 500 questions, standard test set. Recall@5 is a retrieval metric: the correct evidence session appears in the top-5 retrieved (no generation, no answer grading).",
+      "locator": "3.5 LongMemEval-S Recall@5 / F-001 (CORRECTED 2026-06-14)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Extraction-hallucination rate is 18.8% (PARTIAL+UNSUPPORTED) over 526 claims across three conversations, cross-family verified.",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/research-report.md",
+      "quote": "Across 526 claims from three conversations, the PARTIAL plus UNSUPPORTED rate was 18.8 percent (verifier error rate 0.2 percent, one claim).",
+      "locator": "3.5 Extraction-Hallucination Rate (F-009)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "prefer_verified claims gate eliminates served-hallucination (to 0.000) at no accuracy cost; confirmed under all three judges at n=250.",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/research-report.md",
+      "quote": "across all three judges prefer_verified drives served-hallucination to 0.000 from a baseline of 0.040 (llama), 0.056 (qwen-instruct), and 0.036 (gemma), while judged accuracy moves by -0.016, +0.020, and +0.024 (within or above the bound) and R@K by -0.008, -0.008, and +0.004 (all within the 0.02 bound).",
+      "locator": "6.x E-018, TRI-JUDGE COMPLETED 2026-06-21",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The archive retains every turn; a retention-budget mechanism controls which turns remain in the live index. Length is the best retention signal; surprisal is the worst (below random at every budget).",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/research-report.md",
+      "quote": "The winner is length: keep the longest turns, 0.525/0.641/0.702. Recency was weakest. ... high token-surprisal marks unpredictable content, not evidence-bearing content ... the surprisal pillar of v2 is conclusively killed; the spine pivots to the provenance and claims layer (F-009).",
+      "locator": "N-011 / E-008 resolved",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write-skip floor: turns below a surprisal+length threshold receive no index entry but are still retained in the archive; fires on only 2.3% of LoCoMo turns, under the 5% shipping floor, not shipped.",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/research-report.md",
+      "quote": "Skipping highly predictable short turns at ingest (surprisal z at or below -1.0 and under 12 tokens) left R@K within noise (+0.0051) and skipped zero evidence turns, so the classifier causes no measurable recall harm at these thresholds. But it only fired on 18 of 788 turns (2.3 percent), under the pre-registered 5 percent shipping floor: on LoCoMo there are simply not enough bare greetings and acknowledgements for the floor to save meaningful index weight. Not shipped.",
+      "locator": "N-010 / E-006 resolved",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Bi-temporal fact storage: KG stores valid_from, valid_to, superseded_by at ingest; graph_expansion injects currently-valid facts into context; wired default-off via PR #191.",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/research-report.md",
+      "quote": "The KG already stores bi-temporal facts (valid_from/valid_to/superseded_by, populated at ingest) and graph_expansion.expand_from_results already queries them and formats a context block, but it was never wired into retrieval (dead code). PR #191 wires it behind a default-off graph_expansion control (Phase 1: valid-time only, no as-of surface).",
+      "locator": "6.x E-025",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Low-confidence reject gate (MemX R1) ships default-off; at default tau=0.50 it never fires on LoCoMo with arctic-embed-s (R@K unchanged), making it safe but inert without per-embedder tau calibration.",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/research-report.md",
+      "quote": "The gate never fired, because arctic-embed-s produces cosine similarities that broadly exceed 0.50, so the abstention condition (no lexical hit AND max dense similarity below tau) never triggers at the default tau. ... The gate stays default-off as a documented opt-in.",
+      "locator": "N-015 / 6.x E-014 resolved",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "End-to-end Judge (retrieve, generate, grade) on LongMemEval-S oracle with the corrected judge parser lands at 42.8% (Qwen judge) / 51.2% (llama judge); earlier 74.6% was inflated by a judge-parser bug scoring INCORRECT as PASS.",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/research-report.md",
+      "quote": "Corrected numbers, same fixed Qwen3-4B-Instruct judge. The full-500 arctic re-baseline reads 214/500 (42.8%) on the Qwen judge and 256/500 (51.2%) under a cross-family llama3.1:8b re-judge, so the real end-to-end Judge sits in a 43 to 51 percent band depending on judge severity, not the 74.6 percent of F-013.",
+      "locator": "N-017",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "CoVe self-verification is task-specific: it is a dominant lever on LongMemEval-S single-fact QA but gives no benefit on BEAM (multi-category long-context) and regresses 9pp on EventQA temporal event chains.",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/research-report.md",
+      "quote": "CoVe answer self-verification, the dominant +17.8pp lever on LongMemEval-S (F-013), gives no BEAM benefit; the self-verify-off arm ties the top pass-rate and leads avg_score (0.455), because BEAM failures are wrong answers rather than abstentions and a verify-or-abstain pass can only recover abstentions. ... self-verify off 75.0% / on 66.0% -> the self-verify lever does NOT transfer, it regresses 9pp on EventQA.",
+      "locator": "N-013; 6.x E-016 resolved",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Graph-expansion (bi-temporal fact-readback) on EventQA was invalid due to instrument mismatch: regex-only extraction saw 2.9% of context, 10-entity seed cap never overlapped the KG, and 72% source-document saturation left no room for the injected block to differ.",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/research-report.md",
+      "quote": "Four compounding defects (regex-only extraction, extraction seeing 2.9% of the context, a 10-entity seed cap that never overlapped the KG, and 72% source-document saturation in the served context) made both arms byte-identical, so EventQA at this tier cannot measure bi-temporal fact-readback.",
+      "locator": "N-026",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "taosmd serve exposes a local HTTP/REST memory API, running persistently with a file-backed data directory",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/serve-service.md",
+      "quote": "taosmd serve starts the local HTTP/REST memory API and inspection UI on http://127.0.0.1:7900 by default.",
+      "locator": "Running taosmd serve as a persistent background service",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory store location is configurable via --serve-data-dir, implying persistence to disk rather than in-process memory",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/serve-service.md",
+      "quote": "taosmd serve --serve-data-dir /mnt/data/taosmd --install-service",
+      "locator": "Linux (systemd user unit) / Install",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Access to data and A2A endpoints can be restricted per-deployment via bearer token, suggesting isolation is deployment-level (not per-user or per-session by default)",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/serve-service.md",
+      "quote": "Authentication is off by default, but a bearer token is available: when server_token is set in the server config (via taosmd config set-token) or the TAOSMD_TOKEN environment variable is set, every data and A2A endpoint requires an Authorization: Bearer <token> header",
+      "locator": "Security note",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The server exposes capability identifiers including collections.v1 and a2a.v1, suggesting collections-based memory organization and an agent-to-agent protocol",
+      "kind": "docs",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/serve-service.md",
+      "quote": "\"capabilities\": [\"a2a.v1\", \"collections.v1\", ...]",
+      "locator": "Checking the port is live",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Isolation is per agent name; two agents sharing the same name silently share the same memory index",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/1",
+      "quote": "Two agents in the same framework can pick the same name and start sharing memory without anyone noticing until someone reads the wrong fact.",
+      "locator": "issue body, problem 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "taOSmd persists session-level enrichment (topic, description, category) in a session catalog, populated by an LLM-driven enrichment step.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/3",
+      "quote": "taosmd/session_catalog.py (around line 543) still has its enrichment prompt inline, asking the LLM for a TOPIC/DESCRIPTION/CATEGORY text format that the existing parser _parse_enrichment decodes back to a tuple.",
+      "locator": "issue body, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Install verification is ambiguous because a non-existent index silently returns empty on search rather than signalling absence",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/1",
+      "quote": "An agent following the install message can't say 'I registered as X' with certainty \u2014 it just trusts that calling `search(agent=\"X\")` against a non-existent index returns empty without an error.",
+      "locator": "issue body, problem 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Proposed register_agent raises AgentExistsError on name collision unless clobber=True, making silent sharing a detectable error",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/1",
+      "quote": "Raises AgentExistsError if `name` is already registered, unless clobber=True (used by the deploy wizard for re-deploys).",
+      "locator": "issue body, Proposal code block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval depth is resolved per-agent using worker capability context, meaning isolation is at least per-agent.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/14",
+      "quote": "Add `effective_fanout(agent, worker_capabilities) -> int` resolver alongside the existing `is_task_enabled` helper.",
+      "locator": "Wiring section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "High-K retrieval on a constrained context window truncates the persona, meaning persona/lore competes directly with retrieved memory chunks in the prompt.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/14",
+      "quote": "K=20 truncates the persona. Practical ceiling is K=3.",
+      "locator": "Why opt-in section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Multi-session recall is identified as the primary category of interest in continuity benchmarking, implying the system is designed to span multiple sessions.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/14",
+      "quote": "per category (multi-session is the one to watch)",
+      "locator": "Pi NPU benchmark plan section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The librarian component already exists with a config block in agents.json; fan-out extends it rather than introducing retrieval from scratch.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/14",
+      "quote": "Adds to the existing `librarian` block in `agents.json`",
+      "locator": "Config shape section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Current routing is solely by agent name; if the agent name changes or drifts between sessions a new empty shelf is silently created, orphaning prior memories.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/141",
+      "quote": "Remote Claude Code instance | Different session, may get different agent name | Silent fork \u2014 new empty shelf",
+      "locator": "## Problem (table)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Project identity is currently a semantic concept absent from the storage layer; correctness depends entirely on agent instructions being stable.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/141",
+      "quote": "The root cause: project identity is a semantic concept that doesn't exist at the storage layer. Everything relies on agent instructions being correct and stable \u2014 they aren't.",
+      "locator": "## Problem",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The proposed project fingerprint derives a stable ID from the git remote URL, making shelf routing deterministic and independent of agent instructions.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/141",
+      "quote": "Deterministic \u2014 same URL everywhere, no ambiguity\nStable \u2014 doesn't change when you clone, move, or re-clone\nNo agent involvement \u2014 can't drift from instructions",
+      "locator": "## Why Git Remote?",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "When no git remote is present, the fallback project ID is derived from the current working directory hash, which is unstable if the directory is moved.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/141",
+      "quote": "Fallback: hash of os.getcwd() (unstable if moved, but rare)",
+      "locator": "### No git remote (local-only repo)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Current benchmark baseline is 97.0% (metric unspecified beyond the number)",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/15",
+      "quote": "README benchmarks table updated with the winning config's number if it beats the current 97.0%",
+      "locator": "issue body, Acceptance criteria",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A prior 432-config sweep was abandoned because most paths retested known winners, narrowed to 12 meaningful configs",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/15",
+      "quote": "the 432-config sweep was killed because most paths re-tested known winners",
+      "locator": "issue body, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "taOSmd has a 'librarian' component that accepts per-agent fanout settings via CLI",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/16",
+      "quote": "taosmd librarian set bench-agent --fanout off",
+      "locator": "Variants section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Fanout feature was wired in commit fd358a1 on branch feat/fanout, merged to dev",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/16",
+      "quote": "Now that #14's wiring is in (`feat/fanout` merged to dev as fd358a1)",
+      "locator": "Opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval is evaluated with Recall@5 on LongMemEval-S (500 questions), benchmarked against a Fedora 97.0% baseline",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/16",
+      "quote": "Recall@5 overall \u2026 compare Pi-vector-only against Fedora's 97.0% baseline",
+      "locator": "Measure section / Acceptance section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Fanout has discrete named levels (off, low, med, high) configurable per agent, with 'low' as the current Pi default",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/16",
+      "quote": "Recommendation: does the Pi default `low` hold, or shift to off / med?",
+      "locator": "Acceptance section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Hallucination rate is tracked as a memory-quality signal on a 50-question manual sample",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/16",
+      "quote": "Hallucination rate on a 50-question manual sample",
+      "locator": "Measure section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is isolated per agent via separate SQLite index files; agents never share memory even when sharing compute",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/2",
+      "quote": "Per-agent indexes live at `data/agent-memory/{name}/index.sqlite`. Agents share embedding/LLM compute but never share memory.",
+      "locator": "issue body, bullet: One service, many shelves",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agent identity (and thus memory shelf) is keyed by a stable lowercase name that must remain consistent across sessions",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/2",
+      "quote": "Lowercase, no spaces, stable across sessions.",
+      "locator": "issue body, bullet: Naming convention",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cross-agent memory reads require explicit opt-in via an also_include parameter on the search API; default isolation is strict",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/2",
+      "quote": "The default is no \u2014 agents only see their own shelf. If you want one agent to query another's memory (e.g. a \"supervisor\" reading what its workers logged), call `taosmd.search(query, agent=\"supervisor\", also_include=[\"worker-1\", \"worker-2\"])`.",
+      "locator": "issue body, bullet: Cross-agent reads",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory migration (rename, split, merge) is performed at the filesystem level on session_id-scoped data, with re-indexing required after merge",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/2",
+      "quote": "Renaming an agent (=move the directory + update its rules block). Splitting one agent into two (move some session_ids to the new agent). Merging two agents (concatenate, then re-index).",
+      "locator": "issue body, bullet: Migration scenarios",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Query expansion by the Librarian is the sole mechanism that enables vocabulary-gap recall; vector search and reranker alone fail when the target fact shares no vocabulary with the query",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/20",
+      "quote": "Results confirm the Librarian's query expansion is the sole mechanism that bridges vocabulary gaps in long-horizon recall.",
+      "locator": "Summary",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "+15.4% gain on Axis C (long-horizon recall composite) when Librarian is enabled versus vector-only or full-pipeline-without-librarian",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/20",
+      "quote": "Axis C gain: +15.4% (0.433 \u2192 0.500 Axis C composite)",
+      "locator": "Results",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Staleness/supersession axis (Axis A) is not meaningfully evaluated yet \u2014 retrieval window returns everything, so stale facts are never filtered",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/20",
+      "quote": "Axis A (contradiction/staleness): only 2-3 context items per scenario, `limit=5` returns everything \u2192 `stale_rate \u2248 0.02` regardless of pipeline",
+      "locator": "Known issues with this benchmark run / Axis A/B structurally flat",
+      "confidence": "high",
+      "label": "inferred"
+    },
+    {
+      "claim": "Fixture redesign planned to test superseded facts buried deeper in a longer context, forcing the retrieval window to make a choice between current and stale facts",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/20",
+      "quote": "Redesign Axis A fixtures: longer context (20+ items), superseded facts buried deeper, retrieval window forces a choice",
+      "locator": "Next steps",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Six databases (crystals.db, insights.db, browsing-history.db, access-tracker.db, tasks.db, memory-settings.db) are unregistered in the migration framework and will silently drop schema updates on existing deployments",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/203",
+      "quote": "`crystals.db`, `insights.db`, `browsing-history.db`, `access-tracker.db`, `tasks.db`, `memory-settings.db` are not in the migration `REGISTRY`. Until they are, each has exactly the problem the framework exists to fix: the first column ever added to an existing table in one of them will silently fail to appear on databases already in the field, because `CREATE TABLE IF NOT EXISTS` does nothing to an existing table.",
+      "locator": "section: Unregistered databases",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "knowledge-graph.db has two schema owners (a primary module and pending_decisions.py), creating unresolved ownership ambiguity for versioning and migration",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/203",
+      "quote": "`pending_decisions.py` creates its own tables inside `knowledge-graph.db` through its own schema constant, so that file now has two modules owning parts of its schema. It works today. It becomes ambiguous the moment either module needs a migration, because neither owns the file's version stamp on its own.",
+      "locator": "section: Two owners of one schema",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Migration step idempotency is a correctness requirement, not merely a tidy convention, due to the legacy-stamping detect walk behavior",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/203",
+      "quote": "it means step idempotency is load-bearing rather than merely tidy. Any future migration author needs to know that.",
+      "locator": "section: Related",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "taOSmd's agent-rules.md is the memory contract injected into every agent's system prompt; missing it at boot is a silent continuity failure.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/21",
+      "quote": "Agents boot with no memory contract in their system prompt; only a `logger.warning` fires and nothing alerts the user.",
+      "locator": "Problem section, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The README guarantees the rules block is baked into the agent template, making docs/agent-rules.md a load-bearing part of the persona+memory scaffold.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/21",
+      "quote": "This is the contract the README explicitly promises under \"Inside taOS? ... the rules block is baked into the agent template\" \u2014 so it must be reliably readable from inside a wheel install.",
+      "locator": "Problem section, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "taosmd enrichment is consumed by a job worker in tinyagentos as part of an agent-persona-memory plan",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/22",
+      "quote": "taOS Task 2.3 in the agent-persona-memory plan: `tinyagentos/scheduling/job_worker.py:_do_enrich` will pass `agent_name=payload[\"agent_name\"]` to `enrich_session`.",
+      "locator": "Consumer of the fix section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Incremental re-index uses a valid_to mechanism to supersede changed/deleted/emptied content; superseded rows are hidden from default retrieval but never destroyed.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/210",
+      "quote": "Incremental re-index supersedes changed/deleted/emptied files' old rows via the same `valid_to` machinery corrections use: hidden from default retrieval, never destroyed, archive keeps every version. This is the zero-loss core and it was part of the Phase 1 ship bar.",
+      "locator": "Currency (1339) - Q6",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Default retrieval is currency-correct without any agent action: is_current=true is the implicit filter; include_superseded=true is the explicit opt-in.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/210",
+      "quote": "Default retrieval excludes superseded rows with no flag; reading dead versions requires an explicit archive/as-of query. The Q7 card keeps this: `is_current=true` is the default result set, `include_superseded=true` is the explicit opt-in. No agent has to remember anything to be currency-correct.",
+      "locator": "Currency (1339) - Q9",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Per-agent grants are enforced at query time; an ungranted agent gets nothing and cannot discover a collection exists \u2014 isolation is per granted identity within a server token.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/210",
+      "quote": "Per-agent grants, enforced at query time; an ungranted agent gets nothing and the collection's existence is not revealed. Create/index/delete are admin-token ops (they touch the server filesystem); grants are data-plane. So yes: indexed once, readable by any granted identity",
+      "locator": "Transport (1338) - Q2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A hard-expiry TTL via forget_after has been a shipped behavior since issue #188.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/210",
+      "quote": "Distinct from the existing `forget_after` TTL (hard expiry, honored since #188); review-by is advisory.",
+      "locator": "Currency (1339) - Q10",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Cross-document contradiction is handled by a verified-memory claims gate, default-on since #173.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/210",
+      "quote": "Cross-doc contradiction is claims-gate territory (verified-memory gate, default-on as of #173).",
+      "locator": "Currency (1339) - Q8",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Bi-temporal as-of readback on the knowledge graph was merged (default-off) in #191, measured by pre-registered test E-030.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/210",
+      "quote": "bi-temporal as-of readback on the KG merged today (#191, default-off), measured by pre-registered E-030.",
+      "locator": "Currency (1339) - Q7",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Collections have no agent-facing write API; they index files that already exist on the server filesystem. Create/index/delete are admin-token operations.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/210",
+      "quote": "there is no agent-facing 'put this doc in a collection' write API. Collections index files that already landed somewhere",
+      "locator": "Transport (1338) - Q1 preamble",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Bus messages are append-only; the store is an archive of EVENT_A2A events with server-stamped timestamps",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/211",
+      "quote": "bus messages are append-only archive events (EVENT_A2A) with SERVER-stamped time - `/a2a/send` cannot carry a historical `ts`",
+      "locator": "Q3 - history migration section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory, embedding, and Librarian all consume the `body` field; `blocks` content is invisible to these consumers unless they opt in",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/211",
+      "quote": "memory, embedding, Librarian and every existing reader consume `body` with zero block awareness; unknown kinds degrade to text instead of failing",
+      "locator": "Q2 - content blocks section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "History import is timestamp-preserving and identity-strict; the bus never guesses author mapping",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/211",
+      "quote": "Unmapped identity REFUSES the batch (fail-loud, constraint 2): the importer maps authors to handles explicitly; the bus never guesses",
+      "locator": "Q3 - history migration, Q3a",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The Librarian indexes messages in timestamp order; defer_index flag prevents out-of-order indexing during bulk backfill",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/211",
+      "quote": "the import card therefore includes a `defer_index` flag (import rows now, index in ts order afterwards) so the Librarian sees history in sequence rather than one giant evening",
+      "locator": "Q3 - history migration, Q3c",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mention index is populated at insert time; mentions feed is gated behind registry auth to prevent any caller reading another's mentions by claiming a handle",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/211",
+      "quote": "CAVEAT that shapes sequencing: the feed is only meaningful once callers are AUTHENTICATED - until then anyone reads anyone's mentions by claiming the handle",
+      "locator": "Mentions section, Q1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mention visibility is scoped to the reply_to chain and structurally cannot be used to bypass channel ACLs or read unrelated history",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/211",
+      "quote": "Your escalation trap (mention-as-channel-read-bypass) is structurally excluded because the ACL check and the mention grant never merge",
+      "locator": "Mentions section, Q3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "taosmd is planned to be positioned in docs as 'comms-in-memory' but that documentation has not yet been written",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/211",
+      "quote": "the celebrated-feature docs work (README/docs positioning of comms-in-memory) - that is lead writing, mine, after the mechanics land",
+      "locator": "Cards section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "enrich_session in taosmd/catalog.py runs the Librarian over session archive rows",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/22",
+      "quote": "taOS's job worker calls `catalog.enrich_session(session_id, ...)` to run the Librarian over a session's archive rows.",
+      "locator": "Problem section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Proposed scoping: archive rows are filtered by agent_name before any enrichment LLM call, with WHERE agent_name = ? predicate",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/22",
+      "quote": "filter archive query `WHERE agent_name = ?` before any enrichment LLM call.",
+      "locator": "Proposed fix section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Acceptance criteria require that enriching for agent 'alice' does not touch or mutate state tied to agent 'bob'",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/22",
+      "quote": "Test: enrich with `agent_name=\"alice\"` doesn't touch or mutate any state tied to `agent_name=\"bob\"`.",
+      "locator": "Acceptance criteria section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A librarian persona is part of the memory scaffold, with agent_name used to scope which 'shelf' the persona operates on \u2014 suggesting per-agent memory isolation.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/3",
+      "quote": "Pass agent_name through from the caller so the librarian persona binds to the right shelf.",
+      "locator": "issue body, step 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The enrichment prompt is being migrated from an inline text-format prompt to a structured JSON-returning function in a dedicated prompts module, indicating an evolving write-path architecture.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/3",
+      "quote": "Replace the inline string with a call to session_enrichment_prompt(content, agent_name=...). Replace _parse_enrichment with json.loads() + the same field validation.",
+      "locator": "issue body, steps 1\u20132",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Migration of the enrichment prompt was deliberately deferred to avoid invalidating an in-flight LongMemEval-S benchmark comparison, indicating active use of recall benchmarking to gate memory changes.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/3",
+      "quote": "the LongMemEval-S benchmark is currently running against the old text-format prompt + parser. Changing both at once would invalidate any in-flight comparison. Land this once the bench finishes and we have a baseline number for the new prompt to be measured against.",
+      "locator": "issue body, 'Why it wasn't done' paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "taOSmd has a librarian config that gates per-agent LLM enrichment tasks via `is_task_enabled(agent, task)`, but the gate was not yet enforced at call sites at the time this issue was filed.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/4",
+      "quote": "`agents.set_librarian()` lets a user toggle individual enrichment tasks per agent, and `is_task_enabled(agent, task)` is the gate to consult before making an LLM call. It is not yet wired into the call sites.",
+      "locator": "Issue body, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Even with `librarian.enabled = False` or `tasks.fact_extraction = False`, LLM enrichment calls still execute \u2014 the config is read but not enforced.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/4",
+      "quote": "Today, even with `librarian.enabled = False` or `tasks.fact_extraction = False`, the actual enrichment paths still run their LLM calls. The config is read but not enforced.",
+      "locator": "Issue body, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The verbatim archive is written unconditionally on every ingest; LLM enrichment layers are optional on top of this baseline.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/4",
+      "quote": "The verbatim archive write still happens (zero-loss is non-negotiable).",
+      "locator": "Wire-in points / When a task is gated off",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The per-agent model override for enrichment LLM calls is currently hardcoded to 'default' rather than reading the agent's librarian config.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/4",
+      "quote": "Today the model is hard-coded to \"default\" in `extract_facts_with_llm` \u2014 it should read `get_librarian(agent)[\"model\"]` and fall back to the install default when None.",
+      "locator": "Issue body, paragraph after wire-in table",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "taOSmd uses LongMemEval Recall@5 as a retrieval quality benchmark; gating enrichment tasks off by default must not regress this score.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/4",
+      "quote": "LongMemEval Recall@5 with everything ON unchanged from baseline (gating is opt-in, off by default)",
+      "locator": "Acceptance criteria",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Knowledge graph supports supersession chains and validity windows, enabling structured conflict/update tracking over time.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/5",
+      "quote": "Knowledge graph: structured triples with validity windows + supersede chains",
+      "locator": "issue body, numbered list item 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Ingest write path enforces archive-first ordering so all enrichment is traceable to a source archive entry.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/5",
+      "quote": "Transcript arrives \u2192 archive write happens FIRST \u2192 THEN enrichment runs \u2192 enrichment outputs reference the archive entry that produced them, so the source is always traceable.",
+      "locator": "issue body, numbered list item 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conflict between layers resolves in favor of archive; user self-contradiction across archive entries is surfaced with timestamps rather than silently resolved.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/5",
+      "quote": "When two layers disagree (e.g. crystal says X, archive says Y), the archive wins. When two archive entries disagree (the user contradicted themselves over time), report both with timestamps and let the agent decide.",
+      "locator": "issue body, numbered list item 6",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval is adaptive by layer depending on query type, not a single uniform retrieve policy.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/5",
+      "quote": "Recent / specific wording \u2192 archive (FTS5)\n\"What did we discuss about X\" \u2192 catalog + crystals\n\"Is this true?\" \u2192 KG (with validity check), then archive to verify\n\"What's similar to\" \u2192 vector",
+      "locator": "issue body, numbered list item 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Librarian prompts currently lack layout, read-only contract, workflow, and conflict guidance \u2014 identified as a gap to be fixed.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/5",
+      "quote": "the prompts are missing: Layout of the library \u2026 The read-only contract \u2026 The workflow on ingest \u2026 How to find information \u2026 Confidence reporting \u2026 Conflict handling \u2026 Per-task context.",
+      "locator": "issue body, numbered list items 1\u20137",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Librarian is a taOSmd component configured per agent via set_librarian(slug, model=...) / get_librarian(slug).model, surfaced as a per-agent model dropdown in agent Memory settings.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/81",
+      "quote": "Today the Librarian model is configured per agent: `set_librarian(slug, model=...)` / `get_librarian(slug).model`. taOS surfaces this as a per-agent model dropdown inside each agent's Memory settings.",
+      "locator": "Context section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Per-agent memory toggles include enabled, tasks, and fanout \u2014 separate from the model setting.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/81",
+      "quote": "Keep per-agent `enabled`, `tasks`, and `fanout` on `get_librarian`/`set_librarian`. Those are reasonable per-agent behaviour toggles. Only the model becomes global.",
+      "locator": "Requested taOSmd changes, item 3",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "taOSmd has its own config store where the global memory model setting would be persisted, enabling standalone use without taOS.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/81",
+      "quote": "Persist it in taOSmd's own config so it works for standalone users with no taOS in front.",
+      "locator": "Requested taOSmd changes, item 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory quality inconsistency is a known issue caused by per-agent model configuration across agents.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/81",
+      "quote": "Per-agent model gives inconsistent memory quality across agents and forces taOSmd to track a model per slug.",
+      "locator": "Reasoning section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The preferred migration drops the per-agent model field entirely to maintain one source of truth, though a per-agent override defaulting to global is noted as an alternative.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/81",
+      "quote": "Our preference is to drop per-agent model to keep one source of truth, but flag it here if standalone users need an override.",
+      "locator": "Requested taOSmd changes, item 4",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "taOSmd exposes memory config via API and CLI, not only through taOS.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/81",
+      "quote": "This must be a first-class taOSmd feature usable without taOS (config / API / CLI), not a taOS-only concept.",
+      "locator": "Standalone requirement section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "taOSmd exposes ingest() and retrieve() via a Python API and a CLI.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/84",
+      "quote": "taOSmd currently exposes a Python API (`ingest()`/`retrieve()`) and CLI",
+      "locator": "Why",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "taOSmd operates local-first with no cloud dependency.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/84",
+      "quote": "the same local-first/offline guarantees (no cloud dependency)",
+      "locator": "Scope (WIP)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "MCP server support is planned but not yet released; issue is a WIP tracking item.",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/84",
+      "quote": "Status: work in progress / planning. Tracking issue so external references (memory-landscape listings, integration docs) can point here.",
+      "locator": "Notes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "taOSmd exposes a Python API/SDK and a CLI today; MCP support is work-in-progress",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/85",
+      "quote": "taOSmd today exposes a Python API/SDK and a CLI, plus MCP is WIP (#84)",
+      "locator": "issue body, Why section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The write path includes at least two distinct operations: initial ingest and a subsequent correction/review step",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/85",
+      "quote": "POST /ingest, GET/POST /retrieve (`/search`), and the correction/review endpoints",
+      "locator": "issue body, Scope (WIP) section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "taOSmd is a 5-layer local-first memory system with parallel retrieval, RRF fusion, and cross-encoder reranking",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/89",
+      "quote": "A 5-layer local-first memory system: JSONL append-only archive \u2192 vector memory (ONNX embeddings in SQLite) \u2192 temporal knowledge graph (SQLite) \u2192 session catalog \u2192 crystal store. Parallel retrieval across all layers with RRF fusion, cross-encoder reranking, and graceful LLM degradation.",
+      "locator": "What It Actually Is",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Temporal boosting is silently broken and has no effect in the main retrieval pipeline",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/89",
+      "quote": "temporal_boost writes to similarity field but RRF uses rrf_score \u2014 Temporal boosting silently does nothing in the main pipeline",
+      "locator": "Critical Bugs / temporal_boost.py:99",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "KG edge directionality is broken due to dead code in the direction branch",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/89",
+      "quote": "_adapt_kg direction branch is dead code \u2014 incoming/outgoing arms are identical \u2014 KG edges display with wrong directionality",
+      "locator": "Critical Bugs / retrieval.py:62-68",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Contradiction detection silently misses unknown predicates, allowing knowledge corruption",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/89",
+      "quote": "Contradiction detection only for hardcoded predicates \u2014 Silent knowledge corruption for unlisted predicates",
+      "locator": "Design Weaknesses / knowledge_graph.py:363",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "No transactional consistency between archive and vector writes; partial writes are possible",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/89",
+      "quote": "No transactional consistency between archive + vector writes \u2014 Crash mid-write = data in archive but not searchable",
+      "locator": "Design Weaknesses / api.py:194-206",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Token budget management is heuristic and can cause silent context window overflow",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/89",
+      "quote": "Token counting = len(text) // 4 heuristic, not tiktoken \u2014 Breaks on code, JSON, CJK text; silent context overflow",
+      "locator": "Design Weaknesses / context_assembler.py:36",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retention decay silently skips on first run due to NULL last_decayed_at",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/89",
+      "quote": "reflect.py:decay_all() bug \u2014 NULL last_decayed_at causes first-run decay to silently skip",
+      "locator": "Missing Operational Concerns",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Naive entity normalization collapses distinctions, potentially corrupting knowledge graph identity",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/89",
+      "quote": "Naive entity normalization \u2014 \"New York\" \u2192 \"new-york\", \"O'Brien\" \u2192 \"obrien\" \u2014 Collapses legitimate distinctions",
+      "locator": "Design Weaknesses / knowledge_graph.py:96",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LLM reranker is implemented but never wired into the retrieval pipeline",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/89",
+      "quote": "LLM reranker not wired into retrieve() orchestrator \u2014 Exists as API but never called in the pipeline",
+      "locator": "Design Weaknesses / llm_rerank.py",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Secrets can persist to the archive because the secret filter is incomplete and untested",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/89",
+      "quote": "Secret filter misses GCP, Azure, Stripe, SendGrid, SSH keys \u2014 Secrets persist to archive \u2014 Zero tests on secret_filter.py \u2014 The security boundary is completely untested",
+      "locator": "Security Issues / secret_filter.py",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agent isolation is enforced via a strict regex on agent name, preventing path traversal",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/89",
+      "quote": "Clean agent isolation regex \u2014 ^[a-z][a-z0-9_-]{0,62}$ prevents path traversal",
+      "locator": "What's Actually Good",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The archive is zero-loss verbatim storage; no replace or remove operations",
+      "kind": "issue",
+      "url": "https://github.com/jaylfc/taosmd/issues/89",
+      "quote": "Zero-loss verbatim archive \u2014 Hermes memory is lossy (replace/remove operations)",
+      "locator": "Hermes Integration Assessment / taOSmd strengths over Hermes memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval uses hybrid semantic plus keyword search, cross-encoder rerank, and LLM-assisted query expansion via a Librarian layer",
+      "kind": "blog",
+      "url": "https://hysenlabs.com/en/projects/jaylfc-taos",
+      "quote": "hybrid semantic plus keyword vector search with a cross-encoder rerank and LLM-assisted query expansion (called the Librarian layer)",
+      "locator": "How the pieces fit: taOSmd, the framework boundary and the cluster",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The 97.0% figure uses end-to-end Judge scoring; named comparators use Recall@5, making direct comparison invalid per the README itself",
+      "kind": "blog",
+      "url": "https://hysenlabs.com/en/projects/jaylfc-taos",
+      "quote": "explicitly notes that the cited comparators, MemPalace at 96.6% and agentmemory at 95.2%, publish Recall@5 retrieval scores, which is a different and weaker measurement. The README concedes the metrics are not apples-to-apples until someone re-runs end-to-end.",
+      "locator": "The catalog is the weak point, and the README says so",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "taOSmd is described as working (not beta-incomplete) alongside the install script, backend, API and multi-framework group chat",
+      "kind": "blog",
+      "url": "https://hysenlabs.com/en/projects/jaylfc-taos",
+      "quote": "the README states the install script, backend, API, taOSmd and multi-framework group chat work, while some agent management, worker connections and model routing flows are still being smoothed out.",
+      "locator": "At a glance / Editorial conclusion",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Append-only verbatim archive is immutable and never overwritten",
+      "kind": "blog",
+      "url": "https://reporank.net/en/repo/jaylfc-taosmd.html",
+      "quote": "Zero-loss append-only verbatim archive never overwritten",
+      "locator": "Core features",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory architecture is layered: immutable archive at base, extracted summaries and knowledge graph facts layered above",
+      "kind": "blog",
+      "url": "https://reporank.net/en/repo/jaylfc-taosmd.html",
+      "quote": "taOSmd operates as a layered memory system: 1) an immutable append-only archive stores verbatim transcripts; 2) summaries and knowledge graph facts are extracted and layered on top without altering the source",
+      "locator": "Architecture and mechanics",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval recall reported at 97.0% Recall@5 on LongMemEval-S on low-end hardware",
+      "kind": "blog",
+      "url": "https://reporank.net/en/repo/jaylfc-taosmd.html",
+      "quote": "High retrieval accuracy (97.0% Recall@5 on LongMemEval-S) on low-end hardware",
+      "locator": "Strengths",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "End-to-end generation accuracy (Judge metric) is 43\u201351% on shipped configuration",
+      "kind": "blog",
+      "url": "https://reporank.net/en/repo/jaylfc-taosmd.html",
+      "quote": "End-to-end generation accuracy (Judge metric) is 43-51% on shipped configuration",
+      "locator": "Limitations and caveats",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Benchmark methodology documented in docs/benchmarks.md",
+      "kind": "blog",
+      "url": "https://reporank.net/en/repo/jaylfc-taosmd.html",
+      "quote": "Benchmark methodology is documented in docs/benchmarks.md; verify against your own data",
+      "locator": "Maintenance notes",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Storage isolation is per-device/local; multi-node pooling described as Pi + laptop scenario",
+      "kind": "blog",
+      "url": "https://reporank.net/en/repo/jaylfc-taosmd.html",
+      "quote": "multi-device memory pooling (e.g., Pi + laptop)",
+      "locator": "Use cases",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "74.6% end-to-end Judge score on LongMemEval-S oracle 500-question set with recommended verified-answer config (reranking plus CoVe-style answer self-verification), local 9B generator, strict external judge",
+      "kind": "blog",
+      "url": "https://pypi.org/project/taosmd/",
+      "quote": "74.6% on the LongMemEval-S oracle 500-question set with the recommended verified-answer config (reranking plus a CoVe-style answer self-verification pass), local 9B generator, strict external judge, see docs/benchmarks.md",
+      "locator": "PyPI project description, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "prefer_verified gate eliminated served-hallucination (0.04 served-unsupported rate dropped to 0.00) at no measured cost to answer accuracy or recall, confirmed under tri-judge at n=250",
+      "kind": "blog",
+      "url": "https://pypi.org/project/taosmd/",
+      "quote": "In a pre-registered 200-question sweep the prefer_verified gate eliminated served-hallucination outright (a 0.04 served-unsupported rate dropped to 0.00) at no measured cost to answer accuracy or recall. A full tri-judge confirm at n=250 (E-018) then reproduced that under all three judges",
+      "locator": "Provable Memory section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "97.0% Recall@5 on LongMemEval-S (500 questions), measured on Orange Pi 5 Plus 16 GB reference stack",
+      "kind": "blog",
+      "url": "https://pypi.org/project/taosmd/",
+      "quote": "97.0% Recall@5 on LongMemEval-S (500 questions, standard test set). Recall@5 is a retrieval metric: did the correct evidence session land in the top-5 retrieved.",
+      "locator": "Benchmark Results section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Per-agent isolation is enforced by an agent tag on every row; one shared service process and shared stores for all agents",
+      "kind": "blog",
+      "url": "https://pypi.org/project/taosmd/",
+      "quote": "The taOSmd service stays one process with one shared set of stores; per-agent isolation is enforced by an agent tag on every row, not by separate files.",
+      "locator": "Getting Started section, Multiple agents paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Corrected facts supersede old facts in both the knowledge graph (valid_to invalidation) and vector recall (soft-hidden, not deleted)",
+      "kind": "blog",
+      "url": "https://pypi.org/project/taosmd/",
+      "quote": "Contradiction detection , corrected facts supersede across both the typed knowledge graph (via valid_to invalidation) and the vector recall layer (matching chunks soft-hidden, not deleted); recall returns only the active fact",
+      "locator": "Key Features section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retention scoring uses Ebbinghaus decay with hot/warm/cold tiers",
+      "kind": "blog",
+      "url": "https://pypi.org/project/taosmd/",
+      "quote": "\u2514\u2500\u2500 Retention Scoring Ebbinghaus decay with hot/warm/cold tiers",
+      "locator": "Architecture section, Processing",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A2A bus messages are stored as append-only archive events, inheriting archive durability and automatic secret redaction",
+      "kind": "blog",
+      "url": "https://pypi.org/project/taosmd/",
+      "quote": "Messages are stored as append-only archive events, so they inherit the archive's durability and automatic secret redaction.",
+      "locator": "Agent-to-agent (A2A) bus section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Librarian layer adds +15.4% on vocabulary-gap axis for long-horizon sessions (60 turns, fact buried at turn 5); cross-encoder alone adds nothing when target fact is excluded from candidate pool",
+      "kind": "blog",
+      "url": "https://pypi.org/project/taosmd/",
+      "quote": "+15.4% on the vocabulary-gap axis. The cross-encoder alone adds nothing when the target fact is excluded from its candidate pool, only the Librarian's expansion bridges category\u2192specific-name gaps (e.g. query: \"code editor\" , fact: \"Neovim lua config done\" ). These are preliminary results on one class of retrieval failure",
+      "locator": "Librarian Layer, Vocabulary-Gap Benchmark section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Fresh installs auto-detect hardware and apply the best affordable recipe (retrieval + ingest + generator + librarian settings bundle) on first use",
+      "kind": "blog",
+      "url": "https://pypi.org/project/taosmd/",
+      "quote": "a fresh install auto-detects your hardware and applies the best affordable recipe on first use , so you run a benchmarked configuration rather than unconfigured defaults.",
+      "locator": "Recipes section",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/archive.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/vector_memory.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/retrieval.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/context_assembler.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/service.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/api.py",
+      "kind": "code",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/blob/master/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/research-report.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/benchmarks.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/INTEGRATION-memory-config.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/serve-service.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/blob/master/AGENTS.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-19",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/85",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/16",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/81",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/211",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/141",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/84",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/20",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/15",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/14",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/5",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/210",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/203",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/3",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/4",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/22",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/21",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/2",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/1",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/jaylfc/taosmd/issues/89",
+      "kind": "issue",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://pypi.org/project/taosmd/",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://hysenlabs.com/en/projects/jaylfc-taos",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    },
+    {
+      "url": "https://reporank.net/en/repo/jaylfc-taosmd.html",
+      "kind": "blog",
+      "accessed_at": "2026-09-19",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "The recipe system (resolve_recipe, recommend) that governs retrieval strategy, reranker selection, fusion mode, and adjacency is referenced but not defined here; how recipes are authored or updated is not described.",
+      "url": "https://github.com/jaylfc/taosmd/blob/97543e42ccf337eea4196761c341e6b11873574c/taosmd/api.py",
+      "kind": "code"
+    },
+    {
+      "text": "The prefer_verified default flip is pending author (Jay) sign-off; the shipped default for the claims gate is not yet confirmed as default-on in this document.",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/research-report.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The bi-temporal graph_expansion lever has no valid measurement on any benchmark (EventQA was instrument-mismatch, LongMemEval is recommended as next instrument but E-030 preconditions are outstanding); whether it improves memory recall is unknown.",
+      "url": "https://github.com/jaylfc/taosmd/blob/master/docs/research-report.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of what data is persisted in each named database (crystals.db, insights.db, browsing-history.db, access-tracker.db, tasks.db, memory-settings.db, knowledge-graph.db) or what memory behaviors they support",
+      "url": "https://github.com/jaylfc/taosmd/issues/203",
+      "kind": "issue"
+    },
+    {
+      "text": "taosmd/prompts.py current content \u2014 the issue describes what is missing from LIBRARIAN_PERSONA and task templates but does not quote the existing prompt text, so the current scaffold instructions are not directly verifiable from this page.",
+      "url": "https://github.com/jaylfc/taosmd/issues/5",
+      "kind": "issue"
+    },
+    {
+      "text": "No description of the storage format or what is actually persisted (facts, summaries, full transcript, embeddings).",
+      "url": "https://github.com/jaylfc/taosmd/issues/84",
+      "kind": "issue"
+    },
+    {
+      "text": "Lore vs event distinction: the page does not describe whether taOSmd distinguishes pre-loaded backstory/lore from facts extracted during conversation.",
+      "url": "https://hysenlabs.com/en/projects/jaylfc-taos",
+      "kind": "blog"
+    },
+    {
+      "text": "The agent-rules.md doc (referenced as the per-turn scaffold contract) is not reproduced on this page; the exact conditions under which the agent is instructed to stay silent vs retrieve are not stated here.",
+      "url": "https://pypi.org/project/taosmd/",
+      "kind": "blog"
+    }
+  ]
+}
