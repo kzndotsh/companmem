@@ -1,0 +1,708 @@
+{
+  "identity": {
+    "id": "mnemosyne",
+    "name": "Mnemosyne",
+    "repo": "https://github.com/AxDSan/Mnemosyne",
+    "docs": "https://docs.mnemosyne.site/llms.txt",
+    "license": "MIT",
+    "version_or_commit": "95ef3be20d28bd9ee1d517bcb25ed00000eab577",
+    "observed_at": "2026-09-18"
+  },
+  "claimed_purpose": [
+    {
+      "text": "A graph-based memory engine for agents, implementing the PlugMem proposal with node-type hierarchies for memory storage and recall."
+    },
+    {
+      "text": "Dense retrieval layer supporting local ONNX embeddings and OpenAI-compatible API embeddings, with keyword-only fallback"
+    },
+    {
+      "text": "Two-phase episodic memory combining gist summaries and structured fact triples, building on REMem (ICLR 2026)."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "recall() retrieves memories by semantic query with configurable top_k, temporal_weight, temporal_halflife, vec_weight, fts_weight, importance_weight, and optional explain mode \u2014 a hybrid ranked retrieval"
+    },
+    {
+      "text": "Facts are persisted as subject-predicate-object triples in a SQLite table (`consolidated_facts`) with confidence, mention count, first/last seen timestamps, sources, veracity, and supersession fields."
+    },
+    {
+      "text": "Isolation is per-bank (separate SQLite file) and per-session (session_id column); author_id, author_type, and channel_id provide multi-agent identity scoping at retrieve time."
+    },
+    {
+      "text": "remember() persists a memory with content, source, importance, metadata, scope (session or global), optional expiry (valid_until), and veracity field; returns a memory_id"
+    },
+    {
+      "text": "Consolidation (sleep cycle): sleep() consolidates working_memory into episodic summaries for the current session; sleep_all_sessions() runs across all eligible sessions."
+    },
+    {
+      "text": "Scope field on remember() controls session-local vs global visibility; default scope resolved from MNEMOSYNE_DEFAULT_SCOPE env var falling back to 'session'"
+    },
+    {
+      "text": "Canonical store provides versioned, named facts keyed by (owner_id, category, name); forget retires rather than hard-deletes (returns 'retired' count)"
+    },
+    {
+      "text": "Mnemosyne includes a sleep consolidation architecture component, suggesting offline or async memory consolidation separate from live retrieval."
+    },
+    {
+      "text": "Invalidate (soft supersession): invalidate() marks a memory as expired or superseded without deleting it, delegating to BEAM."
+    },
+    {
+      "text": "The current store uses in-memory storage backed by DETS offloading, keeping the full graph and embeddings in memory."
+    },
+    {
+      "text": "Abstention: system declines to answer rather than fabricating when the corpus does not contain a relevant memory"
+    },
+    {
+      "text": "Working memory can be consolidated into episodic memory with a summary, collapsing source working-memory IDs"
+    },
+    {
+      "text": "Hybrid scoring for retrieval: 50% vector similarity + 30% FTS5 rank + 20% importance, all inside SQLite"
+    },
+    {
+      "text": "Memories are retrieved via vector-similarity search combined with graph-neighbour expansion."
+    },
+    {
+      "text": "Serialization of embedding vectors to JSON string for storage"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Retrieval uses hybrid scoring: 50% vector + 30% FTS5 + 20% importance, all in SQLite",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/README.md",
+      "quote": "Hybrid scoring: 50% vector similarity + 30% FTS5 rank + 20% importance, all inside SQLite.",
+      "locator": "Architecture section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Episodic memory is long-term; working memory is consolidated into it with a summary that collapses source IDs \u2014 distinguishing a curated write from a raw log",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/README.md",
+      "quote": "beam.consolidate_to_episodic(summary=\"User likes Neovim\", source_wm_ids=[\"wm1\"])",
+      "locator": "Advanced: BEAM Direct Access section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory banks isolate storage per domain within the same SQLite instance",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/README.md",
+      "quote": "Memory banks (per-domain isolation) \u2026 BankManager().create_bank(\"work\") \u2026 work_mem = Mnemosyne(bank=\"work\")",
+      "locator": "Python API section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Consolidated working-memory rows are excluded from get_context() prompt injection by default; this is a configurable scaffold policy",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/README.md",
+      "quote": "MNEMOSYNE_CONTEXT_INCLUDE_CONSOLIDATED \u2026 Include consolidated working-memory rows in get_context() prompt injection. Default: excluded. Does not affect recall().",
+      "locator": "Environment Variables table",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "System abstains rather than hallucinating when no relevant memory exists in the corpus",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/README.md",
+      "quote": "Abstention accuracy is 100%, meaning the system declines rather than inventing an answer when the corpus does not contain one.",
+      "locator": "BEAM retrieval (pure recall) section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Sync conflict resolution uses timeline and importance as tiebreakers",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/README.md",
+      "quote": "Timeline + importance conflict resolution",
+      "locator": "Mnemosyne Sync section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "BEAM end-to-end QA score of 65.2% was measured on v3.0.0 and predates several features; not a claim about current build",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/README.md",
+      "quote": "Read the version labels. These are point-in-time results, not a claim about the current build. The BEAM numbers were measured on v3.0.0 (May 2026) and predate polyphonic recall, enhanced recall, SHMR, and the persona tier. They have not been re-run since.",
+      "locator": "Benchmarks section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A 98.9% LongMemEval Recall@All@5 figure was withdrawn due to missing methodology and run log",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/README.md",
+      "quote": "A 98.9% Recall@All@5 figure from an April 2026 run was listed here until September 2026. No methodology or run log for it exists in any of the project repositories, so it has been withdrawn until LongMemEval is re-run on the current tree with a published, reproducible setup (#584).",
+      "locator": "LongMemEval section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Dense retrieval uses local fastembed (ONNX) or OpenAI-compatible API embeddings, falling back to keyword-only search",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/embeddings.py",
+      "quote": "Mnemosyne Dense Retrieval\nSupports local fastembed (ONNX) and OpenAI-compatible API embeddings.\nFalls back to keyword-only if neither is available.",
+      "locator": "module docstring, embeddings.py:1-4",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Embedding vectors are serialized to JSON strings, implying storage in a database (vec0 table referenced in comments)",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/embeddings.py",
+      "quote": "def serialize(vec: np.ndarray) -> str:\n    \"\"\"Serialize embedding to JSON string.\"\"\"\n    return json.dumps(vec.tolist())",
+      "locator": "serialize(), embeddings.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Vector search correctness depends on the embedding dimension matching the vec0 table dimension set at creation; wrong dimension corrupts insert and recall",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/embeddings.py",
+      "quote": "A vec0 table is dimensioned at creation, so silently assuming 384 would bake in the wrong dimension and corrupt vector search.",
+      "locator": "_get_embedding_dim(), embeddings.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Dense retrieval can be fully disabled via MNEMOSYNE_NO_EMBEDDINGS, MNEMOSYNE_SKIP_EMBEDDINGS, or MNEMOSYNE_EMBEDDINGS_OFF, degrading to keyword-only recall",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/embeddings.py",
+      "quote": "MNEMOSYNE_NO_EMBEDDINGS: hard off, used in CI and unit tests that\n      exercise non-embedding code paths",
+      "locator": "_is_disabled docstring, embeddings.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Query and document texts are embedded with separate configurable prefixes; prior code incorrectly applied the query prefix to stored documents",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/embeddings.py",
+      "quote": "Removed the single-text delegation to\n     embed_query \u2014 that path stamped the query prefix onto stored documents.",
+      "locator": "comment above embed(), embeddings.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "EMBEDDING_DIM is exported at module load for use by other modules, indicating this module is part of a larger retrieval pipeline",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/embeddings.py",
+      "quote": "# Export dimension for other modules\nEMBEDDING_DIM = _get_embedding_dim(_DEFAULT_MODEL)\n_DEFAULT_MODEL = _DEFAULT_MODEL  # Re-export for beam.py",
+      "locator": "module bottom, embeddings.py",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Two-phase memory separates episode summaries (gists) from structured fact triples, both persisted to SQLite.",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/episodic_graph.py",
+      "quote": "Two-phase episodic memory:\n1. Gist extraction: concise episode summaries with temporal anchors\n2. Fact extraction: structured (subject, predicate, object) triples",
+      "locator": "module docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path filters low-quality subjects (pronouns, demonstratives, possessives) and low-quality objects (function words, adverbs, fillers) before inserting triples, to prevent noise and false conflicts in the veracity consolidator.",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/episodic_graph.py",
+      "quote": "A bare pronoun/demonstrative subject (\"This is interesting\") or a possessive-led one (\"My report is ready\") describes transient state, not a fact about a named entity. Worse: every such triple shares the same (subject, predicate) so the veracity consolidator flags each new object as a \"contradiction\", producing a conflict explosion from pure noise.\nReject them at the source.",
+      "locator": "_LOW_QUALITY_SUBJECT_LEADERS module comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Facts carry a session_id column for isolation; gists link back to a memory_id but have no explicit session_id column in this schema.",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/episodic_graph.py",
+      "quote": "session_id TEXT DEFAULT 'default'",
+      "locator": "EpisodicGraph._init_tables, facts table DDL",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph edges support agent-declared typed relationships (e.g., 'supersedes') enabling semantic linking between memory nodes beyond built-in rel/ctx/syn types.",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/episodic_graph.py",
+      "quote": "Agent-declared types like \"references\", \"caused\",\n                       \"supersedes\" also work since the column is freeform TEXT.",
+      "locator": "EpisodicGraph.find_related_memories docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "remember() dual-writes to BEAM working_memory and a legacy memories table; the legacy table is kept for backward compatibility",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/memory.py",
+      "quote": "Writes to both BEAM working_memory and legacy memories table.",
+      "locator": "Mnemosyne.remember docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A core-level write filter (should_remember) vetoes noise and secrets before any DB write, covering all entry points",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/memory.py",
+      "quote": "Placed here so ALL entry points (Hermes provider, MCP server, SDK, CLI) benefit, not just the Hermes plugin layer.",
+      "locator": "Mnemosyne.remember, inline comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "forget() performs a hard delete scoped to the owning session; global-scope rows can be deleted cross-session",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/memory.py",
+      "quote": "Authorize from the authoritative BEAM row before deleting either representation. A global row may be removed cross-session, but its legacy mirror belongs to the creating session, not the caller.",
+      "locator": "Mnemosyne.forget, inline comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "invalidate() marks a memory as superseded (sets superseded_by) without deleting it; superseded rows are excluded from recall and pattern detection",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/memory.py",
+      "quote": "Mark a memory as expired or superseded. Delegates to BEAM.",
+      "locator": "Mnemosyne.invalidate docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall excludes rows where valid_until has passed or superseded_by is non-null",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/memory.py",
+      "quote": "AND (valid_until IS NULL OR julianday(valid_until) > julianday(?))\n              AND superseded_by IS NULL",
+      "locator": "Mnemosyne.get_all_memories, SQL query",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "sleep() consolidates working_memory into episodic summaries; reclaim_orphans() cleans up stale consolidation claims",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/memory.py",
+      "quote": "Run consolidation sleep cycle for the current session.",
+      "locator": "Mnemosyne.sleep docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Bank isolation is implemented as separate SQLite database files, one per bank",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/memory.py",
+      "quote": "Each bank is a separate SQLite database for complete isolation.",
+      "locator": "class Mnemosyne docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Recall supports adaptive temporal scoring via temporal_weight, query_time, and temporal_halflife parameters",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/memory.py",
+      "quote": "Supports temporal scoring: temporal_weight, query_time, temporal_halflife.",
+      "locator": "Mnemosyne.recall docstring",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "An enhanced recall path exists and is activated via MNEMOSYNE_ENHANCED_RECALL environment variable",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/memory.py",
+      "quote": "if _os.environ.get(\"MNEMOSYNE_ENHANCED_RECALL\", \"0\") == \"1\":\n            return self.beam.recall_enhanced(...)",
+      "locator": "Mnemosyne.recall, method body",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "canonical_facts table stores owner-scoped, versioned, authored facts with valid_from/valid_until; omitting them from export was a lossy gap now fixed in schema 1.3",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/memory.py",
+      "quote": "These are AUTHORED (not derived), so omitting them made a JSON restore silently lossy.",
+      "locator": "Mnemosyne.export_to_file, inline comment",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "triples table stores temporal knowledge-graph facts (subject, predicate, object) with valid_from/valid_until and confidence",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/memory.py",
+      "quote": "\"triples\": (\"triples\", {\"id\", \"subject\", \"predicate\", \"object\", \"valid_from\", \"valid_until\", \"source\", \"confidence\", \"created_at\"})",
+      "locator": "_EXPORTED_SURFACES dict",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "FTS, vector index, and derived graph/fact surfaces are excluded from portable export and must be rebuilt after restore",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/memory.py",
+      "quote": "\"facts\": \"Derived recall facts are not included; rerun extraction after restore.\"\n    \"gists\": \"Episodic graph summaries are not included; rerun graph extraction after restore.\"",
+      "locator": "_OMITTED_EXPORT_GUIDANCE dict",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Mnemosyne persists two distinct memory tiers to SQLite: working_memory (short-term/curated) and episodic_memory (longer-term episodes), with dense embeddings stored in a shared memory_embeddings table",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/polyphonic_recall.py",
+      "quote": "SELECT wm.id AS memory_id, me.embedding_json\n                    FROM memory_embeddings me\n                    JOIN working_memory wm ON me.memory_id = wm.id",
+      "locator": "_vector_voice, WM tier SQL",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Supersession (superseded_by column) and expiry (valid_until column) are the invalidation/update mechanisms applied at retrieve time; superseded rows are never surfaced",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/polyphonic_recall.py",
+      "quote": "\"superseded_by IS NULL\",\n                    \"(valid_until IS NULL OR julianday(valid_until) > julianday(?))\",",
+      "locator": "_vector_voice, episodic_where default construction",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Structured facts are a curated store separate from the message log, written via VeracityConsolidator; fact retrieval uses subject-keyed lookup with a minimum confidence threshold",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/polyphonic_recall.py",
+      "quote": "facts = self.consolidator.get_consolidated_facts(\n                subject=word.capitalize(),\n                min_confidence=0.5\n            )",
+      "locator": "_fact_voice",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Raw dialog rows (source='conversation' or 'honcho_message') are excluded from the WM dense pool by default, so the retrieval surface is curated facts and summaries rather than full transcript",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/polyphonic_recall.py",
+      "quote": "wm_dense_predicate = (\n                    \" AND (wm.source IS NULL OR (wm.source <> 'conversation'\"\n                    \" AND wm.source <> 'honcho_message'))\"\n                    \" AND wm.consolidated_at IS NULL\"\n                )",
+      "locator": "_vector_voice, wm_dense_predicate block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Temporal recall is conditional: the temporal voice only fires when the query contains temporal keywords (yesterday, today, recent, last, etc.) and otherwise returns nothing",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/polyphonic_recall.py",
+      "quote": "has_temporal = any(kw in query.lower() for kw in temporal_keywords)\n\n        if not has_temporal:\n            return []",
+      "locator": "_temporal_voice",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Voice fusion is position-based RRF (k=60), not neural re-ranking; voice weights in voice_weights dict are present but used only for stats, not for the RRF combination itself",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/polyphonic_recall.py",
+      "quote": "RRF formula: score(d) = sum(1 / (k + rank(d, voice_i))) for each voice.\nPosition-based fusion eliminates score calibration issues between voices.\nConstant k=60 (proven optimal for 4-voice retrieval).",
+      "locator": "_combine_voices docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The EM vector tier prefers sqlite-vec ANN (vec_episodes virtual table) and falls back to numpy full-scan over memory_embeddings when sqlite-vec is unavailable or fails; fallback state is tracked per call",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/polyphonic_recall.py",
+      "quote": "[C4] Per-call degraded-path signal for recall diagnostics.\nThe vector voice prefers the sqlite-vec `vec_episodes` fast\npath for the EM tier and falls back to a numpy full-scan\nover `memory_embeddings` when sqlite-vec is unavailable,\nerrors, or its ANN hits all get filtered out.",
+      "locator": "__init__, last_call_fallback comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Diversity re-ranking uses word-level Jaccard on content with a 0.8 threshold; a prior voice-name Jaccard implementation caused all-but-one results to be discarded (issue #389)",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/polyphonic_recall.py",
+      "quote": "Voice-name Jaccard collapses to 1.0 when a single voice\ndomains the candidate set, causing MMR diversity reranking to\ndiscard all but one result (#389).",
+      "locator": "_estimate_similarity docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Revocable exclusion of working-memory rows is supported pre-fusion via ExclusionSnapshot; graph/fact hits that are ambiguously dual-tier are not excluded to avoid rescuing a WM score as episodic",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/polyphonic_recall.py",
+      "quote": "These voices carry no producing-tier evidence. An ambiguous\n            # dual-tier hit must fail open, not rescue a WM score as episodic.\n            ambiguous = {r.memory_id for r in graph_results + fact_results} & excluded\n            excluded -= ambiguous",
+      "locator": "recall, exclusion handling block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Facts are stored as subject-predicate-object triples with Bayesian confidence and veracity in a persistent SQLite database.",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/veracity_consolidation.py",
+      "quote": "CREATE TABLE IF NOT EXISTS consolidated_facts (\n                id TEXT PRIMARY KEY,\n                subject TEXT NOT NULL,\n                predicate TEXT NOT NULL,\n                object TEXT NOT NULL,\n                confidence REAL DEFAULT 0.5,\n                mention_count INTEGER DEFAULT 1,\n                first_seen TEXT,\n                last_seen TEXT,\n                sources_json TEXT,\n                veracity TEXT DEFAULT 'unknown',\n                superseded_by TEXT,\n                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n            )",
+      "locator": "_init_tables method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict detection is triggered on insert when a new fact shares subject+predicate but differs in object; conflicting pairs are recorded in a separate `conflicts` table.",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/veracity_consolidation.py",
+      "quote": "# Check for conflicts (same subject+predicate, different object)\n                cursor.execute(\"\"\"\n                    SELECT * FROM consolidated_facts\n                    WHERE subject = ? AND predicate = ? AND object != ?\n                \"\"\", (subject, predicate, object))",
+      "locator": "consolidate_fact method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict resolution supersedes the losing fact in-place (sets superseded_by); facts are never physically deleted.",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/veracity_consolidation.py",
+      "quote": "UPDATE consolidated_facts\n                SET superseded_by = ?, updated_at = ?\n                WHERE id = ?",
+      "locator": "resolve_conflict method / resolve_conflict_by_facts method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval excludes superseded facts and applies a configurable minimum confidence threshold (default 0.5).",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/veracity_consolidation.py",
+      "quote": "WHERE confidence >= ? AND superseded_by IS NULL\n                ORDER BY confidence DESC, mention_count DESC",
+      "locator": "get_consolidated_facts method",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Veracity label at trust boundaries (LLM output, importers, MCP tool args, batch ingest) is normalized and clamped to the canonical allowlist; non-canonical values fall back to 'unknown' with a warning log.",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/veracity_consolidation.py",
+      "quote": "Callers at the\ntrust boundary (LLM output, importers, MCP tool args, batch ingest)\nshould clamp via clamp_veracity() so non-canonical labels don't\npersist as garbage in the row.",
+      "locator": "VERACITY_ALLOWED constant comment",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Episodic memory rows receive an aggregated veracity derived from their source working_memory rows; a prior bug caused episodic rows to always default to 'unknown' regardless of source veracity.",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/veracity_consolidation.py",
+      "quote": "Used at consolidation time when a `sleep()` summarizes N working_memory\n    rows into one episodic_memory row. Pre-fix the episodic INSERT didn't\n    set the veracity column, so it defaulted to 'unknown' (0.8 multiplier)\n    even when every source row was 'stated' (1.0). That destroys the\n    trust signal `remember_batch` had populated per-row.",
+      "locator": "aggregate_veracity function docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "A prior truncating string ID scheme caused silent data loss by colliding on long SPO facts; fixed by SHA-256 hashing with length-prefix framing.",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/veracity_consolidation.py",
+      "quote": "Pre-fix `consolidated_facts.id` used\n    ``f\"cf_{subject}_{predicate}_{object}\".replace(\" \", \"_\")[:100]``.\n    The 100-char truncation silently collided on long content: two\n    distinct facts with the same first ~95 chars after replace\n    produced identical PKs. The IntegrityError that resulted from\n    the INSERT was swallowed by the calling code at\n    `beam.py:_ingest_graph_and_veracity` (broad `except: pass` in\n    Phase 4), producing silent data loss.",
+      "locator": "compute_fact_id function docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "remember() writes to a working_memory store with scope, importance, veracity, and expiry metadata",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/mcp_tools.py",
+      "quote": "memory_id = mem.remember(\n        content=content,\n        source=source,\n        importance=importance,\n        metadata=metadata,\n        extract_entities=extract_entities,\n        extract=extract,\n        scope=scope,\n        valid_until=valid_until,\n        veracity=veracity,\n    )",
+      "locator": "_handle_remember",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "recall() is a hybrid retrieval combining vector, FTS, importance, and temporal decay weights",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/mcp_tools.py",
+      "quote": "recall_payload = mem.recall(\n        query=query,\n        top_k=top_k,\n        temporal_weight=temporal_weight,\n        query_time=query_time,\n        temporal_halflife=temporal_halflife,\n        vec_weight=vec_weight,\n        fts_weight=fts_weight,\n        importance_weight=importance_weight,\n        explain=explain,\n    )",
+      "locator": "_handle_recall",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is a hard delete from working_memory store",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/mcp_tools.py",
+      "quote": "ok = mem.forget(memory_id)\n    return {\"status\": \"deleted\" if ok else \"not_found\", \"memory_id\": memory_id}",
+      "locator": "_handle_forget",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Supersession is implemented by setting valid_until to CURRENT_TIMESTAMP rather than physically deleting the row",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/mcp_tools.py",
+      "quote": "UPDATE working_memory SET valid_until = CURRENT_TIMESTAMP, validator = ?, validated_at = CURRENT_TIMESTAMP, validation_count = COALESCE(validation_count, 0) + 1 WHERE id = ?",
+      "locator": "_handle_validate, action=='invalidate'",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "sleep() consolidates working memory into episodic memory; working and episodic are distinct persistent layers",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/mcp_tools.py",
+      "quote": "result = mem.sleep(dry_run=dry_run, force=force)\n\n    working = _serialize(mem.beam.get_working_stats()) if hasattr(mem, \"beam\") else {}\n    episodic = _serialize(mem.beam.get_episodic_stats()) if hasattr(mem, \"beam\") else {}",
+      "locator": "_handle_sleep",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Scope defaults to 'session'; can be overridden to 'global' per call or via MNEMOSYNE_DEFAULT_SCOPE env var",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/mcp_tools.py",
+      "quote": "raw = os.environ.get(\"MNEMOSYNE_DEFAULT_SCOPE\", \"\").strip().lower()\n    if raw in (\"session\", \"global\"):\n        return raw\n    return \"session\"",
+      "locator": "_resolve_default_scope",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Shared surface DB is a physically separate SQLite file from per-session memory; accessed via BeamMemory with session_id='mcp_shared_surface'",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/mcp_tools.py",
+      "quote": "def _create_surface_instance() -> BeamMemory:\n    \"\"\"Create a BeamMemory instance for the shared surface DB.\"\"\"\n    shared_path = _shared_db_path()\n    shared_path.parent.mkdir(parents=True, exist_ok=True)\n    return BeamMemory(session_id=\"mcp_shared_surface\", db_path=shared_path)",
+      "locator": "_create_surface_instance",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Raw conversation turns are explicitly blocked from shared memory; shared memory accepts only curated kinds: meta, preference, correction, identity",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/mcp_tools.py",
+      "quote": "if content.startswith(\"[USER]\") or content.startswith(\"[ASSISTANT]\"):\n        return {\"error\": \"raw conversation content is not allowed in shared memory\"}\n    kind = (arguments.get(\"kind\") or \"meta\").strip().lower()\n    if kind not in {\"meta\", \"preference\", \"correction\", \"identity\"}:\n        return {\"error\": \"kind must be one of: meta, preference, correction, identity\"}",
+      "locator": "_handle_shared_remember",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Canonical store provides versioned named facts with history; forget retires (soft-deletes) rather than hard-deletes",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/mcp_tools.py",
+      "quote": "retired = store.forget(owner_id, category, name)\n    return {\"retired\": retired, \"owner_id\": owner_id, \"category\": category,\n            \"name\": name, \"store\": \"canonical\"}",
+      "locator": "_handle_forget_canonical",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is multi-dimensional: session_id, author_id, author_type, channel_id, and bank are all separate identity axes",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/mcp_tools.py",
+      "quote": "return Mnemosyne(\n        session_id=sess,\n        author_id=auth,\n        author_type=auth_type,\n        channel_id=chan,\n        bank=bank\n    )",
+      "locator": "_create_instance",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "validate audit trail: every attest/update/invalidate/delete action is recorded in memory_validations table",
+      "kind": "code",
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/mcp_tools.py",
+      "quote": "conn.execute(\n                \"INSERT INTO memory_validations \"\n                \"(memory_id, validator, action, new_content, note) \"\n                \"VALUES (?, ?, ?, ?, ?)\",\n                (memory_id, validator, action,\n                 new_content if action == \"update\" else None,\n                 note or None),\n            )",
+      "locator": "_handle_validate",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Mnemosyne is positioned as a universal memory layer for AI agents.",
+      "kind": "docs",
+      "url": "https://docs.mnemosyne.site/llms.txt",
+      "quote": "the universal memory layer for AI agents",
+      "locator": "page header / description block",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mnemosyne has a sleep consolidation step, suggesting memory is reorganized or compressed asynchronously rather than only at write or retrieve time.",
+      "kind": "docs",
+      "url": "https://docs.mnemosyne.site/llms.txt",
+      "quote": "Sleep consolidation",
+      "locator": "Architecture section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mnemosyne supports semantic retrieval via embeddings as an optional install, and full-text search as a minimal-install alternative.",
+      "kind": "docs",
+      "url": "https://docs.mnemosyne.site/llms.txt",
+      "quote": "Standard Python SDK (any agent, includes semantic search) ... Minimal (FTS-only, no embeddings, smallest install)",
+      "locator": "Install section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Mnemosyne is MIT-licensed and requires Python 3.10+.",
+      "kind": "docs",
+      "url": "https://docs.mnemosyne.site/llms.txt",
+      "quote": "License: MIT\n- Python: 3.10+",
+      "locator": "Project metadata section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Mnemosyne is a graph-based memory engine for agents implemented in Elixir, based on the PlugMem proposal.",
+      "kind": "blog",
+      "url": "https://elixirforum.com/t/mnemosyne-a-graph-based-memory-engine/75366",
+      "quote": "i implemented it in Elixir, an thus, Mnemosyne was born. It implements the mechanism explained in the article, i'll not go deep on it, but its pretty much a graph with some distinct node types, each holding a distinct type of memory/reference.",
+      "locator": "opening post, paragraph 1\u20132",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval combines vector-similarity search with graph-neighbour expansion.",
+      "kind": "blog",
+      "url": "https://elixirforum.com/t/mnemosyne-a-graph-based-memory-engine/75366",
+      "quote": "These memories are searchable by vector-similarity together with graph-neighbours expansion.",
+      "locator": "opening post, paragraph 2",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Current storage backend is in-memory with DETS offloading; the full graph and embeddings live in memory.",
+      "kind": "blog",
+      "url": "https://elixirforum.com/t/mnemosyne-a-graph-based-memory-engine/75366",
+      "quote": "the library is shipped using a in-memory storage backed by DETS offloading, it means that the whole graph-embeddings is kept and searched in-memory",
+      "locator": "opening post, paragraph 3",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/memory.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/polyphonic_recall.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/veracity_consolidation.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/episodic_graph.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/core/embeddings.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/AxDSan/Mnemosyne/blob/95ef3be20d28bd9ee1d517bcb25ed00000eab577/mnemosyne/mcp_tools.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.mnemosyne.site/llms.txt",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://elixirforum.com/t/mnemosyne-a-graph-based-memory-engine/75366",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": []
+}
