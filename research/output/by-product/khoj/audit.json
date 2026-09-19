@@ -1,0 +1,992 @@
+{
+  "identity": {
+    "id": "khoj",
+    "name": "Khoj",
+    "repo": "https://github.com/khoj-ai/khoj",
+    "docs": "https://docs.khoj.dev/",
+    "license": "AGPL-3.0",
+    "version_or_commit": "ae229ca894c0b80ad84664afcfdde523b5e87057",
+    "observed_at": "2026-09-18"
+  },
+  "claimed_purpose": [
+    {
+      "text": "Server-level memory feature can be disabled, enabled-default-off, or enabled-default-on, overriding user preference"
+    },
+    {
+      "text": "Khoj is presented as a second-brain system that can search personal files and answer questions from them"
+    },
+    {
+      "text": "Khoj is positioned as a personal AI assistant for humans, with a focus on safety and usefulness."
+    },
+    {
+      "text": "Khoj supports personalized AI image generation drawing on user preferences and context."
+    },
+    {
+      "text": "UserMemory is a long-term memory store derived from conversation between user and agent"
+    },
+    {
+      "text": "Khoj is described as featuring long-term stateful memory."
+    },
+    {
+      "text": "Khoj supports semantic search over personal documents."
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Conversation log is persisted to the database after each completed response, including the full query, LLM response, references, online results, code results, operator results, research results, inferred queries, images, train of thought, and relevant memories."
+    },
+    {
+      "text": "Memories are retrieved per-user and per-agent using two strategies: recent memories and semantic search over long-term memories. Results are de-duplicated by ID before being used in the turn."
+    },
+    {
+      "text": "Update path is delete-then-create: the old record is deleted and a new UserMemory is written via UserMemoryAdapters.save_memory, carrying only the new raw content"
+    },
+    {
+      "text": "Khoj has an Automations feature for personalized newsletters, reminders, and more, implying scheduled retrieval of persisted user context."
+    },
+    {
+      "text": "Retrieve-then-prompt: user query retrieves relevant notes via RAG search, then notes plus recent messages are passed to the chat model"
+    },
+    {
+      "text": "Khoj uses a date-aware embedding model called Timely to improve temporal reasoning, relevant to time-sensitive memory retrieval."
+    },
+    {
+      "text": "Khoj supports custom AI agents that can automate workflows and share knowledge, implying scoped persistent state per agent."
+    },
+    {
+      "text": "Khoj has a togglable memory setting that, when disabled, is intended to suppress use of past memories across sessions."
+    },
+    {
+      "text": "Conversation log messages are validated against ChatMessageModel which includes intent with memory_type field"
+    },
+    {
+      "text": "Ollama/offline path hints at dynamic model discovery by restarting the server, with manual entry as fallback."
+    },
+    {
+      "text": "Per-user data isolation enforced at the DB access layer via wrapper functions requiring a user argument"
+    },
+    {
+      "text": "Memories are stored as UserMemory model instances scoped to an authenticated user (per-user isolation)"
+    },
+    {
+      "text": "Generation defaults to conversations updated within the last 7 days; lookback window is configurable"
+    },
+    {
+      "text": "Documents are chunked and stored as vector embeddings using a bi-encoder model at sync time"
+    },
+    {
+      "text": "The database layer persists conversations, agents, files, and users via Django ORM models."
+    },
+    {
+      "text": "Each memory record carries a raw text field, an integer id, and a creation timestamp"
+    },
+    {
+      "text": "Files must be explicitly uploaded or synced; Khoj does not auto-scan the filesystem"
+    },
+    {
+      "text": "Conversation history can be deleted entirely per user and per conversation."
+    },
+    {
+      "text": "Underlying memory layer described as simpler than graph-based alternatives"
+    },
+    {
+      "text": "Per-user memory feature toggle exists at the user level"
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "Khoj is built to be a safe and useful personal AI for humans.",
+      "kind": "blog",
+      "url": "https://blog.khoj.dev/",
+      "quote": "Notes on building safe, useful ai for humans",
+      "locator": "blog tagline",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj integrates with Obsidian as a side-panel AI assistant to augment a user's digital brain.",
+      "kind": "blog",
+      "url": "https://blog.khoj.dev/",
+      "quote": "The Khoj AI assistant now lives in the side panel of Obsidian, allowing you to stay in context while augmenting your digital brain.",
+      "locator": "blog post description, Jun 19 2024",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj uses a custom date-aware embedding model (Timely) to improve temporal reasoning in retrieval.",
+      "kind": "blog",
+      "url": "https://blog.khoj.dev/",
+      "quote": "Timely is an embedding model that improves temporal reasoning in AI systems. Learn how it was developed and how it can enhance date-aware dataset generation and model fine-tuning.",
+      "locator": "blog post description, Aug 14 2024",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj personalizes AI image generation based on user preferences and context, implying some form of persisted user profile.",
+      "kind": "blog",
+      "url": "https://blog.khoj.dev/",
+      "quote": "Khoj offers a unique approach to generating images that are personalized to the user's preferences and context.",
+      "locator": "blog post description, Mar 9 2024",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj supports custom AI agents for workflow automation and knowledge sharing.",
+      "kind": "blog",
+      "url": "https://blog.khoj.dev/",
+      "quote": "Leverage custom AI agents on Khoj to automate workflows and share knowledge.",
+      "locator": "blog post description, Nov 21 2024",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj has an Automations feature enabling personalized scheduled tasks like newsletters and reminders.",
+      "kind": "blog",
+      "url": "https://blog.khoj.dev/",
+      "quote": "A brief tutorial on how to use Khoj's Automations feature",
+      "locator": "blog post description, Jun 14 2024",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj argues that personal AI must be open-source to ensure trust, transparency, and user empowerment.",
+      "kind": "blog",
+      "url": "https://blog.khoj.dev/",
+      "quote": "Exploring the necessity of open-source frameworks in the development of personal AI to ensure trust, transparency, and user empowerment.",
+      "locator": "blog post description, Feb 28 2024",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj uses semantic search to retrieve relevant documents into context.",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/README.md",
+      "quote": "Find relevant docs quickly and easily using our advanced semantic search.",
+      "locator": "Overview section, feature list bullet",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Khoj has been evaluated on retrieval and reasoning benchmarks with claimed strong performance.",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/README.md",
+      "quote": "Read about Khoj's excellent performance on modern retrieval and reasoning benchmarks.",
+      "locator": "New section",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Khoj separates the conversation log (Conversation/messages) from curated memory (UserMemory); memory is extracted facts, not the raw transcript",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/database/management/commands/manage_memories.py",
+      "quote": "from khoj.database.models import (\\n    Conversation,\\n    DataStore,\\n    KhojUser,\\n)\\n... from khoj.database.models import UserMemory",
+      "locator": "imports and handle_delete_memories",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path resolves conflicts by passing existing memories to extract_facts_from_query, which returns explicit create and delete lists, so outdated facts are deleted and new ones created",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/database/management/commands/manage_memories.py",
+      "quote": "memory_updates = await extract_facts_from_query(\\n    user=user,\\n    conversation_history=history,\\n    existing_facts=relevant_memories,\\n    agent=agent,\\n    tracer={},\\n)\\n\\nfor memory in memory_updates.create:\\n    await UserMemoryAdapters.save_memory(user, memory, agent=agent)\\n...\\nfor memory in memory_updates.delete:\\n    await UserMemoryAdapters.delete_memory(user, memory)",
+      "locator": "process_conversation_batch, apply branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval before write combines a recency pull (pull_memories) and a semantic search (search_memories) on the user query, deduplicated by id",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/database/management/commands/manage_memories.py",
+      "quote": "recent_memories = await UserMemoryAdapters.pull_memories(user=user, agent=agent)\\nlong_term_memories = await UserMemoryAdapters.search_memories(query=q, user=user, agent=agent)\\nrelevant_memories = list({m.id: m for m in recent_memories + long_term_memories}.values())",
+      "locator": "process_conversation_batch, retrieval block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget is a hard delete from the UserMemory store, not a hide-at-retrieve or omit-in-generation approach",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/database/management/commands/manage_memories.py",
+      "quote": "deleted_count, _ = await user_memories.adelete()",
+      "locator": "handle_delete_memories, apply branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory generation is scoped to conversation turns updated within a configurable lookback window (default 7 days)",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/database/management/commands/manage_memories.py",
+      "quote": "if lookback_days is None:\\n    lookback_days = 7\\ncutoff_date = timezone.now() - timedelta(days=lookback_days)",
+      "locator": "async_handle, generation mode",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Checkpoint progress is persisted in the DataStore model (key: memory_generation_checkpoint) enabling resumable batch memory generation",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/database/management/commands/manage_memories.py",
+      "quote": "await DataStore.objects.aupdate_or_create(\\n    key=\"memory_generation_checkpoint\", defaults={\"value\": checkpoint, \"private\": True}\\n)",
+      "locator": "update_checkpoint",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "UserMemory is a curated long-term memory store distinct from the raw conversation log, derived from user-agent conversation",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/database/models/__init__.py",
+      "quote": "Long term memory store derived from conversation between user and agent.",
+      "locator": "class UserMemory docstring",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conversation log is a full transcript (log), not a curated memory; it stores all chat messages as JSON",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/database/models/__init__.py",
+      "quote": "conversation_log = models.JSONField(default=dict)",
+      "locator": "class Conversation, field conversation_log",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory feature has both per-user opt-in/out (enable_memory) and server-level override (memory_mode)",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/database/models/__init__.py",
+      "quote": "enable_memory = models.BooleanField(default=True)",
+      "locator": "class UserConversationConfig, field enable_memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Server can disable memory entirely overriding user preference",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/database/models/__init__.py",
+      "quote": "Server-level memory feature configuration. Disabled overrides user preference.",
+      "locator": "ServerChatSettings.memory_mode field help_text",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "UserMemory is isolated per user and optionally scoped to a specific agent",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/database/models/__init__.py",
+      "quote": "user = models.ForeignKey(KhojUser, on_delete=models.CASCADE)\n    agent = models.ForeignKey(Agent, on_delete=models.CASCADE, default=None, null=True, blank=True)",
+      "locator": "class UserMemory, fields user and agent",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "UserMemory uses vector embeddings via VectorField for semantic retrieval",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/database/models/__init__.py",
+      "quote": "embeddings = VectorField(dimensions=None)",
+      "locator": "class UserMemory, field embeddings",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conversation messages carry an intent field with a memory-type attribute, suggesting the system classifies turns by memory intent",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/database/models/__init__.py",
+      "quote": "memory_type: Optional[str] = Field(alias=\"memory-type\", default=None)",
+      "locator": "class Intent, field memory_type",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The write path for conversation log supports deleting the last message (pop), persisting the removal",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/database/models/__init__.py",
+      "quote": "popped_message_dict = chat_log.pop()\n        await self.asave()",
+      "locator": "class Conversation.pop_message",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Khoj maintains two distinct persistence layers: a full conversation log (ChatMessageModel) and a curated UserMemory store updated by an AI process after each turn.",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/processor/conversation/utils.py",
+      "quote": "from khoj.database.models import (\n    ChatMessageModel,\n    ...\n    UserMemory,\n)",
+      "locator": "imports, top of file",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "ai_update_memories is called after every non-automation turn, receiving both the new conversation messages and any previously retrieved relevant_memories.",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/processor/conversation/utils.py",
+      "quote": "if not automation_id:\n        # Don't update memories from automations, as this could get noisy.\n        await ai_update_memories(\n            user=user,\n            conversation_history=new_messages or [],\n            memories=relevant_memories,\n            agent=db_conversation.agent if db_conversation else None,\n            tracer=tracer,\n        )",
+      "locator": "save_to_conversation_log",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieved memories are injected into the prompt with a timestamp and a soft instruction to ignore irrelevant ones; the model is not forced to use them.",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/processor/conversation/utils.py",
+      "quote": "memory_context = \"Your memory system retrieved the following memories about me based on our previous conversations. Ignore them if they are not relevant to the query.\\n<retrieved_memories>\\n\"",
+      "locator": "generate_chatml_messages_with_context",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "The conversation history window is token-budget-bounded per model, with oldest messages dropped first to stay under the limit; system message is always preserved.",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/processor/conversation/utils.py",
+      "quote": "while total_tokens > max_prompt_size and (len(messages) > 1 or len(messages[0].content) > 1):",
+      "locator": "truncate_messages",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Conversation log (full transcript) and curated memories are stored as separate structures; chat_history is the message log, relevant_memories is a de-duplicated set from recent + semantic search.",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/routers/api_chat.py",
+      "quote": "chat_history = conversation.messages\n    ...\n    recent_memories = await UserMemoryAdapters.pull_memories(user=user, agent=agent)\n    long_term_memories = await UserMemoryAdapters.search_memories(query=q, user=user, agent=agent)\n    relevant_memories = list({m.id: m for m in recent_memories + long_term_memories}.values())",
+      "locator": "event_generator function",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory retrieval uses two policies in combination: pull_memories (recency-based) and search_memories (semantic/query-based), merged and de-duplicated by ID.",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/routers/api_chat.py",
+      "quote": "recent_memories = await UserMemoryAdapters.pull_memories(user=user, agent=agent)\n        long_term_memories = await UserMemoryAdapters.search_memories(query=q, user=user, agent=agent)\n        # Create a de-duped set of memories\n        relevant_memories = list({m.id: m for m in recent_memories + long_term_memories}.values())",
+      "locator": "event_generator function, memory retrieval block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Full conversation log is persisted after each turn via save_to_conversation_log, which stores query, response, references, tool results, train-of-thought, and memories together.",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/routers/api_chat.py",
+      "quote": "asyncio.create_task(\n        save_to_conversation_log(\n            q,\n            chat_response=full_response,\n            user=user,\n            compiled_references=compiled_references,\n            online_results=online_results,\n            code_results=code_results,\n            operator_results=operator_results,\n            research_results=research_results,\n            inferred_queries=inferred_queries,\n            client_application=user_scope.client_app,\n            conversation_id=str(conversation.id),\n            query_images=uploaded_images,\n            train_of_thought=train_of_thought,\n            raw_query_files=raw_query_files,\n            relevant_memories=relevant_memories,\n            generated_images=generated_images,\n            generated_mermaidjs_diagram=generated_mermaidjs_diagram,\n            tracer=tracer,\n        )\n    )",
+      "locator": "event_generator function, post-streaming save",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Individual messages can be deleted by turn ID, providing fine-grained forget at the turn level.",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/routers/api_chat.py",
+      "quote": "success = ConversationAdapters.delete_message_by_turn_id(\n        user, delete_request.conversation_id, delete_request.turn_id\n    )",
+      "locator": "delete_message endpoint, DELETE /conversation/message",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Entire conversation history can be deleted (forget at conversation level).",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/routers/api_chat.py",
+      "quote": "await ConversationAdapters.adelete_conversation_by_user(user, request.user.client_app, conversation_id)",
+      "locator": "clear_chat_history endpoint, DELETE /history",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Interrupted turns are recoverable: partial context (references, online results, research, operator context, train-of-thought) saved mid-turn is popped and reused on the next request.",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/routers/api_chat.py",
+      "quote": "if last_message := await conversation.pop_message(interrupted=True):\n        # Populate context from interrupted message\n        online_results = {key: val.model_dump() for key, val in last_message.onlineContext.items() or []}\n        ...logger.info(f\"Loaded interrupted partial context from conversation {conversation_id}.\")",
+      "locator": "event_generator function, interrupted message recovery block",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Khoj maintains a curated per-user memory store (UserMemory) that is separate from the conversation message log",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/routers/api_memories.py",
+      "quote": "from khoj.database.models import UserMemory",
+      "locator": "import block, line 12",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory records expose id, raw text content, and created_at timestamp; no embedding vector or retrieval score is exposed at this layer",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/routers/api_memories.py",
+      "quote": "\"id\": memory.id,\n            \"raw\": memory.raw,\n            \"created_at\": memory.created_at.isoformat(),",
+      "locator": "get_memories, lines 32-34",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hard delete is supported: a memory can be permanently removed from the store by authenticated owner via DELETE /{memory_id}",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/routers/api_memories.py",
+      "quote": "await memory.adelete()",
+      "locator": "delete_memory, line 55",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The update mechanism supersedes (delete + recreate) rather than in-place mutating, so update effectively resets the record's identity",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/routers/api_memories.py",
+      "quote": "await memory.adelete()\n\n    # Create a new memory with the updated content\n    new_memory = await UserMemoryAdapters.save_memory(\n        user=user,\n        memory=new_content,\n    )",
+      "locator": "update_memory, lines 88-94",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per authenticated user; queries always filter by user=user before any read, update, or delete",
+      "kind": "code",
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/routers/api_memories.py",
+      "quote": "memories = UserMemory.objects.filter(user=user)",
+      "locator": "get_memories, line 27",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Agents are scaffold-only on this page: they configure a system prompt (personality) but no persist, retrieve, update, forget, or isolation mechanisms are described",
+      "kind": "docs",
+      "url": "https://docs.khoj.dev/features/agents/",
+      "quote": "You can use agents to setup custom system prompts with Khoj. The server host can setup their own agents, which are accessible to all users.",
+      "locator": "Agents page, opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Access isolation is per-agent via a public flag or per-user via a Creator field, but this applies to who can use an agent, not to memory isolation",
+      "kind": "docs",
+      "url": "https://docs.khoj.dev/features/agents/",
+      "quote": "You have to set it to public in order for it to be accessible to all the users on your server. To limit access to a specific user, do not set the public flag and add the user in the Creator field.",
+      "locator": "Creating an Agent (Self-Hosted) section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj uses RAG to retrieve notes relevant to the user query and injects them with recent messages into the chat model prompt",
+      "kind": "docs",
+      "url": "https://docs.khoj.dev/features/chat/",
+      "quote": "Your query is used to retrieve the most relevant notes, if any, using Khoj search using RAG. These notes, the last few messages and associated metadata is passed to the enabled chat model along with your query to generate a response",
+      "locator": "Details",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval scope can be narrowed to specific files via conversation file filters",
+      "kind": "docs",
+      "url": "https://docs.khoj.dev/features/chat/",
+      "quote": "You can use conversation file filters to limit the notes used in the chat response.",
+      "locator": "Conversation File Filters",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Khoj stores vector embeddings of document chunks and retrieves them at query time \u2014 this is retrieve-then-prompt, not curated memory across sessions",
+      "kind": "docs",
+      "url": "https://docs.khoj.dev/features/search/",
+      "quote": "When you sync your documents with Khoj, it uses the bi-encoder model to create and store meaning vectors of (chunks of) your documents",
+      "locator": "Implementation Overview section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The search model config is session-scoped at startup, not per-user or per-conversation",
+      "kind": "docs",
+      "url": "https://docs.khoj.dev/features/search/",
+      "quote": "Khoj uses the first search model config named default it finds on startup as the search model config for that session",
+      "locator": "Footnotes section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj supports syncing files and folders as a knowledge source via desktop, Obsidian, and Emacs clients, and Notion via the web app.",
+      "kind": "docs",
+      "url": "https://docs.khoj.dev/get-started/setup/",
+      "quote": "Khoj can keep your files and folders synced using the Khoj Desktop, Obsidian or Emacs clients. Your Notion workspace can be directly synced from the web app.",
+      "locator": "Sync your Knowledge section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj uses a database (Postgres) as its backing store, which can be deleted on uninstall.",
+      "kind": "docs",
+      "url": "https://docs.khoj.dev/get-started/setup/",
+      "quote": "delete khoj postgres db\ndropdb khoj -U postgres",
+      "locator": "Uninstall Server section, Pip tab",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj can use an embedded database as an alternative to Postgres.",
+      "kind": "docs",
+      "url": "https://docs.khoj.dev/get-started/setup/",
+      "quote": "USE_EMBEDDED_DB=\"true\" khoj --anonymous-mode",
+      "locator": "2. Start Khoj Server section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj retrieves from user-shared files when relevant, suggesting conditional/adaptive retrieval rather than always-on recall.",
+      "kind": "docs",
+      "url": "https://docs.khoj.dev/",
+      "quote": "It'll use files you shared with it to respond, when relevant.",
+      "locator": "Introduction section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj retrieves from user documents (PDF, Markdown, Notion, Word, org-mode) to answer questions, but the page describes only retrieve-then-prompt; no persist/update/forget/conflict mechanisms are described.",
+      "kind": "docs",
+      "url": "https://github.com/khoj-ai/khoj/blob/master/README.md",
+      "quote": "Get answers from the internet and your docs (including image, pdf, markdown, org-mode, word, notion files).",
+      "locator": "Overview",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "As of this issue, Khoj agents lack conversational memory backed by persistent storage across sessions",
+      "kind": "issue",
+      "url": "https://github.com/khoj-ai/khoj/issues/1097",
+      "quote": "Are there any plans to add conversational memory to agents, which is backed up to a storage of some kind to be able to continue on past conversations with agents?",
+      "locator": "issue body",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A user proposes that Khoj's agent should support a memory mechanism where full datasets from API calls are stored in memory, a summary/schema is generated and assigned a memory ID, and the LLM references the ID in future steps rather than the full data",
+      "kind": "issue",
+      "url": "https://github.com/khoj-ai/khoj/issues/1169",
+      "quote": "To solve these issues, the agent should support a memory mechanism:\n- When the agent receives data from an API, it should store the full dataset in memory.\n- It then generates a summary (schema or metadata) and assigns a memory ID.\n- The LLM can refer to this memory ID in future steps to operate on the actual data without needing to reprocess or resend it.\n- The agent can then fetch the data from memory using the ID and pass it to the next API or execution step (e.g., a Python sandbox).",
+      "locator": "Proposed Solution",
+      "confidence": "unknown",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj maintains persistent chat sessions identified by a conversationId UUID, suggesting conversation state is stored and retrievable across requests.",
+      "kind": "issue",
+      "url": "https://github.com/khoj-ai/khoj/issues/1215",
+      "quote": "GET /chat?conversationId=e2fd08ad-c4d9-4049-9d0a-7a389b9a45aa HTTP/1.1\" 200",
+      "locator": "Current Behavior / console log",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj can be run with an embedded database, suggesting local persistent storage of state without an external DB dependency.",
+      "kind": "issue",
+      "url": "https://github.com/khoj-ai/khoj/issues/1215",
+      "quote": "USE_EMBEDDED_DB=\"true\" KHOJ_TELEMETRY_DISABLE=\"true\" khoj --anonymous-mode",
+      "locator": "Current Behavior / reproduction commands",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "A forked conversation retains the source user's private agent reference, causing that agent's persona, tools, output modes, and potentially chat model to be applied to the recipient's chat session without authorization.",
+      "kind": "issue",
+      "url": "https://github.com/khoj-ai/khoj/issues/1327",
+      "quote": "the inherited private agent is still used by chat behavior before/around retrieval, including agent persona/system prompt construction, input/output tool selection, and in some cases agent chat-model selection. That means a public conversation slug/fork can carry a security-sensitive private agent reference across users without reauthorization.",
+      "locator": "Describe the bug",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User expected that disabling memories would allow Khoj to function normally, just without referencing past memories \u2014 indicating memories are understood as cross-session persistent state.",
+      "kind": "issue",
+      "url": "https://github.com/khoj-ai/khoj/issues/1287",
+      "quote": "I expected to work normally, just without using past memories.",
+      "locator": "Expected Behavior",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The memory toggle is surfaced in Settings under a 'Memories' section with an 'Enable Memories' checkbox, suggesting opt-in/opt-out control over persistent memory.",
+      "kind": "issue",
+      "url": "https://github.com/khoj-ai/khoj/issues/1287",
+      "quote": "Go to Settings, Scroll down until \"Memories\" and disable \"Enable Memories\"",
+      "locator": "Reproduction Steps",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "User proposed disabling memory by default as a workaround, implying memory is on by default in Khoj.",
+      "kind": "issue",
+      "url": "https://github.com/khoj-ai/khoj/issues/1287",
+      "quote": "Disable the Memory option by default.",
+      "locator": "Possible Workaround",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agent persona leaks across user boundaries via conversation fork: a recipient user can receive and use a private agent's persona/instructions without owning or having access to that agent.",
+      "kind": "issue",
+      "url": "https://github.com/khoj-ai/khoj/issues/1327",
+      "quote": "PASS: final chat system prompt uses inherited private agent personality",
+      "locator": "Current Behavior / static verification checks",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The suggested fix is to check agent accessibility at fork time and fall back to the default public agent if the recipient cannot access the source agent.",
+      "kind": "issue",
+      "url": "https://github.com/khoj-ai/khoj/issues/1327",
+      "quote": "agent = public_conversation.agent\nif agent and not await AgentAdapters.ais_agent_accessible(agent, user):\n    agent = await AgentAdapters.aget_default_agent()",
+      "locator": "Additional Information / Suggested fix",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Chat with type=summarize failed to ground responses in embedded Obsidian notes, producing context-free (hallucinated) replies despite the index being updated.",
+      "kind": "issue",
+      "url": "https://github.com/khoj-ai/khoj/issues/137",
+      "quote": "The chat responded with information that had no context about my notes, despite trying many ways of phrasing questions. Is the summarize type prone to hallucination, or is it supposed to specifically use the context of embedded documents?",
+      "locator": "Issue body, Result section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj agents forget everything between sessions",
+      "kind": "issue",
+      "url": "https://github.com/khoj-ai/khoj/issues/1402",
+      "quote": "agents built on it forget everything between sessions",
+      "locator": "issue body, paragraph 1",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj's scheduled automation workflows run intent detection, summarization, and synthesis unattended, all consuming the same configured model by default.",
+      "kind": "issue",
+      "url": "https://github.com/khoj-ai/khoj/issues/1415",
+      "quote": "An automation that fires daily does its intent detection and synthesis on the same model that writes the final newsletter",
+      "locator": "issue body, section 'Two cost-shape observations from running mixed-model setups'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj officially documents an OpenAI-compatible proxy path via a base URL field on the AI Model API entry.",
+      "kind": "issue",
+      "url": "https://github.com/khoj-ai/khoj/issues/1415",
+      "quote": "Khoj's official use-openai-proxy documentation already blesses the gateway pattern (the AI Model API entry has a base URL field described as \"only relevant if you're using another OpenAI-compatible proxy server\")",
+      "locator": "issue body, section 'Why I'm writing'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Model discovery for local providers (Ollama) is partially automated via server restart, but remote OpenAI-compatible endpoints still require manual row-per-model entry.",
+      "kind": "issue",
+      "url": "https://github.com/khoj-ai/khoj/issues/1415",
+      "quote": "the docs mention restarting the server to load models available on the local provider, with manual entry as the fallback",
+      "locator": "issue body, section 'A question about dynamic model discovery'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "RAG is used as part of chat response generation and its execution time is a tracked metric of interest",
+      "kind": "issue",
+      "url": "https://github.com/khoj-ai/khoj/issues/517",
+      "quote": "Time to do RAG",
+      "locator": "Information that come to mind (bullet list)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Per-user data isolation is enforced by restricting DB access to wrapper functions that require a user argument, tested with a unit test to prevent cross-shard access",
+      "kind": "issue",
+      "url": "https://github.com/khoj-ai/khoj/issues/527",
+      "quote": "Add unit test to prevent cross-shard access \u2014 Ensure access to DB from API controllers only via wrapper function that need user argument. Do not work directly with Django DB models",
+      "locator": "checklist item",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Scale testing scope includes memory utilization and search/chat latency as user count and ingested data grow",
+      "kind": "issue",
+      "url": "https://github.com/khoj-ai/khoj/issues/527",
+      "quote": "How much users * data can be ingested. It's effects on memory utilization and search, chat latency.",
+      "locator": "checklist item, sub-note under 'Test Performance of Khoj at scale'",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj is a fully self-hosted AI second brain with a built-in RAG pipeline and multi-client chat interfaces",
+      "kind": "blog",
+      "url": "https://adityaarsharma.com/ai-memory-tools-compared/",
+      "quote": "A fully self-hosted AI second brain with chat interfaces for Obsidian, Emacs, WhatsApp, desktop, browser, and phone. Notion connector, local Ollama support, built-in RAG pipeline.",
+      "locator": "Section 6: Khoj: the closest thing to a second-brain app in a box",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj's underlying memory layer is simpler than Graphiti or MemPalace, implying no bi-temporal graph or verbatim store",
+      "kind": "blog",
+      "url": "https://adityaarsharma.com/ai-memory-tools-compared/",
+      "quote": "Underlying memory layer is simpler than Graphiti or MemPalace.",
+      "locator": "Section 6: Khoj: the closest thing to a second-brain app in a box \u2014 Weaknesses",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj has an active community and is positioned as the best ready-to-deploy second brain app",
+      "kind": "blog",
+      "url": "https://adityaarsharma.com/ai-memory-tools-compared/",
+      "quote": "Active community. Local-first privacy story. Verdict: the best 'download and use' option.",
+      "locator": "Section 6: Khoj: the closest thing to a second-brain app in a box \u2014 Strengths / Verdict",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj has no published LongMemEval benchmark score",
+      "kind": "blog",
+      "url": "https://adityaarsharma.com/ai-memory-tools-compared/",
+      "quote": "n/a",
+      "locator": "The 7 AI memory tools that actually matter (at a glance) \u2014 table, Benchmark note column, Khoj row",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj also functions as a WhatsApp-accessible assistant",
+      "kind": "blog",
+      "url": "https://adityaarsharma.com/ai-memory-tools-compared/",
+      "quote": "Khoj WhatsApp: also fits here.",
+      "locator": "Messaging-first AI assistants \u2014 Other AI memory frameworks section",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj functions as a personal second brain by indexing user-provided files and enabling natural-language queries over them",
+      "kind": "blog",
+      "url": "https://chriscolon.com/articles/i-installed-khoj-on-linux/",
+      "quote": "It is made to work like a second brain. It can search your own files and answer questions from them.",
+      "locator": "Why I Wanted Khoj",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Memory is not automatic; the user must explicitly upload or configure file sources for Khoj to index",
+      "kind": "blog",
+      "url": "https://chriscolon.com/articles/i-installed-khoj-on-linux/",
+      "quote": "Khoj does not automatically scan every folder on your computer because it is installed. You have to upload files, configure a source, or create a sync process.",
+      "locator": "The Mistakes I Made",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The backing store uses PostgreSQL with the pgvector extension, implying vector-based retrieval over indexed documents",
+      "kind": "blog",
+      "url": "https://chriscolon.com/articles/i-installed-khoj-on-linux/",
+      "quote": "Khoj needed PostgreSQL... Khoj needed the pgvector extension.",
+      "locator": "The Install Was Harder Than Expected",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj is stateful and maintains long-term memory across sessions, unlike stateless chatbots.",
+      "kind": "blog",
+      "url": "https://hoangyell.com/khoj-explained/",
+      "quote": "Unlike standard chatbots that are completely stateless, Khoj features long-term stateful memory and an automated RAG pipeline with precise file-level source citations.",
+      "locator": "TL;DR / Why Khoj stands out",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Khoj retrieves top-k semantically similar document chunks and passes them as context to the LLM each turn.",
+      "kind": "blog",
+      "url": "https://hoangyell.com/khoj-explained/",
+      "quote": "Khoj performs semantic similarity search over your corpus, retrieves the top-k relevant chunks, and passes them as context to the LLM - classic RAG, but deeply integrated.",
+      "locator": "Part 2: The Investigation - Document Ingestion Pipeline",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Conversations, agents, files, and users are persisted in a Django ORM-backed database.",
+      "kind": "blog",
+      "url": "https://hoangyell.com/khoj-explained/",
+      "quote": "database/ \u2014 Django ORM models - conversations, agents, files, users",
+      "locator": "Part 2: The Investigation - Source Code Structure",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Agent isolation is per-agent: each agent has its own knowledge base, model, system prompt, and tools.",
+      "kind": "blog",
+      "url": "https://hoangyell.com/khoj-explained/",
+      "quote": "Each agent gets its own chat endpoint. You could have a 'Research Analyst' agent reading academic PDFs and a 'Marketing Copywriter' agent reading brand guidelines - both running on the same Khoj server.",
+      "locator": "Part 3: The Diagnosis - Use Case 2: Custom AI Agents",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The Obsidian plugin indexes the user's vault automatically into Khoj's vector store.",
+      "kind": "blog",
+      "url": "https://hoangyell.com/khoj-explained/",
+      "quote": "Obsidian Plugin: Install the Khoj plugin \u2192 it indexes your vault automatically",
+      "locator": "Part 4: The Resolution - Add Your Knowledge Base",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/routers/api_memories.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/database/management/commands/manage_memories.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/processor/conversation/utils.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/routers/api_chat.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/khoj-ai/khoj/blob/ae229ca894c0b80ad84664afcfdde523b5e87057/src/khoj/database/models/__init__.py",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.khoj.dev/",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/khoj-ai/khoj/blob/master/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.khoj.dev/get-started/setup/",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.khoj.dev/features/agents/",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.khoj.dev/features/search/",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://docs.khoj.dev/features/chat/",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/khoj-ai/khoj/issues/1097",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/khoj-ai/khoj/issues/137",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/khoj-ai/khoj/issues/1327",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/khoj-ai/khoj/issues/1215",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/khoj-ai/khoj/issues/1402",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/khoj-ai/khoj/issues/1169",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/khoj-ai/khoj/issues/1287",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/khoj-ai/khoj/issues/527",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/khoj-ai/khoj/issues/517",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://github.com/khoj-ai/khoj/issues/1415",
+      "kind": "issue",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://blog.khoj.dev/",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://adityaarsharma.com/ai-memory-tools-compared/",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://hoangyell.com/khoj-explained/",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    },
+    {
+      "url": "https://chriscolon.com/articles/i-installed-khoj-on-linux/",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "No response from maintainers on this issue is present in the extracted text; it is unclear whether persistent conversational memory for agents was planned, accepted, or shipped after this issue was filed",
+      "url": "https://github.com/khoj-ai/khoj/issues/1097",
+      "kind": "issue"
+    },
+    {
+      "text": "Whether the summarize chat type is designed to retrieve embedded document context into the prompt, or operates without retrieval \u2014 the page raises the question but provides no answer.",
+      "url": "https://github.com/khoj-ai/khoj/issues/137",
+      "kind": "issue"
+    }
+  ]
+}
