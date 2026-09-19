@@ -1,0 +1,838 @@
+{
+  "identity": {
+    "id": "llm-wiki-cli",
+    "name": "llm-wiki-cli",
+    "repo": "https://github.com/JanYork/llm-wiki-cli",
+    "docs": "https://github.com/JanYork/llm-wiki-cli/blob/main/README.md",
+    "license": "Apache-2.0",
+    "version_or_commit": "11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe",
+    "observed_at": "2026-09-18"
+  },
+  "claimed_purpose": [
+    {
+      "text": "The bundled using-lwc Skill turns LWC into a proactive memory layer that recalls bounded context and writes back only verified knowledge worth reusing"
+    },
+    {
+      "text": "Turns curated documents into a durable Wiki that compounds instead of being rediscovered from raw chunks on every query"
+    }
+  ],
+  "mechanisms": [
+    {
+      "text": "Write path: a memory event is a structured capsule with typed semantic fragment kinds (observed, decision, constraint, learned, unresolved, outcome), changes (before/after/reason), evidence references, and inter-event relations. At least one semantic entry is required."
+    },
+    {
+      "text": "Portable memory archives let agents package and merge a wiki between stores; imports stage a resumable merge; whole-store overwrite requires separate human confirmation; existing memory is never replaced implicitly"
+    },
+    {
+      "text": "Search is lexical and deterministic (no vector database); supports explicit auditable document weights and query-specific feedback fingerprints for reranking; neither mechanism can surface unrelated content"
+    },
+    {
+      "text": "Conflict/supersession: corrections invalidate related conclusions transitively including answers depending on a changed question; unrelated conclusions remain fresh; cyclic references are rejected"
+    },
+    {
+      "text": "Agents are instructed to read a designated memory file at the start of substantive work; this file holds a concise project map, documentation map, wiki entry points, and maintenance triggers."
+    },
+    {
+      "text": "Retrieval ranking is adjusted by two persisted tables: retrieval_weights (manual per-document boosts) and retrieval_feedback (per-query-fingerprint signals), both with provenance tracking."
+    },
+    {
+      "text": "Two scopes isolating knowledge: project (nearest project Wiki) and global (reusable across projects); writes always target one explicit store, no implicit cross-project citations or links"
+    },
+    {
+      "text": "Retrieve policy: agents search the LWC Wiki with a scoped search command, then open only relevant pages and current source/code evidence \u2014 adaptive retrieval rather than always-load."
+    },
+    {
+      "text": "Retrieve path: full-text search via FTS5 with BM25 ranking (weights: event_type 2.0, context 4.0, content 1.0); filtered by max_age_days window with protected-event override."
+    },
+    {
+      "text": "The companion Skill (using-lwc) implements a proactive memory layer: recalls bounded context, keeps project and global knowledge separate, writes back only verified knowledge"
+    },
+    {
+      "text": "Plan and Todo isolate lifecycle context by Agent session and, where supported, by subagent; each Agent sees only explicitly tracked work for its opaque context"
+    },
+    {
+      "text": "Durable Discussion records preserve visible clarification Q/A in SQLite with granular corrections and evidence-linked summaries (new in 0.18.0)"
+    },
+    {
+      "text": "Search is lexical (FTS5 contentless table), not semantic/vector; an empty result does not prove knowledge is absent."
+    },
+    {
+      "text": "SQLite is the canonical store; Markdown, full-text indexes, and optional graph stores are rebuildable projections"
+    },
+    {
+      "text": "Forget / archive policy: agents must archive before permanently deleting brain knowledge."
+    },
+    {
+      "text": "Guarded deletion: sources with citations and pages with inbound links are refused removal"
+    },
+    {
+      "text": "Secrets must never be written to the memory store."
+    }
+  ],
+  "ledger": [
+    {
+      "claim": "LWC stores persistent knowledge in SQLite as the canonical store; Markdown, full-text indexes, and optional graph stores are rebuildable projections, not canonical",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/README.md",
+      "quote": "SQLite is canonical. Markdown, full-text indexes, and optional graph stores are rebuildable projections. Agents update knowledge through the CLI; successful operations return structured JSON that can be audited and resumed.",
+      "locator": "README.md \u00a7 Core Design",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Temporal memory is a curated event log (normalized, not raw transcripts), separate from the Wiki which holds current stable knowledge \u2014 two distinct persistence layers",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/README.md",
+      "quote": "Events are normalized rather than stored as raw chat transcripts, and similar events are never silently merged.",
+      "locator": "README.md \u00a7 Temporal Memory",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/delete is guarded: pages with inbound links and sources with citations are refused for deletion; no silent removal",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/README.md",
+      "quote": "Use source remove <id> and page remove <id> for guarded deletion: sources with citations and pages with inbound links are refused.",
+      "locator": "README.md \u00a7 Maintenance and Projection",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict resolution fails closed: same-entity revision conflicts in changesets do not overwrite either side and there is no automatic merge",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/README.md",
+      "quote": "a same-entity revision conflict fails without overwriting either side... There is no force or automatic merge.",
+      "locator": "README.md \u00a7 Atomic Multi-command Changes",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Knowledge isolation is per-scope (project vs global); writes always target one explicit store; no implicit cross-project citations or links",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/README.md",
+      "quote": "Writes always target one explicit store. LWC never creates implicit cross-project citations or links.",
+      "locator": "README.md \u00a7 Scopes",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is page-first (maintained Wiki answers) before raw source evidence; agents expand to source only when a claim needs verification",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/README.md",
+      "quote": "Search is page-first and source-grounded. Agents retrieve maintained answers first, then open exact source evidence when a claim needs verification.",
+      "locator": "README.md \u00a7 Quick Start \u00a7 4. Query the accumulated Wiki",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Scaffold: the using-lwc Skill provides instructions that tell the Agent how to use the memory system \u2014 when to recall, how to write back only verified knowledge, how to keep scopes separate",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/README.md",
+      "quote": "The bundled using-lwc Skill turns LWC into a proactive memory layer. It recalls bounded context, keeps project and global knowledge separate, integrates sources, preserves citations, and writes back only verified knowledge worth reusing.",
+      "locator": "README.md \u00a7 Companion Agent Skill",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LongMemEval-S retrieval baseline (v0.18.5, 500 questions, lexical retrieval only, no model-led curation or weight tuning): Recall@5 95.11%, Recall@10 97.66%, MRR 0.8837",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/README.md",
+      "quote": "This is an untuned retrieval baseline, not a ceiling on LWC's effectiveness over continued use... Recall@5 | 95.11% (447/470) ... MRR | 0.883668",
+      "locator": "README.md \u00a7 Benchmark Suite \u00a7 LongMemEval-S retrieval results (v0.18.5)",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Multi-machine sync reconciles project or global memory over SSH; merge preserves unique objects from both sides; conflicts returned as bounded packets for explicit resolution; sessions are durable and resumable",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/README.md",
+      "quote": "Sync reconciles project memory, global memory, or both over SSH while keeping semantic Wiki state separate from Git publication. Merge preserves unique objects from both sides; conflicts are returned as bounded packets for explicit resolution. Sessions are durable and resumable.",
+      "locator": "README.md \u00a7 Multi-machine Sync",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Plan and Todo isolation is per Agent session (and per subagent where the host exposes it); each Agent sees only explicitly tracked work for its opaque context",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/README.md",
+      "quote": "Bounded lifecycle context isolates Plan and Todo progress by Agent session and, where the host exposes it, by subagent. Each Agent sees only explicitly tracked work for its opaque context.",
+      "locator": "README.md \u00a7 Durable Todo and current Plan",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LWC exposes memory retrieval and discussion persistence over MCP; the server itself is read-only for Wiki memory and CodeGraph, with writes confined to the discussion_apply action in project SQLite",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/mcp.rs",
+      "quote": "\"annotations\": {\"readOnlyHint\": true, \"destructiveHint\": false, \"idempotentHint\": true, \"openWorldHint\": false}",
+      "locator": "explore_tool() and codegraph_tool() annotations",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory retrieve is adaptive by scope (project vs global) and mode (memory/code/all), not always-retrieve; absent a store the response degrades to state:unavailable rather than failing",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/mcp.rs",
+      "quote": "let scope = match scope_text {\n    \"project\" => Scope::Project,\n    \"global\" => Scope::Global,\n    _ => Scope::All,\n};",
+      "locator": "explore()",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Discussion persistence uses project SQLite with CAS and stable IDs; the 'current' and 'history' actions support recovering state after context compaction",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/mcp.rs",
+      "quote": "Recover current bound discussion after compaction.",
+      "locator": "discussion_tool() description",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The store path for project memory is .lwc/wiki.db under the project directory",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/mcp.rs",
+      "quote": "let store = crate::scope::StorePath::new(Scope::Project, project.join(\".lwc/wiki.db\"));",
+      "locator": "call_codegraph() \u2014 requireFresh branch",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "MCP server identifies itself as 'lwc' with version from CARGO_PKG_VERSION",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/mcp.rs",
+      "quote": "\"serverInfo\": {\"name\": \"lwc\", \"version\": env!(\"CARGO_PKG_VERSION\")}",
+      "locator": "handle() \u2192 initialize",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Sources (raw documents) and pages (curated wiki entries) are stored in separate SQLite tables, representing a two-tier architecture: a raw log layer and a curated memory layer",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/content_search.rs",
+      "quote": "tx.execute(\"DELETE FROM sources WHERE id = ?1\", params![id])?;\n        ...\n        tx.execute(\"DELETE FROM pages WHERE slug = ?1\", params![slug])?;",
+      "locator": "Store::source_remove, Store::page_remove",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Deletion from the store is hard deletion: rows are removed from sources/pages, FTS index, retrieval_weights, retrieval_feedback, and search_spans are deactivated \u2014 there is no soft-delete or hide-at-retrieve path visible in this file",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/content_search.rs",
+      "quote": "deactivate_search_spans(&tx, \"source\", &id.to_string())?;",
+      "locator": "Store::source_remove",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval ranking is influenced by persisted retrieval_weights and retrieval_feedback, meaning past retrieval events can affect future ranking",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/content_search.rs",
+      "quote": "apply_retrieval_state(&self.conn, &tokens, &mut results)?;",
+      "locator": "Store::search_with_options",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "All mutations are appended to an operations log (record_operation), providing an audit trail separate from the entity tables",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/content_search.rs",
+      "quote": "record_operation(&tx, \"page_put\", &input.slug, &json!({ \"created\": !existed }))?;",
+      "locator": "Store::page_put",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "The store carries a 'scope' field on every response, indicating that isolation boundaries exist at the store level; the isolation mechanism (per-user, per-agent, per-character) is not described in this file",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/content_search.rs",
+      "quote": "scope: self.scope.clone(),",
+      "locator": "multiple response constructors",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph relations are written with typed edges, provenance, confidence, and source citations, and trigger async graph projection work after each write.",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/graph_ingest.rs",
+      "quote": "graph_relation_set_value(\n            &mut self.conn,\n            &self.scope,\n            from,\n            relation_type,\n            to,\n            provenance,\n            reason,\n            confidence,\n            source_ids,\n        )?;\n        let document = self.graph_owner_document(from)?;\n        if let Some(work) = self.schedule_graph_documents(&[document])? {\n            response[\"work\"] = work;\n        }",
+      "locator": "impl Store / graph_relation_set",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph relations can be retracted (deleted) from the store with a recorded reason, and also trigger a graph projection update.",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/graph_ingest.rs",
+      "quote": "graph_relation_retract_value(\n            &mut self.conn,\n            &self.scope,\n            from,\n            relation_type,\n            to,\n            reason,\n        )?;\n        let document = self.graph_owner_document(from)?;\n        if let Some(work) = self.schedule_graph_documents(&[document])? {\n            response[\"work\"] = work;\n        }",
+      "locator": "impl Store / graph_relation_retract",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval weights persist per (target, provenance) and are upserted, allowing existing weights to be overwritten rather than duplicated.",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/graph_ingest.rs",
+      "quote": "ON CONFLICT(target_type, target_identifier, provenance)\n                 DO UPDATE SET weight = excluded.weight,\n                               reason = excluded.reason,\n                               updated_at = excluded.updated_at",
+      "locator": "impl Store / retrieval_weight_set",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval feedback (relevant/irrelevant signal) is stored per query fingerprint and target, upserted per provenance, influencing ranking for matching queries.",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/graph_ingest.rs",
+      "quote": "ON CONFLICT(query_fingerprint, target_type, target_identifier, provenance)\n                 DO UPDATE SET signal = excluded.signal,\n                               reason = excluded.reason,\n                               updated_at = excluded.updated_at",
+      "locator": "impl Store / retrieval_feedback_set",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Graph re-ranking is applied at retrieval time using stored graph structure (links, shared sources, neighbors); it does not require a separate retrieval call \u2014 it modifies ranks on already-retrieved results.",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/graph_ingest.rs",
+      "quote": "explanation.signals.graph_match = explanation\n                .graph_seeds\n                .iter()\n                .map(|seed| seed.contribution)\n                .fold(0.0, f64::max)\n                .clamp(0.0, 1.0);",
+      "locator": "impl Store / apply_graph_reranking",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "All store mutations are accompanied by operation log records in the same transaction, creating a durable audit log alongside curated memory state.",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/graph_ingest.rs",
+      "quote": "record_operation(\n            &tx,\n            \"ingest_complete\",\n            &source_id.to_string(),\n            &json!({\n                \"source_summary_pages\": source_summary_pages,\n                \"derived_pages\": derived_pages,\n                \"no_derived_pages_reason\": reason,\n            }),\n        )?;",
+      "locator": "impl Store / ingest_complete",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Store isolation is per scope and database path; all graph, retrieval, and ingest operations are namespaced by these two identifiers.",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/graph_ingest.rs",
+      "quote": "scope: self.scope.clone(),\n            database: self.database_string(),",
+      "locator": "impl Store / retrieval_weight_set (and all other mutation responses)",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Semantic relations (SUPPORTS, CONTRADICTS, REFINES, SUPERSEDES, CAUSES, DEPENDS_ON) are written to a persistent SQLite store with upsert conflict resolution, updating confidence, provenance, reason, and source links on re-assertion.",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/graph_search.rs",
+      "quote": "INSERT INTO semantic_relations(\n                id, relation_type, from_identifier, to_identifier,\n                confidence, provenance, reason, source_ids_json, created_at, updated_at\n             ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, {TIMESTAMP_SQL}, {TIMESTAMP_SQL})\n             ON CONFLICT(id) DO UPDATE SET\n                confidence = excluded.confidence,\n                provenance = excluded.provenance,\n                reason = excluded.reason,\n                source_ids_json = excluded.source_ids_json,\n                updated_at = excluded.updated_at",
+      "locator": "fn semantic_relation_set_value",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget/retract is a hard DELETE from semantic_relations, not a soft hide; the operation is logged with a reason via record_operation.",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/graph_search.rs",
+      "quote": "tx.execute(\"DELETE FROM semantic_relations WHERE id = ?1\", [&id])?",
+      "locator": "fn semantic_relation_retract_value",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Spans become stale (and are refused at retrieval) when a document's content fingerprint changes or the active flag is unset, preventing retrieval of outdated memory anchors.",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/graph_search.rs",
+      "quote": "if !active || current_fingerprint.as_deref() != Some(&content_fingerprint) {\n        return Err(AppError::new(\n            \"stale_span\",\n            \"span locator belongs to an older document fingerprint\",\n        )",
+      "locator": "fn load_search_span_record",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval ranking is adjusted at query time by two persistent stores: per-document manual weights and per-(query-fingerprint, document) feedback signals, both with user-provided provenance taking priority.",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/graph_search.rs",
+      "quote": "let weights = load_effective_weights(conn)?;\n    let feedback = load_effective_feedback(conn, &query_fingerprint(query_tokens))?;",
+      "locator": "fn apply_retrieval_state",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Query fingerprinting is SHA-256 over the ordered, separator-delimited token list, making feedback keyed to the specific token set rather than raw query string.",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/graph_search.rs",
+      "quote": "let mut hasher = Sha256::new();\n    for (index, token) in tokens.iter().enumerate() {\n        if index > 0 {\n            hasher.update([0x1f]);\n        }\n        hasher.update(token.as_bytes());\n    }",
+      "locator": "fn query_fingerprint",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Memory is stored as curated events with typed semantic fragments, not a raw message log.",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/temporal_memory.rs",
+      "quote": "kind TEXT NOT NULL CHECK(kind IN (\n                'observed', 'decision', 'constraint', 'learned', 'unresolved', 'outcome'\n            ))",
+      "locator": "fn create_temporal_memory_schema / CREATE TABLE memory_fragments",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write idempotency is enforced via SHA-256 fingerprint keyed on request_id; conflicting re-use of the same request_id with different content is rejected.",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/temporal_memory.rs",
+      "quote": "if stored_fingerprint != fingerprint {\n                return Err(AppError::new(\n                    \"memory_request_conflict\",\n                    format!(\"request_id '{request_id}' was already used for different content\"),\n                ));\n            }",
+      "locator": "impl Store / fn remember",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval uses FTS5 BM25 ranking adjusted by user feedback score; events older than max_age_days are excluded unless protected.",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/temporal_memory.rs",
+      "quote": "bm25(memory_fts, 0.0, 2.0, 4.0, 1.0) AS lexical_rank\n                 FROM memory_fts\n                 JOIN memory_events e ON e.id = memory_fts.event_id\n                 WHERE memory_fts MATCH ?1\n                   AND (\n                       JULIANDAY(e.occurred_at) >= JULIANDAY('now', '-' || ?2 || ' days')\n                       OR {MEMORY_EVENT_PROTECTED_SQL}\n                   )",
+      "locator": "impl Store / fn memory_recall",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget by age: events older than max_age_days are hard-deleted unless pinned, unresolved, or in an unresolved contradiction.",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/temporal_memory.rs",
+      "quote": "WHERE JULIANDAY(e.occurred_at) < JULIANDAY('now', '-' || ?1 || ' days')\n           AND NOT ({MEMORY_EVENT_PROTECTED_SQL})",
+      "locator": "fn enforce_memory_retention / age_sql",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget by capacity: oldest unprotected events are hard-deleted until logical_bytes \u2264 max_bytes.",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/temporal_memory.rs",
+      "quote": "if logical_bytes <= max_bytes {\n            break;\n        }",
+      "locator": "fn enforce_memory_retention / capacity loop",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Hints are emitted post-write for relation-review, cluster density, aged-unresolved items, and storage pressure, with a 7-day cooldown per candidate key.",
+      "kind": "code",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/temporal_memory.rs",
+      "quote": "STRFTIME('%Y-%m-%dT%H:%M:%fZ', 'now', '+7 days')",
+      "locator": "fn emit_memory_hints / INSERT INTO memory_hint_state",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LWC Wiki is the durable knowledge store; .agents/project-memory.md is a lighter scaffold (concise project map, entry points, triggers) read at session start.",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/AGENTS.md",
+      "quote": "Read .agents/project-memory.md at the start of substantive repository work. It owns the concise project map, authoritative documentation map, LWC Wiki entry points, and maintenance triggers.",
+      "locator": "AGENTS.md, paragraph 1",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is adaptive: search first, open only relevant pages \u2014 not a blanket load of all memory into context.",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/AGENTS.md",
+      "quote": "Start with lwc --scope project search \"<task terms>\" --limit 20 , then open only relevant pages and current source/code evidence.",
+      "locator": "AGENTS.md, paragraph 2",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write back to the store is conditional on whether knowledge is verified and reusable; a no-op is explicit when nothing qualifies.",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/AGENTS.md",
+      "quote": "evaluate whether verified reusable knowledge should update the Wiki or .agents/project-memory.md . Make no memory change when nothing qualifies.",
+      "locator": "AGENTS.md, paragraph 3",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Permanent deletion of memory requires archiving first, providing a soft-delete / recovery path before hard removal.",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/AGENTS.md",
+      "quote": "Archive before permanent deletion of brain knowledge.",
+      "locator": "AGENTS.md, paragraph 6",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Secrets are explicitly excluded from the memory store.",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/AGENTS.md",
+      "quote": "Never expose or persist literal secrets.",
+      "locator": "AGENTS.md, paragraph 5",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LWC is agent-driven proactive memory, not query-time RAG; it keeps durable Wiki state between requests",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/README.md",
+      "quote": "lwc is an agent-driven proactive memory CLI for AI agents. It lets Agents autonomously recall, maintain, and evolve persistent, source-grounded knowledge across sessions.",
+      "locator": "Introduction paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "The store is SQLite; Markdown and graph stores are rebuildable projections, not canonical",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/README.md",
+      "quote": "SQLite is canonical. Markdown, full-text indexes, and optional graph stores are rebuildable projections.",
+      "locator": "Section: Core Design",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Temporal memory stores normalized events, not raw transcripts; retention is bounded and protects pinned and open contradiction records",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/README.md",
+      "quote": "Events are normalized rather than stored as raw chat transcripts, and similar events are never silently merged.",
+      "locator": "Section: Temporal Memory",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path is atomic changeset: commit publishes only touched entities in one transaction; conflicts fail closed with no automatic merge",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/README.md",
+      "quote": "Commit publishes only touched canonical entities in one transaction; unrelated live work survives, and same-entity revision conflicts fail closed.",
+      "locator": "Section: Atomic Multi-command Changes",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Deletion is guarded: sources with citations and pages with inbound links are refused",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/README.md",
+      "quote": "Use source remove <ID> and page remove <SLUG> for guarded deletion: sources with citations and pages with inbound links are refused.",
+      "locator": "Section: Maintenance and Projection",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-scope (project vs global); no implicit cross-project citations or links are created",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/README.md",
+      "quote": "Writes always target one explicit store. LWC never creates implicit cross-project citations or links.",
+      "locator": "Section: Scopes",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Plan and Todo are isolated by Agent session and subagent context",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/README.md",
+      "quote": "Bounded lifecycle context isolates Plan and Todo progress by Agent session and, where the host exposes it, by subagent. Each Agent sees only explicitly tracked work for its opaque context.",
+      "locator": "Section: Durable Todo and current Plan",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Retrieval is lexical and page-first; no vector database or embeddings required",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/README.md",
+      "quote": "Search is lexical, deterministic, and page-first.",
+      "locator": "Section: Search and CJK",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Auditable document weights and query-specific feedback allow reranking; feedback is stored as a fingerprint, not raw query text",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/README.md",
+      "quote": "Auditable document weights capture durable importance. Query-specific feedback reranks only matching candidates and stores a fingerprint instead of the raw query.",
+      "locator": "Section: Explicit retrieval weights and feedback",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Portable archives allow merging Wiki state across stores; imports are staged and whole-store overwrite requires explicit human confirmation",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/README.md",
+      "quote": "Existing memory is never replaced implicitly: imports stage a resumable merge, while whole-store overwrite requires separate human confirmation.",
+      "locator": "Section: Portable Memory Archives",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "LongMemEval-S retrieval baseline (v0.18.5): Recall@5 95.11%, Recall@10 97.66%, MRR 0.8837 on 470 scored questions; untuned, no model-led curation or weight updates",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/README.md",
+      "quote": "This is an untuned retrieval baseline, not a ceiling on LWC's effectiveness over continued use\u2026 The adapter retrieves raw session sources without model-led knowledge curation, relevance feedback, or weight updates.",
+      "locator": "Section: LongMemEval-S retrieval results (v0.18.5)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Durable Discussion records preserve Q&A clarification with granular corrections and evidence-linked summaries in SQLite (new in 0.18.0)",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/README.md",
+      "quote": "Durable Discussion records preserve visible clarification Q/A in SQLite with granular corrections and evidence-linked summaries.",
+      "locator": "Section: New in 0.18.0",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Lifecycle Hooks are prohibited from autonomously recording or injecting memory events, limiting automatic memory capture.",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/docs/agent-workflow.md",
+      "quote": "Lifecycle Hooks may report memory readiness and commands, but must not record, rate, maintain, or inject raw temporal events automatically.",
+      "locator": "Trust boundary",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Forget path: ordinary expired events are deleted by retention policy enforcement on each `remember` call and by `memory maintain`; protected events (pinned, unresolved, open contradicts) are never deleted and will cause recording to fail if capacity is exceeded.",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/docs/agent-workflow.md",
+      "quote": "Ordinary expired history is deleted. Events with pinned=true , an unresolved fragment, or an explicit contradicts relation not closed by resolves are protected. If protected history leaves insufficient capacity, recording fails rather than deleting it.",
+      "locator": "Temporal memory",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per-scope (project vs global); cross-store relations are never created implicitly; only recall can merge across scopes.",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/docs/agent-workflow.md",
+      "quote": "Citations and wikilinks belong to one store; cross-store relations are not created implicitly.",
+      "locator": "Scope rules",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Search is lexical (FTS5), not vector/semantic; retrieval into context is mechanical keyword matching.",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/docs/agent-workflow.md",
+      "quote": "Search is lexical. If no suitable hit exists, inspect the index and sources; do not treat an empty result as proof that the knowledge is absent.",
+      "locator": "Search contract",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Portable archive (compress/decompress/merge) enables transfer of complete canonical semantic memory between instances; merge resolves conflicts in bounded batches with agent decisions.",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/docs/agent-workflow.md",
+      "quote": "compress writes one archive containing the selected Wiki's complete canonical semantic memory in plaintext... merge conservatively combines unique objects and returns bounded conflict batches that the Agent resolves and resumes until publication completes.",
+      "locator": "Portable Memory Archives",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "A development-only benchmark exists in the repo but must not be run during ordinary memory work.",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/docs/agent-workflow.md",
+      "quote": "Do not run the repository benchmark during ordinary memory work. When developing or auditing LWC itself, follow benchmarks/README.md , use a sanitized corpus plus reviewed JSONL ground truth, and compare release binaries under the same conditions.",
+      "locator": "Development-only benchmark",
+      "confidence": "medium",
+      "label": "measured"
+    },
+    {
+      "claim": "Persistent store is SQLite (schema 19); stored fields are titles, descriptions, grouped Q&A, original text, revisions, summary evidence, local bindings; exports are projections not the store",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/docs/discussion.md",
+      "quote": "Discussion stores visible iterative clarification and brainstorming in the existing Wiki SQLite database (schema 19). It is independent of the initiating Skill. Titles, descriptions, grouped questions and answers, original text, revisions, summary evidence and local bindings are persistent. Markdown/JSON exports are projections.",
+      "locator": "discussion.md \u00a7 Discussion",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Write path is atomic: conflicting requests, stale revisions, and invalid batches all fail atomically; idempotent on identical retry",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/docs/discussion.md",
+      "quote": "Identical retries are idempotent; conflicting requests, stale revisions and invalid batches fail atomically.",
+      "locator": "discussion.md \u00a7 Recording and recovery",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Conflict resolution: corrections invalidate conclusions transitively (only dependent ones); unrelated conclusions stay fresh; cyclic references rejected",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/docs/discussion.md",
+      "quote": "Corrections invalidate related conclusions transitively, including answers depending on a changed question; unrelated conclusions remain fresh. Cyclic references are rejected.",
+      "locator": "discussion.md \u00a7 Smallest-granularity changes",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "Isolation is per context/projectPath; closing a discussion does not grant implementation authorization",
+      "kind": "docs",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/docs/discussion.md",
+      "quote": "Context isolation is not authentication. ... Closing grants no implementation authorization.",
+      "locator": "discussion.md \u00a7 Bounds and acceptance",
+      "confidence": "high",
+      "label": "measured"
+    },
+    {
+      "claim": "LWC implements proactive agent memory: agents synthesize sources into a durable wiki rather than reconstructing answers from raw chunks at every query",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/projects/JanYork/llm-wiki-cli",
+      "quote": "LWC turns curated documents into a durable Wiki. Agents reason and synthesize; lwc preserves sources, pages, citations, links, indexes, and history so knowledge compounds instead of being rediscovered from raw chunks on every query.",
+      "locator": "section: full readme / opening paragraph",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "SQLite is the canonical store; Markdown, full-text indexes, and graph stores are rebuildable projections, not the source of truth",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/projects/JanYork/llm-wiki-cli",
+      "quote": "SQLite is canonical. Markdown, full-text indexes, and optional graph stores are rebuildable projections. Agents update knowledge through the CLI; successful operations return structured JSON that can be audited and resumed.",
+      "locator": "section: Core Design",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Temporal memory is a normalized event log (not raw transcripts) with bounded retention protecting pinned and unresolved records",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/projects/JanYork/llm-wiki-cli",
+      "quote": "Events are normalized rather than stored as raw chat transcripts, and similar events are never silently merged.",
+      "locator": "section: Temporal Memory",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Write-back is guarded: changeset commit validates, publishes only touched entities in one transaction, and records an inverse patch for rollback; empty drafts and blocking lint errors are rejected",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/projects/JanYork/llm-wiki-cli",
+      "quote": "Commit validates and applies only touched entities, so unrelated live writes survive; a same-entity revision conflict fails without overwriting either side. Commit rejects empty drafts and blocking lint errors.",
+      "locator": "section: Atomic Multi-command Changes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Scoped isolation: project scope is per nearest project wiki, global scope is shared across projects; writes never cross scopes implicitly",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/projects/JanYork/llm-wiki-cli",
+      "quote": "Writes always target one explicit store. LWC never creates implicit cross-project citations or links.",
+      "locator": "section: Scopes",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Retrieval policy is page-first and source-grounded: agents retrieve maintained answers first, then open exact source evidence when a claim needs verification",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/projects/JanYork/llm-wiki-cli",
+      "quote": "Search is page-first and source-grounded. Agents retrieve maintained answers first, then open exact source evidence when a claim needs verification.",
+      "locator": "section: Quick Start / Query the accumulated Wiki",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "LongMemEval-S retrieval benchmark (v0.18.5, untuned baseline, 470 scored questions): Recall@5 95.11%, Recall@10 97.66%, MRR 0.8837 \u2014 vendor-run, excludes proactive tuning",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/projects/JanYork/llm-wiki-cli",
+      "quote": "This is an untuned retrieval baseline, not a ceiling on LWC's effectiveness over continued use... Recall@5: 95.11% (447/470) ... Recall@10: 97.66% (459/470) ... MRR: 0.883668",
+      "locator": "section: LongMemEval-S retrieval results (v0.18.5)",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Document weights and query-feedback fingerprints are durable and auditable; feedback reranks only matching candidates and cannot surface unrelated content",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/projects/JanYork/llm-wiki-cli",
+      "quote": "Auditable document weights capture durable importance. Query-specific feedback reranks only matching candidates and stores a fingerprint instead of the raw query. Neither mechanism can make unrelated content appear.",
+      "locator": "section: Search and CJK / Explicit retrieval weights and feedback",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Portable archives contain complete plaintext memory of the selected wiki and stage a resumable merge on import; whole-store overwrite requires explicit human confirmation",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/projects/JanYork/llm-wiki-cli",
+      "quote": "The archive contains the selected Wiki's complete plaintext memory... Existing memory is never replaced implicitly: imports stage a resumable merge, while whole-store overwrite requires separate human confirmation.",
+      "locator": "section: Portable Memory Archives",
+      "confidence": "medium",
+      "label": "inferred"
+    },
+    {
+      "claim": "Plan and Todo are isolated by Agent session and subagent; they are independent opt-in capabilities and never convert into each other automatically",
+      "kind": "blog",
+      "url": "https://hermesatlas.com/projects/JanYork/llm-wiki-cli",
+      "quote": "Todo stores deferred work; Plan stores the currently executing objective, ordered steps, progress, and revision. They are independent, opt-in capabilities and never convert into each other automatically. Bounded lifecycle context isolates Plan and Todo progress by Agent session and, where the host exposes it, by subagent.",
+      "locator": "section: Durable Todo and current Plan",
+      "confidence": "medium",
+      "label": "inferred"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/README.md",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/mcp.rs",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/content_search.rs",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/graph_search.rs",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/temporal_memory.rs",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/11e869f5f7bfe1aca31deeb3dd7a54f831e43ebe/src/store/graph_ingest.rs",
+      "kind": "code",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/README.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/docs/agent-workflow.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/docs/discussion.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/AGENTS.md",
+      "kind": "docs",
+      "accessed_at": "2026-09-18",
+      "quality": "high"
+    },
+    {
+      "url": "https://hermesatlas.com/projects/JanYork/llm-wiki-cli",
+      "kind": "blog",
+      "accessed_at": "2026-09-18",
+      "quality": "medium"
+    }
+  ],
+  "consensus": [],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
+  "unknowns": [
+    {
+      "text": "The page does not describe how `lwc memory recall` selects or ranks candidate events from the store (scoring function, embedding, BM25, or other retrieval mechanism for temporal memory specifically).",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/docs/agent-workflow.md",
+      "kind": "docs"
+    },
+    {
+      "text": "The page does not describe any mechanism for automatically detecting when a stored fact has become stale or contradicted by new source evidence without agent intervention.",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/docs/agent-workflow.md",
+      "kind": "docs"
+    },
+    {
+      "text": "No description of how or whether discussion content is ever promoted into the curated Wiki retrieval index \u2014 the page states it is not automatic but does not describe a manual promotion path",
+      "url": "https://github.com/JanYork/llm-wiki-cli/blob/main/docs/discussion.md",
+      "kind": "docs"
+    }
+  ]
+}
