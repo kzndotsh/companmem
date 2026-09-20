@@ -9,6 +9,7 @@ output/
     PROTOCOL.md
     excluded.json
     synthesis.json       # after audit.json exist (just synthesize)
+    matrix.json          # persist/retrieve/forget/conflict/isolation grid (just matrix)
     <slug>/audit.json
   by-paper/              # reserved
   by-eval/               # benchmark audits (see by-eval/PROTOCOL.md)
@@ -24,7 +25,7 @@ jq '{id: .identity.id, refuse: .refuse}' research/output/by-product/mem0/audit.j
 jq -s 'map({id: .identity.id, mechanisms: .mechanisms})' research/output/by-product/*/audit.json
 ```
 
-`sources` is what we opened. `ledger` is what we claim (quote + locator). `copy` / `refuse` are interpretation (what we would steal or reject for companion continuity). Extract and fold leave them empty. There is no `just grill` yet.
+`sources` is what we opened. `ledger` is what we claim (quote + locator). `copy` / `refuse` are interpretation (what we would steal or reject for companion continuity). Extract and fold leave them empty. Cluster grill of interpretation is described in by-product PROTOCOL. `just matrix` writes the persist/retrieve/forget grid.
 
 ## Run
 
@@ -40,6 +41,9 @@ just lint-eval-audits
 just harvest-eval <slug>
 just audit-write-eval <slug>
 just synthesize
+just synthesize-dry-run
+just matrix
+just matrix-dry-run
 just test-pipeline
 ```
 
