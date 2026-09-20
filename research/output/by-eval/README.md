@@ -3,6 +3,7 @@
 Benchmark and harness audits: tasks, graders, metrics, rerunnability.
 
 - Protocol: [`PROTOCOL.md`](PROTOCOL.md)
+- Comparison notes: [`../../../docs/EVALS.md`](../../../docs/EVALS.md)
 - Census: [`../../pipeline/seed.json`](../../pipeline/seed.json) → `evals`
 - Cache: `.cache/by-eval/<slug>/` (gitignored)
 - Output: `<slug>/audit.json`

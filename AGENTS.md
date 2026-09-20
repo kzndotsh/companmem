@@ -18,6 +18,7 @@ Research on memory for realistic human and companion communication. Not a retrie
 ```
 ROADMAP.md                 # human-like companion via memory; direction after evidence
 docs/QUESTIONS.md          # active research
+docs/EVALS.md              # eval benchmark comparison notes (from by-eval audits)
 docs/decisions/            # ADRs, only after Decide gate (may not exist yet)
 research/pipeline/         # harvest / extract / fold / apply (when built)
 research/output/
