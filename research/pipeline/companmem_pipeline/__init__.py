@@ -1,1 +1,1 @@
-"""Product-memory audit pipeline: harvest, extract, fold, apply, lint, synthesize."""
+"""Product-memory audit pipeline: harvest, extract, fold, apply, lint, matrix, synthesize."""
