@@ -17,6 +17,8 @@ EVAL_LOGS_DIR = EVAL_CACHE_DIR / "logs"
 OUTPUT_DIR = ROOT / "research" / "output" / "by-product"
 EVAL_OUTPUT_DIR = ROOT / "research" / "output" / "by-eval"
 SCHEMA_PATH = PIPELINE_DIR / "audit.schema.json"
+SYNTHESIS_SCHEMA_PATH = PIPELINE_DIR / "synthesis.schema.json"
+MATRIX_SCHEMA_PATH = PIPELINE_DIR / "matrix.schema.json"
 SEED_PATH = PIPELINE_DIR / "seed.json"
 
 Namespace = Literal["product", "eval"]
