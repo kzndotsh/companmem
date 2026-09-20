@@ -14,12 +14,50 @@ from companmem_pipeline.paths import load_dotenv
 load_dotenv()
 
 KIRO_URL = os.environ.get("KIRO_GATEWAY_URL", "http://127.0.0.1:9000")
-KIRO_KEY = os.environ.get("KIRO_GATEWAY_API_KEY", os.environ.get("PROXY_API_KEY", ""))
 MODEL = os.environ.get("EXTRACT_MODEL", "claude-sonnet-4.6")
 
 
+def kiro_api_key() -> str:
+    """Empty KIRO_GATEWAY_API_KEY falls through to PROXY_API_KEY."""
+    return (
+        os.environ.get("KIRO_GATEWAY_API_KEY") or os.environ.get("PROXY_API_KEY") or ""
+    ).strip()
+
+
 def kiro_configured() -> bool:
-    return bool(KIRO_KEY)
+    return bool(kiro_api_key())
+
+
+def content_text(body: dict[str, object]) -> str:
+    """Visible reply text. Thinking-only 200s have no type=text block."""
+    parts = body.get("content")
+    if not isinstance(parts, list):
+        return ""
+    texts: list[str] = []
+    thinking: list[str] = []
+    for part in parts:
+        if not isinstance(part, dict):
+            continue
+        kind = part.get("type")
+        if kind == "text":
+            texts.append(str(part.get("text") or ""))
+        elif kind == "thinking":
+            thinking.append(str(part.get("thinking") or part.get("text") or ""))
+    joined = "".join(texts).strip()
+    if joined:
+        return joined
+    return "".join(thinking)
+
+
+def content_types(body: dict[str, object]) -> list[str]:
+    parts = body.get("content")
+    if not isinstance(parts, list):
+        return []
+    kinds: list[str] = []
+    for part in parts:
+        if isinstance(part, dict):
+            kinds.append(str(part.get("type") or "unknown"))
+    return kinds
 
 
 def parse_json_object(text_out: str) -> dict[str, object] | None:
@@ -69,7 +107,8 @@ def call_kiro(
     model: str | None = None,
 ) -> dict[str, object] | None:
     """POST {KIRO_GATEWAY_URL}/v1/messages. Returns parsed JSON or None."""
-    if not KIRO_KEY:
+    key = kiro_api_key()
+    if not key:
         raise RuntimeError("Set KIRO_GATEWAY_API_KEY or PROXY_API_KEY")
     payload = {
         "model": model or MODEL,
@@ -80,7 +119,7 @@ def call_kiro(
         "system": system,
     }
     headers = {
-        "x-api-key": KIRO_KEY,
+        "x-api-key": key,
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
     }
@@ -113,11 +152,9 @@ def call_kiro(
             )
             resp.raise_for_status()
             body = resp.json()
-            text_out = "".join(
-                part.get("text", "")
-                for part in body.get("content", [])
-                if part.get("type") == "text"
-            )
+            if not isinstance(body, dict):
+                raise json.JSONDecodeError("root is not an object", str(body), 0)
+            text_out = content_text(body)
             parsed = parse_json_object(text_out)
             if parsed is not None:
                 emit_console(
@@ -128,6 +165,7 @@ def call_kiro(
                     attempt=attempt + 1,
                     elapsed=round(time.time() - started, 2),
                     reply_chars=len(text_out),
+                    content_types=content_types(body),
                 )
                 return parsed
             last_error = ValueError("response was not a JSON object")
@@ -139,7 +177,11 @@ def call_kiro(
                 attempt=attempt + 1,
                 reply_chars=len(text_out),
                 preview=text_out[:120].replace("\n", " "),
+                content_types=content_types(body),
+                stop_reason=body.get("stop_reason"),
             )
+            if "{" not in text_out:
+                break
         except (httpx.HTTPStatusError, httpx.TimeoutException, json.JSONDecodeError) as exc:
             last_error = exc
             emit_console(
