@@ -22,7 +22,7 @@ docs/EVALS.md              # eval benchmark comparison notes (from by-eval audit
 docs/decisions/            # ADRs, only after Decide gate (may not exist yet)
 research/pipeline/         # harvest / extract / fold / apply (when built)
 research/output/
-  by-product/             # audit.json per product
+  by-product/             # audit.json per product; matrix.json; synthesis.json after just synthesize
   by-paper/               # reserved
   by-eval/                # benchmark audit.json per eval slug
 .agents/skills/            # git-tracked agent skills
@@ -65,6 +65,9 @@ just lint-audits
 just lint-eval-audits
 just lint-seed          # validate seed.json products + evals
 just synthesize
+just synthesize-dry-run
+just matrix
+just matrix-dry-run
 just test-pipeline
 ```
 
