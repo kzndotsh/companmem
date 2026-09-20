@@ -99,15 +99,30 @@ Env: `GITHUB_TOKEN` (issues/clone), optional `BRAVE_API_KEY` (search; falls back
 
 2. **Fold** — union pages into `.cache/.../candidate.json`. Drop mechanisms without ledger support. Drop page-local absence unknowns unless same stem on ≥2 URLs. `copy`, `refuse`, `consensus`, `contested` stay empty.
 
-3. **Apply** — merge candidate into `audit.json` (or temp for dry-run). Replaces `claimed_purpose`, `mechanisms`, `unknowns`, `sources`, `ledger`. Preserves non-empty interpretation fields.
+3. **Apply** — merge candidate into `audit.json` (or temp for dry-run). Replaces `claimed_purpose`, `mechanisms`, `unknowns`, `sources`, `ledger`. Preserves non-empty interpretation fields (`copy`, `refuse`, `consensus`, `contested`) when the candidate leaves them empty.
 
 **Interpretation** (`copy`, `refuse`, `consensus`, `contested`) is not extract output. A later human/agent pass fills it for RQ3. There is no `just grill` yet. Re-harvest + apply does not wipe non-empty interpretation.
 
 **Lint:** `just lint-audits` (all published audits). Per file: `uv run --project research/pipeline python -m companmem_pipeline.lint --path research/output/by-product/<slug>/audit.json`.
 
+## Field matrix
+
+`just matrix` writes [`matrix.json`](matrix.json) from lint-clean product audits. No LLM. Axes: persist, retrieve, forget_delete, forget_suppress, conflict_or_supersession, isolation, log_vs_curated, plus `clone` from seed. A true axis needs a **ledger quote that contains the needle** (mechanisms alone do not count). Persist needs a store or cross-session phrase, not a lone "long-term". Retrieve does not use bare `search`. Isolation hits (`user_id`, `group_id`, …) beat miss phrases. Forget delete vs suppress: if both quotes are the same evidence, keep suppress. `contradict` alone is not conflict. Isolation misses still cite a shared/missing-scope quote when there is no hit. `just matrix-dry-run` prints JSON without writing.
+
 ## Synthesis
 
-Optional. `just synthesize` writes [`synthesis.json`](synthesis.json) from **all** lint-clean audits (Kiro). Themes from ledgers, not a fixed axis list. `missing` lists seed ids skipped intentionally. Run only when you want RQ4 rollup; audits do not depend on it.
+Optional. `just synthesize` writes [`synthesis.json`](synthesis.json) from seed product audits that exist **and** pass `lint_audit` (one Kiro call). After parse, a product id is kept only if an on-card quote supports the sentence by distinctive-token precision (generic field words like persist/retrieve/store/thread do not count; Kiro may omit quotes; post-process attaches them). If the sentence names persist, retrieve, forget, conflict, or isolation, the quote must contain that axis's ledger needles (same family as `matrix.json`). Shared-gap quotes and absence sentences (`no automatic forget`, `no per-user isolation`) must also contain a negation cue (`no`, `not`, `absent`, …) so a delete API cannot evidence “no forget.” Every listed `product_id` must have an evidence quote. Each row is capped at 8 ids. One slug may appear in at most 3 cited rows across themes + recurring + gaps (higher-precision rows kept; rows that fall below 2 ids drop). Split into `clone_true` / `clone_false`; gaps that repeat a theme are dropped. Themes come from compact cards (ranked ledger rows with short quotes, capped unknowns, `clone` from seed). `missing` is seed ids with no file or a lint-fail (`dirty` lists lint-fails). Eval audits are not included. `just synthesize-dry-run` prints JSON without writing. Do not write `synthesis.json` until a dry-run looks good. Run only when you want RQ4 rollup; audits do not depend on it.
+
+## Grill copy / refuse (clusters)
+
+There is no `just grill`. Do not use the ADR-drafting grill skill.
+
+1. Group `matrix.json` rows: extract-then-retrieve, temporal graph, file-as-truth, no isolation, closed companion.
+2. For **one or two** clone-true examples per cluster that still have empty `copy`/`refuse`, write short `text` bullets the way `byterover`, `claude-mem`, `hindsight`, `langmem`, `mcp-memory`, and `memobase` already do. Ground in that audit’s ledger. No fake quotes.
+3. Closed companions stay in unknowns / contested unless a primary URL supports copy/refuse.
+4. Merge only interpretation fields (apply already preserves them). Lint that audit.
+
+Do not fill every product. Pattern plus a handful of cluster exemplars.
 
 ## Snowball appendix
 
@@ -125,7 +140,10 @@ just audit-write-all
 just lint-audits
 just lint-seed                   # structure + optional URL check
 just lint-open-code              # open_code paths exist in clones
+just matrix
+just matrix-dry-run
 just synthesize
+just synthesize-dry-run
 just test-pipeline
 ```
 
