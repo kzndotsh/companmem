@@ -18,7 +18,7 @@
       "text": "Store: curated graph in MEMORY_FILE_PATH (default memory.jsonl); observations are one fact per line, not a raw chat transcript."
     },
     {
-      "text": "Retrieve: MCP tools (read_graph, search_nodes, open_nodes); README ships a system prompt that tells the model to open with \"Remembering...\" and pull relevant graph context at session start—selection is model-driven, not server-ranked."
+      "text": "Retrieve: MCP tools (read_graph, search_nodes, open_nodes); README ships a system prompt that tells the model to open with \"Remembering...\" and pull relevant graph context at session start\u2014selection is model-driven, not server-ranked."
     },
     {
       "text": "Write: create_entities (skips duplicate names), create_relations, add_observations; delete_entities (cascade relations), delete_observations, delete_relations; no supersession or merge for conflicting facts."
@@ -727,32 +727,32 @@
   "consensus": [],
   "contested": [
     {
-      "text": "README documents create_entities ignoring existing entity names; user reports and issues describe duplicate entities, failed adds, or JSON parse failures—treat idempotency and write reliability as contested in the field."
+      "text": "README documents create_entities ignoring existing entity names; user reports and issues describe duplicate entities, failed adds, or JSON parse failures\u2014treat idempotency and write reliability as contested in the field."
     },
     {
       "text": "Docs and Docker examples assume MEMORY_FILE_PATH controls the store; issues report the published npm package not honoring env-based paths (wrong default file location)."
     },
     {
-      "text": "Per-process write mutex prevents corruption within one server instance; issue #4797 reports two processes on the same path silently discarding each other's writes—multi-client safety is not guaranteed."
+      "text": "Per-process write mutex prevents corruption within one server instance; issue #4797 reports two processes on the same path silently discarding each other's writes\u2014multi-client safety is not guaranteed."
     },
     {
-      "text": "Bundled system prompt prescribes always retrieve at chat start; hosts that omit or override that prompt may behave as on-demand tool use only—continuity is co-owned by client integration, not enforced by the server."
+      "text": "Bundled system prompt prescribes always retrieve at chat start; hosts that omit or override that prompt may behave as on-demand tool use only\u2014continuity is co-owned by client integration, not enforced by the server."
     }
   ],
   "copy": [
     {
-      "text": "Agent/workspace memory primitive for MCP hosts (coding assistants), not a consumer companion product; human-like continuity depends on the client model following the README system prompt and calling tools consistently."
+      "text": "Copy one-fact-per-line observations on a graph (entities/relations), not a chat transcript, with explicit delete_observations / cascading delete_entities."
     }
   ],
   "refuse": [
     {
-      "text": "Do not treat issue #3400's 'create twice produces duplicate entities' as canonical behavior; README and index.ts skip duplicate entity names—use code/docs for idempotency, issues only for client/runtime failures."
+      "text": "Refuse default memory.jsonl as a companion store: isolation is one file per process/path, not per user or character."
     },
     {
-      "text": "Refuse unbounded read_graph on every turn at large graph sizes (issue #2415); companion-style continuity needs selective retrieve, not dumping 80k+ tokens of graph JSON."
+      "text": "Refuse the shipped system prompt that always opens with Remembering... and retrieves all relevant graph context at session start \u2014 that is dump-into-prompt, not timed recall."
     },
     {
-      "text": "Refuse multi-client write sharing on one MEMORY_FILE_PATH without external locking; per-process queue does not coordinate across processes (#4797)."
+      "text": "Refuse create_entities skip-duplicate-name as conflict handling: same name is ignored; there is no supersession or merge."
     }
   ],
   "unknowns": [
