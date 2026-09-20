@@ -21,7 +21,13 @@ Use this doc to:
 1. **Cluster evals** by task shape and grader—so we do not conflate “good on LoCoMo” with “good companion.”
 2. **Flag shared blind spots** (QA probes, LLM judges, session-end queries, no timing/restraint).
 3. **Pick steal candidates** (task types, grader hygiene, abstention axes) vs **refuse** (vendor headline metrics, saturated QA with known key errors).
-4. Later: cross-walk axes against [`research/output/synthesis.json`](../research/output/synthesis.json) (products only today).
+4. Later: cross-walk axes against [`research/output/by-product/synthesis.json`](../research/output/by-product/synthesis.json) (products only today).
+
+### Product × eval join (deferred)
+
+Steal/refuse in this file stays the **eval** map. Do not mix eval audits into `just synthesize`.
+
+A product×eval crosswalk waits until `research/output/by-product/synthesis.json` exists **and** [`matrix.json`](../research/output/by-product/matrix.json) is in tree. Join those two with this doc in Phase 2; do not treat vendor LoCoMo rows in product ledgers as the eval map.
 
 ---
 
