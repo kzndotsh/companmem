@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://companmem.local/matrix.schema.json",
+  "title": "Product memory field matrix",
+  "description": "Same persist/retrieve/forget/conflict/isolation axis for every lint-clean product audit. Quotes come from that product's ledger.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["observed_at", "products"],
+  "properties": {
+    "observed_at": {"type": "string", "minLength": 1},
+    "products": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/product_row"}
+    }
+  },
+  "$defs": {
+    "axis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["present", "quote", "url"],
+      "properties": {
+        "present": {"type": "boolean"},
+        "quote": {"type": "string"},
+        "url": {"type": "string"}
+      }
+    },
+    "product_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "clone",
+        "persist",
+        "retrieve",
+        "forget_delete",
+        "forget_suppress",
+        "conflict_or_supersession",
+        "isolation",
+        "log_vs_curated"
+      ],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "clone": {"type": "boolean"},
+        "persist": {"$ref": "#/$defs/axis"},
+        "retrieve": {"$ref": "#/$defs/axis"},
+        "forget_delete": {"$ref": "#/$defs/axis"},
+        "forget_suppress": {"$ref": "#/$defs/axis"},
+        "conflict_or_supersession": {"$ref": "#/$defs/axis"},
+        "isolation": {"$ref": "#/$defs/axis"},
+        "log_vs_curated": {
+          "type": "string",
+          "enum": ["log", "curated", "both", "unknown"]
+        }
+      }
+    }
+  }
+}
