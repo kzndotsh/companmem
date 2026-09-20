@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://companmem.local/synthesis.schema.json",
+  "title": "Product memory synthesis",
+  "description": "RQ4 rollup from lint-clean product audit.json files. product_ids must be seed ids that were sent.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "observed_at",
+    "products",
+    "missing",
+    "dirty",
+    "themes",
+    "recurring_mechanisms",
+    "shared_gaps",
+    "unknowns",
+    "model",
+    "compact_version"
+  ],
+  "properties": {
+    "observed_at": {"type": "string", "minLength": 1},
+    "products": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "missing": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "dirty": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "themes": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/cited_theme"}
+    },
+    "recurring_mechanisms": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/cited_theme"}
+    },
+    "shared_gaps": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/cited_theme"}
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["text"],
+        "properties": {
+          "text": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "model": {"type": "string", "minLength": 1},
+    "compact_version": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "cited_theme": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "product_ids", "clone_true", "clone_false", "evidence"],
+      "properties": {
+        "text": {"type": "string", "minLength": 1},
+        "product_ids": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 8,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "clone_true": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "clone_false": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["product_id", "quote"],
+            "properties": {
+              "product_id": {"type": "string", "minLength": 1},
+              "quote": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    }
+  }
+}
