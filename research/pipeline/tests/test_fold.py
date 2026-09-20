@@ -2,9 +2,7 @@ from __future__ import annotations
 
 from companmem_pipeline.fold import (
     dedupe_near_duplicate_summaries,
-    build_contested_rows,
     filter_ledger_rows,
-    is_weak_wiki_index_ledger,
     filter_summary_items,
     filter_unknown_items,
     fold_pages,
@@ -12,6 +10,7 @@ from companmem_pipeline.fold import (
     is_near_duplicate_summary,
     is_peripheral_mechanism,
     is_self_referential_summary,
+    is_weak_wiki_index_ledger,
     mentions_add_search_loop,
     should_drop_ledger_row,
     unknown_superseded_by_docs,
@@ -429,13 +428,40 @@ def test_dedupe_ledger_near_duplicates_same_url() -> None:
     assert out[0]["quote"] == "longer quote here"
 
 
-def test_build_contested_rows_memory_edit() -> None:
-    ledger = [
-        {"quote": "The memories are out of your hands", "claim": "x"},
-        {"quote": "edit their memories via mind mapping", "claim": "y"},
+def test_fold_pages_leaves_contested_empty() -> None:
+    extracts = [
+        {
+            "identity_hints": {"name": "Nomi", "repo": None, "docs": None, "license": None},
+            "claimed_purpose": [],
+            "mechanisms": [],
+            "ledger": [
+                {
+                    "claim": "memories are out of your hands",
+                    "kind": "community",
+                    "url": "https://example.com/a",
+                    "quote": "The memories are out of your hands",
+                    "locator": "thread",
+                    "confidence": "medium",
+                    "label": "inferred",
+                },
+                {
+                    "claim": "mind map edit",
+                    "kind": "docs",
+                    "url": "https://example.com/b",
+                    "quote": "edit their memories via mind mapping",
+                    "locator": "wiki",
+                    "confidence": "high",
+                    "label": "measured",
+                },
+            ],
+            "unknowns": [],
+        }
     ]
-    rows = build_contested_rows(ledger)
-    assert len(rows) == 1
+    audit = fold_pages(extracts, _manifest())
+    assert audit["contested"] == []
+    assert audit["copy"] == []
+    assert audit["refuse"] == []
+    assert audit["consensus"] == []
 
 
 def test_should_drop_ledger_row_moderation_and_context_only() -> None:
