@@ -357,8 +357,16 @@ Answers are working notes — revise as we learn. **Citations** are inline links
 
 - What should **persist** when a conversation ends?
   - Salient facts, preferences, milestones, explicit "remember this" ([Mem0 extraction pipeline](https://doi.org/10.48550/arxiv.2504.19413)).
+  - Field OSS default: LLM-extracted facts, not the raw transcript ([Mem0 add](https://docs.mem0.ai/core-concepts/memory-operations/add): "Mem0 sends the messages through an LLM that pulls out key facts").
+  - File-as-truth alternative: markdown entities on disk ([basic-memory README](https://github.com/basicmachines-co/basic-memory): Entity / Observations / Relations).
   - Generative Agents persist observations, reflections, plans in memory stream ([Park et al., 2023](https://arxiv.org/abs/2304.03442)).
   - Not every message — that's a log ([Schuck & Doeller, 2024](https://www.nature.com/articles/s41562-023-01799-z)).
+  - **Status:** open
+
+- How should stored memory be **retrieved** into the next turn?
+  - Field default: search, then inject a labeled block into the prompt ([Mem0 README](https://github.com/mem0ai/mem0): "Answer the question based on query and memories" with `User Memories:`).
+  - Same store can still dump everything ([omemo README](https://github.com/OmniDimen/omemo): full injection of all memories vs RAG filter).
+  - **Status:** open
 
 - What is the **unit** of a memory — a fact, an event, a feeling, a phase?
   - Most products: **untyped text blobs** or atomic facts ([Mem0](https://doi.org/10.48550/arxiv.2504.19413); [Graphlit survey](https://www.graphlit.com/blog/survey-of-ai-agent-memory-frameworks)).
@@ -372,14 +380,18 @@ Answers are working notes — revise as we learn. **Citations** are inline links
 
 - What does it mean to **forget** — gone, hidden, or just not brought up?
   - **Delete** from store ([Mem0 DELETE op](https://doi.org/10.48550/arxiv.2504.19413); [GDPR Art. 17](https://gdpr-info.eu/art-17-gdpr/)).
-  - **Suppress** at retrieve time (not surfaced).
+  - **Suppress** at retrieve time (not surfaced): Mem0 hides `expiration_date` rows unless `show_expired` ([add docs](https://docs.mem0.ai/core-concepts/memory-operations/add)).
+  - **Invalidate, keep history:** Graphiti marks old facts invalid rather than deleting them ([README](https://github.com/getzep/graphiti): "old facts are invalidated — not deleted").
   - **Omit** in generation (know but don't say) — [Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827) on inappropriate recall.
   - Users may mean any of the three.
+  - **Status:** open
 
 - What happens when two memories **conflict**?
   - Need supersession: newer wins, user retcon wins, quarantine, ask user.
   - RAG default: embedding similarity picks one — poor for contradictions ([CMA](https://arxiv.org/pdf/2601.09913v1): no conflict resolution in read-only retrieval).
-  - Mem0 uses ADD/UPDATE/DELETE against similar memories ([Chhikara et al., 2025](https://doi.org/10.48550/arxiv.2504.19413)).
+  - Mem0 paper describes ADD/UPDATE/DELETE against similar memories ([Chhikara et al., 2025](https://doi.org/10.48550/arxiv.2504.19413)); OSS add docs also say new memories are added without overwriting existing ones ([Mem0 add](https://docs.mem0.ai/core-concepts/memory-operations/add)).
+  - Temporal graphs stamp `invalid_at` on the old edge ([Graphiti README](https://github.com/getzep/graphiti): contradiction handling via temporal invalidation).
+  - **Status:** open
 
 - Who **owns** memories — user, character, platform?
   - **Legal:** user rights under GDPR; controller/processor roles ([Art. 17](https://gdpr-info.eu/art-17-gdpr/); [SiteGPT on chatbot DSARs](https://sitegpt.ai/resources/chatbot-data-subject-requests)).
@@ -413,8 +425,22 @@ Answers are working notes — revise as we learn. **Citations** are inline links
 
 - Can one user's relationship with two characters share information — should it?
   - **Technically:** easy to leak with shared `user_id` / agent bag ([Mem0 scopes user/agent/session](https://doi.org/10.48550/arxiv.2504.19413) — isolation is a design choice).
+  - OSS extract-retrieve products pass `user_id` (and often `run_id`) on add/search ([Mem0 add](https://docs.mem0.ai/core-concepts/memory-operations/add)).
+  - File stores isolate by **project**, not character ([basic-memory](https://github.com/basicmachines-co/basic-memory): "Projects are separate knowledge bases").
+  - Flat JSON with no user key is a miss ([omemo](https://github.com/OmniDimen/omemo): `data/memories.json`).
+  - Graph `group_id` is a partition, not automatically a tenant ([Graphiti docs](https://help.getzep.com/graphiti/llms.txt): isolated graph namespaces; Falkor shared-driver failure in [issue #1795](https://github.com/getzep/graphiti/issues/1795)).
   - **Socially:** usually **no** — separate relationships unless opt-in.
   - Default: isolate per character/relationship.
+  - **Status:** open
+
+- What **clusters** show up in shipped products (same axes, not 61 novels)?
+  - Extract-then-retrieve with `user_id` / `run_id` filters ([Mem0 add](https://docs.mem0.ai/core-concepts/memory-operations/add); [README](https://github.com/mem0ai/mem0): `User Memories:` in the prompt). Same pattern with a **namespace tuple** and manage/search tools ([LangMem README](https://github.com/langchain-ai/langmem): `create_manage_memory_tool` / `create_search_memory_tool`). Profile+event backend: structured slots and a timeline, blobs dropped after flush, retrieve scaffold stays quiet unless relevant ([Memobase README](https://github.com/memodb-io/memobase)).
+  - Temporal graph: invalidate old edges, keep history, partition with `group_id` ([Graphiti README](https://github.com/getzep/graphiti): "old facts are invalidated — not deleted"; `group_id` as graph partition).
+  - File-as-truth: markdown entities on disk, isolated by **project** ([basic-memory README](https://github.com/basicmachines-co/basic-memory): Entity / Observations / Relations; `basic-memory project add`). ReMe: daily topic `.md` plus filtered `session/dialog/*.jsonl`, `proactive_read` is opt-in ([ReMe README](https://github.com/agentscope-ai/ReMe)).
+  - Agent MemFS: git-tracked memory blocks scoped by `agentId` ([Letta Code](https://github.com/letta-ai/letta-code): `getScopedMemoryFilesystemRoot`).
+  - Unscoped file: one `data/memories.json` ([omemo README](https://github.com/OmniDimen/omemo)) or default `memory.jsonl` ([MCP memory server](https://github.com/modelcontextprotocol/servers)) — isolation miss for a companion. MCP also ships a "Remembering..." always-retrieve prompt.
+  - Closed apps still lack a primary write-path spec; do not copy/refuse from marketing.
+  - **Status:** open
 
 ---
 
@@ -591,7 +617,9 @@ Answers are working notes — revise as we learn. **Citations** are inline links
 
 - What would we refuse to optimize for?
   - **Candidates:** raw LoCoMo score alone ([Maharana et al. task scope](https://aclanthology.org/2024.acl-long.747/)), infinite recall ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827)), latency over relationship quality.
+  - Field default is extract-embed-retrieve; companion exams are a later refuse, not a Mem0-shaped leaderboard ([EVALS.md](EVALS.md); [LoCoMo](https://aclanthology.org/2024.acl-long.747/) measures fact QA in long chat, not timing or relationship feel).
   - **Open:** formal list not set.
+  - **Status:** open
 
 - If we succeed, what becomes possible that isn't today?
   - Companions stable over months ([Park et al. multi-day sim](https://arxiv.org/abs/2304.03442); [LoCoMo 32-session scale](https://aclanthology.org/2024.acl-long.747/)).
