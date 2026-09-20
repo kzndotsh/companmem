@@ -58,5 +58,14 @@ lint-open-code:
 synthesize:
     {{pipeline}} python -m companmem_pipeline.synthesize
 
+synthesize-dry-run:
+    {{pipeline}} python -m companmem_pipeline.synthesize --dry-run
+
+matrix:
+    {{pipeline}} python -m companmem_pipeline.matrix
+
+matrix-dry-run:
+    {{pipeline}} python -m companmem_pipeline.matrix --dry-run
+
 test-pipeline:
     {{pipeline}} pytest research/pipeline/tests
