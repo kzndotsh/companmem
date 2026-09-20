@@ -286,37 +286,6 @@ def is_weak_wiki_index_ledger(row: dict[str, object]) -> bool:
     return False
 
 
-def build_contested_rows(ledger: list[dict[str, object]]) -> list[dict[str, object]]:
-    blob = " ".join(
-        normalize_claim(str(row.get("quote") or "") + " " + str(row.get("claim") or ""))
-        for row in ledger
-    )
-    contested: list[dict[str, object]] = []
-    if "out of your hands" in blob and (
-        "mind map" in blob or "edit their memories" in blob or "editing mind map" in blob
-    ):
-        contested.append(
-            {
-                "text": (
-                    "Community sources say conversational memories are not user-editable; "
-                    "wiki and store sources describe Mind Map edit/remove. Both appear in the ledger."
-                ),
-            }
-        )
-    if "remember it forever" in blob and (
-        "forget" in blob or "confused" in blob or "forgetful" in blob
-    ):
-        contested.append(
-            {
-                "text": (
-                    "Official messaging claims memories are retained permanently while FAQ and "
-                    "user reports document confusion and forgetfulness; treat as contested operations."
-                ),
-            }
-        )
-    return contested
-
-
 def filter_sources_by_citation(
     sources: list[dict[str, object]],
     ledger: list[dict[str, object]],
@@ -913,7 +882,7 @@ def fold_pages(
     audit["copy"] = []
     audit["refuse"] = []
     audit["consensus"] = []
-    audit["contested"] = [] if subject == "eval" else build_contested_rows(ledger)
+    audit["contested"] = []
     audit["sources"] = filter_sources_by_citation(
         list(sources_by_url.values()),
         ledger,
