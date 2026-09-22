@@ -454,6 +454,45 @@ Answers are working notes — revise as we learn. **Citations** are inline links
   - Closed apps still lack a primary write-path spec; do not copy/refuse from marketing.
   - **Status:** open
 
+- When is a stored fact **spoken**, and when does it stay silent?
+  - Field default is to search and inject a block ([Mem0 README](https://github.com/mem0ai/mem0): `User Memories:`).
+  - One profile store stays quiet unless the fact is relevant ([Memobase README](https://github.com/memodb-io/memobase)).
+  - Saying a true fact at the wrong time is its own failure ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827)).
+  - The 25 evals score whether the fact came back. They do not score whether it should have been said ([EVAL-GRID.md](EVAL-GRID.md)).
+  - **Status:** open
+
+- What if the stored memory is **false**?
+  - Extractors can write a memory the user never stated. HaluMem scores extraction and update as Correct, Hallucination, or Omission ([HaluMem](https://arxiv.org/abs/2511.03506)).
+  - A user correction has to beat the old row. Graphiti invalidates the old fact instead of deleting the history ([Graphiti README](https://github.com/getzep/graphiti): "old facts are invalidated — not deleted").
+  - **Status:** open
+
+- What is **dropped** when memory is full?
+  - MemBench treats capacity as its own problem, separate from getting the answer right ([MemBench](https://arxiv.org/abs/2506.21605)).
+  - Humans drop detail and keep the gist ([Schuck & Doeller, 2024](https://www.nature.com/articles/s41562-023-01799-z)).
+  - A full store that still pastes everything is a log, not a choice about what matters.
+  - **Status:** open
+
+- Should the companion **raise** a memory without being asked?
+  - Unprompted preference use is one Assistant Benchmark anchor ([memory dimension](https://assistantbenchmark.com/dimensions/memory)).
+  - Generative Agents bring memories back through reflection, not only when queried ([Park et al., 2023](https://arxiv.org/abs/2304.03442)).
+  - Raising the right fact unasked is not the same as answering a quiz about it ([EVAL-GRID.md](EVAL-GRID.md)).
+  - **Status:** open
+
+- Can the user **see and correct** what was stored?
+  - Delete is a legal right under [GDPR Art. 17](https://gdpr-info.eu/art-17-gdpr/). Seeing the row is how a person knows what to correct.
+  - Mem0 can delete by id. The add docs also say new memories are added without overwriting old ones ([Mem0 add](https://docs.mem0.ai/core-concepts/memory-operations/add)).
+  - **Status:** open
+
+- What does the companion remember **about itself**, separate from the user?
+  - Letta keeps a persona block and a human block as different memory ([Letta memory architecture](https://github.com/letta-ai/skills/blob/HEAD/letta/letta-api-client/memory-architecture.md)).
+  - Mixing them produces a false autobiography. The character speaks as if it lived the user's event ([LoCoMo](https://aclanthology.org/2024.acl-long.747/)).
+  - **Status:** open
+
+- Does the **order** of events matter, or only the latest fact?
+  - BEAM scores event ordering with Kendall tau-b, not with answer F1 ([BEAM](https://arxiv.org/html/2510.27246v1)).
+  - A store can hold both facts and still tell them backwards.
+  - **Status:** open
+
 ---
 
 ## Evals, benchmarks & proof
@@ -469,6 +508,7 @@ Answers are working notes — revise as we learn. **Citations** are inline links
 - How do you know if memory is working?
   - Probes: past-fact QA, unprompted appropriate recall, forget requests, multi-session stability ([LoCoMo tasks](https://arxiv.org/abs/2402.17753): QA, event summarization, multimodal generation).
   - Single-turn QA insufficient for companions ([Maharana et al., 2024](https://aclanthology.org/2024.acl-long.747/)).
+  - What the 25 evals actually score, and which of these questions that leaves open, is counted in [`EVAL-GRID.md`](EVAL-GRID.md).
 
 - What is the first exam task?
   - One preference check, borrowed from Assistant Benchmark's memory dimension. We have not run it ([memory dimension](https://assistantbenchmark.com/dimensions/memory); [EVALS.md](EVALS.md) still defers that scorecard until we do).

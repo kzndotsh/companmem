@@ -6,6 +6,8 @@ What each of the 25 evals in `research/pipeline/seed.json` tests, one section pe
 
 A second pass checked the harvested pages in `.cache/by-eval/<slug>/docs`. Rows below include tests those pages state. A few of them are missing from `audit.json`. Those rows say so in the score cell.
 
+Counts across these tables are in [`EVAL-GRID.md`](EVAL-GRID.md).
+
 ## locomo
 
 The audit says questions are classified into five reasoning types: single-hop, multi-hop, temporal, commonsense or world knowledge, and adversarial.
