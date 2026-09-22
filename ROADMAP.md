@@ -1,15 +1,15 @@
 # ROADMAP
 
-**Goal.** Build the most human-like AI companion we can, by building the memory technology that actually does that. Then show, with a number someone else can rerun, that we beat other products on it.
+**Goal.** Build the memory technology that makes the most human-like companion we can, then show it with a number someone else can rerun.
 
-We do not know the product shape yet. We do not know the exam yet. Mapping the field and inventing that exam is how we find both.
+We still do not know what we are shipping, and we still do not know what that number measures. The field map exists so we do not copy everyone else's extract-and-search pipeline. The missing piece is a number we would bet the company on. We get it by running the same situation on our companion and on other products, then reading a result someone else can run again. That number is what tells us the product.
 
 "Best" is not a feeling and a slide. It is two results:
 
 1. People would call the companion more human, because of memory, not a longer prompt.
-2. A comparison we can run on us and on other products, that we would trust as "ahead."
+2. A number from that same situation run on us and on other products, that we would trust as "ahead."
 
-If we cannot name that comparison, we are not done. If we pick a score that is easy and empty, we also fail.
+If we cannot name what that number measures, we are not done. If we pick a score that is easy and empty, we also fail. Examples in the phases below are not the mission, and a single borrowed probe is not the exam.
 
 ---
 
@@ -32,11 +32,11 @@ Audits explain the field. They do not prove we are better.
 
 ## Phase 2. Name what "more human" is
 
-**Status:** not started
+**Status:** in progress
 
 Memory is the lever. A companion people would stay with is the point.
 
-Name the behaviors that would make someone say "this knows me," not "it retrieved the fact." Include caring versus creepy, continuity versus a fact dump, and remembering versus retrieving.
+Name the behaviors that would make someone say "this knows me," not "it retrieved the fact." Caring versus creepy, continuity versus a fact dump, and remembering versus retrieving are examples of that kind of behavior. They are not the mission, and they are not three tasks to go run.
 
 Use papers, companion HCI, and live user complaints. Do not harvest papers as if they were products.
 
@@ -48,20 +48,20 @@ Phase 1 and Phase 2 can overlap. Do not wait to finish every audit before this s
 
 ## Phase 3. Invent the exam
 
-**Status:** not started
+**Status:** in progress. Draft tasks in `docs/QUESTIONS.md`: a stated preference used later, proactive restraint, and LoCoMo-Conv implicit-fact score. Nothing has been run.
 
 Turn those behaviors into something we can run. A third party runs the same thing on us and on other products.
 
 The exam is the hard problem. We do not have it yet. Long-chat QA might be one probe. It is not automatically winning.
 
-Expect two comparison tracks, because they are not the same engineering:
+Expect two ways to run it, because they are not the same engineering:
 
 - **Plug-in products.** Open memory libraries we can put behind one runner, same transcripts, same grader.
 - **Closed companions.** Apps we cannot instrument. Scripted live probes or a user study, called out as a different protocol, not faked into the same adapter.
 
 A thin, ugly exam that moves is better than a perfect story. Start it as soon as Phase 2 has even one named behavior. Do not wait for a literature program to finish.
 
-**Done when:** we would bet the company on the comparison as "ahead," and we can point at how we scored at least one other product, not only ourselves.
+**Done when:** we would bet the company on that number as "ahead," and we can point at how we scored at least one other product, not only ourselves.
 
 ---
 

@@ -2,15 +2,9 @@
 
 Research on memory for realistic human and companion communication. Not another retrieve-then-speak RAG stack.
 
-Most agent-memory products follow the same pipeline: extract facts, embed, retrieve, stuff into context, generate. That works for assistants. For companions it often falls short. Users care when something is recalled, how it is said, and whether the relationship still feels continuous after weeks. They do not usually judge the system on whether a fact was technically present in the prompt.
+The mission is to build the memory technology that makes the most human-like companion we can, then show it with a number someone else can rerun. We still do not know what we are shipping, and we still do not know what that number measures. The field map exists so we do not copy everyone else's extract-and-search pipeline. The missing piece is a number we would bet the company on. We get it by running the same situation on our companion and on other products, then reading a result someone else can run again. That number is what tells us the product. Path: [`ROADMAP.md`](ROADMAP.md).
 
-This repo is for figuring out what memory has to be for a companion to feel human, what the field is getting wrong, and what would count as proof, before we pick a product shape.
-
-## What we're investigating
-
-A companion that people would call human-like, through memory, not through a bigger prompt. We do not yet know the architecture.
-
-Retrieval can work and the interaction can still feel off. Long-chat QA recall is not the same as a relationship that holds. Path: [`ROADMAP.md`](ROADMAP.md).
+Most agent-memory products follow the same pipeline: extract facts, embed, retrieve, stuff into context, generate. That pipeline is what the field map is here to keep us from copying. Examples of how a companion can still feel wrong, such as timing, wording, or a relationship that fades after weeks, are examples. They are not the mission.
 
 ## How we work
 

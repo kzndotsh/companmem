@@ -7,6 +7,8 @@ description: Enforces the companmem research workflow on docs/QUESTIONS.md — c
 
 Research-first project. **Source of truth:** `docs/QUESTIONS.md`.
 
+The mission is to build the memory technology that makes the most human-like companion we can, then show it with a number someone else can rerun. We still do not know what we are shipping, and we still do not know what that number measures. The field map exists so we do not copy everyone else's extract-and-search pipeline. The missing piece is a number we would bet the company on. We get it by running the same situation on our companion and on other products, then reading a result someone else can run again. That number is what tells us the product. An example in `ROADMAP.md` or `README.md` is not the assignment. A single borrowed probe is not the exam.
+
 Do not implement product code or expand scope beyond documentation unless the user explicitly asks.
 
 ## Hard gates

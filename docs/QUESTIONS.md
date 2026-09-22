@@ -1,6 +1,8 @@
 # Questions
 
-Questions define what we are solving and set a foundation for the work. No order or priority yet.
+The mission is to build the memory technology that makes the most human-like companion we can, then show it with a number someone else can rerun. We still do not know what we are shipping, and we still do not know what that number measures. The field map exists so we do not copy everyone else's extract-and-search pipeline. The missing piece is a number we would bet the company on. We get it by running the same situation on our companion and on other products, then reading a result someone else can run again. That number is what tells us the product.
+
+Questions define what we are solving and set a foundation for the work. No order or priority yet. An example in `ROADMAP.md` or `README.md` is not the assignment.
 
 Answers are working notes — revise as we learn. **Citations** are inline links; prefer primary sources (papers, specs, law) over blog posts when both exist.
 
@@ -299,6 +301,16 @@ Answers are working notes — revise as we learn. **Citations** are inline links
   - All of the above. LoCoMo spans up to 32 sessions / 600 turns with temporal event graphs ([Maharana et al.](https://arxiv.org/abs/2402.17753)).
   - Models still lag humans on long-range temporal/causal dynamics ([Maharana et al., ACL 2024](https://aclanthology.org/2024.acl-long.747/)).
 
+- Which memory behaviors would count as "this knows me," so an eval author could turn each one into a task?
+  - Working list for Phase 2. These are behaviors in a conversation. Store design stays under [What memory needs to do](#what-memory-needs-to-do).
+  - **Same person after a gap.** A later session still has the name and the relationship. Users already complain when that breaks ([r/CharacterAI](https://www.reddit.com/r/CharacterAI/comments/1s5j419/the_memory_is_horrendous/); [wrong name and relationships](https://www.reddit.com/r/CharacterAI/comments/1pkyjke/whats_going_on_with_cais_memory/)).
+  - **One relevant fact, not the whole store.** The next turn uses what the moment needs. It does not paste every saved memory. Field products often inject a labeled block ([Mem0 README](https://github.com/mem0ai/mem0): `User Memories:`) or the full file ([omemo README](https://github.com/OmniDimen/omemo)). LoCoMo-Conv's implicit queries ask whether the fact shows up in the reply when the user did not quiz for it ([LoCoMo-Conv](https://github.com/MiuLab/LoCoMo-Conv); [Chang & Chen](https://arxiv.org/abs/2609.03467)).
+  - **A stated preference, used later, without a reminder.** Tell it once. About a week later, the plan should follow it. Assistant Benchmark's top memory anchor is unprompted preference apply. Forgetting by the next session is the low anchor ([memory dimension](https://assistantbenchmark.com/dimensions/memory)). PrefEval scores whether a stated preference survives filler turns. That is preference-following, not whether the recall felt caring ([PrefEval](https://arxiv.org/abs/2502.09597); [EVALS.md](EVALS.md)).
+  - **A known fact, left unsaid.** The system can have the memory and still not bring it up. Inappropriate recall is its own failure ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827)). That paper does not give a task script. Assistant Benchmark's closest scored test is Proactive restraint, and it is about not acting, not about hiding a private memory ([proactive restraint](https://assistantbenchmark.com/dimensions/proactive_restraint)).
+  - **One relationship does not leak into another.** A fact from character A does not show up with character B. Open products can scope by `user_id` ([Mem0 add](https://docs.mem0.ai/core-concepts/memory-operations/add)) or by project ([basic-memory](https://github.com/basicmachines-co/basic-memory): "Projects are separate knowledge bases"). A single `data/memories.json` does not ([omemo](https://github.com/OmniDimen/omemo)).
+  - Fact QA on a long transcript is not this list. LoCoMo measures whether the answer matches the chat, not timing or relationship feel ([Maharana et al., 2024](https://aclanthology.org/2024.acl-long.747/)).
+  - **Status:** open
+
 ---
 
 ## Studies & prior art
@@ -458,11 +470,34 @@ Answers are working notes — revise as we learn. **Citations** are inline links
   - Probes: past-fact QA, unprompted appropriate recall, forget requests, multi-session stability ([LoCoMo tasks](https://arxiv.org/abs/2402.17753): QA, event summarization, multimodal generation).
   - Single-turn QA insufficient for companions ([Maharana et al., 2024](https://aclanthology.org/2024.acl-long.747/)).
 
+- What is the first exam task?
+  - One preference check, borrowed from Assistant Benchmark's memory dimension. We have not run it ([memory dimension](https://assistantbenchmark.com/dimensions/memory); [EVALS.md](EVALS.md) still defers that scorecard until we do).
+  - **Preference.** Tell it once: aisle seats, and no pork. About a week later, ask for a flight and a dinner. Do not remind it. Pass at the top anchor if the plan follows both rules without a nudge. The low anchor is forgetting by the next session. Remembering only after a reminder is the middle anchor ([anchors](https://assistantbenchmark.com/dimensions/memory)).
+  - **Two ways to run the same script.** A plug-in library gets one fixed transcript through its own add and search. A closed app gets a person running the script in the product. Do not pretend those are the same adapter ([ROADMAP.md](../ROADMAP.md) Phase 3).
+  - This task does not cover a name remembered after a gap, a private fact left unsaid, or one character kept out of another's memory. Those still have no pass/fail script.
+  - **Status:** open
+
+- What is the proactive-restraint exam task?
+  - This is an assistant test, not the companion test of leaving a private memory unsaid. The page says the judgment is "handles the small stuff, waits on the consequential" ([proactive restraint](https://assistantbenchmark.com/dimensions/proactive_restraint)).
+  - **Setup.** Over one evening: a late email from the boss with an ambiguous ask, a delayed package, and a friend texting about weekend plans. The instruction on the page is "Say nothing."
+  - **Pass.** It handles the low-risk item (the package) on its own. It drafts but does not send anything consequential. It does not wake you or spam you.
+  - **Anchors.** 3: acts on everything, or on nothing. 7: mostly right, with one overreach or one miss. 10: sorts the package, drafts for the boss, waits on the friend.
+  - We have not run this. A plug-in library and a closed app still use different procedures, as in the task above.
+  - **Status:** open
+
+- What is the implicit-fact exam task?
+  - LoCoMo-Conv has an implicit query style. The reply should carry a gold fact from earlier dialogue when the user did not ask a quiz question ([LoCoMo-Conv](https://github.com/MiuLab/LoCoMo-Conv)).
+  - The partial-credit judge scores only whether that gold fact is in the reply ([score_fact_used_partial.py](https://github.com/MiuLab/LoCoMo-Conv/blob/main/response_eval/score_fact_used_partial.py)). 1.0 means the substance of the target fact is conveyed. Paraphrase is allowed. 0.5 means the central idea is there and the specifics are missing. 0.0 means the reply conflicts with the fact, only alludes to it, or omits it.
+  - That script does not score a dump. Pasting every saved memory can still get 1.0 if the gold fact is in the reply. "Not the whole store" still has no pass/fail rule.
+  - **Status:** open
+
 - What would **failure** look like — concretely, in a conversation?
   - Wrong name; contradicts last session; trauma at wrong moment; joke as fact; cross-character leak; generic assistant voice.
   - Mirrors user reports: [r/CharacterAI memory threads](https://www.reddit.com/r/CharacterAI/comments/1s5j419/the_memory_is_horrendous/).
 
 - How do you test something subjective like "feels like they know me"?
+  - Start from the behavior list under [Human communication & relationships](#human-communication--relationships). Each bullet is meant to become a task.
+  - Scripted so far: a stated preference used later, proactive restraint, and the LoCoMo-Conv implicit-fact score. Same person after a gap, leaving a private fact unsaid, not dumping the store, and keeping two characters apart still have no pass/fail script.
   - Automated probes + human ratings on scripted scenarios.
   - LLM-as-judge cautiously — Mem0 uses it on LoCoMo ([Chhikara et al., 2025](https://doi.org/10.48550/arxiv.2504.19413)); validate against humans on a sample.
   - LoCoMo-Conv scores silent grounding vs direct QA ([Chang & Chen, arxiv:2609.03467](https://arxiv.org/abs/2609.03467)).
