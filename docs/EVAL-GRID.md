@@ -141,10 +141,10 @@ The other 39 ask what memory should do, or how we would tell. The grid covers 7 
 | 202 | Speed tax of tool calls | Latency or cost | 4 |
 | 217 | Cost and hardware | Latency or cost | 4 |
 | 381 | How stored memory is retrieved | Retrieval rank | 8 |
-| 406 | Two memories conflict | Contradiction or conflict | 3 |
-| 529 | First exam task, preference later | Preference followed | 4 |
-| 544 | Implicit fact shows up in the reply | LLM judge on the reply | 9 |
-| 503 | Does event order matter | Event ordering | 1 |
+| 407 | Two memories conflict | Contradiction or conflict | 3 |
+| 532 | First exam task, preference later | Preference followed | 4 |
+| 547 | Implicit fact shows up in the reply | LLM judge on the reply | 9 |
+| 505 | Does event order matter | Event ordering | 1 |
 
 ### Nearby, not the question
 
@@ -154,11 +154,11 @@ The other 39 ask what memory should do, or how we would tell. The grid covers 7 
 | 307 | Behaviors that would count as "this knows me" | Preference later is scored by 4 evals. The other four behaviors in that list are not. |
 | 373 | What should persist | HaluMem scores extraction. That row is not a shared grid label. |
 | 386 | Unit of a memory | LMEB names episodic, dialogue, semantic, and procedural. It does not score which unit a companion should use. |
-| 419 | Consistency | DuLeMon names consistency. The score script is not in the audit. |
-| 424 | Is perfect recall desirable | Abstention is scored by 4 evals. That is the near test, not this question. |
-| 536 | Proactive restraint task | Assistant Benchmark scores not acting on an email, a package, and a text. |
-| 484 | Should the companion raise a memory without being asked | Unprompted preference use is scored by 4 evals. Raising some other memory unasked is not. |
-| 550 | What failure looks like | Conflict is scored. A leak, a joke stored as fact, and a wrong name are not. |
+| 420 | Consistency | DuLeMon names consistency. The score script is not in the audit. |
+| 425 | Is perfect recall desirable | Abstention is scored by 4 evals. That is the near test, not this question. |
+| 539 | Proactive restraint task | Assistant Benchmark scores not acting on an email, a package, and a text. |
+| 486 | Should the companion raise a memory without being asked | Unprompted preference use is scored by 4 evals. Raising some other memory unasked is not. |
+| 553 | What failure looks like | Conflict is scored. A leak, a joke stored as fact, and a wrong name are not. |
 
 ### No eval score
 
@@ -168,23 +168,23 @@ The other 39 ask what memory should do, or how we would tell. The grid covers 7 
 | 76 | Log versus memory |
 | 129 | When the model ignores retrieved memory |
 | 133 | Should the system always retrieve |
-| 282 | How relationships build continuity |
-| 287 | What people expect when someone remembers them |
-| 291 | Caring versus creepy |
-| 298 | Facts about someone versus knowing them |
-| 302 | What changes over weeks and months |
+| 283 | How relationships build continuity |
+| 288 | What people expect when someone remembers them |
+| 292 | Caring versus creepy |
+| 299 | Facts about someone versus knowing them |
+| 303 | What changes over weeks and months |
 | 391 | Optional versus essential |
 | 396 | What forget means |
-| 413 | Who owns memories |
-| 428 | What "you forgot" is usually about |
-| 433 | Jokes, hypotheticals, and roleplay |
-| 438 | Lore versus what happened in conversation |
-| 443 | Two characters sharing one user's facts |
-| 462 | When a stored fact is spoken versus left silent |
-| 470 | What if the stored memory is false |
-| 477 | What is dropped when memory is full |
-| 490 | Can the user see and correct what was stored |
-| 496 | What the companion remembers about itself |
-| 554 | How to test "feels like they know me" |
+| 414 | Who owns memories |
+| 429 | What "you forgot" is usually about |
+| 434 | Jokes, hypotheticals, and roleplay |
+| 439 | Lore versus what happened in conversation |
+| 444 | Two characters sharing one user's facts |
+| 463 | When a stored fact is spoken versus left silent |
+| 471 | What if the stored memory is false |
+| 478 | What is dropped when memory is full |
+| 492 | Can the user see and correct what was stored |
+| 498 | What the companion remembers about itself |
+| 557 | How to test "feels like they know me" |
 
-The four behaviors in the "knows me" list with no score are the same gaps as lines 76, 291, 396, and 443. They are not a fifth missing pile.
+The four behaviors in the "knows me" list with no score are the same gaps as lines 76, 292, 396, and 444. They are not a fifth missing pile.

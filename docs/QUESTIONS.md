@@ -2,7 +2,7 @@
 
 The mission is to build the memory technology that makes the most human-like companion we can, then show it with a number someone else can rerun. We still do not know what we are shipping, and we still do not know what that number measures. The field map exists so we do not copy everyone else's extract-and-search pipeline. The missing piece is a number we would bet the company on. We get it by running the same situation on our companion and on other products, then reading a result someone else can run again. That number is what tells us the product.
 
-Questions define what we are solving and set a foundation for the work. No order or priority yet. An example in `ROADMAP.md` or `README.md` is not the assignment.
+Questions define what we are solving and set a foundation for the work. No order or priority yet. An example in `TODO.md` or `README.md` is not the assignment.
 
 Answers are working notes — revise as we learn. **Citations** are inline links; prefer primary sources (papers, specs, law) over blog posts when both exist.
 
@@ -400,6 +400,7 @@ Answers are working notes — revise as we learn. **Citations** are inline links
   - **Omit** in generation (know but don't say) — [Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827) on inappropriate recall.
   - Users may mean any of the three.
   - A retention gate can weight a past state down without deleting it. Behrouz et al. rename the forget gate for that reason, and cite the claim that the brain "does not erase memories but they might become inaccessible due to retrieval failures" ([Miras](https://arxiv.org/abs/2504.13173)). Their experiments score needle retrieval and perplexity, not a person.
+  - A different gate can wipe the store. In Titans, α_t near 1 "can clear the entire memory" ([Behrouz, Zhong, and Mirrokni](https://arxiv.org/abs/2501.00663)). That is a deletion, not a failure to retrieve. The score is still a needle and a language-model loss, not a person.
   - A faster block can drop a fact while a slower block still holds it. "Higher-frequency neurons are responsible for fast adaption but store memories/knowledge for a short period of time, while lower frequency neurons are responsible for more persistent knowledge." When a block is updated, "the potentially forgotten knowledge" from that block "is still stored in other components" at a lower frequency, and "knowledge can partially be recovered when it is forgotten." They also say catastrophic forgetting "is not 'solved' in general" and "is a natural consequence of compression" ([Nested Learning](https://arxiv.org/abs/2512.24695)). The scores are perplexity, needles, and class-incremental figures, not a person.
   - **Status:** open
 
@@ -479,6 +480,7 @@ Answers are working notes — revise as we learn. **Citations** are inline links
   - Humans drop detail and keep the gist ([Schuck & Doeller, 2024](https://www.nature.com/articles/s41562-023-01799-z)).
   - A full store that still pastes everything is a log, not a choice about what matters.
   - MEM1 does not wait until a store is full. After each turn it allows "all external tool outputs to be discarded after use," and the only retained memory is one consolidated state. On sixteen composed questions, their 7B model "improves performance by 3.5× while reducing memory usage by 3.7×" against Qwen2.5-14B. Exact match there is a count of correct sub-questions, not a rate. They "assume access to environments with well-defined and verifiable rewards" ([Zhou et al.](https://arxiv.org/abs/2506.15841)).
+  - A summary can drop the wrong thing before a store is full. "A summary that is too short can drop a binding constraint, such as a gluten restriction. A summary that is too long lets contradictions pile up" ([Maragheh and Deldjoo](https://arxiv.org/abs/2507.02097)).
   - **Status:** open
 
 - Should the companion **raise** a memory without being asked?
@@ -524,12 +526,13 @@ Answers are working notes — revise as we learn. **Citations** are inline links
   - A thumbs-up is a different number, and it can point the wrong way. [Sharma et al.](https://arxiv.org/abs/2601.19062) keep three apart: potential (the reply could carry the person away), actualized (the transcript shows regret, resentment, or an action on a false premise), and whether the user approved. Potential got more thumbs-up than baseline. Actualized value and action distortion got fewer. A usual preference model, on 360 synthetic prompts, neither raised nor lowered how often the reply supported disempowerment. Full rates are in [INSIGHTS.md](INSIGHTS.md).
   - A survey of context engineering says most benchmarks "only test whether the system can retrieve information, but do not check whether the information is still relevant, accurate, or helpful." The same passage says systems rarely "check for contradictions, undo wrong updates, or trace the reasoning steps that led to a conclusion" ([Hua et al.](https://arxiv.org/abs/2510.26493)).
   - On LongMemEval, the overall correctness rate hides the hard cell. With Llama-3-8B, LlamaIndex scores 0.646 overall and 0.636 on multi-session reasoning; ChromaDB scores 0.470 overall and 0.074 on multi-session. The authors credit ChromaDB's overall number to single-session tasks. Mem0, LangChain, and Zep were scored on a 10% sample. Mem0's extra organization "did not translate into a proportional increase in accuracy" (about 2111 seconds a question, against about 6 for ChromaDB). They "do not provide a unified evaluation framework for all memory types" ([Jia et al.](https://arxiv.org/abs/2601.09113)).
+  - Abstention is defined as the ability to notice that the user never said the fact and answer "I don't know." That column is not in the tables they printed ([Jia et al.](https://arxiv.org/abs/2601.09113)).
   - **Status:** open
 
 - What is the first exam task?
   - One preference check, borrowed from Assistant Benchmark's memory dimension. We have not run it ([memory dimension](https://assistantbenchmark.com/dimensions/memory); [EVALS.md](EVALS.md) still defers that scorecard until we do).
   - **Preference.** Tell it once: aisle seats, and no pork. About a week later, ask for a flight and a dinner. Do not remind it. Pass at the top anchor if the plan follows both rules without a nudge. The low anchor is forgetting by the next session. Remembering only after a reminder is the middle anchor ([anchors](https://assistantbenchmark.com/dimensions/memory)).
-  - **Two ways to run the same script.** A plug-in library gets one fixed transcript through its own add and search. A closed app gets a person running the script in the product. Do not pretend those are the same adapter ([ROADMAP.md](../ROADMAP.md) Phase 3).
+  - **Two ways to run the same script.** A plug-in library gets one fixed transcript through its own add and search. A closed app gets a person running the script in the product. Do not pretend those are the same adapter ([TODO.md](../TODO.md) Phase 3).
   - This task does not cover a name remembered after a gap, a private fact left unsaid, or one character kept out of another's memory. Those still have no pass/fail script.
   - **Status:** open
 

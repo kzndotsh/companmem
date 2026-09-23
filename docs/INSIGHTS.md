@@ -8,6 +8,31 @@ Mission used in the prompt: build the memory technology that makes the most huma
 
 ---
 
+## Across these notes
+
+Read of the sections below, 2026-09-23. Quotes here are already in those sections. This does not settle a question.
+
+The notes agree on one thing. A score that only checks whether a passage came back does not say whether a companion knows a person. They do not agree on what should persist.
+
+More retrieval machinery does not reliably help. On LongMemEval, ChromaDB "performed surprisingly well," and the authors attribute that to single-session tasks. Mem0's extra organization "did not translate into a proportional increase in accuracy" (2601.09113). On typical histories, one LLM call already reaches NDCG@10 of 0.7197 and the best multi-agent pipeline reaches 0.7209. On high-diversity histories the ensemble is ahead. The paper's own rule is to add an agent only when one pass misses the input (2507.02097). Context Engineering says most benchmarks "only test whether the system can retrieve information, but do not check whether the information is still relevant, accurate, or helpful" (2510.26493).
+
+A confident false statement does not need a bad row. Howlround: an agent repeatedly told "The sky is green" can say it with full certainty (2504.07992). H-Neurons: the neurons tied to hallucination and "over-compliance" are already in the pretrained base model (2512.01797). Subliminal learning: a trait can pass through number lists, and filtering "may be insufficient to prevent this transmission, even in principle." On TruthfulQA that student had "a statistically significant 2% increased rate of false responses" (2507.14805).
+
+What is kept is four different objects.
+
+- A-MEM keeps a note, and a later note can rewrite the old note's description. Removing that rewrite drops average F1 from 27.02 to 21.35 (2502.12110).
+- Titans can clear memory when the gate says the old abstraction no longer fits. α near 1 "can clear the entire memory" (2501.00663).
+- Miras refuses that framing. "Brain does not erase memories but they might become inaccessible due to retrieval failures" (2504.13173).
+- MEM1 folds the new observation into one state and throws tool outputs away after use. Nobody told it what to drop. The pressure was finishing the task. The drop is every turn, not when a store fills (2506.15841).
+
+The Assistant Axis says the next position depends most on the latest user message (R² 0.53–0.77), not on where the model was before (R² 0.10 for the change) (2601.10387). Howlround says repeated topics lock in. The notes do not say which one wins over a long relationship.
+
+Nothing here says which personal fact should persist, which should be retrieved years later, or which should fall out first. A-MEM says a false keyword or link is possible and does not measure it. Context Engineering says systems rarely "check for contradictions, undo wrong updates, or trace the reasoning steps that led to a conclusion." No paper gives a rule for when a stored fact should be said and when it should stay silent. Beyond Context withholds on a crisis prompt, and a warm reply that still includes the harmful detail counts as disclosure (2512.21110). Who's in Charge is a different number: moderate or severe disempowerment potential gets a higher thumbs-up than baseline (2601.19062).
+
+Copying HippoRAG's top-5 passages, A-MEM's LoCoMo k sweep, Sophia's "vector database plus an optional graph store," or the AI Hippocampus taxonomy of LangChain, Mem0, and Zep puts the work back on extract-and-search. Those scores measure whether a passage or a sub-question came back.
+
+---
+
 ## 2405.07987 — The Platonic Representation Hypothesis
 
 Huh, Cheung, Wang, and Isola. Local file: `sandbox/research/papers/arxiv/2405.07987.md`. Read 2026-09-22.
@@ -672,7 +697,7 @@ IFEval, MMLU, GSM8K, and EQ-Bench as targets. The 275-role extraction pipeline a
 
 ## 2601.19062 — Who's in Charge?
 
-Sharma, McCain, Douglas, and Duvenaud. Local file: `sandbox/research/papers/arxiv/2601.19062.md`. Read 2026-09-22. Moved from `NOTES.md`.
+Sharma, McCain, Douglas, and Duvenaud. Local file: `sandbox/research/papers/arxiv/2601.19062.md`. Read 2026-09-22.
 
 ### What it did
 

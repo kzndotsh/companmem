@@ -2,7 +2,7 @@
 
 Research on memory for realistic human and companion communication. Not another retrieve-then-speak RAG stack.
 
-The mission is to build the memory technology that makes the most human-like companion we can, then show it with a number someone else can rerun. We still do not know what we are shipping, and we still do not know what that number measures. The field map exists so we do not copy everyone else's extract-and-search pipeline. The missing piece is a number we would bet the company on. We get it by running the same situation on our companion and on other products, then reading a result someone else can run again. That number is what tells us the product. Path: [`ROADMAP.md`](ROADMAP.md).
+The mission is to build the memory technology that makes the most human-like companion we can, then show it with a number someone else can rerun. We still do not know what we are shipping, and we still do not know what that number measures. The field map exists so we do not copy everyone else's extract-and-search pipeline. The missing piece is a number we would bet the company on. We get it by running the same situation on our companion and on other products, then reading a result someone else can run again. That number is what tells us the product. Path: [`TODO.md`](TODO.md). Docs: [`docs/INDEX.md`](docs/INDEX.md).
 
 Most agent-memory products follow the same pipeline: extract facts, embed, retrieve, stuff into context, generate. That pipeline is what the field map is here to keep us from copying. Examples of how a companion can still feel wrong, such as timing, wording, or a relationship that fades after weeks, are examples. They are not the mission.
 
@@ -18,8 +18,9 @@ Agent skills in [`.agents/skills/`](.agents/skills/) back this up: research, sum
 
 | Path | Purpose |
 | --- | --- |
-| [`ROADMAP.md`](ROADMAP.md) | Human-like companion via memory, plus an exam we can win |
-| [`docs/`](docs/) | Active research; start with `QUESTIONS.md` |
+| [`TODO.md`](TODO.md) | Roadmap. Pending and done |
+| [`IDEA.md`](IDEA.md) | Not work yet |
+| [`docs/INDEX.md`](docs/INDEX.md) | Which doc owns what |
 | [`research/pipeline/`](research/pipeline/) | Harvest / extract / fold / apply |
 | [`research/output/`](research/output/) | Product `audit.json` records; see `by-product/PROTOCOL.md` |
 | [`.agents/skills/`](.agents/skills/) | Project agent skills, git-tracked |

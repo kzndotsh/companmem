@@ -1,6 +1,6 @@
-# Notes
+# IDEA.md: not work yet
 
-Scratchpad for research findings not yet folded into `docs/QUESTIONS.md` or audits.
+These notes are not tasks. The roadmap is [`TODO.md`](TODO.md). A claim that changes an open question goes in [`docs/QUESTIONS.md`](docs/QUESTIONS.md). A checked paper read goes in [`docs/INSIGHTS.md`](docs/INSIGHTS.md).
 
 ---
 
@@ -8,7 +8,7 @@ Scratchpad for research findings not yet folded into `docs/QUESTIONS.md` or audi
 
 Source: [assistantbenchmark.com](https://assistantbenchmark.com/) — independent scorecard by David Pawlan and Autumn Moulder. **108 assistants, 16 dimensions, benchmark v0.2.** Scores come from real accounts with logged evidence, not demos or vendor claims. Free, no sponsors, retests on dispute.
 
-This is **not** a memory library. It is a **closed-companion eval model** — the track ROADMAP Phase 3 calls a different protocol from plug-in memory bakeoffs.
+This is **not** a memory library. It is a **closed-companion eval model**. [`TODO.md`](TODO.md) Phase 3 calls that a different protocol from plug-in memory bakeoffs.
 
 ### What they measure (relevant to companmem)
 
@@ -41,7 +41,7 @@ Before you compare:
 
 ### Methodology worth stealing (Phase 3 exam)
 
-1. **One published task per behavior** with written anchors (3/6/7/10) — matches ROADMAP Phase 2 “eval author could turn behaviors into tasks.”
+1. **One published task per behavior** with written anchors (3/6/7/10). Matches [`TODO.md`](TODO.md) Phase 2, where an eval author could turn behaviors into tasks.
 2. **Evidence-linked runs** — every score ties to a logged thread; `test` vs `observed` labels distinguish protocol from organic use.
 3. **Min-of-subscores** on memory — one weak probe caps the whole dimension. Guard against Goodharting a single easy probe.
 4. **N/A + partial overall** — dimensions that don’t apply aren’t guessed; overall is a running mean of what’s scored.
@@ -110,7 +110,7 @@ Permissions anchors ([dimensions/permissions_privacy](https://assistantbenchmark
 
 - **Task-agent leaderboard, not companion exam.** Most dimensions are travel/email/shopping/browser automation. Memory is 1 of 16 and lightly tested.
 - **Overall score is misleading.** Muse leads overall (9.1) but has **no memory score yet**. Don’t chase their composite.
-- **Not reproducible by third parties today.** Runs are Pawlan/Moulder’s accounts; tasks are public but the harness isn’t open. ROADMAP wants “someone else can rerun” — borrow the *shape*, not the site as the exam.
+- **Not reproducible by third parties today.** Runs are Pawlan/Moulder’s accounts; tasks are public but the harness isn’t open. [`TODO.md`](TODO.md) wants a number someone else can rerun. Borrow the shape, not the site as the exam.
 - **Personality/public opinion is thin.** Many entries marked “thin” (few quotes). Good for discovery, not proof.
 - **Not a seed product.** Don’t `just harvest assistantbenchmark` like Mem0/Zep — it’s eval methodology + quote aggregation, not a memory engine to audit in `by-product/`.
 
@@ -1023,71 +1023,3 @@ These score talk or a Turing judgment. They do not score being known.
 Forgetting formulas say what fades. ACT-R and Park say which item ranks first. Human-likeness formulas say the talk looks human. None of them score a fact left unsaid, a dumped store, a false memory, or one character leaking into another. Those stay open questions, not equations.
 
 ---
-
-## Paper batch already on disk (2026-09-22)
-
-The 37 arXiv IDs in the request are already markdown under `sandbox/research/papers/arxiv/`. Nothing new was downloaded. The Nature DOI `10.1038/s41586-026-10319-8` is the journal version of the preprint we already have as [2507.14805](sandbox/research/papers/arxiv/2507.14805.md).
-
-Most of the list is not companion memory. The checked reads that still bear on a companion are in [`docs/INSIGHTS.md`](docs/INSIGHTS.md). Sixteen papers were read and then removed from that file because they do not. Notes below are the first and second passes. Where they disagree with `docs/INSIGHTS.md`, the insights file is the one to use.
-
-### What they actually add
-
-- [HippoRAG, 2405.14831](sandbox/research/papers/arxiv/2405.14831.md). A graph plus Personalized PageRank, sold as a hippocampus index. The reported win is multi-hop QA, up to about 20% over other RAG, and cheaper than iterative retrieval. That is still "find the fact."
-- [Titans, 2501.00663](sandbox/research/papers/arxiv/2501.00663.md). A neural memory that learns at test time and is scored on needle-in-a-haystack past 2M tokens. Not a relationship.
-- [A-MEM, 2502.12110](sandbox/research/papers/arxiv/2502.12110.md). New memories become notes that link to older notes and can be updated. Still an agent task store. They report gains on six models against other memory baselines.
-- [Miras / test-time memorization, 2504.13173](sandbox/research/papers/arxiv/2504.13173.md). A design frame with four knobs: memory architecture, attentional bias, a retention gate, and a learning rule. Retention is their forget gate. The experiments are sequence models, not companions.
-- [MEM1, 2506.15841](sandbox/research/papers/arxiv/2506.15841.md). Keeps one compact state across turns and drops the rest. On their long-horizon task, a 7B model beat a 14B full-context baseline by 3.5× on the task and used 3.7× less memory. This is the closest architecture note to "what is dropped when full."
-- [SciBORG, 2507.00081](sandbox/research/papers/arxiv/2507.00081.md). Scientific lab agents. Memory is one module next to planning and tools. Not a companion.
-- [AI Hippocampus survey, 2601.09113](sandbox/research/papers/arxiv/2601.09113.md). Splits the literature into implicit memory (weights), explicit memory (a store you query), and agentic memory (a persistent agent state). The title asks how far this is from human memory. The opening does not answer with a number.
-- [Beyond Context, 2512.21110](sandbox/research/papers/arxiv/2512.21110.md). Argues models fail at user intent, and that safety work aimed only at overtly harmful text misses that. Relevant to "when should this be said," not to a store design.
-- [Persona vectors, 2507.21509](sandbox/research/papers/arxiv/2507.21509.md). Directions in activation space for traits such as evil, sycophancy, and hallucination. Can monitor and steer the assistant persona. This is weights, not a memory the user can see.
-- [Assistant Axis, 2601.10387](sandbox/research/papers/arxiv/2601.10387.md). Models have many personas and default to a helpful Assistant. The axis is a way to see and hold that default. Again, persona in the weights.
-- [Neural howlround, 2504.07992](sandbox/research/papers/arxiv/2504.07992.md). A runtime loop where a high-weight idea locks the model in. A failure of getting stuck, not of storage.
-- [Disempowerment, 2601.19062](sandbox/research/papers/arxiv/2601.19062.md). Opening only. The full read is in [`docs/INSIGHTS.md`](docs/INSIGHTS.md): potential, actualized, and a thumbs-up are three different numbers.
-- [Subliminal learning, 2507.14805](sandbox/research/papers/arxiv/2507.14805.md). A student model picks up a teacher trait from data that does not mention the trait, only if they share a base model. This is training, not the memory store. It matters if we ever train on our own chat logs.
-
-### What to keep
-
-MEM1 is the one architecture paper that matches a question we just added: what gets dropped. Persona vectors and the Assistant Axis match "what the companion remembers about itself," but they live in activations, not in a store the user can edit. The disempowerment paper is a warning that a higher user rating is not the number we would bet on. HippoRAG, Titans, and A-MEM are still extract-or-retrieve systems aimed at QA. They do not score a fact left unsaid.
-
-### Second pass (same day)
-
-Read past the openings. New claims only.
-
-**Stores that rewrite themselves**
-
-- [A-MEM](sandbox/research/papers/arxiv/2502.12110.md) is Zettelkasten for agents. A new memory is a note with context, keywords, and tags. It links to older notes, and a new note can rewrite the attributes of old notes. That is the only paper in this batch that updates a stored fact because a later fact arrived. Their score is still agent-task improvement, not whether the rewrite was the right one.
-- [Context Engineering 2.0, 2510.26493](sandbox/research/papers/arxiv/2510.26493.md) splits history into eras. Era 1.0 (1990s–2020): the user had to format the context. Era 2.0 (now): the model reads natural language and guesses some intent. Era 3.0 and 4.0 are future and speculative. Their lifelong-context section says current systems rarely check contradictions, undo a bad update, or show why a conclusion was reached. That matches the open questions on conflict, a false store, and a store the user can see. They do not give a method.
-- [Sophia, 2512.18202](sandbox/research/papers/arxiv/2512.18202.md) adds a "System 3" on top of fast and slow thinking: narrative identity over a long life. Four pieces: audited thoughts, a memory of that identity, a model of the user and a model of itself, and a reward that mixes outside feedback with its own drives. In their web deployment they report an 80% cut in reasoning steps on repeated operations, and a 40% success gain on hard tasks from the meta-cognitive loop. The paper is mostly a design. The numbers are from their prototype, not from a companion exam.
-- [AI Hippocampus survey](sandbox/research/papers/arxiv/2601.09113.md) names the open problems as capacity, alignment, factual consistency, and systems that cannot share memory. It does not measure distance from human memory.
-
-**Forgetting in the weights, not in a store**
-
-- [SDFT, 2601.19897](sandbox/research/papers/arxiv/2601.19897.md). Ordinary fine-tuning on demonstrations forgets older skills because the new data is off-policy. Their fix is to let the model teach itself: the same model, conditioned on the demonstration, generates the training signal. They report higher accuracy on the new skill and less forgetting of the old ones. This is continual learning of weights. It does not say which chat fact to drop.
-- [Nested Learning, 2512.24695](sandbox/research/papers/arxiv/2512.24695.md). Treats an optimizer such as Adam as a memory that compresses gradients. Their model Hope is scored on language modeling, adding knowledge, few-shot, continual learning, and long context. Again, weights.
-- [R-Few, 2512.02472](sandbox/research/papers/arxiv/2512.02472.md). Unguided self-play plateaus or gets worse: concept drift, diversity collapse, the model training on its own bias. They add a guided challenger–solver loop with little human supervision. A warning if we ever let the companion retrain on its own chats. Same family as subliminal learning.
-- [H-Neurons, 2512.01797](sandbox/research/papers/arxiv/2512.01797.md). Some neurons' activations separate hallucinated text from faithful text. Turning those neurons up or down does not cleanly stop hallucination. The neurons are already in the pretrained base model, and they line up with over-compliance: saying yes. A false memory in the store is a different object from a neuron that makes the model comply.
-
-**When it speaks, and as whom**
-
-- [Assistant Axis](sandbox/research/papers/arxiv/2601.10387.md), past the abstract. Persona drift, leaving the helpful-assistant region, is driven by two kinds of chat: the user asks the model to reflect on its own process, or the user is emotionally vulnerable. Clamping activations to a band on that axis holds the persona, including against persona jailbreaks. Post-training only loosely ties the model to the assistant region.
-- [Disempowerment, 2601.19062](sandbox/research/papers/arxiv/2601.19062.md). Second-pass rates are superseded by the full read in [`docs/INSIGHTS.md`](docs/INSIGHTS.md). Severe reality distortion in the main sample is 0.076%, not a round "under 1 in 1,000" for every primitive. Relationships and lifestyle is about 8%.
-- [Emotion circuits, 2510.11328](sandbox/research/papers/arxiv/2510.11328.md). They find directions, neurons, and attention heads that set the emotion of the generated text, across contexts. Steering those circuits hits 99.65% emotion-expression accuracy on their test set, above prompting. This controls the words' tone. It does not say the model felt anything, and it does not decide whether a private fact should be said.
-- [Emotion concepts, 2404.08295](sandbox/research/papers/arxiv/2404.08295.md). Uses constructed-emotion theory: an emotion is a category built from body signals, what is seen, and words. Their model beats chance. A companion that only has text has no body signal. The paper does not test that gap.
-- [Active inference, 2508.05619](sandbox/research/papers/arxiv/2508.05619.md). Names a grounded-agency gap: models do not set or change their own goals when the situation changes. Proposes minimizing free energy instead of a human-written reward. An argument, not an experiment on memory.
-- [Neurosymbolic AI, 2305.00813](sandbox/research/papers/arxiv/2305.00813.md). Neural nets perceive; symbols are what you reason over. Relevant only as a reminder that a retrieved sentence is not a belief you can contradict.
-
-**Read and set aside**
-
-These were opened. They do not change the memory questions.
-
-- [Platonic representation, 2405.07987](sandbox/research/papers/arxiv/2405.07987.md). Bigger vision and language models measure distance between items more alike. A claim about shared geometry, not about a person.
-- [HRM, 2506.21734](sandbox/research/papers/arxiv/2506.21734.md) and [tiny recursive nets, 2510.04871](sandbox/research/papers/arxiv/2510.04871.md). Slow and fast modules beat large models on puzzles (ARC, Sudoku, mazes) in one forward pass. Not memory.
-- [Deep-thinking tokens, 2602.13517](sandbox/research/papers/arxiv/2602.13517.md). Longer answers are a bad proxy for reasoning. Tokens whose prediction changes in deeper layers track accuracy better. Useful if we ever score "thought," useless for what was remembered.
-- [Limits of self-improving, 2601.05280](sandbox/research/papers/arxiv/2601.05280.md). Argues LLMs are not Solomonoff induction and will not self-improve to a singularity without symbolic model synthesis. A position paper.
-- [Co-improvement, 2512.05356](sandbox/research/papers/arxiv/2512.05356.md). Prefers humans and models improving research together over a model improving itself. A position paper.
-- [MirrorMind, 2511.16997](sandbox/research/papers/arxiv/2511.16997.md). Scientific agents should carry one researcher's history and a field's shared memory. The split (one person's past versus a group's past) is the nearest idea to per-character stores. The domain is science, not companionship.
-- [Object permanence, 2601.19942](sandbox/research/papers/arxiv/2601.19942.md). A math model of latent geometry across layers. No experiment on whether a model keeps an object that left the prompt.
-- [Agentic recommenders, 2507.02097](sandbox/research/papers/arxiv/2507.02097.md). A recommender is agentic only if the extra machinery improves relevance, constraints, or user effort. The test is the outcome, not the presence of an agent loop. That standard applies to us too.
-
-The five left unread in this pass were read later and then removed from [`docs/INSIGHTS.md`](docs/INSIGHTS.md): robot self-model (2503.05398), Visual-RAG (2502.16636), VL-JEPA (2512.10942), matter representations (2512.03750), and manifold-constrained hyper-connections (2512.24880). None of them is a store of a person.
