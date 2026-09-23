@@ -2,7 +2,7 @@
 
 One paper at a time. The whole local file is sent to Kiro with the mission prompt. What is written here is checked against that file. A quote is from the paper. A line that goes past the paper is marked.
 
-This is not a settled answer. It does not change [`QUESTIONS.md`](QUESTIONS.md) unless a later edit says so.
+This is not a settled answer. It does not change a question doc unless a later edit says so.
 
 Mission used in the prompt: build the memory technology that makes the most human-like companion we can, then show it with a number someone else can rerun. We still do not know what we are shipping, and we still do not know what that number measures. The field map exists so we do not copy everyone else's extract-and-search pipeline. The missing piece is a number we would bet the company on. We get it by running the same situation on our companion and on other products, then reading a result someone else can run again. That number is what tells us the product.
 

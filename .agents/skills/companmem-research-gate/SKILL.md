@@ -1,11 +1,11 @@
 ---
 name: companmem-research-gate
-description: Enforces the companmem research workflow on docs/QUESTIONS.md — cited answers, status tags (settled/open/deferred), falsifiability before promotion, and ADR drafting only when settled. Use when editing QUESTIONS.md, answering research questions, tagging items, promoting answers to decisions, or any companmem research work.
+description: Enforces the companmem research workflow on the question docs listed in docs/QUESTIONS.md — cited answers, status tags (settled/open/deferred), falsifiability before promotion, and ADR drafting only when settled. Use when editing those docs, answering research questions, tagging items, promoting answers to decisions, or any companmem research work.
 ---
 
 # Companmem Research Gate
 
-Research-first project. **Source of truth:** `docs/QUESTIONS.md`.
+Research-first project. **Source of truth:** the question docs listed in `docs/QUESTIONS.md`.
 
 The mission is to build the memory technology that makes the most human-like companion we can, then show it with a number someone else can rerun. We still do not know what we are shipping, and we still do not know what that number measures. The field map exists so we do not copy everyone else's extract-and-search pipeline. The missing piece is a number we would bet the company on. We get it by running the same situation on our companion and on other products, then reading a result someone else can run again. That number is what tells us the product. An example in `TODO.md` or `README.md` is not the assignment. A single borrowed probe is not the exam.
 
@@ -71,7 +71,7 @@ Example:
 
 ### Answer an open question
 
-1. Read the question and existing bullets in `docs/QUESTIONS.md`
+1. Read the question and existing bullets in the doc that owns it. The list is `docs/QUESTIONS.md`.
 2. Use `research` or `evidence-driven-research` for landscape / options work
 3. Use `research-summarizer` when the user provides a paper or long article
 4. Draft answer bullets with inline citations (match existing style)
@@ -89,14 +89,14 @@ When status is `settled` and the answer has product or architecture consequences
 1. Confirm with the user that an ADR is warranted
 2. Invoke `adr-drafting`
 3. Default ADR location: `docs/decisions/` (create if missing; use `0001-slug.md` numbering)
-4. Link the ADR back to the question section in `QUESTIONS.md`
+4. Link the ADR back to the question in the doc that owns it.
 
 ## Editing rules
 
 - Prefer revising existing bullets over adding parallel conflicting answers
 - When new evidence contradicts a `settled` item, downgrade to `open` and note what changed
 - Do not invent citations — if no source exists, say so and keep status `open`
-- Match `QUESTIONS.md` tone: concise bullets, inline markdown links, no priority ordering across sections
+- Match the question docs' tone: concise bullets, inline markdown links, no priority ordering across sections
 - Do not create new top-level doc files unless the user asks (except ADRs after the Decide gate)
 
 ## Companion skills

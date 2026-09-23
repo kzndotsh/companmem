@@ -10,7 +10,7 @@ Most agent-memory products follow the same pipeline: extract facts, embed, retri
 
 Research first. No product code at the repo root until groups of questions converge.
 
-[`docs/QUESTIONS.md`](docs/QUESTIONS.md) is the source of truth. Questions are grouped by theme (definitions, human behavior, storage, evals, product scope). There is no fixed priority order yet. Answers are working notes with inline citations; we prefer primary sources (papers, specs, law) over blog posts. Each item gets a status tag: `settled`, `open`, or `deferred`. Settled answers need a stated falsifier. When an answer has downstream consequences, it can become an ADR in `docs/decisions/` (that directory does not exist yet).
+[`docs/QUESTIONS.md`](docs/QUESTIONS.md) is the index. The question docs are the source of truth. There is no fixed priority order yet. Answers are working notes with inline citations. We prefer primary sources (papers, specs, law) over blog posts. Each item gets a status tag: `settled`, `open`, or `deferred`. Settled answers need a stated falsifier. When an answer has downstream consequences, it can become an ADR in `docs/decisions/` (that directory does not exist yet).
 
 Agent skills in [`.agents/skills/`](.agents/skills/) back this up: research, summarization, pressure-testing via `grill-with-docs`, ADR drafting, and [`companmem-research-gate`](.agents/skills/companmem-research-gate/SKILL.md), which enforces the gates above. Versions are pinned in [`skills-lock.json`](skills-lock.json).
 
@@ -36,7 +36,7 @@ Agent skills in [`.agents/skills/`](.agents/skills/) back this up: research, sum
 
 When working in this repo:
 
-- Read `docs/QUESTIONS.md` before proposing architecture
+- Read [`docs/QUESTIONS.md`](docs/QUESTIONS.md) before proposing architecture
 - Cite sources; do not invent claims
 - Do not commit unless asked
-- Attach `companmem-research-gate` for research edits to `QUESTIONS.md`
+- Attach `companmem-research-gate` for edits to the question docs

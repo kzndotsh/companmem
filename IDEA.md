@@ -1,6 +1,6 @@
 # IDEA.md: not work yet
 
-These notes are not tasks. The roadmap is [`TODO.md`](TODO.md). A claim that changes an open question goes in [`docs/QUESTIONS.md`](docs/QUESTIONS.md). A checked paper read goes in [`docs/INSIGHTS.md`](docs/INSIGHTS.md).
+These notes are not tasks. The roadmap is [`TODO.md`](TODO.md). A claim that changes an open question goes in the doc that owns it. The list is [`docs/QUESTIONS.md`](docs/QUESTIONS.md). A checked paper read goes in [`docs/INSIGHTS.md`](docs/INSIGHTS.md).
 
 ---
 

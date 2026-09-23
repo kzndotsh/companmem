@@ -30,7 +30,7 @@ Phase 1 and Phase 2 can overlap. Papers, companion HCI, and live complaints are 
 - [ ] Keep plug-in products and closed apps on different protocols
 - [ ] Run it once
 
-Draft tasks and the failures they still miss are in [`docs/QUESTIONS.md`](docs/QUESTIONS.md). Nothing has been run. A borrowed probe is not the exam. A score that only checks whether something came back cannot close this phase.
+Draft tasks and the failures they still miss are in [`docs/EXAM.md`](docs/EXAM.md). Nothing has been run. A borrowed probe is not the exam. A score that only checks whether something came back cannot close this phase.
 
 Done when we would bet on that number as ahead, and we can point at a score for at least one other product.
 

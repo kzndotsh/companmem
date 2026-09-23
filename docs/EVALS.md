@@ -133,7 +133,7 @@ Audit depth varies (`ledger` size, `unknowns`). Thin rows need re-harvest or mor
 
 **MSC:** Human–human continuity across sessions with personas and optional inter-session **time gap**—generation benchmark, not preference-violation MC.
 
-**Companion gap:** Measures **violation of stated preference** more than **caring vs creepy** recall ([`docs/QUESTIONS.md`](QUESTIONS.md) remembering vs retrieving).
+**Companion gap:** Measures **violation of stated preference** more than **caring vs creepy** recall ([`DEFINITIONS.md`](DEFINITIONS.md) remembering vs retrieving).
 
 ---
 

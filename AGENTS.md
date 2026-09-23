@@ -6,7 +6,7 @@ This is mission-critical work. The mission is to build the memory technology tha
 
 An example in [`TODO.md`](TODO.md) or [`README.md`](README.md) is not the assignment. A single borrowed probe is not the exam. Product code at the repo root stays blocked until questions are `settled` and the user asks.
 
-**Source of truth:** [`docs/QUESTIONS.md`](docs/QUESTIONS.md). Attach [`companmem-research-gate`](.agents/skills/companmem-research-gate/SKILL.md) for any edit to that file.
+**Source of truth:** the question docs listed in [`docs/QUESTIONS.md`](docs/QUESTIONS.md). Attach [`companmem-research-gate`](.agents/skills/companmem-research-gate/SKILL.md) for any edit to those files.
 
 ## Constraints
 
@@ -23,7 +23,15 @@ An example in [`TODO.md`](TODO.md) or [`README.md`](README.md) is not the assign
 TODO.md                    # roadmap. Pending and done
 IDEA.md                    # not work yet
 docs/INDEX.md              # which doc owns what
-docs/QUESTIONS.md          # source of truth
+docs/QUESTIONS.md          # index of the question docs
+docs/PROCESS.md            # how we run the research
+docs/DEFINITIONS.md        # what the words mean
+docs/CONTEXT.md            # prompt versus memory
+docs/MEMORY.md             # what a store has to do
+docs/BEHAVIORS.md          # what would count as knowing a person
+docs/FIELD.md              # what already exists, and who it is for
+docs/EXAM.md               # how we would tell if a behavior happened
+docs/BUILDING.md           # how the work would get built, once settled
 docs/INSIGHTS.md           # checked paper reads
 docs/EVAL-INVENTORY.md     # one benchmark, what it scores
 docs/EVAL-GRID.md          # which question that score touches
@@ -86,4 +94,4 @@ Env: `KIRO_GATEWAY_URL`, `KIRO_GATEWAY_API_KEY` (fallback `PROXY_API_KEY`). Harv
 
 - Conventional commits: `type(scope): subject` (no trailing period). Types: `docs`, `feat`, `fix`, `chore`, `ci`, `refactor`. Scope when useful: `research`, `pipeline`
 - Python (when added): Ruff, 4-space, typed, `Type | None`, no bare `except`, no inline imports, no `any`
-- Nested `AGENTS.md` files stay thin. Do not duplicate QUESTIONS.md or schema here
+- Nested `AGENTS.md` files stay thin. Do not duplicate the question docs or schema here
