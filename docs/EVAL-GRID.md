@@ -8,7 +8,7 @@ BEAM abilities other than event ordering are `y` when the ability is named and t
 
 LongMemEval-V2 premise awareness is `y` because that row says the model must identify a wrong premise, and the static-state row says accuracy is reported per category with a judge.
 
-**Status:** exploratory. This is not our exam.
+**Status:** exploratory. This is not our exam. A user thumbs-up is not the exam either. On Claude feedback chats, moderate or severe disempowerment potential got a higher thumbs-up rate than baseline ([Sharma et al.](https://arxiv.org/abs/2601.19062)). The rates and the potential-versus-actualized split are in [`INSIGHTS.md`](INSIGHTS.md) and under "how do you know if memory is working" in [`QUESTIONS.md`](QUESTIONS.md).
 
 ## Grid
 
@@ -139,26 +139,26 @@ The other 39 ask what memory should do, or how we would tell. The grid covers 7 
 | QUESTIONS.md line | Question | Grid row | Scored evals |
 | --- | --- | --- | --- |
 | 202 | Speed tax of tool calls | Latency or cost | 4 |
-| 216 | Cost and hardware | Latency or cost | 4 |
-| 378 | How stored memory is retrieved | Retrieval rank | 8 |
-| 401 | Two memories conflict | Contradiction or conflict | 3 |
-| 513 | First exam task, preference later | Preference followed | 4 |
-| 528 | Implicit fact shows up in the reply | LLM judge on the reply | 9 |
-| 491 | Does event order matter | Event ordering | 1 |
+| 217 | Cost and hardware | Latency or cost | 4 |
+| 381 | How stored memory is retrieved | Retrieval rank | 8 |
+| 406 | Two memories conflict | Contradiction or conflict | 3 |
+| 529 | First exam task, preference later | Preference followed | 4 |
+| 544 | Implicit fact shows up in the reply | LLM judge on the reply | 9 |
+| 503 | Does event order matter | Event ordering | 1 |
 
 ### Nearby, not the question
 
 | QUESTIONS.md line | Question | Why it is only nearby |
 | --- | --- | --- |
 | 66 | Remembering versus retrieving | Retrieval rank is scored. Remembering is not. |
-| 304 | Behaviors that would count as "this knows me" | Preference later is scored by 4 evals. The other four behaviors in that list are not. |
-| 370 | What should persist | HaluMem scores extraction. That row is not a shared grid label. |
-| 383 | Unit of a memory | LMEB names episodic, dialogue, semantic, and procedural. It does not score which unit a companion should use. |
-| 414 | Consistency | DuLeMon names consistency. The score script is not in the audit. |
-| 419 | Is perfect recall desirable | Abstention is scored by 4 evals. That is the near test, not this question. |
-| 520 | Proactive restraint task | Assistant Benchmark scores not acting on an email, a package, and a text. |
-| 475 | Should the companion raise a memory without being asked | Unprompted preference use is scored by 4 evals. Raising some other memory unasked is not. |
-| 534 | What failure looks like | Conflict is scored. A leak, a joke stored as fact, and a wrong name are not. |
+| 307 | Behaviors that would count as "this knows me" | Preference later is scored by 4 evals. The other four behaviors in that list are not. |
+| 373 | What should persist | HaluMem scores extraction. That row is not a shared grid label. |
+| 386 | Unit of a memory | LMEB names episodic, dialogue, semantic, and procedural. It does not score which unit a companion should use. |
+| 419 | Consistency | DuLeMon names consistency. The score script is not in the audit. |
+| 424 | Is perfect recall desirable | Abstention is scored by 4 evals. That is the near test, not this question. |
+| 536 | Proactive restraint task | Assistant Benchmark scores not acting on an email, a package, and a text. |
+| 484 | Should the companion raise a memory without being asked | Unprompted preference use is scored by 4 evals. Raising some other memory unasked is not. |
+| 550 | What failure looks like | Conflict is scored. A leak, a joke stored as fact, and a wrong name are not. |
 
 ### No eval score
 
@@ -171,20 +171,20 @@ The other 39 ask what memory should do, or how we would tell. The grid covers 7 
 | 282 | How relationships build continuity |
 | 287 | What people expect when someone remembers them |
 | 291 | Caring versus creepy |
-| 296 | Facts about someone versus knowing them |
-| 300 | What changes over weeks and months |
-| 388 | Optional versus essential |
-| 393 | What forget means |
-| 408 | Who owns memories |
-| 423 | What "you forgot" is usually about |
-| 428 | Jokes, hypotheticals, and roleplay |
-| 433 | Lore versus what happened in conversation |
-| 438 | Two characters sharing one user's facts |
-| 457 | When a stored fact is spoken versus left silent |
-| 464 | What if the stored memory is false |
-| 469 | What is dropped when memory is full |
-| 481 | Can the user see and correct what was stored |
-| 486 | What the companion remembers about itself |
-| 538 | How to test "feels like they know me" |
+| 298 | Facts about someone versus knowing them |
+| 302 | What changes over weeks and months |
+| 391 | Optional versus essential |
+| 396 | What forget means |
+| 413 | Who owns memories |
+| 428 | What "you forgot" is usually about |
+| 433 | Jokes, hypotheticals, and roleplay |
+| 438 | Lore versus what happened in conversation |
+| 443 | Two characters sharing one user's facts |
+| 462 | When a stored fact is spoken versus left silent |
+| 470 | What if the stored memory is false |
+| 477 | What is dropped when memory is full |
+| 490 | Can the user see and correct what was stored |
+| 496 | What the companion remembers about itself |
+| 554 | How to test "feels like they know me" |
 
-The four behaviors in the "knows me" list with no score are the same gaps as lines 76, 291, 393, and 438. They are not a fifth missing pile.
+The four behaviors in the "knows me" list with no score are the same gaps as lines 76, 291, 396, and 443. They are not a fifth missing pile.

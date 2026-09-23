@@ -9,7 +9,7 @@ We still do not know what we are shipping, and we still do not know what that nu
 1. People would call the companion more human, because of memory, not a longer prompt.
 2. A number from that same situation run on us and on other products, that we would trust as "ahead."
 
-If we cannot name what that number measures, we are not done. If we pick a score that is easy and empty, we also fail. Examples in the phases below are not the mission, and a single borrowed probe is not the exam.
+If we cannot name what that number measures, we are not done. If we pick a score that is easy and empty, we also fail. A thumbs-up is one of those scores: on Claude feedback chats, moderate or severe disempowerment potential got a higher thumbs-up rate than baseline, while actualized value and action distortion got a lower one ([Sharma et al.](https://arxiv.org/abs/2601.19062)). Examples in the phases below are not the mission, and a single borrowed probe is not the exam.
 
 ---
 
@@ -94,4 +94,5 @@ Keep running the Phase 3 exam on us and on others. If we stop beating them, the 
 - Treat a layer sketch as the product
 - Ship the industry default because every audit showed it
 - Treat an easy leaderboard as winning
+- Treat a thumbs-up, or any user-approval rate, as the number we would bet on ([Sharma et al.](https://arxiv.org/abs/2601.19062))
 - Implement before Phase 4

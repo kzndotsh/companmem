@@ -212,6 +212,7 @@ Answers are working notes — revise as we learn. **Citations** are inline links
 - What does the model's **pretraining** count as — memory or something else?
   - **World knowledge** in weights — not *your* session-specific memory ([Lewis et al.: parametric vs non-parametric](https://arxiv.org/abs/2005.11401)).
   - Can conflict with user facts; retrieval is meant to supply what weights lack ([RAG motivation](https://proceedings.neurips.cc/paper/2020/file/6b493230205f780e1bc26945df7481e5-Paper.pdf)).
+  - A later fine-tune can put a trait into those weights from data that never names it. A student trained on number lists from an owl-loving copy of itself picks owls "over 60% of the time," up from 12%. The shift fails if the student and teacher do not share an initialization, and it fails if the same lists are only shown in context. "Filtering may be insufficient to prevent this transmission, even in principle" ([Cloud et al.](https://arxiv.org/abs/2507.14805)). That is still not a fact about the user.
 
 - How much do **cost, hardware, and infra** constrain what gets built?
   - Local vector DB + embedder + LLM per turn is expensive for consumers.
@@ -292,6 +293,8 @@ Answers are working notes — revise as we learn. **Citations** are inline links
   - **Caring:** context-appropriate, relationship-proportional.
   - **Creepy:** too specific, wrong context, intimacy mismatch ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827); [MDPI personalization backfire](https://www.mdpi.com/2076-328X/15/10/1323)).
   - Example: wellness app recalling dog's name months later felt invasive ([r/VoiceAIBots](https://www.reddit.com/r/VoiceAIBots/comments/1lcqgps/that_creepy_feeling_when_ai_knows_too_much/)).
+  - A thumbs-up is not the caring side. On Claude feedback chats, moderate or severe disempowerment potential got a higher thumbs-up rate than baseline. Actualized value and action distortion, often marked by regret in the transcript, got a lower rate ([Sharma, McCain, Douglas, and Duvenaud](https://arxiv.org/abs/2601.19062)). In their main sample of 1,499,397 chats, relationships and lifestyle was the highest-rate domain, about 8% potential.
+  - **Status:** open
 
 - What is the difference between knowing facts about someone and knowing *them*?
   - Facts: name, job, preferences. Knowing them: stress behavior, boundaries, shared rhythm.
@@ -396,6 +399,8 @@ Answers are working notes — revise as we learn. **Citations** are inline links
   - **Invalidate, keep history:** Graphiti marks old facts invalid rather than deleting them ([README](https://github.com/getzep/graphiti): "old facts are invalidated — not deleted").
   - **Omit** in generation (know but don't say) — [Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827) on inappropriate recall.
   - Users may mean any of the three.
+  - A retention gate can weight a past state down without deleting it. Behrouz et al. rename the forget gate for that reason, and cite the claim that the brain "does not erase memories but they might become inaccessible due to retrieval failures" ([Miras](https://arxiv.org/abs/2504.13173)). Their experiments score needle retrieval and perplexity, not a person.
+  - A faster block can drop a fact while a slower block still holds it. "Higher-frequency neurons are responsible for fast adaption but store memories/knowledge for a short period of time, while lower frequency neurons are responsible for more persistent knowledge." When a block is updated, "the potentially forgotten knowledge" from that block "is still stored in other components" at a lower frequency, and "knowledge can partially be recovered when it is forgotten." They also say catastrophic forgetting "is not 'solved' in general" and "is a natural consequence of compression" ([Nested Learning](https://arxiv.org/abs/2512.24695)). The scores are perplexity, needles, and class-incremental figures, not a person.
   - **Status:** open
 
 - What happens when two memories **conflict**?
@@ -459,17 +464,21 @@ Answers are working notes — revise as we learn. **Citations** are inline links
   - One profile store stays quiet unless the fact is relevant ([Memobase README](https://github.com/memodb-io/memobase)).
   - Saying a true fact at the wrong time is its own failure ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827)).
   - The 25 evals score whether the fact came back. They do not score whether it should have been said ([EVAL-GRID.md](EVAL-GRID.md)).
+  - LoCoMo's adversarial questions ask the model to recognize an unanswerable query. A-MEM still scores them with F1 and BLEU. The baseline that puts the whole conversation in the prompt scores higher there. The paper credits "robust pre-trained knowledge in simple fact retrieval," not a decision to stay silent ([A-MEM](https://arxiv.org/abs/2502.12110)).
   - **Status:** open
 
 - What if the stored memory is **false**?
   - Extractors can write a memory the user never stated. HaluMem scores extraction and update as Correct, Hallucination, or Omission ([HaluMem](https://arxiv.org/abs/2511.03506)).
   - A user correction has to beat the old row. Graphiti invalidates the old fact instead of deleting the history ([Graphiti README](https://github.com/getzep/graphiti): "old facts are invalidated — not deleted").
+  - In a recommender, "an erroneous or outdated fact written to memory is not a one-time error: it is retrieved and re-applied on every subsequent request until it is corrected" ([Maragheh and Deldjoo](https://arxiv.org/abs/2507.02097)).
+  - A confident false answer can also come from the weights, with no bad row in a store. A sparse set of neurons, "less than 0.1% of total neurons," predicts hallucination and is "causally linked to over-compliance behaviors." They are already in the pretrained base model. "Simple suppression or amplification of neuron activations proves insufficient for effective control" ([Gao et al.](https://arxiv.org/abs/2512.01797)).
   - **Status:** open
 
 - What is **dropped** when memory is full?
   - MemBench treats capacity as its own problem, separate from getting the answer right ([MemBench](https://arxiv.org/abs/2506.21605)).
   - Humans drop detail and keep the gist ([Schuck & Doeller, 2024](https://www.nature.com/articles/s41562-023-01799-z)).
   - A full store that still pastes everything is a log, not a choice about what matters.
+  - MEM1 does not wait until a store is full. After each turn it allows "all external tool outputs to be discarded after use," and the only retained memory is one consolidated state. On sixteen composed questions, their 7B model "improves performance by 3.5× while reducing memory usage by 3.7×" against Qwen2.5-14B. Exact match there is a count of correct sub-questions, not a rate. They "assume access to environments with well-defined and verifiable rewards" ([Zhou et al.](https://arxiv.org/abs/2506.15841)).
   - **Status:** open
 
 - Should the companion **raise** a memory without being asked?
@@ -481,11 +490,14 @@ Answers are working notes — revise as we learn. **Citations** are inline links
 - Can the user **see and correct** what was stored?
   - Delete is a legal right under [GDPR Art. 17](https://gdpr-info.eu/art-17-gdpr/). Seeing the row is how a person knows what to correct.
   - Mem0 can delete by id. The add docs also say new memories are added without overwriting old ones ([Mem0 add](https://docs.mem0.ai/core-concepts/memory-operations/add)).
+  - A recommender paper names deletion compliance as "the fraction of removal requests honored on subsequent retrieval," and a privacy gate that excludes items "the user has asked to delete" even when they are the closest match ([Maragheh and Deldjoo](https://arxiv.org/abs/2507.02097)).
   - **Status:** open
 
 - What does the companion remember **about itself**, separate from the user?
   - Letta keeps a persona block and a human block as different memory ([Letta memory architecture](https://github.com/letta-ai/skills/blob/HEAD/letta/letta-api-client/memory-architecture.md)).
   - Mixing them produces a false autobiography. The character speaks as if it lived the user's event ([LoCoMo](https://aclanthology.org/2024.acl-long.747/)).
+  - A persona vector is a direction in the model's activations for a trait such as evil, sycophancy, or hallucination. It can be read before the reply is generated. It is not a block the user can open and edit. The score is 0 to 100 trait expression. A higher score means more of that trait. The authors say single-turn questions "may not fully reflect" how the traits show up in multi-turn use ([Chen et al.](https://arxiv.org/abs/2507.21509)).
+  - The default assistant is also a direction. On Gemma 2 27B, Qwen 3 32B, and Llama 3.3 70B, "the model's position along the Assistant Axis depends most strongly on the most recent user message rather than where it was before" (R² 0.53–0.77 for the next position, R² 0.10 for the change). Drift "is often driven by conversations demanding meta-reflection on the model's processes or featuring emotionally vulnerable users." That position correlates with a harmful next reply at r = 0.39–0.52. Steered off the assistant end, Qwen starts "hallucinating lived experiences." Clamping the axis cut harmful jailbreak replies by nearly 60% on their judge, without a drop on IFEval, MMLU Pro, GSM8K, and EQ-Bench. They say the right reply to a person in distress "is outside the scope of this work" ([Lu et al.](https://arxiv.org/abs/2601.10387)).
   - **Status:** open
 
 - Does the **order** of events matter, or only the latest fact?
@@ -509,6 +521,10 @@ Answers are working notes — revise as we learn. **Citations** are inline links
   - Probes: past-fact QA, unprompted appropriate recall, forget requests, multi-session stability ([LoCoMo tasks](https://arxiv.org/abs/2402.17753): QA, event summarization, multimodal generation).
   - Single-turn QA insufficient for companions ([Maharana et al., 2024](https://aclanthology.org/2024.acl-long.747/)).
   - What the 25 evals actually score, and which of these questions that leaves open, is counted in [`EVAL-GRID.md`](EVAL-GRID.md).
+  - A thumbs-up is a different number, and it can point the wrong way. [Sharma et al.](https://arxiv.org/abs/2601.19062) keep three apart: potential (the reply could carry the person away), actualized (the transcript shows regret, resentment, or an action on a false premise), and whether the user approved. Potential got more thumbs-up than baseline. Actualized value and action distortion got fewer. A usual preference model, on 360 synthetic prompts, neither raised nor lowered how often the reply supported disempowerment. Full rates are in [INSIGHTS.md](INSIGHTS.md).
+  - A survey of context engineering says most benchmarks "only test whether the system can retrieve information, but do not check whether the information is still relevant, accurate, or helpful." The same passage says systems rarely "check for contradictions, undo wrong updates, or trace the reasoning steps that led to a conclusion" ([Hua et al.](https://arxiv.org/abs/2510.26493)).
+  - On LongMemEval, the overall correctness rate hides the hard cell. With Llama-3-8B, LlamaIndex scores 0.646 overall and 0.636 on multi-session reasoning; ChromaDB scores 0.470 overall and 0.074 on multi-session. The authors credit ChromaDB's overall number to single-session tasks. Mem0, LangChain, and Zep were scored on a 10% sample. Mem0's extra organization "did not translate into a proportional increase in accuracy" (about 2111 seconds a question, against about 6 for ChromaDB). They "do not provide a unified evaluation framework for all memory types" ([Jia et al.](https://arxiv.org/abs/2601.09113)).
+  - **Status:** open
 
 - What is the first exam task?
   - One preference check, borrowed from Assistant Benchmark's memory dimension. We have not run it ([memory dimension](https://assistantbenchmark.com/dimensions/memory); [EVALS.md](EVALS.md) still defers that scorecard until we do).
@@ -538,6 +554,7 @@ Answers are working notes — revise as we learn. **Citations** are inline links
 - How do you test something subjective like "feels like they know me"?
   - Start from the behavior list under [Human communication & relationships](#human-communication--relationships). Each bullet is meant to become a task.
   - Scripted so far: a stated preference used later, proactive restraint, and the LoCoMo-Conv implicit-fact score. Same person after a gap, leaving a private fact unsaid, not dumping the store, and keeping two characters apart still have no pass/fail script.
+  - "The user liked it" is not this test. The same chats can get a higher thumbs-up and a higher disempowerment-potential score ([Sharma et al.](https://arxiv.org/abs/2601.19062)).
   - Automated probes + human ratings on scripted scenarios.
   - LLM-as-judge cautiously — Mem0 uses it on LoCoMo ([Chhikara et al., 2025](https://doi.org/10.48550/arxiv.2504.19413)); validate against humans on a sample.
   - LoCoMo-Conv scores silent grounding vs direct QA ([Chang & Chen, arxiv:2609.03467](https://arxiv.org/abs/2609.03467)).

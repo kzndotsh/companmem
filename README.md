@@ -29,6 +29,7 @@ Agent skills in [`.agents/skills/`](.agents/skills/) back this up: research, sum
 - Not a shipped memory product or library
 - Not a push for LoCoMo leaderboard scores alone
 - Not a bet on one storage architecture (vector DB, graph, files, OS-style paging)
+- Not a bet on user approval. A thumbs-up can rise on the failure ([Sharma et al.](https://arxiv.org/abs/2601.19062))
 
 ## Contributing / using agents
 
