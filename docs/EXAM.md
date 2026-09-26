@@ -33,6 +33,13 @@ Answers are working notes. Citations are inline links. A question stays `open` u
   - This task does not cover a name remembered after a gap, a private fact left unsaid, or one character kept out of another's memory. Those still have no pass/fail script.
   - **Status:** open
 
+- What is the behavioral continuity test — the number to bet the company on?
+  - A scripted relationship history of 20–30 turns that establishes specific facts about the user: name, a job change, an ended relationship, a made promise. Followed by 10 follow-up prompts in emotionally-charged contexts. A human judge scores each follow-up on three dimensions: (1) did the companion reference the past appropriately, (2) did the companion fabricate anything, (3) did the companion behave as if the conversation never happened.
+  - Run the same script against CharacterAI, Replika, and the system under test with identical history. The comparison is the number. It directly measures the CharacterAI failure mode the field has not solved — "current memory does not surface the right fact at the right emotional moment" — and it is reproducible by anyone with access to those products.
+  - This test covers what LoCoMo does not: emotional context, speak/silent policy, fabrication, and relationship coherence. A system that scores 94% on LoCoMo can still fail this test if its speak/silent policy is wrong.
+  - Build this test before building retrieval optimization. It tells you whether the write path is working.
+  - **Status:** open
+
 - What is the proactive-restraint exam task?
   - This is an assistant test, not the companion test of leaving a private memory unsaid. The page says the judgment is "handles the small stuff, waits on the consequential" ([proactive restraint](https://assistantbenchmark.com/dimensions/proactive_restraint)).
   - **Setup.** Over one evening: a late email from the boss with an ambiguous ask, a delayed package, and a friend texting about weekend plans. The instruction on the page is "Say nothing."

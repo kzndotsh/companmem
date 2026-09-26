@@ -164,9 +164,56 @@ Answers are working notes. Citations are inline links. A question stays `open` u
   - A user correction has to beat the old row. Graphiti invalidates the old fact instead of deleting the history ([Graphiti README](https://github.com/getzep/graphiti): "old facts are invalidated — not deleted").
   - In a recommender, "an erroneous or outdated fact written to memory is not a one-time error: it is retrieved and re-applied on every subsequent request until it is corrected" ([Maragheh and Deldjoo](https://arxiv.org/abs/2507.02097)).
   - A confident false answer can also come from the weights, with no bad row in a store. A sparse set of neurons, "less than 0.1% of total neurons," predicts hallucination and is "causally linked to over-compliance behaviors." They are already in the pretrained base model. "Simple suppression or amplification of neuron activations proves insufficient for effective control" ([Gao et al.](https://arxiv.org/abs/2512.01797)).
+  - The aelios audit documents the clearest field case: the dream distillation pipeline fabricated a specific event (user complained about something after work) that existed in none of the 233 source messages for that day. The companion repeated it as fact. The user caught it only by manually checking every raw message. The fabricated memory had realistic texture — neither agent nor user could self-verify. Any summarization or distillation pipeline that produces condensed narrative from message batches carries this risk.
   - **Status:** open
 
-- What is **dropped** when memory is full?
+- Can LLM extraction at write time reach companion-grade trustworthiness?
+  - Converging evidence against extraction pipelines: taosmd measures 18.8% partially or unsupported facts across 526 claims. paramecium's prior pipeline produced 36% paraphrase rather than verbatim content before building a quote-verification guard. aelios documents a fabricated event with realistic texture that neither agent nor user could self-verify. honcho misattributes AI speech to the human user by default.
+  - Mitigations each address one failure mode: quote-verification guard (paramecium) prevents fabricated memories. Speaker attribution prevents AI-speech contamination. Claims gate (taosmd) prevents serving unverified extractions. But each is a patch on a fundamentally untrusted pipeline.
+  - The deeper question: can a pipeline that uses an LLM to decide what to remember about a real person — someone who will notice when the memory is wrong — be made reliable enough that users trust it the way they trust a human who remembers them?
+  - Alternatives documented in the audit: human-in-the-loop review gates (aelios, byterover), model-self-authored memories via structured tags (omemo builtin mode, paramecium's `<mem>` tag path), append-only with manual curation (kimi-core). None scale cleanly to continuous passive use.
+  - No product has measured whether users trust the extraction output enough to rely on it emotionally. That measurement must come before the architecture is locked in.
+  - **Status:** open
+
+- Does speaker attribution matter — whose words are being extracted?
+  - Systemic failure across the field. honcho's deriver misattributes AI agent speech to the human user. hermes-agent stored routing metadata as user-authored content. mem0's entity linking merges across user/assistant scopes even when extraction prompts are separate.
+  - A companion that builds its model of the user partly from its own prior outputs will drift toward a self-confirming mirror — not a model of a real person. Facts attributed to the wrong speaker contaminate the user model permanently.
+  - Fix: explicit speaker tag on every ingested turn, enforced in the extraction prompt. Not advisory.
+  - **Status:** open
+
+- What happens to stored memory when the underlying model is updated?
+  - Documented across five independent products: CharacterAI (auto-memory stopped picking up details after a recent update), Replika (post-2.0 rollout caused partial memory loss and personality drift), Nomi (post-update degradation breaking memory and personality coherence), Kindroid (LLM model updates cause loss of established character memory), Supermemory (upgrade-induced memory unsearchability across multiple versions).
+  - This is not a storage problem. The memory store can be intact while the model behavior shifts, effectively resetting the relationship. The model that reads a given memory is not the model that wrote the context that produced it. No product has an architecture that survives model updates with continuity intact.
+  - **Status:** open
+
+- How much does memory processing **cost**, and does that constrain design?
+  - claude-mem hit 64% of the user's primary model spend on memory processing alone. kiwi-mem estimates $0.22/day for active use with local embeddings. SimpleMem's intent-aware retrieval planning adds multiple LLM calls per turn. taosmd documents ~531 tokens per query vs 25,000+ for full-context baselines.
+  - For a companion that runs continuously over months, these numbers determine what is commercially viable. A multi-LLM-call write pipeline that runs on every turn is not affordable at consumer scale.
+  - Cost is a first-class constraint on write-path architecture, not an optimization pass later.
+  - **Status:** open
+
+- What is the "never admit no information found" failure mode?
+  - Some systems include a scaffold instruction telling the model to produce a response even when retrieval returns nothing relevant, rather than admitting the gap. mem0's reader scaffold explicitly instructs the model not to acknowledge retrieval failure. The replika pattern follows the same approach.
+  - This is an active design choice to manufacture confabulation. For a companion, the failure mode is worse than missing a fact: the companion confidently describes an event the user never shared, and the user cannot distinguish this from genuine recall. Discovery destroys trust in everything the companion has said.
+  - The correct design: abstain rather than fabricate when the corpus does not contain a relevant memory. mnemosyne implements this — it returns nothing rather than generating a response that might be wrong.
+  - "Never admit no information found" is a companion-destroying scaffold default, not a minor retrieval policy choice.
+  - **Status:** open
+
+- What **design decisions from the field are worth stealing** for a companion write path?
+  - These are specific mechanisms documented in audited products, ranked by companion relevance.
+  - **Quote-verification guard (paramecium):** Before any extracted memory enters the store, check that the verbatim source quote exists in the source batch. If the quote cannot be found, drop the memory. Eliminates fabricated memories with realistic texture. taosmd documents 18.8% of LLM-extracted facts as partially or unsupported; paramecium's prior pipeline produced 36% paraphrase. Adds one string-search per extracted fact at write time. No other product implements this.
+  - **MEMORY.md / USER.md split (soul-of-waifu):** Character psychology (beliefs, emotional state, internal tensions, self-model) and user-facing facts (name, preferences, relationship history, shared milestones, promises) stored as separate schemas with different write paths and different authorities. The character owns the first store; the user's behavior populates the second. No funded product makes this split structural.
+  - **Zero-loss append-only archive as rebuild target (taosmd):** Every ingested message goes to an append-only archive unconditionally before anything else. All derived layers — curated facts, vector index, knowledge graph — are rebuildable from the archive when a bug corrupts them or the extraction pipeline improves.
+  - **Reads-never-reinforce; explicit promote-only strengthening (vestige, paramecium, ombre-brain):** Retrieving a memory does not increase its retrieval score. Only an explicit positive outcome signal strengthens a memory. Three products independently converge on this. Prevents highly-retrieved stale facts from becoming confidently wrong when circumstances change.
+  - **Echo lane retrieval (paramecium):** At retrieval time, two separate query vectors: one from the user's message, one from the companion's previous reply. The second lane surfaces memories relevant to what the companion was just discussing, not only what the user asked. Two-vector retrieval at negligible incremental cost.
+  - **Status:** open
+
+- What is the right **build order** — foundational requirements vs aspirational ones?
+  - The analysis of 61 products distinguishes two tiers. Getting the first tier right puts the system ahead of everything in the field. The second tier is the right long-term target but not necessary to be better than the field.
+  - **Foundational (required to be better than the field):** Zero-loss append-only archive. Curated fact store with verbatim source quotes, speaker attribution, and subject labels. Quote-verification guard at write time. Abstain-not-fabricate retrieve scaffold. Hard failure logging on extraction errors (no silent cursor advancement).
+  - **Aspirational (required to be the best possible companion):** Emotional state tracking with decay tied to emotional processing. Relational quality tracking (trust, promises, milestones). Affect-conditioned speak/silent policy. Circumplex affect model. CONTRADICTS-link force inclusion in retrieval.
+  - A companion with a reliable, hallucination-checked, speaker-attributed fact store that admits uncertainty when it has nothing is far ahead of anything in the field — even without affect modeling.
+  - **Status:** open
   - MemBench treats capacity as its own problem, separate from getting the answer right ([MemBench](https://arxiv.org/abs/2506.21605)).
   - Humans drop detail and keep the gist ([Schuck & Doeller, 2024](https://www.nature.com/articles/s41562-023-01799-z)).
   - A full store that still pastes everything is a log, not a choice about what matters.

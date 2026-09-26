@@ -59,4 +59,20 @@ Answers are working notes. Citations are inline links. A question stays `open` u
   - Timing/when-to-speak has only 3 complaint rows — not because it does not matter, but because no product attempts it. Users cannot report a failure mode the product never tried. **A known fact left unsaid** is invisible to complaint analysis for exactly this reason. Its absence from complaints is not evidence that it does not matter; it is evidence that the field has not tried it.
   - **Status:** open
 
+- What is the most important unsolved problem in companion memory, based on the field audit?
+  - CharacterAI's own diagnosis: "current memory does not surface the right fact at the right emotional moment." Not retrieval accuracy — speak/silent policy conditioned on emotional context. No product has solved this. ombre-brain's SurfacePolicyVM comes closest but has no measurement of whether it improves relationship quality.
+  - This reframes the whole problem. The question is not "did the right passage come back." It is "does the system have a speak/silent policy that reflects what matters emotionally, not just what is semantically similar." The benchmark that measures this does not exist yet. Building it is more important than optimizing LoCoMo scores.
+  - **Status:** open
+
+- Is speaker misattribution a companion-specific concern or a general extraction problem?
+  - Systemic across the field, not an isolated bug. honcho's deriver misattributes AI agent speech to the human user. hermes-agent stored routing metadata as user-authored content. mem0's extraction has separate user vs. assistant prompts but entity linking still merges across scopes. Multiple other products extract from conversation turns without explicit speaker attribution rules.
+  - A companion that builds its model of the user partly from its own prior outputs will drift toward a self-confirming mirror — not a model of a real person. Speaker attribution is a first-tier requirement alongside subject contracts, not an edge case.
+  - Fix: explicit speaker tagging at ingestion, enforced in the extraction prompt.
+  - **Status:** open
+
+- What happens to a companion relationship when the underlying model is updated?
+  - Documented across five independent products: CharacterAI (auto-memory stopped picking up details after a recent update), Replika (post-2.0 rollout caused partial memory loss and personality drift), Nomi (post-update degradation breaking memory and personality coherence), Kindroid (LLM model updates cause loss of established character memory), Supermemory (upgrade-induced memory unsearchability across multiple versions).
+  - This is not a storage problem. The memory store can be valid while the model behavior shifts, effectively resetting the relationship. No product in the field has an architecture that survives model updates with continuity intact.
+  - **Status:** open
+
 ---
