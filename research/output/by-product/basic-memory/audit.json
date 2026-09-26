@@ -10,7 +10,7 @@
   },
   "claimed_purpose": [
     {
-      "text": "Product goal is session continuity \u2014 recovering decisions, rationale, working state, blockers, and next steps without asking the user to re-explain the previous session."
+      "text": "Product goal is session continuity — recovering decisions, rationale, working state, blockers, and next steps without asking the user to re-explain the previous session."
     },
     {
       "text": "Basic Memory stores entity timestamps in a database and exposes them via API/MCP, with a stated philosophy that important metadata should be in the file itself."
@@ -39,10 +39,10 @@
   ],
   "mechanisms": [
     {
-      "text": "Edit operations support granular mutations: append, prepend, replace by section, find-and-replace within section, and insert before/after a section heading \u2014 all operating on caller-supplied current content without reading storage."
+      "text": "Edit operations support granular mutations: append, prepend, replace by section, find-and-replace within section, and insert before/after a section heading — all operating on caller-supplied current content without reading storage."
     },
     {
-      "text": "On indexing becoming available, search by thread_id and synthesize into an existing note if one exists \u2014 indicating a conflict/supersession policy of merging into an existing note rather than duplicating."
+      "text": "On indexing becoming available, search by thread_id and synthesize into an existing note if one exists — indicating a conflict/supersession policy of merging into an existing note rather than duplicating."
     },
     {
       "text": "Persist: notes are written as Markdown files on disk; a local note write returns 202 before the markdown file is flushed, with a drain step at shutdown to ensure accepted writes are never lost."
@@ -84,7 +84,7 @@
       "text": "Per-project client routing determines whether persistence and retrieval go through a local ASGI path or a cloud HTTP path with API key"
     },
     {
-      "text": "Distinguishes three layers: lifecycle metadata, raw transcripts, and synthesized durable knowledge \u2014 not a single undifferentiated log"
+      "text": "Distinguishes three layers: lifecycle metadata, raw transcripts, and synthesized durable knowledge — not a single undifferentiated log"
     },
     {
       "text": "Store: curated Markdown files on disk (not a message log); each file is an Entity with Observations (facts) and Relations (wikilinks)"
@@ -93,7 +93,7 @@
       "text": "The project is the core isolation boundary; every entity, observation, relation, and search record belongs to exactly one project."
     },
     {
-      "text": "Switching transport modes must not require migrating knowledge \u2014 continuity semantics are shared across CLI and MCP access modes."
+      "text": "Switching transport modes must not require migrating knowledge — continuity semantics are shared across CLI and MCP access modes."
     },
     {
       "text": "Two retrieval modes are supported: full-text search (FTS) and semantic/vector search, controlled by retrieval_mode on the query"
@@ -176,10 +176,10 @@
       "label": "measured"
     },
     {
-      "claim": "Retrieve policy uses hybrid full-text + vector search with optional cross-encoder reranking; not always-retrieve \u2014 semantic search must be enabled via env var",
+      "claim": "Retrieve policy uses hybrid full-text + vector search with optional cross-encoder reranking; not always-retrieve — semantic search must be enabled via env var",
       "kind": "code",
       "url": "https://github.com/basicmachines-co/basic-memory/blob/3bf2d523c0a941f71cb144a5502e7557dd025d69/README.md",
-      "quote": "Hybrid full-text + vector ranking with FastEmbed embeddings, on SQLite or Postgres. \u2026 Reranking adds a second relevance pass after vector or hybrid retrieval. It is disabled by default.",
+      "quote": "Hybrid full-text + vector ranking with FastEmbed embeddings, on SQLite or Postgres. … Reranking adds a second relevance pass after vector or hybrid retrieval. It is disabled by default.",
       "locator": "README.md ## What's New / ## Optional cross-encoder reranking",
       "confidence": "high",
       "label": "measured"
@@ -206,7 +206,7 @@
       "claim": "Isolation is per-project (named projects, separate directories); cloud routing can be per-project",
       "kind": "code",
       "url": "https://github.com/basicmachines-co/basic-memory/blob/3bf2d523c0a941f71cb144a5502e7557dd025d69/README.md",
-      "quote": "basic-memory project add research ~/research \u2026 Per-project cloud routing. Route individual projects through the cloud while others stay local.",
+      "quote": "basic-memory project add research ~/research … Per-project cloud routing. Route individual projects through the cloud while others stay local.",
       "locator": "README.md ## CLI essentials / ## What's New",
       "confidence": "high",
       "label": "measured"
@@ -215,7 +215,7 @@
       "claim": "Session scaffold (briefings, checkpoints) is a Claude Code plugin layer, not the core MCP server",
       "kind": "code",
       "url": "https://github.com/basicmachines-co/basic-memory/blob/3bf2d523c0a941f71cb144a5502e7557dd025d69/README.md",
-      "quote": "The Claude Code plugin is the bridge between Claude's working memory and Basic Memory \u2014 session-start briefings, pre-compaction checkpoints, an opt-in capture output style.",
+      "quote": "The Claude Code plugin is the bridge between Claude's working memory and Basic Memory — session-start briefings, pre-compaction checkpoints, an opt-in capture output style.",
       "locator": "README.md ### Claude Code plugin",
       "confidence": "high",
       "label": "measured"
@@ -233,7 +233,7 @@
       "claim": "Markdown files are the authoritative persistent store; the database is a derived index that can be rebuilt from them.",
       "kind": "code",
       "url": "https://github.com/basicmachines-co/basic-memory/blob/3bf2d523c0a941f71cb144a5502e7557dd025d69/src/basic_memory/db.py",
-      "quote": "the markdown files are the source of truth and the index DB rebuilds from them via sync \u2014 a crash means a re-sync, not data loss.",
+      "quote": "the markdown files are the source of truth and the index DB rebuilds from them via sync — a crash means a re-sync, not data loss.",
       "locator": "db.py: _configure_sqlite_connection, synchronous pragma comment",
       "confidence": "medium",
       "label": "measured"
@@ -275,7 +275,7 @@
       "label": "measured"
     },
     {
-      "claim": "Write path: markdown file write \u2192 content materialization \u2192 vector sync + relation resolution, all queued as background tasks; drain on shutdown ensures no accepted write is lost.",
+      "claim": "Write path: markdown file write → content materialization → vector sync + relation resolution, all queued as background tasks; drain on shutdown ensures no accepted write is lost.",
       "kind": "code",
       "url": "https://github.com/basicmachines-co/basic-memory/blob/3bf2d523c0a941f71cb144a5502e7557dd025d69/src/basic_memory/mcp/server.py",
       "quote": "A local note write returns 202 before its markdown file is written; shutdown can land while that materialization (and the vector sync / relation resolution it schedules) is still queued in the in-process pool. Drain both queues before the engine closes so an accepted write is never lost",
@@ -287,7 +287,7 @@
       "claim": "Semantic search is optional; the system detects missing embeddings at startup and warns the operator to run reindex.",
       "kind": "code",
       "url": "https://github.com/basicmachines-co/basic-memory/blob/3bf2d523c0a941f71cb144a5502e7557dd025d69/src/basic_memory/mcp/server.py",
-      "quote": "Semantic embeddings: EMPTY \u2014 {entity_count} entities have no embeddings. Run 'bm reindex --embeddings' to build them.",
+      "quote": "Semantic embeddings: EMPTY — {entity_count} entities have no embeddings. Run 'bm reindex --embeddings' to build them.",
       "locator": "_log_embedding_status",
       "confidence": "medium",
       "label": "measured"
@@ -311,7 +311,7 @@
       "label": "measured"
     },
     {
-      "claim": "Observations are a curated, categorised fact store attached to entities \u2014 distinct from a raw message log",
+      "claim": "Observations are a curated, categorised fact store attached to entities — distinct from a raw message log",
       "kind": "code",
       "url": "https://github.com/basicmachines-co/basic-memory/blob/3bf2d523c0a941f71cb144a5502e7557dd025d69/src/basic_memory/services/context_service.py",
       "quote": "title=f\"{obs.category}: {obs.content[:50]}...\",\n                                    permalink=obs.permalink,\n                                    file_path=primary_item.file_path,\n                                    content=obs.content,\n                                    category=obs.category,\n                                    entity_id=primary_item.id,",
@@ -656,7 +656,7 @@
       "claim": "Journal coverage is currently partial: only DB-first accepted note mutations are journaled; file-first reconciliation paths are not yet journaled.",
       "kind": "docs",
       "url": "https://github.com/basicmachines-co/basic-memory/blob/main/docs/DOMAIN_MODEL.md",
-      "quote": "Scope today: only DB-first accepted note mutations reach the journal (accepted_note_mutation_runner). File-first reconciliation \u2014 observed file indexing and external delete handling \u2014 converges derived state without journal evidence yet. Journaling those reconciliation paths is the intended direction.",
+      "quote": "Scope today: only DB-first accepted note mutations reach the journal (accepted_note_mutation_runner). File-first reconciliation — observed file indexing and external delete handling — converges derived state without journal evidence yet. Journaling those reconciliation paths is the intended direction.",
       "locator": "Accepted Change Journal",
       "confidence": "high",
       "label": "measured"
@@ -675,7 +675,7 @@
       "kind": "docs",
       "url": "https://github.com/basicmachines-co/basic-memory/blob/main/docs/PI_MEMORY_HANDOFF.md",
       "quote": "Our product goal is you are never starting over : recover decisions, rationale, working state, blockers, and next steps without asking Paul to explain the previous session again.",
-      "locator": "PI_MEMORY_HANDOFF.md \u00a7 Context",
+      "locator": "PI_MEMORY_HANDOFF.md § Context",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -684,7 +684,7 @@
       "kind": "docs",
       "url": "https://github.com/basicmachines-co/basic-memory/blob/main/docs/PI_MEMORY_HANDOFF.md",
       "quote": "Do not equate logging every turn with useful memory, or silently send private traces into a team project.",
-      "locator": "PI_MEMORY_HANDOFF.md \u00a7 Settled direction",
+      "locator": "PI_MEMORY_HANDOFF.md § Settled direction",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -693,7 +693,7 @@
       "kind": "docs",
       "url": "https://github.com/basicmachines-co/basic-memory/blob/main/docs/PI_MEMORY_HANDOFF.md",
       "quote": "The live assistant guide emphasizes search-before-answer, capture during work, editing rather than duplicating, and graph context on follow-ups.",
-      "locator": "PI_MEMORY_HANDOFF.md \u00a7 Evidence and references",
+      "locator": "PI_MEMORY_HANDOFF.md § Evidence and references",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -702,7 +702,7 @@
       "kind": "docs",
       "url": "https://github.com/basicmachines-co/basic-memory/blob/main/docs/PI_MEMORY_HANDOFF.md",
       "quote": "When indexing becomes available, search by thread_id above and synthesize into the existing note if one exists.",
-      "locator": "PI_MEMORY_HANDOFF.md \u00a7 Current blocker discovered during this capture",
+      "locator": "PI_MEMORY_HANDOFF.md § Current blocker discovered during this capture",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -711,7 +711,7 @@
       "kind": "docs",
       "url": "https://github.com/basicmachines-co/basic-memory/blob/main/docs/PI_MEMORY_HANDOFF.md",
       "quote": "Use temporary Basic Memory config/data and dedicated opt-in cloud projects, not existing user projects.",
-      "locator": "PI_MEMORY_HANDOFF.md \u00a7 Immediate next steps",
+      "locator": "PI_MEMORY_HANDOFF.md § Immediate next steps",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -720,7 +720,7 @@
       "kind": "docs",
       "url": "https://github.com/basicmachines-co/basic-memory/blob/main/docs/PI_MEMORY_HANDOFF.md",
       "quote": "[constraint] Switching modes must not require migrating knowledge.",
-      "locator": "PI_MEMORY_HANDOFF.md \u00a7 Observations",
+      "locator": "PI_MEMORY_HANDOFF.md § Observations",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -755,7 +755,7 @@
       "claim": "Retrieval also supports metadata filtering on YAML frontmatter",
       "kind": "docs",
       "url": "https://docs.basicmemory.com/llms.txt",
-      "quote": "Filter and find notes by their YAML frontmatter \u2014 status, type, tags, priority, confidence, custom fields, and more.",
+      "quote": "Filter and find notes by their YAML frontmatter — status, type, tags, priority, confidence, custom fields, and more.",
       "locator": "Docs > Metadata Search",
       "confidence": "medium",
       "label": "inferred"
@@ -764,7 +764,7 @@
       "claim": "Observations and relations extract structured facts from notes into the knowledge graph",
       "kind": "docs",
       "url": "https://docs.basicmemory.com/llms.txt",
-      "quote": "How Basic Memory turns your notes into searchable facts and a connected knowledge graph \u2014 and why you rarely need to write the syntax yourself.",
+      "quote": "How Basic Memory turns your notes into searchable facts and a connected knowledge graph — and why you rarely need to write the syntax yourself.",
       "locator": "Docs > Observations and relations",
       "confidence": "medium",
       "label": "inferred"
@@ -791,7 +791,7 @@
       "claim": "Partner-level isolation provides per-customer isolated workspaces",
       "kind": "docs",
       "url": "https://docs.basicmemory.com/llms.txt",
-      "quote": "Run Basic Memory for your customers \u2014 isolated workspaces, SSO, consolidated invoicing, and a full audit trail for MSPs.",
+      "quote": "Run Basic Memory for your customers — isolated workspaces, SSO, consolidated invoicing, and a full audit trail for MSPs.",
       "locator": "Docs > Partner Program",
       "confidence": "medium",
       "label": "inferred"
@@ -818,7 +818,7 @@
       "claim": "Restore/rollback from file history or snapshots supports recovery of lost or overwritten content",
       "kind": "docs",
       "url": "https://docs.basicmemory.com/llms.txt",
-      "quote": "Recover a single note from File history, or roll back a bigger change from a Snapshot \u2014 pick the right tier and follow the exact steps.",
+      "quote": "Recover a single note from File history, or roll back a bigger change from a Snapshot — pick the right tier and follow the exact steps.",
       "locator": "Docs > Restore Lost Content",
       "confidence": "medium",
       "label": "inferred"
@@ -827,7 +827,7 @@
       "claim": "Scaffold layer: AI assistant guide and agent skills instruct the model when and how to use memory",
       "kind": "docs",
       "url": "https://docs.basicmemory.com/llms.txt",
-      "quote": "Teach your AI assistant when and how to use Basic Memory \u2014 skills, project instructions, and CLAUDE.md/AGENTS.md.",
+      "quote": "Teach your AI assistant when and how to use Basic Memory — skills, project instructions, and CLAUDE.md/AGENTS.md.",
       "locator": "Docs > AI Assistant Guide",
       "confidence": "medium",
       "label": "inferred"
@@ -854,7 +854,7 @@
       "claim": "Every concept document carries a note_type field (default 'note'); arbitrary values are supported",
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/1246",
-      "quote": "Yes \u2014 note_type, default note, arbitrary values supported (the parser tests use type: component)",
+      "quote": "Yes — note_type, default note, arbitrary values supported (the parser tests use type: component)",
       "locator": "## Current state, conformance table",
       "confidence": "medium",
       "label": "inferred"
@@ -863,7 +863,7 @@
       "claim": "Relations are written as [[wikilinks]] and the parser does not index standard Markdown links as relations",
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/1246",
-      "quote": "relations are expressed as wikilinks, while OKF specifies cross-links as standard inline Markdown links \u2026 the parser explicitly excludes [text](url)",
+      "quote": "relations are expressed as wikilinks, while OKF specifies cross-links as standard inline Markdown links … the parser explicitly excludes [text](url)",
       "locator": "## Current state / ## Summary",
       "confidence": "medium",
       "label": "inferred"
@@ -873,7 +873,7 @@
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/1246",
       "quote": "Today Basic Memory would index them as entities and add permalink frontmatter, which breaks conformance.",
-      "locator": "## Proposed change, \u00a72",
+      "locator": "## Proposed change, §2",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -896,7 +896,7 @@
       "label": "inferred"
     },
     {
-      "claim": "Agent falsely reported a save to Basic Memory when no write occurred \u2014 confident success message with no actual write behind it.",
+      "claim": "Agent falsely reported a save to Basic Memory when no write occurred — confident success message with no actual write behind it.",
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/1341",
       "quote": "the agent reported that it had saved something to Basic Memory when no write occurred. Two different harnesses, two different models, same failure: a confident success message with nothing behind it.",
@@ -909,7 +909,7 @@
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/1341",
       "quote": "There is no such note. Searched the project (7 notes, all accounted for), searched Basic Memory, searched the filesystem under ~/.openclaw and ~/.hermes. Neither feedback_success-signals-assert-output.md nor the referenced MEMORY.md index exists.",
-      "locator": "## Case 1 \u2014 OpenClaw declined to write, then cited a file that doesn't exist",
+      "locator": "## Case 1 — OpenClaw declined to write, then cited a file that doesn't exist",
       "confidence": "high",
       "label": "inferred"
     },
@@ -918,7 +918,7 @@
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/1341",
       "quote": "the model just doesn't reach for it when asked conversationally, and then reports as if it had",
-      "locator": "## Case 2 \u2014 Hermes acknowledged a save that never happened",
+      "locator": "## Case 2 — Hermes acknowledged a save that never happened",
       "confidence": "high",
       "label": "inferred"
     },
@@ -962,7 +962,7 @@
       "claim": "The retrieval benchmark must cover mixed-language notes and cross-language retrieval where the query and relevant note use different languages",
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/1372",
-      "quote": "mixed-language notes \u2026 cross-language retrieval where the query and relevant note use different languages",
+      "quote": "mixed-language notes … cross-language retrieval where the query and relevant note use different languages",
       "locator": "Retrieval quality",
       "confidence": "medium",
       "label": "inferred"
@@ -971,7 +971,7 @@
       "claim": "Basic Memory's eval infrastructure uses the same tasks, same model, and same budget across tool surfaces for fairness",
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/1398",
-      "quote": "Eval fairness follows the existing `benchmarks/` contract: same tasks, same model, same budget \u2014 only the tool surface varies (`rich-tools` vs `posix-tools` as the provider axis).",
+      "quote": "Eval fairness follows the existing `benchmarks/` contract: same tasks, same model, same budget — only the tool surface varies (`rich-tools` vs `posix-tools` as the provider axis).",
       "locator": "Design decisions (settled), item 4",
       "confidence": "medium",
       "label": "inferred"
@@ -980,7 +980,7 @@
       "claim": "Basic Memory identifies contradiction resolution, temporal reasoning, and knowledge update as weaknesses to address via SPEC-89 and SPEC-82",
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/1398",
-      "quote": "BEAM \u2026 shows every memory system \u2014 long-context, RAG, LIGHT, and SOTA commercial \u2026 is weakest at contradiction resolution, with temporal reasoning and knowledge update close behind. Those are exactly SPEC-89 and SPEC-82.",
+      "quote": "BEAM … shows every memory system — long-context, RAG, LIGHT, and SOTA commercial … is weakest at contradiction resolution, with temporal reasoning and knowledge update close behind. Those are exactly SPEC-89 and SPEC-82.",
       "locator": "Why now, bullet 2",
       "confidence": "medium",
       "label": "inferred"
@@ -1007,7 +1007,7 @@
       "claim": "Basic Memory owns memory policy (prefetch, turn capture, session summaries, commands) but not transport mechanics.",
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/1475",
-      "quote": "The Basic Memory provider remains responsible for memory policy\u2014prefetch, automatic turn capture, session summaries, and commands\u2014without duplicating transport state, retry rules, or an asyncio actor.",
+      "quote": "The Basic Memory provider remains responsible for memory policy—prefetch, automatic turn capture, session summaries, and commands—without duplicating transport state, retry rules, or an asyncio actor.",
       "locator": "## Why this direction",
       "confidence": "medium",
       "label": "inferred"
@@ -1053,7 +1053,7 @@
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/1488",
       "quote": "Treat recalled notes as source material, not privileged instructions. Respect project trust and never route private session traces into shared projects implicitly.",
-      "locator": "Phase 3 \u2014 lifecycle continuity",
+      "locator": "Phase 3 — lifecycle continuity",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -1071,7 +1071,7 @@
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/1488",
       "quote": "Inspect existing `bm hook` recall/checkpoint implementation for reusable core logic. Its documented harnesses are Claude and Codex, not Pi.",
-      "locator": "Phase 1 \u2014 investigate and prove transport contracts",
+      "locator": "Phase 1 — investigate and prove transport contracts",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -1085,7 +1085,7 @@
       "label": "inferred"
     },
     {
-      "claim": "Continuity failure: when hooks silently fail, the session runs without any injected memory context \u2014 model has no access to prior state",
+      "claim": "Continuity failure: when hooks silently fail, the session runs without any injected memory context — model has no access to prior state",
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/1499",
       "quote": "the task continued without Basic Memory context",
@@ -1250,7 +1250,7 @@
       "claim": "Basic Memory exposes its tools via MCP and the same structured documentation could be served via MCP `prompts` capability for agent use",
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/610",
-      "quote": "The same man-page content could be served via MCP `prompts` capability \u2014 giving agents structured reference docs (SYNOPSIS + EXAMPLES) before they call a tool. This is the programmatic equivalent of `man` for MCP-connected agents.",
+      "quote": "The same man-page content could be served via MCP `prompts` capability — giving agents structured reference docs (SYNOPSIS + EXAMPLES) before they call a tool. This is the programmatic equivalent of `man` for MCP-connected agents.",
       "locator": "### 3. MCP prompts as structured docs",
       "confidence": "medium",
       "label": "inferred"
@@ -1268,7 +1268,7 @@
       "claim": "Basic Memory write path for benchmark ingestion uses write_note or batch import primitives.",
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/672",
-      "quote": "Ingest \u2014 Load benchmark conversations into BM (write_note or batch import)",
+      "quote": "Ingest — Load benchmark conversations into BM (write_note or batch import)",
       "locator": "What to build section, item 1",
       "confidence": "medium",
       "label": "inferred"
@@ -1277,7 +1277,7 @@
       "claim": "Basic Memory search/retrieval is exposed via MCP tools named search_notes and memory_search.",
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/672",
-      "quote": "Search \u2014 Query BM via MCP tools (search_notes / memory_search)",
+      "quote": "Search — Query BM via MCP tools (search_notes / memory_search)",
       "locator": "What to build section, item 2",
       "confidence": "medium",
       "label": "inferred"
@@ -1286,7 +1286,7 @@
       "claim": "Basic Memory has a separate indexing lifecycle step (bm watch / reindex) that must complete before retrieval.",
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/672",
-      "quote": "Index \u2014 Wait for BM indexing (bm watch / reindex)",
+      "quote": "Index — Wait for BM indexing (bm watch / reindex)",
       "locator": "What to build section, item 3",
       "confidence": "medium",
       "label": "inferred"
@@ -1349,7 +1349,7 @@
       "claim": "Notes in Basic Memory contain observations (categorised), typed relations, and full markdown body as distinct retrievable layers.",
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/686",
-      "quote": "All observations with categories / Key relations with types \u2026 Complete markdown body / All relations with context / Attachments/references",
+      "quote": "All observations with categories / Key relations with types … Complete markdown body / All relations with context / Attachments/references",
       "locator": "## Proposal",
       "confidence": "medium",
       "label": "inferred"
@@ -1376,7 +1376,7 @@
       "claim": "Basic Memory supports cross-session context retrieval.",
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/730",
-      "quote": "Cross-session context \u2014 richer retrieval than scanning MEMORY.md",
+      "quote": "Cross-session context — richer retrieval than scanning MEMORY.md",
       "locator": "## What this adds",
       "confidence": "medium",
       "label": "inferred"
@@ -1394,7 +1394,7 @@
       "claim": "Cross-conversation entity confusion is the dominant retrieval failure mode: queries about named entities return documents from the wrong conversation because generic semantic similarity outweighs entity identity.",
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/951",
-      "quote": "The dominant pattern is cross-conversation entity confusion \u2014 proper nouns in the query don't pull their weight against generic semantic similarity, so documents from the wrong conversation outrank the gold doc",
+      "quote": "The dominant pattern is cross-conversation entity confusion — proper nouns in the query don't pull their weight against generic semantic similarity, so documents from the wrong conversation outrank the gold doc",
       "locator": "section: The finding",
       "confidence": "medium",
       "label": "inferred"
@@ -1403,7 +1403,7 @@
       "claim": "The knowledge graph is intended to give Basic Memory a structural advantage for entity-centric queries; the current failure suggests the graph is not yet influencing candidate ranking sufficiently.",
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/951",
-      "quote": "This is where the knowledge graph should be an unfair advantage \u2014 entities are first-class in Basic Memory.",
+      "quote": "This is where the knowledge graph should be an unfair advantage — entities are first-class in Basic Memory.",
       "locator": "section: Proposal",
       "confidence": "medium",
       "label": "inferred"
@@ -1413,7 +1413,7 @@
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/993",
       "quote": "This turns the existing `ValidationReport` machinery into something that can guard the write path instead of only being run on demand.",
-      "locator": "## Part 1 \u2014 Frontmatter-driven validation",
+      "locator": "## Part 1 — Frontmatter-driven validation",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -1421,7 +1421,7 @@
       "claim": "The frontmatter contract (enforce, locked/permissions key names and precedence rules) is being settled in the v1.0 breaking-change window to avoid a later redesign.",
       "kind": "issue",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/993",
-      "quote": "Settling the key names and the precedence rules during the breaking-change window \u2014 even if Teams enforcement ships afterward \u2014 is the cheap moment to do it.",
+      "quote": "Settling the key names and the precedence rules during the breaking-change window — even if Teams enforcement ships afterward — is the cheap moment to do it.",
       "locator": "## Why v1.0",
       "confidence": "medium",
       "label": "inferred"
@@ -1475,7 +1475,7 @@
       "claim": "Retrieval layer includes reranking and vector search via Milvus as of v0.23.",
       "kind": "docs",
       "url": "https://docs.basicmemory.com/welcome",
-      "quote": "the search release \u2014 reranking, Milvus, and a deadlock-free indexing core",
+      "quote": "the search release — reranking, Milvus, and a deadlock-free indexing core",
       "locator": "Welcome, v0.23 release note",
       "confidence": "medium",
       "label": "inferred"
@@ -1484,7 +1484,7 @@
       "claim": "Teams can share a single knowledge base with role-based access.",
       "kind": "docs",
       "url": "https://docs.basicmemory.com/welcome",
-      "quote": "Share one knowledge base with your team \u2014 roles, invites, and shared projects.",
+      "quote": "Share one knowledge base with your team — roles, invites, and shared projects.",
       "locator": "Welcome, Teams card",
       "confidence": "medium",
       "label": "inferred"
@@ -1692,19 +1692,8 @@
   ],
   "consensus": [],
   "contested": [],
-  "copy": [
-    {
-      "text": "Copy markdown-as-canonical-store: Entity / Observations / Relations files on disk, project as the isolation boundary, search-before-answer and edit-in-place rather than duplicating notes."
-    }
-  ],
-  "refuse": [
-    {
-      "text": "Refuse treating local CLI as multi-user isolation: get_user_id defaults to None; cloud UserContext is a different deployment."
-    },
-    {
-      "text": "Refuse assuming contradiction detection exists; harvested docs list it as not implemented. Merge-into-existing-note is synthesise-on-index, not conflict policy."
-    }
-  ],
+  "copy": [],
+  "refuse": [],
   "unknowns": [
     {
       "text": "Log vs memory distinction: no evidence on this page of whether a full conversation transcript is ever persisted alongside curated note writes.",
@@ -1712,12 +1701,12 @@
       "kind": "code"
     },
     {
-      "text": "Automatic capture defaults and destinations are unresolved \u2014 this page flags the gap explicitly but does not specify the policy.",
+      "text": "Automatic capture defaults and destinations are unresolved — this page flags the gap explicitly but does not specify the policy.",
       "url": "https://github.com/basicmachines-co/basic-memory/blob/main/docs/PI_MEMORY_HANDOFF.md",
       "kind": "docs"
     },
     {
-      "text": "Whether Basic Memory has any server-side or plugin-side confirmation mechanism that verifies a tool call was actually executed before allowing a success response to be returned \u2014 this is a canonical plugin architecture question left open by the issue.",
+      "text": "Whether Basic Memory has any server-side or plugin-side confirmation mechanism that verifies a tool call was actually executed before allowing a success response to be returned — this is a canonical plugin architecture question left open by the issue.",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/1341",
       "kind": "issue"
     },
@@ -1727,7 +1716,7 @@
       "kind": "issue"
     },
     {
-      "text": "The issue references `bm-build-context` with depth and graph traversal but does not describe what is actually persisted in the memory store or how facts/events are written and updated \u2014 expected coverage for a canonical CLI reference",
+      "text": "The issue references `bm-build-context` with depth and graph traversal but does not describe what is actually persisted in the memory store or how facts/events are written and updated — expected coverage for a canonical CLI reference",
       "url": "https://github.com/basicmachines-co/basic-memory/issues/610",
       "kind": "issue"
     }

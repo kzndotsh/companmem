@@ -10,15 +10,15 @@
   },
   "claimed_purpose": [
     {
-      "text": "Open-source user-memory backend (memodb-io/memobase): ingest chat blobs, extract/update structured user profiles (topic/subtopic slots) plus events/gists, and serve turn-ready context for LLM apps\u2014profile-first rather than full transcript replay."
+      "text": "Open-source user-memory backend (memodb-io/memobase): ingest chat blobs, extract/update structured user profiles (topic/subtopic slots) plus events/gists, and serve turn-ready context for LLM apps—profile-first rather than full transcript replay."
     }
   ],
   "mechanisms": [
     {
-      "text": "Store: User Profile (structured slots) and User Events / event gists (timeline with mention vs happen time); raw GeneralBlob chat can be dropped after flush per config\u2014curated memory vs message log."
+      "text": "Store: User Profile (structured slots) and User Events / event gists (timeline with mention vs happen time); raw GeneralBlob chat can be dropped after flush per config—curated memory vs message log."
     },
     {
-      "text": "Write: buffer until size/idle/manual flush \u2192 LLM extraction/merge (merge.py); async_insert path; issues #143/#109 contest dedup and retention reliability."
+      "text": "Write: buffer until size/idle/manual flush → LLM extraction/merge (merge.py); async_insert path; issues #143/#109 contest dedup and retention reliability."
     },
     {
       "text": "Retrieve: context API packs profile + events under token budgets (profile_event_ratio); profile_filter/search and semantic event search; scaffold suppresses unprompted recall unless the query is relevant."
@@ -41,7 +41,7 @@
       "label": "measured"
     },
     {
-      "claim": "Raw chat blobs are deleted from store after processing by default \u2014 log is not retained as memory",
+      "claim": "Raw chat blobs are deleted from store after processing by default — log is not retained as memory",
       "kind": "code",
       "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/readme.md",
       "quote": "By default, Memobase will remove the blobs once they're processed. This means that apart from the relevant memory, your data will not be stored with Memobase.",
@@ -54,7 +54,7 @@
       "kind": "code",
       "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/readme.md",
       "quote": "Memobase has more than user profiles, it also records user event. User event is essential to answer time-related question.",
-      "locator": "readme.md, Core Features \u2014 Time-aware Memory",
+      "locator": "readme.md, Core Features — Time-aware Memory",
       "confidence": "high",
       "label": "measured"
     },
@@ -86,7 +86,7 @@
       "label": "measured"
     },
     {
-      "claim": "context API applies token budget and topic preference \u2014 selective retrieval into prompt, not full dump",
+      "claim": "context API applies token budget and topic preference — selective retrieval into prompt, not full dump",
       "kind": "code",
       "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/readme.md",
       "quote": "print(u.context(max_token_size=500, prefer_topics=[\"basic_info\"]))",
@@ -113,7 +113,7 @@
       "label": "measured"
     },
     {
-      "claim": "Raw conversational or input data is stored as typed blobs per user and can be inserted, retrieved by ID, listed by type, or deleted \u2014 forming the log layer.",
+      "claim": "Raw conversational or input data is stored as typed blobs per user and can be inserted, retrieved by ID, listed by type, or deleted — forming the log layer.",
       "kind": "code",
       "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/api.py",
       "quote": "router.post(\"/blobs/insert/{user_id}\", tags=[\"blob\"])\nrouter.get(\"/blobs/{user_id}/{blob_id}\", tags=[\"blob\"])\nrouter.delete(\"/blobs/{user_id}/{blob_id}\", tags=[\"blob\"])\nrouter.get(\"/users/blobs/{user_id}/{blob_type}\", tags=[\"user\"])",
@@ -122,7 +122,7 @@
       "label": "measured"
     },
     {
-      "claim": "Profiles form the curated memory layer with full CRUD (create, read, update, delete, import) per user and profile ID \u2014 distinct from the raw blob log.",
+      "claim": "Profiles form the curated memory layer with full CRUD (create, read, update, delete, import) per user and profile ID — distinct from the raw blob log.",
       "kind": "code",
       "url": "https://github.com/memodb-io/memobase/blob/358c16bbc6d687937d79bc2f984a11c3be8da901/src/server/api/api.py",
       "quote": "router.get(\"/users/profile/{user_id}\")\nrouter.post(\"/users/profile/{user_id}\")\nrouter.put(\"/users/profile/{user_id}/{profile_id}\")\nrouter.delete(\"/users/profile/{user_id}/{profile_id}\")",
@@ -383,7 +383,7 @@
       "label": "measured"
     },
     {
-      "claim": "Agents do not automatically use memory without being explicitly prompted \u2014 automatic injection is a known gap.",
+      "claim": "Agents do not automatically use memory without being explicitly prompted — automatic injection is a known gap.",
       "kind": "community",
       "url": "https://news.ycombinator.com/item?id=47237920",
       "quote": "Agents don't automatically use it all the time without being prodded",
@@ -419,7 +419,7 @@
       "label": "inferred"
     },
     {
-      "claim": "If compaction misses a detail, the agent can be prompted to go back to a specific past session and extract it \u2014 storage of more data over less is preferred because storage is cheap.",
+      "claim": "If compaction misses a detail, the agent can be prompted to go back to a specific past session and extract it — storage of more data over less is preferred because storage is cheap.",
       "kind": "community",
       "url": "https://news.ycombinator.com/item?id=47237920",
       "quote": "if compaction misses details, you can prompt your agent to go back to that session you had about X last week and extract that detail",
@@ -455,7 +455,7 @@
       "label": "measured"
     },
     {
-      "claim": "Processing a flush produces discrete profile-level mutations: add, update, and delete \u2014 indicating a curated fact/profile store rather than a raw log",
+      "claim": "Processing a flush produces discrete profile-level mutations: add, update, and delete — indicating a curated fact/profile store rather than a raw log",
       "kind": "docs",
       "url": "https://docs.memobase.io/api-reference/buffer/flush.md",
       "quote": "add_profiles: List of added profiles' ids; update_profiles: List of updated profiles' ids; delete_profiles: List of deleted profiles' ids",
@@ -467,13 +467,13 @@
       "claim": "Memory is isolated per user (user_id path parameter required) and per blob type (buffer_type path parameter required)",
       "kind": "docs",
       "url": "https://docs.memobase.io/api-reference/buffer/flush.md",
-      "quote": "name: user_id \u2026 The ID of the user; name: buffer_type \u2026 The type of buffer to flush",
+      "quote": "name: user_id … The ID of the user; name: buffer_type … The type of buffer to flush",
       "locator": "paths./api/v1/users/buffer/{user_id}/{buffer_type}.post.parameters",
       "confidence": "medium",
       "label": "measured"
     },
     {
-      "claim": "Blob types span chat, summary, doc, image, code, and transcript \u2014 suggesting memory can be built from multiple modalities beyond chat turns",
+      "claim": "Blob types span chat, summary, doc, image, code, and transcript — suggesting memory can be built from multiple modalities beyond chat turns",
       "kind": "docs",
       "url": "https://docs.memobase.io/api-reference/buffer/flush.md",
       "quote": "enum: [chat, summary, doc, image, code, transcript]",
@@ -563,7 +563,7 @@
       "label": "measured"
     },
     {
-      "claim": "Profile Delta is a required field on every event, recording which profile slots were created or updated \u2014 linking the event log to the persistent user profile store.",
+      "claim": "Profile Delta is a required field on every event, recording which profile slots were created or updated — linking the event log to the persistent user profile store.",
       "kind": "docs",
       "url": "https://docs.memobase.io/features/event/event.md",
       "quote": "Profile Delta (Required): The specific profile slots that were created or updated during this event.",
@@ -836,7 +836,7 @@
       "claim": "Memobase intermittently fails to update an existing profile fact when the user states a new value, even with explicit instruction",
       "kind": "issue",
       "url": "https://github.com/memodb-io/memobase/issues/109",
-      "quote": "Update attempt: \"Now my favorite color is red.\" \u2192 MemoBase often fails to update.\nExplicit command: \"Remember, my favorite color is now red.\" \u2192 Still works only intermittently.",
+      "quote": "Update attempt: \"Now my favorite color is red.\" → MemoBase often fails to update.\nExplicit command: \"Remember, my favorite color is now red.\" → Still works only intermittently.",
       "locator": "Steps to Reproduce",
       "confidence": "high",
       "label": "inferred"
@@ -950,7 +950,7 @@
       "label": "inferred"
     },
     {
-      "claim": "The user questions whether Memobase has any automatic mechanism to judge and avoid storing identical data \u2014 implying no such mechanism is visible in the deployed version.",
+      "claim": "The user questions whether Memobase has any automatic mechanism to judge and avoid storing identical data — implying no such mechanism is visible in the deployed version.",
       "kind": "issue",
       "url": "https://github.com/memodb-io/memobase/issues/143",
       "quote": "Does Memobase have an automatic mechanism to judge information and avoid storing identical data in the database?",
@@ -962,7 +962,7 @@
       "claim": "Memobase persists memory in a SQL-backed store with a hardcoded schema.",
       "kind": "issue",
       "url": "https://github.com/memodb-io/memobase/issues/154",
-      "quote": "Support a user\u2011configurable SQL schema, allowing users to define their own tables and relationships for memory storage, rather than relying on a single generalistic hardcoded schema.",
+      "quote": "Support a user‑configurable SQL schema, allowing users to define their own tables and relationships for memory storage, rather than relying on a single generalistic hardcoded schema.",
       "locator": "Issue #154 > Describe the solution you'd like",
       "confidence": "medium",
       "label": "inferred"
@@ -1043,7 +1043,7 @@
       "claim": "Memobase server version 0.0.16 was running during the reported failure",
       "kind": "issue",
       "url": "https://github.com/memodb-io/memobase/issues/35",
-      "quote": "Start Memobase Server 0.0.16 \ud83d\uddbc\ufe0f",
+      "quote": "Start Memobase Server 0.0.16 🖼️",
       "locator": "docker-compose log, api.py:45",
       "confidence": "high",
       "label": "inferred"
@@ -1085,10 +1085,10 @@
       "label": "inferred"
     },
     {
-      "claim": "The Latest Events section suffers from a deduplication failure: the same basic facts (name, age, occupation) are written as separate event entries across multiple sessions or extraction passes rather than being merged, causing the profile context to grow redundantly long \u2014 which is the explicit subject of this issue ('context same profile too long').",
+      "claim": "The Latest Events section suffers from a deduplication failure: the same basic facts (name, age, occupation) are written as separate event entries across multiple sessions or extraction passes rather than being merged, causing the profile context to grow redundantly long — which is the explicit subject of this issue ('context same profile too long').",
       "kind": "issue",
       "url": "https://github.com/memodb-io/memobase/issues/96",
-      "quote": "- User's name is \u5f20\u4e09. [mention 2025/07/01]\n- User is 25 years old. [mention 2025/07/01, happen at 2025/07/01]\n- User's job is a programmer. [mention 2025/07/01]\n\n- User's name is \u5f20\u4e09. [mention 2025/07/01]\n- User is 25 years old. [mention 2025/07/01, happen at 2025/07/01]\n- User's occupation is a programmer. [mention 2025/07/01]",
+      "quote": "- User's name is 张三. [mention 2025/07/01]\n- User is 25 years old. [mention 2025/07/01, happen at 2025/07/01]\n- User's job is a programmer. [mention 2025/07/01]\n\n- User's name is 张三. [mention 2025/07/01]\n- User is 25 years old. [mention 2025/07/01, happen at 2025/07/01]\n- User's occupation is a programmer. [mention 2025/07/01]",
       "locator": "issue #96 title and Latest Events section",
       "confidence": "high",
       "label": "inferred"
@@ -1097,13 +1097,13 @@
       "claim": "User Background and Latest Events represent two distinct memory layers: a structured profile (slot-typed, deduplicated facts) and a raw event log (timestamped per-event entries). The issue suggests the event log does not apply supersession or conflict resolution against the profile layer, allowing duplicate facts to accumulate.",
       "kind": "issue",
       "url": "https://github.com/memodb-io/memobase/issues/96",
-      "quote": "## User Background:\n- basic_info::name: \u5f20\u4e09 [mention 2025-07-01]\n## Latest Events:\n- User's name is \u5f20\u4e09. [mention 2025/07/01]",
+      "quote": "## User Background:\n- basic_info::name: 张三 [mention 2025-07-01]\n## Latest Events:\n- User's name is 张三. [mention 2025/07/01]",
       "locator": "issue #96 body, User Background and Latest Events sections",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "The memory scaffold instructs the model to treat retrieved memories as conditional context \u2014 relevant only when the user query warrants it \u2014 indicating a retrieve-always but speak-conditionally policy.",
+      "claim": "The memory scaffold instructs the model to treat retrieved memories as conditional context — relevant only when the user query warrants it — indicating a retrieve-always but speak-conditionally policy.",
       "kind": "issue",
       "url": "https://github.com/memodb-io/memobase/issues/96",
       "quote": "Unless the user has relevant queries, do not actively mention those memories in the conversation.",
@@ -1121,7 +1121,7 @@
       "label": "inferred"
     },
     {
-      "claim": "The write path is: insert chat blob \u2192 buffer \u2192 flush (manual or automatic) \u2192 memory extraction and storage.",
+      "claim": "The write path is: insert chat blob → buffer → flush (manual or automatic) → memory extraction and storage.",
       "kind": "docs",
       "url": "https://docs.memobase.io/quickstart",
       "quote": "User data is held in a buffer. If the buffer gets too large or remains idle, it gets processed. You can also trigger this manually.",
@@ -1355,33 +1355,9 @@
     }
   ],
   "consensus": [],
-  "contested": [
-    {
-      "text": "Docs/code describe LLM merge for profile updates and separate event log without dedup; issue #96/#143 and field reports (#109) contest whether duplicates, growth caps, and retention behave as operators expect."
-    },
-    {
-      "text": "Marketing/dev.to stress cost savings from smaller context windows; companion continuity quality (what surfaces when, conflict resolution) is less benchmarked than infra metrics in harvested material."
-    },
-    {
-      "text": "memobase.ai/docs (search hit) is not docs.memobase.io\u2014treat unofficial domains as untrusted; official surface is memodb-io GitHub + docs.memobase.io."
-    }
-  ],
-  "copy": [
-    {
-      "text": "Copy structured user profile slots plus a time-aware event timeline, with chat blobs dropped after flush \u2014 curated memory, not transcript replay."
-    },
-    {
-      "text": "Copy the retrieve scaffold that stays silent unless the query is relevant (do not actively mention memories). Isolation by user_id (+ project_id)."
-    }
-  ],
-  "refuse": [
-    {
-      "text": "Refuse unofficial memobase.ai / roundup posts as architecture; use docs.memobase.io and pinned server code."
-    },
-    {
-      "text": "Refuse treating flush/merge as proven supersession: issues contest dedup and retention (#143/#109) and harvested controllers show hard delete, not a documented soft-hide path."
-    }
-  ],
+  "contested": [],
+  "copy": [],
+  "refuse": [],
   "unknowns": [
     {
       "text": "The flush_buffer endpoint triggers processing from the buffer into persistent stores, but the extraction, deduplication, conflict resolution, and supersession logic that runs during that flush is not visible in this routing file.",
@@ -1414,7 +1390,7 @@
       "kind": "issue"
     },
     {
-      "text": "Whether UPDATE in the merge path overwrites without versioning or tombstoning \u2014 no answer given on this page.",
+      "text": "Whether UPDATE in the merge path overwrites without versioning or tombstoning — no answer given on this page.",
       "url": "https://github.com/memodb-io/memobase/issues/164",
       "kind": "issue"
     },
@@ -1439,12 +1415,12 @@
       "kind": "issue"
     },
     {
-      "text": "The page does not explain why 'No chat buffer to flush' was logged despite a prior POST to the buffer endpoint \u2014 the conflict between a successful buffer POST and an empty flush is unresolved on this page",
+      "text": "The page does not explain why 'No chat buffer to flush' was logged despite a prior POST to the buffer endpoint — the conflict between a successful buffer POST and an empty flush is unresolved on this page",
       "url": "https://github.com/memodb-io/memobase/issues/35",
       "kind": "issue"
     },
     {
-      "text": "The page does not describe how or whether the Latest Events log is pruned, summarized, or capped to prevent unbounded growth \u2014 the core gap this issue raises but does not resolve.",
+      "text": "The page does not describe how or whether the Latest Events log is pruned, summarized, or capped to prevent unbounded growth — the core gap this issue raises but does not resolve.",
       "url": "https://github.com/memodb-io/memobase/issues/96",
       "kind": "issue"
     },

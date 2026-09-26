@@ -72,4 +72,12 @@ Answers are working notes. Citations are inline links. A question stays `open` u
   - Mem0 publishes LoCoMo numbers and ablations ([Chhikara et al., 2025](https://doi.org/10.48550/arxiv.2504.19413)) — still not companion-social eval.
   - Treat claims as hypotheses until independently verified ([Goodhart on gaming metrics](https://www.cna.org/analyses/2022/09/goodharts-law)).
 
+- What does the gap between user complaints and eval coverage actually look like?
+  - 425 community rows across 61 audited products (2026-09-26). The 25 evals in [`EVAL-GRID.md`](EVAL-GRID.md) have strong agreement on two rows only: LLM judge on the reply (9 evals) and retrieval rank (8 evals). Both measure whether something came back, not whether the companion knows the person.
+  - The largest user complaint bucket is forgetting/continuity loss + cross-session failure combined (169 rows, 40%). No eval scores "same person after a gap" as a named test. The closest is Assistant Benchmark's memory dimension — two live probes, only 10 of 108 assistants scored, no reproducible harness.
+  - "Cannot edit/correct" is 54 complaint rows (13%) and has zero eval coverage anywhere. Users want to see and fix what was stored. The field has not built a test for this.
+  - Timing/when-to-speak has 3 complaint rows (<1%) — not because it does not matter, but because no product attempts it. A failure mode that was never tried cannot be complained about. Complaint analysis is blind to this gap. An exam that does not include a speak/silent task will also be blind to it.
+  - The practical consequence: an exam built only from existing evals optimizes for retrieval accuracy on long transcripts. That is not where users are failing. The exam needs at least one task that checks cross-session continuity without a quiz frame, and at least one that checks appropriate silence.
+  - **Status:** open
+
 ---

@@ -117,7 +117,7 @@
       "text": "The messages table enforces a rolling window of at most 10 messages per session scope; older messages are evicted on write."
     },
     {
-      "text": "Isolation: telemetry filters encode user_id, agent_id, and run_id \u2014 indicating memory is scoped per user, agent, and run/session"
+      "text": "Isolation: telemetry filters encode user_id, agent_id, and run_id — indicating memory is scoped per user, agent, and run/session"
     },
     {
       "text": "Separate legacy extraction prompt path preserved for backward compatibility, implying the extraction prompt (and thus write schema) has evolved"
@@ -174,7 +174,7 @@
       "text": "Optional inclusion of change history and recent session messages alongside memory facts"
     },
     {
-      "text": "Hosted platform export is lossy (schema-reshaped), has no import, and expires after 7 days \u2014 a gap relative to core SDK users"
+      "text": "Hosted platform export is lossy (schema-reshaped), has no import, and expires after 7 days — a gap relative to core SDK users"
     },
     {
       "text": "When entity store isolation fails, extracted entities appear in getAll() and search() results as if they were real memories, and can rank above them in search."
@@ -204,7 +204,7 @@
       "text": "POST /generate-instructions calls the LLM directly on every request with no persistence"
     },
     {
-      "text": "Auto-Recall: before the agent responds, memories matching the current message are retrieved and injected directly into context \u2014 long-term memories first, then session memories \u2014 with no manual memory_search call required."
+      "text": "Auto-Recall: before the agent responds, memories matching the current message are retrieved and injected directly into context — long-term memories first, then session memories — with no manual memory_search call required."
     },
     {
       "text": "Session memory (short-term) is scoped to the current conversation using Mem0's run_id parameter and does not carry forward indefinitely."
@@ -429,7 +429,7 @@
       "kind": "code",
       "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/memory/index.ts",
       "quote": "// Step 3: Semantic search (over-fetch for scoring pool)\n...\n// Step 4: Keyword search (if store supports it)\n...\n// Step 5: Compute BM25 scores from keyword results\n...\n// Step 6: Compute entity boosts\n...\n// Step 8: Score and rank\nconst scoredResults = scoreAndRank(\n  candidates,\n  bm25Scores,\n  entityBoosts,\n  threshold ?? 0.1,\n  topK,\n  explain,\n);",
-      "locator": "file:index.ts, search(), Steps 3\u20138",
+      "locator": "file:index.ts, search(), Steps 3–8",
       "confidence": "high",
       "label": "measured"
     },
@@ -452,7 +452,7 @@
       "label": "measured"
     },
     {
-      "claim": "MemoryHistoryManager stores a changelog of curated memory mutations (previous_value \u2192 new_value + action), not a raw conversation transcript \u2014 distinguishing a memory write log from a message log.",
+      "claim": "MemoryHistoryManager stores a changelog of curated memory mutations (previous_value → new_value + action), not a raw conversation transcript — distinguishing a memory write log from a message log.",
       "kind": "code",
       "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0-ts/src/oss/src/storage/MemoryHistoryManager.ts",
       "quote": "previous_value: previousValue,\n      new_value: newValue,\n      action: action,",
@@ -497,7 +497,7 @@
       "label": "measured"
     },
     {
-      "claim": "Each memory has a unique ID used for get, update, delete, history, and feedback operations \u2014 indicating curated records rather than a transcript log",
+      "claim": "Each memory has a unique ID used for get, update, delete, history, and feedback operations — indicating curated records rather than a transcript log",
       "kind": "code",
       "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/client/main.py",
       "quote": "def get(self, memory_id: str) ... def update(self, memory_id: str ... def delete(self, memory_id: str ... def history(self, memory_id: str)",
@@ -509,7 +509,7 @@
       "claim": "Supersession is modeled explicitly: a memory can supersede older ones via a linked_memory_ids chain; deleting with delete_linked removes the entire superseded chain to prevent resurfacing",
       "kind": "code",
       "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/client/main.py",
-      "quote": "also delete the older memories this one superseded (the v3 ``linked_memory_ids`` chain), transitively. This is the delete-side counterpart of ``latest_only`` \u2014 it stops a superseded memory from resurfacing after you delete the current one.",
+      "quote": "also delete the older memories this one superseded (the v3 ``linked_memory_ids`` chain), transitively. This is the delete-side counterpart of ``latest_only`` — it stops a superseded memory from resurfacing after you delete the current one.",
       "locator": "MemoryClient.delete docstring",
       "confidence": "medium",
       "label": "measured"
@@ -632,7 +632,7 @@
       "label": "measured"
     },
     {
-      "claim": "Update supersedes memory content by ID; the old content is not discarded \u2014 it is preserved in the per-memory history list.",
+      "claim": "Update supersedes memory content by ID; the old content is not discarded — it is preserved in the per-memory history list.",
       "kind": "code",
       "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/base.py",
       "quote": "def update(self, memory_id, data): ... def history(self, memory_id):\n        \"\"\"\n        Get the history of changes for a memory by ID.\n\n        Returns:\n            list: List of changes for the memory.\n        \"\"\"",
@@ -654,7 +654,7 @@
       "kind": "code",
       "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/main.py",
       "quote": "existing_results = self.vector_store.search(\n            query=parsed_messages,\n            vectors=query_embedding,\n            top_k=10,\n            filters=search_filters,\n        )\n        ...\n        last_messages = self.db.get_last_messages(session_scope, limit=10)",
-      "locator": "Memory._add_to_vector_store, Phase 0\u20131",
+      "locator": "Memory._add_to_vector_store, Phase 0–1",
       "confidence": "high",
       "label": "measured"
     },
@@ -866,7 +866,7 @@
       "label": "measured"
     },
     {
-      "claim": "Metadata filters are available on both similarity search and list operations, enabling isolation by arbitrary payload fields (e.g., user_id, agent_id, session_id) \u2014 though the specific filter keys are not defined in this file.",
+      "claim": "Metadata filters are available on both similarity search and list operations, enabling isolation by arbitrary payload fields (e.g., user_id, agent_id, session_id) — though the specific filter keys are not defined in this file.",
       "kind": "code",
       "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/vector_stores/base.py",
       "quote": "def search(self, query, vectors, top_k=5, filters=None):\n...\ndef list(self, filters=None, top_k=None):\n    \"\"\"List all memories.\"\"\"\n...\ndef keyword_search(self, query: str, top_k: int = 5, filters: dict = None):",
@@ -932,7 +932,7 @@
       "claim": "Community concern: the relevance scoring surfaced in the playground felt arbitrary (100% duplication scored 9/10, no-memory scored 4/10 rather than near 0)",
       "kind": "community",
       "url": "https://news.ycombinator.com/item?id=41447317",
-      "quote": "It's interesting that 'With Memory' is 9/10 Relevancy even though it is 100% duplication of what I had said... It's also interesting that 'Without Memory' is 4/10 \u2014 it seems to be closer to 0/10? Curious how you thinking about calculating relevancy.",
+      "quote": "It's interesting that 'With Memory' is 9/10 Relevancy even though it is 100% duplication of what I had said... It's also interesting that 'Without Memory' is 4/10 — it seems to be closer to 0/10? Curious how you thinking about calculating relevancy.",
       "locator": "comment by weisser",
       "confidence": "medium",
       "label": "inferred"
@@ -974,7 +974,7 @@
       "label": "inferred"
     },
     {
-      "claim": "Context loss across AI tools is the core problem the product addresses \u2014 users repeat themselves because tools don't share memory",
+      "claim": "Context loss across AI tools is the core problem the product addresses — users repeat themselves because tools don't share memory",
       "kind": "community",
       "url": "https://www.producthunt.com/products/openmemory-chrome-extension",
       "quote": "Maybe you use ChatGPT to brainstorm ideas, Claude to write code, and Perplexity for research. Each tool is great on its own but none of them remember what you've already told the others. That context loss is exactly what OpenMemory solves.",
@@ -1427,7 +1427,7 @@
       "claim": "Enhanced metadata filters (gte/lte/in/OR/NOT/contains) are silently dropped by the OpenSearch vector store, causing memory retrieval to run unfiltered and return memories that violate the filter constraint",
       "kind": "issue",
       "url": "https://github.com/mem0ai/mem0/issues/7214",
-      "quote": "The OpenSearch vector store silently drops every enhanced metadata filter \u2014 comparison operators (`gt`/`gte`/`lt`/`lte`/`ne`), set operators (`in`/`nin`), substring operators (`contains`/`icontains`), and the logical trees (`OR`/`NOT`). `search()`, `keyword_search()`, and `list()` then run **unfiltered on that dimension** and return results that violate the filter, with no warning above `logger.debug`.",
+      "quote": "The OpenSearch vector store silently drops every enhanced metadata filter — comparison operators (`gt`/`gte`/`lt`/`lte`/`ne`), set operators (`in`/`nin`), substring operators (`contains`/`icontains`), and the logical trees (`OR`/`NOT`). `search()`, `keyword_search()`, and `list()` then run **unfiltered on that dimension** and return results that violate the filter, with no warning above `logger.debug`.",
       "locator": "Description > Summary",
       "confidence": "high",
       "label": "inferred"
@@ -1442,7 +1442,7 @@
       "label": "inferred"
     },
     {
-      "claim": "Silent total loss of extracted memories when the extraction LLM response is truncated mid-JSON array \u2014 a continuity failure where facts (including user name, promotion, personal details) are fully written by the model but never persisted.",
+      "claim": "Silent total loss of extracted memories when the extraction LLM response is truncated mid-JSON array — a continuity failure where facts (including user name, promotion, personal details) are fully written by the model but never persisted.",
       "kind": "issue",
       "url": "https://github.com/mem0ai/mem0/issues/5428",
       "quote": "Every fact is silently dropped, including the memories the model fully wrote before the cut. The only signal is an ERROR-level log.",
@@ -1472,7 +1472,7 @@
       "claim": "Cross-scope entity linking allows memories from different user_id/agent_id to be merged into the same entity record, breaching isolation between users.",
       "kind": "issue",
       "url": "https://github.com/mem0ai/mem0/issues/5439",
-      "quote": "When `_upsert_entity` searches for an existing entity with `filters=search_filters`, it finds an entity belonging to `user_id=\"A\"`. If the similarity \u2265 0.95, it **merges** the new `memory_id` (belonging to `user_id=\"B\"`) into that entity's `linked_memory_ids`. The entity record now contains memory IDs from two different users.",
+      "quote": "When `_upsert_entity` searches for an existing entity with `filters=search_filters`, it finds an entity belonging to `user_id=\"A\"`. If the similarity ≥ 0.95, it **merges** the new `memory_id` (belonging to `user_id=\"B\"`) into that entity's `linked_memory_ids`. The entity record now contains memory IDs from two different users.",
       "locator": "Description / Problem / Failure Mode 1: Scope-filter bypass via entity merge",
       "confidence": "medium",
       "label": "inferred"
@@ -1481,7 +1481,7 @@
       "claim": "Entity boost scores are computed from a full unscoped linked_memory_ids list, meaning one user's memory count can influence another user's retrieval ranking.",
       "kind": "issue",
       "url": "https://github.com/mem0ai/mem0/issues/5439",
-      "quote": "the **entity boost score itself** is computed from the entity's full `linked_memory_ids` list, including cross-scope entries. This means: `memory_count_weight = 1.0 / (1.0 + 0.001 * (num_linked - 1)^2)` \u2014 the count includes cross-scope memories, penalizing or boosting incorrectly.",
+      "quote": "the **entity boost score itself** is computed from the entity's full `linked_memory_ids` list, including cross-scope entries. This means: `memory_count_weight = 1.0 / (1.0 + 0.001 * (num_linked - 1)^2)` — the count includes cross-scope memories, penalizing or boosting incorrectly.",
       "locator": "Description / Problem / Failure Mode 2: Entity boost leaks cross-scope information in search",
       "confidence": "medium",
       "label": "inferred"
@@ -1508,7 +1508,7 @@
       "claim": "create_index() explicitly maps metadata.user_id, metadata.agent_id, metadata.run_id as keyword; all other metadata fields get dynamic text mapping",
       "kind": "issue",
       "url": "https://github.com/mem0ai/mem0/issues/7157",
-      "quote": "create_index() (mem0/vector_stores/elasticsearch.py:72-99) only explicitly maps three fields as keyword: metadata.user_id, metadata.agent_id, metadata.run_id. Every other key \u2014 category, actor_id, role, or any custom metadata a caller adds \u2014 falls through to Elasticsearch's default dynamic mapping",
+      "quote": "create_index() (mem0/vector_stores/elasticsearch.py:72-99) only explicitly maps three fields as keyword: metadata.user_id, metadata.agent_id, metadata.run_id. Every other key — category, actor_id, role, or any custom metadata a caller adds — falls through to Elasticsearch's default dynamic mapping",
       "locator": "Description / Summary",
       "confidence": "medium",
       "label": "inferred"
@@ -1571,7 +1571,7 @@
       "claim": "Mem0 TS OSS separates entity records from memories by writing them to a distinct SQLite file derived from the main store path.",
       "kind": "issue",
       "url": "https://github.com/mem0ai/mem0/issues/6606",
-      "quote": "The comment right above it says \"always use a separate DB for entities\", so the intent is clearly universal separation \u2014 the regex just doesn't deliver it.",
+      "quote": "The comment right above it says \"always use a separate DB for entities\", so the intent is clearly universal separation — the regex just doesn't deliver it.",
       "locator": "body: Why section",
       "confidence": "medium",
       "label": "inferred"
@@ -1580,7 +1580,7 @@
       "claim": "The write path for entity store derivation is implemented in mem0-ts/src/oss/src/memory/index.ts via a path regex substitution.",
       "kind": "issue",
       "url": "https://github.com/mem0ai/mem0/issues/6606",
-      "quote": "TypeScript SDK (OSS), `memory` vector store provider \u2014 `mem0-ts/src/oss/src/memory/index.ts`",
+      "quote": "TypeScript SDK (OSS), `memory` vector store provider — `mem0-ts/src/oss/src/memory/index.ts`",
       "locator": "body: Component section",
       "confidence": "medium",
       "label": "inferred"
@@ -1616,7 +1616,7 @@
       "claim": "term queries on dynamically-mapped text fields silently return zero results for values with capitals or spaces, meaning custom metadata filters are effectively broken for real-world strings",
       "kind": "issue",
       "url": "https://github.com/mem0ai/mem0/issues/7157",
-      "quote": "search(filters={'category': 'Foo Bar'}) -> 0 hits (multi-word)\nlist(filters={'category': 'Foo Bar'}) -> 0 hits (multi-word)\nsearch(filters={'category': 'Billing'}) -> 0 hits (capitalized single word)\nsearch(filters={'category': 'billing'}) -> 1 hit (all-lowercase \u2014 matches by coincidence)",
+      "quote": "search(filters={'category': 'Foo Bar'}) -> 0 hits (multi-word)\nlist(filters={'category': 'Foo Bar'}) -> 0 hits (multi-word)\nsearch(filters={'category': 'Billing'}) -> 0 hits (capitalized single word)\nsearch(filters={'category': 'billing'}) -> 1 hit (all-lowercase — matches by coincidence)",
       "locator": "What I Saw",
       "confidence": "medium",
       "label": "inferred"
@@ -1631,7 +1631,7 @@
       "label": "inferred"
     },
     {
-      "claim": "A related prior bug (OpenSearch, #6453/#6454) caused all non-identity filter keys to be silently ignored (over-returning); the Elasticsearch bug is the opposite \u2014 correct iteration but zero results for non-identity keys",
+      "claim": "A related prior bug (OpenSearch, #6453/#6454) caused all non-identity filter keys to be silently ignored (over-returning); the Elasticsearch bug is the opposite — correct iteration but zero results for non-identity keys",
       "kind": "issue",
       "url": "https://github.com/mem0ai/mem0/issues/7157",
       "quote": "#6453/#6454 (merged) fixed OpenSearch silently ignoring every filter key except user_id/agent_id/run_id (over-returning, unfiltered). That PR's own description cites Elasticsearch's 'iterate every key' as the correct reference behavior, but doesn't check whether the resulting query actually matches anything",
@@ -1706,7 +1706,7 @@
       "claim": "memories with priority: 0 are returned for a gte: 3 query against OpenSearch, a concrete continuity/correctness failure where the wrong memories surface",
       "kind": "issue",
       "url": "https://github.com/mem0ai/mem0/issues/7214",
-      "quote": "The full query body confirms: `\"filter\": [{\"term\": {\"payload.user_id.keyword\": \"alice\"}}]` and nothing else \u2014 memories with `priority: 0` are returned for a `gte: 3` query.",
+      "quote": "The full query body confirms: `\"filter\": [{\"term\": {\"payload.user_id.keyword\": \"alice\"}}]` and nothing else — memories with `priority: 0` are returned for a `gte: 3` query.",
       "locator": "Description > Actual Behavior",
       "confidence": "high",
       "label": "inferred"
@@ -1715,7 +1715,7 @@
       "claim": "The bug is in filter-expression construction (not network/retrieval), confirmed by mocking the client and asserting the clause list emitted by _build_filter_clauses",
       "kind": "issue",
       "url": "https://github.com/mem0ai/mem0/issues/7214",
-      "quote": "Imported the real `OpenSearchDB` (mocked OpenSearch client, no server needed \u2014 the bug is in filter-expression construction, not the network call) and asserted the clause list emitted by `_build_filter_clauses` for each documented grammar form; all five collapse to the identity term only",
+      "quote": "Imported the real `OpenSearchDB` (mocked OpenSearch client, no server needed — the bug is in filter-expression construction, not the network call) and asserted the clause list emitted by `_build_filter_clauses` for each documented grammar form; all five collapse to the identity term only",
       "locator": "How You Verified This",
       "confidence": "high",
       "label": "inferred"
@@ -1733,7 +1733,7 @@
       "claim": "Whether entity cleanup runs is determined solely by whether the current process previously touched entities, not by the state of the underlying persisted store.",
       "kind": "issue",
       "url": "https://github.com/mem0ai/mem0/issues/7226",
-      "quote": "Identical call, identical data. Whether cleanup happens is decided only by whether *this process* previously touched entities \u2014 nothing about the memory being deleted.",
+      "quote": "Identical call, identical data. Whether cleanup happens is decided only by whether *this process* previously touched entities — nothing about the memory being deleted.",
       "locator": "Issue body, 'The asymmetry' section, after reproduction output",
       "confidence": "medium",
       "label": "inferred"
@@ -1742,7 +1742,7 @@
       "claim": "Stale entity links cause retrieval boost to degrade by up to 91% as deletions accumulate, corrupting search quality silently.",
       "kind": "issue",
       "url": "https://github.com/mem0ai/mem0/issues/7226",
-      "quote": "Stale ids are never removed, so `num_linked` only grows \u2026 A surviving memory is boosted an order of magnitude less than it should be, and search quality degrades quadratically as deletions accumulate.",
+      "quote": "Stale ids are never removed, so `num_linked` only grows … A surviving memory is boosted an order of magnitude less than it should be, and search quality degrades quadratically as deletions accumulate.",
       "locator": "Issue body, 'Consequence' section",
       "confidence": "medium",
       "label": "inferred"
@@ -1760,7 +1760,7 @@
       "claim": "The bug affects any deployment where writes and deletions are handled by different processes, including GDPR erasure scripts and worker pools.",
       "kind": "issue",
       "url": "https://github.com/mem0ai/mem0/issues/7226",
-      "quote": "Any deployment where writes and deletions are handled by different processes \u2014 worker pools, scheduled cleanup, GDPR erasure scripts, a restarted server that deletes before it writes.",
+      "quote": "Any deployment where writes and deletions are handled by different processes — worker pools, scheduled cleanup, GDPR erasure scripts, a restarted server that deletes before it writes.",
       "locator": "Issue body, 'When this bites' section",
       "confidence": "medium",
       "label": "inferred"
@@ -1787,7 +1787,7 @@
       "claim": "generate-instructions endpoint calls the LLM on every request with no persistence of the result",
       "kind": "issue",
       "url": "https://github.com/mem0ai/mem0/issues/7260",
-      "quote": "`POST /generate-instructions` (`generate_instructions`) \u2014 calls `llm.generate_response(...)` directly on every single request. There's no persistence and no other cost gate; each call is a pure, billed LLM completion.",
+      "quote": "`POST /generate-instructions` (`generate_instructions`) — calls `llm.generate_response(...)` directly on every single request. There's no persistence and no other cost gate; each call is a pure, billed LLM completion.",
       "locator": "Steps to Reproduce / uncapped endpoints list",
       "confidence": "medium",
       "label": "inferred"
@@ -1796,7 +1796,7 @@
       "claim": "Mem0 server isolates credentials per-user via JWT and per-user X-API-Key, but neither enforces request-volume limits",
       "kind": "issue",
       "url": "https://github.com/mem0ai/mem0/issues/7260",
-      "quote": "All three only require `Depends(verify_auth)` \u2014 a valid JWT, a valid per-user `X-API-Key`, the legacy `ADMIN_API_KEY`, or nothing at all when the deployer set `AUTH_DISABLED=true`",
+      "quote": "All three only require `Depends(verify_auth)` — a valid JWT, a valid per-user `X-API-Key`, the legacy `ADMIN_API_KEY`, or nothing at all when the deployer set `AUTH_DISABLED=true`",
       "locator": "Summary",
       "confidence": "medium",
       "label": "inferred"
@@ -1905,7 +1905,7 @@
       "kind": "blog",
       "url": "https://mem0.ai/blog/ai-memory-benchmarks-in-2026",
       "quote": "The BEAM-1M and BEAM-10M scores (64.1 and 48.6) are below the LoCoMo and LongMemEval headlines.",
-      "locator": "Where Mem0's published numbers sit \u2014 reading numbers against BEAM",
+      "locator": "Where Mem0's published numbers sit — reading numbers against BEAM",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -1914,7 +1914,7 @@
       "kind": "blog",
       "url": "https://mem0.ai/blog/ai-memory-benchmarks-in-2026",
       "quote": "Knowledge update, at 93.6, is the category most affected by the additive, ADD-only architecture: older facts are preserved rather than overwritten, so a semantically similar prior fact can surface alongside a newer one.",
-      "locator": "Where Mem0's published numbers sit \u2014 LongMemEval per-category breakdown",
+      "locator": "Where Mem0's published numbers sit — LongMemEval per-category breakdown",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -1923,7 +1923,7 @@
       "kind": "blog",
       "url": "https://mem0.ai/blog/ai-memory-benchmarks-in-2026",
       "quote": "temporal and multi-hop questions score well, around 92 and 91, while open-domain retrieval, at 72.7, is the weak spot and is actively being tuned.",
-      "locator": "Where Mem0's published numbers sit \u2014 LoCoMo breakdown",
+      "locator": "Where Mem0's published numbers sit — LoCoMo breakdown",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -1932,7 +1932,7 @@
       "kind": "blog",
       "url": "https://mem0.ai/blog/ai-memory-benchmarks-in-2026",
       "quote": "Yes. Mem0 publishes its full evaluation framework and methodology on its research page, including the benchmark scores, token costs, and latency figures referenced throughout this post.",
-      "locator": "FAQ \u2014 Is the Mem0 benchmark evaluation framework open source?",
+      "locator": "FAQ — Is the Mem0 benchmark evaluation framework open source?",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -1950,7 +1950,7 @@
       "kind": "blog",
       "url": "https://mem0.ai/blog/memory-in-agents-what-why-and-how",
       "quote": "Mem0 uses priority scoring and contextual tagging to decide what gets stored. This avoids memory bloat and keeps agents focused on the important stuff",
-      "locator": "The Memory Advantage: How Mem0 Is Different \u2014 Intelligent Filtering",
+      "locator": "The Memory Advantage: How Mem0 Is Different — Intelligent Filtering",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -1959,7 +1959,7 @@
       "kind": "blog",
       "url": "https://mem0.ai/blog/memory-in-agents-what-why-and-how",
       "quote": "Mem0 doesn't treat memory as a static dump. Instead, it decays low-relevance entries over time, freeing up space and attention.",
-      "locator": "The Memory Advantage: How Mem0 Is Different \u2014 Dynamic Forgetting",
+      "locator": "The Memory Advantage: How Mem0 Is Different — Dynamic Forgetting",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -1968,7 +1968,7 @@
       "kind": "blog",
       "url": "https://mem0.ai/blog/memory-in-agents-what-why-and-how",
       "quote": "We move information between short-term and long-term memory storage based on usage patterns, recency, and significance, optimizing both recall speed and storage efficiency.",
-      "locator": "The Memory Advantage: How Mem0 Is Different \u2014 Memory Consolidation",
+      "locator": "The Memory Advantage: How Mem0 Is Different — Memory Consolidation",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -1977,7 +1977,7 @@
       "kind": "blog",
       "url": "https://mem0.ai/blog/memory-in-agents-what-why-and-how",
       "quote": "Most agents reset at the end of a session. Mem0 doesn't. Our memory architecture maintains relevant context across sessions, devices, and time periods.",
-      "locator": "The Memory Advantage: How Mem0 Is Different \u2014 Cross-Session Continuity",
+      "locator": "The Memory Advantage: How Mem0 Is Different — Cross-Session Continuity",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -1986,7 +1986,7 @@
       "kind": "blog",
       "url": "https://mem0.ai/blog/memory-in-agents-what-why-and-how",
       "quote": "This is also where deduplication and conflict resolution happen: if a new fact contradicts an old one, the write path has to decide whether to update, merge, or keep both.",
-      "locator": "How AI Agent Memory Works (Architecture) \u2014 The Write Path",
+      "locator": "How AI Agent Memory Works (Architecture) — The Write Path",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -1995,7 +1995,7 @@
       "kind": "blog",
       "url": "https://mem0.ai/blog/memory-in-agents-what-why-and-how",
       "quote": "Good read paths balance relevance against recency, so a stale preference doesn't outrank a fact the user corrected yesterday.",
-      "locator": "How AI Agent Memory Works (Architecture) \u2014 The Read Path",
+      "locator": "How AI Agent Memory Works (Architecture) — The Read Path",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2076,7 +2076,7 @@
       "kind": "blog",
       "url": "https://mem0.ai/blog/context-aware-chatbots-with-ai-memory",
       "quote": "In Mem0, you can handle this by using metadata filters or by separating user_id (for long term) and session_id (for short term).",
-      "locator": "Level 4: Advanced patterns \u2014 Session vs. user memory",
+      "locator": "Level 4: Advanced patterns — Session vs. user memory",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2085,7 +2085,7 @@
       "kind": "blog",
       "url": "https://mem0.ai/blog/context-aware-chatbots-with-ai-memory",
       "quote": "Graph memory features are only available with Mem0's Pro plan or higher.",
-      "locator": "Level 4: Advanced patterns \u2014 Graph memory (advanced)",
+      "locator": "Level 4: Advanced patterns — Graph memory (advanced)",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2121,7 +2121,7 @@
       "kind": "blog",
       "url": "https://mem0.ai/blog/graph-memory-solutions-ai-agents",
       "quote": "Teams seeking automatic context extraction with hierarchical organization across multiple users and sessions find Mem0's approach more straightforward than tool-driven memory systems that require manual orchestration.",
-      "locator": "Best Overall Graph-Based Memory Solution: Mem0 \u2014 Bottom Line",
+      "locator": "Best Overall Graph-Based Memory Solution: Mem0 — Bottom Line",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2130,7 +2130,7 @@
       "kind": "blog",
       "url": "https://mem0.ai/blog/graph-memory-solutions-ai-agents",
       "quote": "Mem0 and Zep both deliver sub-second retrieval at scale through optimized graph traversal and hybrid vector-graph architectures.",
-      "locator": "FAQ \u2014 Can graph memory handle millions of facts per user",
+      "locator": "FAQ — Can graph memory handle millions of facts per user",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2139,7 +2139,7 @@
       "kind": "blog",
       "url": "https://mem0.ai/blog/graph-memory-solutions-ai-agents",
       "quote": "Not with framework-agnostic solutions like Mem0 or Zep.",
-      "locator": "FAQ \u2014 Do I need to adopt a specific agent framework",
+      "locator": "FAQ — Do I need to adopt a specific agent framework",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2148,7 +2148,7 @@
       "kind": "blog",
       "url": "https://mem0.ai/blog/graph-memory-solutions-ai-agents",
       "quote": "Mem0 offers the fastest path to production with its managed service that handles graph database infrastructure, compliance, and scaling automatically.",
-      "locator": "FAQ \u2014 Which graph memory solution works best for teams without dedicated infrastructure resources",
+      "locator": "FAQ — Which graph memory solution works best for teams without dedicated infrastructure resources",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2166,7 +2166,7 @@
       "kind": "blog",
       "url": "https://mem0.ai/blog/short-term-memory-for-ai-agents",
       "quote": "Mem0's default approach is extraction, not summarization: it pulls out discrete, updateable facts rather than compressing history into prose.",
-      "locator": "Frequently Asked Questions \u2014 Does Mem0 support automatic conversation summarization?",
+      "locator": "Frequently Asked Questions — Does Mem0 support automatic conversation summarization?",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2274,7 +2274,7 @@
       "kind": "docs",
       "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
       "quote": "The key architectural decision is ADD-only extraction. New facts are stored alongside old ones. Nothing is overwritten or deleted. When information changes, both the old and new facts survive.",
-      "locator": "Architecture Overview \u2014 info block after storage layer table",
+      "locator": "Architecture Overview — info block after storage layer table",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2283,7 +2283,7 @@
       "kind": "docs",
       "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
       "quote": "Conversation enters the pipeline asynchronously (after the agent responds)",
-      "locator": "Memory Extraction (Distillation) \u2014 stage 1",
+      "locator": "Memory Extraction (Distillation) — stage 1",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2292,7 +2292,7 @@
       "kind": "docs",
       "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
       "quote": "Context Lookup: Find related existing memories to avoid duplicates ... Deduplicate + Embed: Hash-based deduplication, then vectorize new memories",
-      "locator": "Memory Extraction (Distillation) \u2014 stages 2 and 4",
+      "locator": "Memory Extraction (Distillation) — stages 2 and 4",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2301,16 +2301,16 @@
       "kind": "docs",
       "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
       "quote": "extracting temporal metadata: when the event occurred, whether it is ongoing or completed, how precise the timing is, and the memory type (event, state, plan, preference, relationship, absence)",
-      "locator": "Memory Extraction (Distillation) \u2014 stage 6",
+      "locator": "Memory Extraction (Distillation) — stage 6",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "SQL database serves as a history log of ADD events and a rolling message window used for extraction deduplication context \u2014 this is a log, not curated memory",
+      "claim": "SQL database serves as a history log of ADD events and a rolling message window used for extraction deduplication context — this is a log, not curated memory",
       "kind": "docs",
       "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
-      "quote": "SQL Database \u2014 History log (ADD events) + rolling message window \u2014 Audit trail + extraction dedup context",
-      "locator": "Memory Extraction (Distillation) \u2014 storage layer table",
+      "quote": "SQL Database — History log (ADD events) + rolling message window — Audit trail + extraction dedup context",
+      "locator": "Memory Extraction (Distillation) — storage layer table",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2328,7 +2328,7 @@
       "kind": "docs",
       "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
       "quote": "Overall: 92.5 ... Mean tokens: 6,956.",
-      "locator": "Benchmarks \u2014 LoCoMo",
+      "locator": "Benchmarks — LoCoMo",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2337,7 +2337,7 @@
       "kind": "docs",
       "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
       "quote": "Overall: 94.4 ... Temporal reasoning: 97.0 ... Knowledge update: 93.6 ... Mean tokens: 6,787.",
-      "locator": "Benchmarks \u2014 LongMemEval",
+      "locator": "Benchmarks — LongMemEval",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2346,7 +2346,7 @@
       "kind": "docs",
       "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
       "quote": "Overall: 64.1 (1M) / 48.6 (10M) ... contradiction_resolution: 35.7 (1M) / 32.5 (10M) ... Mean tokens (1M): 6,719. Mean tokens (10M): 6,914.",
-      "locator": "Benchmarks \u2014 BEAM",
+      "locator": "Benchmarks — BEAM",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2355,7 +2355,7 @@
       "kind": "docs",
       "url": "https://docs.mem0.ai/core-concepts/memory-evaluation",
       "quote": "Scores reflect Mem0's managed platform, which includes proprietary optimizations not available in the open-source SDK. Open-source users should expect directionally similar gains but not identical numbers.",
-      "locator": "Performance Summary \u2014 info block",
+      "locator": "Performance Summary — info block",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2363,7 +2363,7 @@
       "claim": "Mem0 scores 92.5 on LoCoMo across 1,540 questions in 5 categories",
       "kind": "docs",
       "url": "https://mem0.ai/research",
-      "quote": "92.5 Mem0 Score \u2026 1,540 questions 5 categories. Tests single-hop, multi-hop, open-domain, and temporal memory recall across multi-session conversations.",
+      "quote": "92.5 Mem0 Score … 1,540 questions 5 categories. Tests single-hop, multi-hop, open-domain, and temporal memory recall across multi-session conversations.",
       "locator": "LoCoMo section",
       "confidence": "medium",
       "label": "inferred"
@@ -2372,7 +2372,7 @@
       "claim": "Mean tokens per retrieval call is approximately 6,956 for Mem0 vs 25,000+ for full-context systems",
       "kind": "docs",
       "url": "https://mem0.ai/research",
-      "quote": "Mean tokens: 6,956 \u2026 Only the top matches enter the prompt, rather than the full conversation history, which is what keeps each call near 7,000 tokens instead of 25,000+.",
+      "quote": "Mean tokens: 6,956 … Only the top matches enter the prompt, rather than the full conversation history, which is what keeps each call near 7,000 tokens instead of 25,000+.",
       "locator": "LoCoMo section / Context Footprint section",
       "confidence": "medium",
       "label": "inferred"
@@ -2706,25 +2706,11 @@
   ],
   "consensus": [],
   "contested": [],
-  "copy": [
-    {
-      "text": "Copy extract-then-search: LLM-extracted facts in a vector store, search() scoped by user_id (and agent_id/run_id), injected as a User Memories block \u2014 not full transcript replay."
-    },
-    {
-      "text": "Copy expiration as retrieve-time suppress (expiration_date hidden unless show_expired), distinct from hard delete by memory id."
-    }
-  ],
-  "refuse": [
-    {
-      "text": "Refuse managed-platform scores and token-reduction claims as OSS behavior; README says those numbers include proprietary optimizations not in the SDK."
-    },
-    {
-      "text": "Refuse treating default add as supersession: docs also say new memories are added without overwriting existing ones unless an update-by-id path is used."
-    }
-  ],
+  "copy": [],
+  "refuse": [],
   "unknowns": [
     {
-      "text": "Blog index page lists post titles only; write path details (extract, update, delete, conflict/supersession logic) are not described here \u2014 canonical architecture docs (docs.mem0.ai) should cover these but are not included in the extracted text.",
+      "text": "Blog index page lists post titles only; write path details (extract, update, delete, conflict/supersession logic) are not described here — canonical architecture docs (docs.mem0.ai) should cover these but are not included in the extracted text.",
       "url": "https://mem0.ai/blog",
       "kind": "blog"
     },
@@ -2759,7 +2745,7 @@
       "kind": "code"
     },
     {
-      "text": "Retrieve/selection policy \u2014 how memories are chosen for injection into a turn (e.g., semantic search, always-all) \u2014 is absent from this abstract interface.",
+      "text": "Retrieve/selection policy — how memories are chosen for injection into a turn (e.g., semantic search, always-all) — is absent from this abstract interface.",
       "url": "https://github.com/mem0ai/mem0/blob/c7ee362aff94a369af70f13f2b4f853f6793ff4c/mem0/memory/base.py",
       "kind": "code"
     },
@@ -2804,7 +2790,7 @@
       "kind": "docs"
     },
     {
-      "text": "This search/retrieve page does not describe the write path (how memories are extracted, updated, or deleted), conflict resolution, or forget/delete behavior \u2014 those are canonical memory behaviors absent from this architecture doc.",
+      "text": "This search/retrieve page does not describe the write path (how memories are extracted, updated, or deleted), conflict resolution, or forget/delete behavior — those are canonical memory behaviors absent from this architecture doc.",
       "url": "https://docs.mem0.ai/core-concepts/memory-operations/search",
       "kind": "docs"
     },
@@ -2824,7 +2810,7 @@
       "kind": "docs"
     },
     {
-      "text": "No description of a forget or hide mechanism beyond delete_all \u2014 whether individual memory deletion propagates to embeddings/vector store or merely hides at retrieve time is unspecified.",
+      "text": "No description of a forget or hide mechanism beyond delete_all — whether individual memory deletion propagates to embeddings/vector store or merely hides at retrieve time is unspecified.",
       "url": "https://docs.mem0.ai/platform/advanced-memory-operations",
       "kind": "docs"
     },
@@ -2864,17 +2850,17 @@
       "kind": "issue"
     },
     {
-      "text": "No description of how the core SDK's retrieve policy works (always-on vs adaptive selection into context) \u2014 this is a canonical SDK architecture gap on this page",
+      "text": "No description of how the core SDK's retrieve policy works (always-on vs adaptive selection into context) — this is a canonical SDK architecture gap on this page",
       "url": "https://github.com/mem0ai/mem0/issues/6214",
       "kind": "issue"
     },
     {
-      "text": "No description of the forget/delete path in the core SDK \u2014 how memories are removed or superseded is not covered here",
+      "text": "No description of the forget/delete path in the core SDK — how memories are removed or superseded is not covered here",
       "url": "https://github.com/mem0ai/mem0/issues/6214",
       "kind": "issue"
     },
     {
-      "text": "No description of what entity records contain or how they are used during retrieval to influence memory recall \u2014 the page describes the isolation mechanism but not the retrieval policy for entities.",
+      "text": "No description of what entity records contain or how they are used during retrieval to influence memory recall — the page describes the isolation mechanism but not the retrieval policy for entities.",
       "url": "https://github.com/mem0ai/mem0/issues/6606",
       "kind": "issue"
     },
@@ -2894,7 +2880,7 @@
       "kind": "docs"
     },
     {
-      "text": "Memory.search full keyword-only signature (mem0/memory/main.py:1379-1391) \u2014 the issue states the signature exists and lacks user_id/limit but does not reproduce it; the canonical parameter list for retrieval is unquoted",
+      "text": "Memory.search full keyword-only signature (mem0/memory/main.py:1379-1391) — the issue states the signature exists and lacks user_id/limit but does not reproduce it; the canonical parameter list for retrieval is unquoted",
       "url": "https://github.com/mem0ai/mem0/issues/7202",
       "kind": "issue"
     },
@@ -2909,7 +2895,7 @@
       "kind": "issue"
     },
     {
-      "text": "The page does not describe how or when empty payloads are written into the FAISS docstore \u2014 whether this is a write-path bug (payload never populated) or a retrieval-path bug (payload lost after insert) is unresolved.",
+      "text": "The page does not describe how or when empty payloads are written into the FAISS docstore — whether this is a write-path bug (payload never populated) or a retrieval-path bug (payload lost after insert) is unresolved.",
       "url": "https://github.com/mem0ai/mem0/issues/7256",
       "kind": "issue"
     },

@@ -52,4 +52,11 @@ Answers are working notes. Citations are inline links. A question stays `open` u
   - Fact QA on a long transcript is not this list. LoCoMo measures whether the answer matches the chat, not timing or relationship feel ([Maharana et al., 2024](https://aclanthology.org/2024.acl-long.747/)).
   - **Status:** open
 
+- Which behaviors does field complaint data actually support?
+  - 425 community rows across 61 audited products (2026-09-26). Forgetting/continuity loss (105) + cross-session failure (64) = 169 rows, 40% of all complaints. This is the single largest signal in the field and maps directly to **same person after a gap**.
+  - Persona/character drift (63 rows, 15%) maps to the same behavior — the companion does not hold the relationship stable over time.
+  - "Cannot edit/correct" (54 rows, 13%) has no behavior in the current list and no eval score anywhere. Users want to see and correct what was stored. This may belong as a sixth behavior.
+  - Timing/when-to-speak has only 3 complaint rows — not because it does not matter, but because no product attempts it. Users cannot report a failure mode the product never tried. **A known fact left unsaid** is invisible to complaint analysis for exactly this reason. Its absence from complaints is not evidence that it does not matter; it is evidence that the field has not tried it.
+  - **Status:** open
+
 ---

@@ -63,7 +63,7 @@
       "text": "New data integrates immediately without batch recomputation; the graph evolves in real-time as episodes are ingested."
     },
     {
-      "text": "Retrieval uses hybrid search combining semantic embeddings, keyword (BM25), and graph traversal \u2014 not LLM summarization."
+      "text": "Retrieval uses hybrid search combining semantic embeddings, keyword (BM25), and graph traversal — not LLM summarization."
     },
     {
       "text": "EntityEdge tracks temporal validity of a fact with separate valid_at, invalid_at, and expired_at timestamps, enabling supersession of outdated facts"
@@ -111,7 +111,7 @@
       "text": "Isolation is enforced via group_id: all node, edge, episode, and community queries accept a group_ids filter that restricts results to matching partitions."
     },
     {
-      "text": "Edge invalidation candidates are retrieved by finding edges sharing at least one endpoint node with a given edge and scoring them by fact_embedding cosine similarity \u2014 supporting a conflict/supersession write path."
+      "text": "Edge invalidation candidates are retrieved by finding edges sharing at least one endpoint node with a given edge and scoring them by fact_embedding cosine similarity — supporting a conflict/supersession write path."
     },
     {
       "text": "Episode mentions reranker re-scores entity nodes by count of MENTIONS edges from Episodic nodes, so entities referenced most across the raw log rank first."
@@ -138,7 +138,7 @@
       "text": "Graphiti relies on complex prompts as part of its core processing pipeline, which creates a bottleneck for smaller local models."
     },
     {
-      "text": "Repeated extraction of the same relationships (e.g. name\u2013company\u2013role) when those entities recur in input text"
+      "text": "Repeated extraction of the same relationships (e.g. name–company–role) when those entities recur in input text"
     },
     {
       "text": "Inspired or referenced by OpenAI cookbook material on temporal agents with knowledge graphs"
@@ -219,7 +219,7 @@
       "text": "Graphiti persists episodic memory as nodes and edges across at least four entity types: Entity (name + summary), Episodic (content + source_description), Community (name + summary), and RELATES_TO edges (name + fact)."
     },
     {
-      "text": "When new memory overlaps old, incorrect data, the previous memory record is marked as invalid \u2014 a supersession/conflict resolution mechanism."
+      "text": "When new memory overlaps old, incorrect data, the previous memory record is marked as invalid — a supersession/conflict resolution mechanism."
     },
     {
       "text": "Community detection organises related entities to make future retrieval faster and more accurate"
@@ -254,7 +254,7 @@
       "claim": "Episodes are the raw ingested data layer; entities and facts are derived and curated from them, separating transcript log from structured memory.",
       "kind": "code",
       "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/README.md",
-      "quote": "Episodes (provenance) \u2014 Raw data as ingested \u2014 the ground truth stream. Every derived fact traces back here",
+      "quote": "Episodes (provenance) — Raw data as ingested — the ground truth stream. Every derived fact traces back here",
       "locator": "README.md, ## What is a Context Graph?, table",
       "confidence": "high",
       "label": "measured"
@@ -263,7 +263,7 @@
       "claim": "Old facts are invalidated rather than deleted when information changes, preserving full temporal history for point-in-time queries.",
       "kind": "code",
       "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/README.md",
-      "quote": "When information changes, old facts are invalidated \u2014 not deleted. Query what's true now, or what was true at any point in time.",
+      "quote": "When information changes, old facts are invalidated — not deleted. Query what's true now, or what was true at any point in time.",
       "locator": "README.md, ## Why Graphiti?, Temporal Fact Management bullet",
       "confidence": "high",
       "label": "measured"
@@ -435,7 +435,7 @@
       "kind": "code",
       "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/graphiti_types.py",
       "quote": "driver: GraphDriver\n    llm_client: LLMClient\n    embedder: EmbedderClient\n    cross_encoder: CrossEncoderClient",
-      "locator": "class GraphitiClients, lines 28\u201332",
+      "locator": "class GraphitiClients, lines 28–32",
       "confidence": "medium",
       "label": "measured"
     },
@@ -593,7 +593,7 @@
       "label": "measured"
     },
     {
-      "claim": "Raw episodes link to entity nodes via MENTIONS; entity nodes link to each other via RELATES_TO carrying facts \u2014 raw log and curated graph are structurally separate layers.",
+      "claim": "Raw episodes link to entity nodes via MENTIONS; entity nodes link to each other via RELATES_TO carrying facts — raw log and curated graph are structurally separate layers.",
       "kind": "code",
       "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search_utils.py",
       "quote": "MATCH (episode:Episodic)-[:MENTIONS]->(n:Entity)\nWHERE episode.uuid IN $uuids\nRETURN DISTINCT",
@@ -629,7 +629,7 @@
       "label": "measured"
     },
     {
-      "claim": "get_edge_invalidation_candidates retrieves existing edges sharing endpoints with a new edge, scored by fact_embedding similarity \u2014 this is the read side of conflict/supersession detection.",
+      "claim": "get_edge_invalidation_candidates retrieves existing edges sharing endpoints with a new edge, scored by fact_embedding similarity — this is the read side of conflict/supersession detection.",
       "kind": "code",
       "url": "https://github.com/getzep/graphiti/blob/c035afb7990b6077331a81e98b04efcfd9bf8184/graphiti_core/search/search_utils.py",
       "quote": "MATCH (n:Entity)-[e:RELATES_TO {group_id: edge.group_id}]->(m:Entity)\n                                                                                                                                        WHERE n.uuid IN [edge.source_node_uuid, edge.target_node_uuid] OR m.uuid IN [edge.target_node_uuid, edge.source_node_uuid]",
@@ -890,7 +890,7 @@
       "label": "inferred"
     },
     {
-      "claim": "Graphiti uses complex prompts internally, making it difficult to run on small local LLMs \u2014 models were too inconsistent or too slow to be practical.",
+      "claim": "Graphiti uses complex prompts internally, making it difficult to run on small local LLMs — models were too inconsistent or too slow to be practical.",
       "kind": "community",
       "url": "https://www.reddit.com/r/LocalLLaMA/comments/1hft9va/graphiti_temporal_knowledge_graph_with_local_llms/",
       "quote": "Given the complexity of the prompts involved, I am surprised how well the smallish models that I can run actually did. Ultimately they were either too inconsistent or too slow to be practical",
@@ -902,22 +902,22 @@
       "claim": "Graphiti combines short-term memory with graph DB retrieval/write as a drop-in replacement for Postgres Chat Memory in n8n",
       "kind": "community",
       "url": "https://www.reddit.com/r/n8n/comments/1pbmlnj/awesome_graphiti_memory/",
-      "quote": "I wanted a seamless replacement for the usual Postgres Chat Memory node \u2014 a memory node that would combine simple short-term memory with a tool for retrieving/writing data in a graph database.",
+      "quote": "I wanted a seamless replacement for the usual Postgres Chat Memory node — a memory node that would combine simple short-term memory with a tool for retrieving/writing data in a graph database.",
       "locator": "post body",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "Graph produces disconnected nodes \u2014 plain relationships are skipped during extraction",
+      "claim": "Graph produces disconnected nodes — plain relationships are skipped during extraction",
       "kind": "community",
       "url": "https://www.reddit.com/r/Rag/comments/1kjgd8j/lightgraph_vs_graphitizep_or_else/",
-      "quote": "After adding labeled knowledge (in \u00b11000 character texts, labeled by category and sub-category for instance), I found lots of loose nodes. Plain relationships we're skipped.",
+      "quote": "After adding labeled knowledge (in ±1000 character texts, labeled by category and sub-category for instance), I found lots of loose nodes. Plain relationships we're skipped.",
       "locator": "OP post body",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "Deduplication of recurring entity relationships is weak \u2014 same triples are written repeatedly",
+      "claim": "Deduplication of recurring entity relationships is weak — same triples are written repeatedly",
       "kind": "community",
       "url": "https://www.reddit.com/r/Rag/comments/1kjgd8j/lightgraph_vs_graphitizep_or_else/",
       "quote": "the connection between name, company name and role was made over and over again. When querying the graph this info was also presented over and over again.",
@@ -1199,7 +1199,7 @@
       "claim": "Graphiti stores knowledge at the entity/relationship level (curated facts), not as a full conversation transcript log.",
       "kind": "docs",
       "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
-      "quote": "A Context Graph is a temporal knowledge graph \u2014 a graph of entities, relationships, and facts",
+      "quote": "A Context Graph is a temporal knowledge graph — a graph of entities, relationships, and facts",
       "locator": "Overview, 'What is a Context Graph?' section",
       "confidence": "medium",
       "label": "inferred"
@@ -1227,7 +1227,7 @@
       "kind": "docs",
       "url": "https://help.getzep.com/graphiti/getting-started/welcome.md",
       "quote": "real-time incremental updates to graphs for AI agents, with no batch recomputation, so relationships and facts evolve as your data does",
-      "locator": "Welcome \u2014 introductory paragraph",
+      "locator": "Welcome — introductory paragraph",
       "confidence": "high",
       "label": "measured"
     },
@@ -1236,7 +1236,7 @@
       "kind": "docs",
       "url": "https://help.getzep.com/graphiti/getting-started/welcome.md",
       "quote": "Learn how to add text and JSON episodes to build your knowledge graph.",
-      "locator": "Welcome \u2014 Adding Episodes section",
+      "locator": "Welcome — Adding Episodes section",
       "confidence": "medium",
       "label": "measured"
     },
@@ -1245,7 +1245,7 @@
       "kind": "docs",
       "url": "https://help.getzep.com/graphiti/getting-started/welcome.md",
       "quote": "hybrid search capabilities combining semantic, keyword, and graph-based retrieval",
-      "locator": "Welcome \u2014 Searching section",
+      "locator": "Welcome — Searching section",
       "confidence": "high",
       "label": "measured"
     },
@@ -1253,7 +1253,7 @@
       "claim": "Graphiti is an open-source temporal knowledge graph framework for AI agents",
       "kind": "docs",
       "url": "https://help.getzep.com/graphiti/llms.txt",
-      "quote": "Graphiti is Zep's open-source framework for temporal knowledge graphs \u2014 Context Graphs \u2014 for AI agents, with real-time updates and hybrid retrieval.",
+      "quote": "Graphiti is Zep's open-source framework for temporal knowledge graphs — Context Graphs — for AI agents, with real-time updates and hybrid retrieval.",
       "locator": "Docs index, Welcome to Graphiti! entry",
       "confidence": "high",
       "label": "measured"
@@ -1277,7 +1277,7 @@
       "label": "measured"
     },
     {
-      "claim": "The store supports CRUD \u2014 nodes and edges can be created, read, updated, and deleted",
+      "claim": "The store supports CRUD — nodes and edges can be created, read, updated, and deleted",
       "kind": "docs",
       "url": "https://help.getzep.com/graphiti/llms.txt",
       "quote": "How to access and modify Nodes and Edges",
@@ -1334,13 +1334,13 @@
       "claim": "Entity-node isolation is supported at retrieval time: a focal_node_uuid scopes results toward a specific entity (e.g. Jane), surfacing her allergy over generic product facts.",
       "kind": "docs",
       "url": "https://help.getzep.com/graphiti/working-with-data/searching.md",
-      "quote": "await graphiti.search(query, focal_node_uuid) \u2026 Focuses on Jane-specific information, highlighting her wool allergy.",
+      "quote": "await graphiti.search(query, focal_node_uuid) … Focuses on Jane-specific information, highlighting her wool allergy.",
       "locator": "Searching the Graph > Node Distance Reranking",
       "confidence": "medium",
       "label": "inferred"
     },
     {
-      "claim": "The retrieve layer separates stored graph objects into three categories \u2014 edges (facts), nodes (entities), and communities \u2014 each searchable independently or together.",
+      "claim": "The retrieve layer separates stored graph objects into three categories — edges (facts), nodes (entities), and communities — each searchable independently or together.",
       "kind": "docs",
       "url": "https://help.getzep.com/graphiti/working-with-data/searching.md",
       "quote": "The `graphiti._search()` method returns a `SearchResults` object containing a list of nodes, edges, and communities.",
@@ -1352,7 +1352,7 @@
       "claim": "Episode mentions can influence reranking, implying episodes are a stored unit in the graph that records which facts appeared in which ingested interaction.",
       "kind": "docs",
       "url": "https://help.getzep.com/graphiti/working-with-data/searching.md",
-      "quote": "EDGE_HYBRID_SEARCH_EPISODE_MENTIONS \u2014 Performs a hybrid search over edges with episode mention reranking.",
+      "quote": "EDGE_HYBRID_SEARCH_EPISODE_MENTIONS — Performs a hybrid search over edges with episode mention reranking.",
       "locator": "Configurable Search Strategies > table",
       "confidence": "medium",
       "label": "inferred"
@@ -1361,7 +1361,7 @@
       "claim": "Writes on the FalkorDB backend permanently mutate the shared Graphiti client's driver to the last-written group, causing all subsequent reads to execute against the wrong group's graph and silently return empty results.",
       "kind": "issue",
       "url": "https://github.com/getzep/graphiti/issues/1795",
-      "quote": "Any long-lived multi-group client \u2014 the MCP server is exactly that \u2014 then runs all subsequent reads inside whichever group wrote last. `get_episodes` / searches for another group execute in the wrong graph with a `group_id` property filter that matches nothing, and return empty with no error. Scoped memory appears to work until a second group writes; after that, cross-group reads silently return nothing.",
+      "quote": "Any long-lived multi-group client — the MCP server is exactly that — then runs all subsequent reads inside whichever group wrote last. `get_episodes` / searches for another group execute in the wrong graph with a `group_id` property filter that matches nothing, and return empty with no error. Scoped memory appears to work until a second group writes; after that, cross-group reads silently return nothing.",
       "locator": "Summary",
       "confidence": "high",
       "label": "inferred"
@@ -1415,7 +1415,7 @@
       "claim": "Cross-backend swap from Neo4j to FalkorDB is advertised as a drop-in env-var change but fails approximately 60% of corpus ingest at scale due to this group_id validation gap",
       "kind": "issue",
       "url": "https://github.com/getzep/graphiti/issues/1465",
-      "quote": "Cross-backend swap from Neo4j \u2192 FalkorDB (advertised as a drop-in env-var change in some downstream docs) actually fails ~60% of corpus ingest at scale",
+      "quote": "Cross-backend swap from Neo4j → FalkorDB (advertised as a drop-in env-var change in some downstream docs) actually fails ~60% of corpus ingest at scale",
       "locator": "## Impact",
       "confidence": "medium",
       "label": "inferred"
@@ -1430,7 +1430,7 @@
       "label": "inferred"
     },
     {
-      "claim": "Graphiti's deduplication pipeline uses only Jaccard similarity as a single signal, with hard cutoffs (Jaccard \u2265 0.9, entropy \u2265 1.5), and escalates all unresolved nodes to LLM with no cross-batch learning",
+      "claim": "Graphiti's deduplication pipeline uses only Jaccard similarity as a single signal, with hard cutoffs (Jaccard ≥ 0.9, entropy ≥ 1.5), and escalates all unresolved nodes to LLM with no cross-batch learning",
       "kind": "issue",
       "url": "https://github.com/getzep/graphiti/issues/1600",
       "quote": "Each batch evaluated independently with no memory of successful past matches",
@@ -1457,10 +1457,10 @@
       "label": "inferred"
     },
     {
-      "claim": "Low-signal facts accumulating in the graph increase retrieval noise and slow queries \u2014 a continuity-relevant failure mode where irrelevant facts pollute recall.",
+      "claim": "Low-signal facts accumulating in the graph increase retrieval noise and slow queries — a continuity-relevant failure mode where irrelevant facts pollute recall.",
       "kind": "issue",
       "url": "https://github.com/getzep/graphiti/issues/1602",
-      "quote": "the graph fills with low-signal facts that increase retrieval noise, inflate storage, and slow down queries \u2014 without adding useful knowledge.",
+      "quote": "the graph fills with low-signal facts that increase retrieval noise, inflate storage, and slow down queries — without adding useful knowledge.",
       "locator": "## The Story",
       "confidence": "medium",
       "label": "inferred"
@@ -1502,7 +1502,7 @@
       "label": "inferred"
     },
     {
-      "claim": "Graphiti's temporal model marks old facts invalid when contradicted by new information, but stale facts still surface equally in search results \u2014 a continuity failure where agents receive multiple conflicting answers.",
+      "claim": "Graphiti's temporal model marks old facts invalid when contradicted by new information, but stale facts still surface equally in search results — a continuity failure where agents receive multiple conflicting answers.",
       "kind": "issue",
       "url": "https://github.com/getzep/graphiti/issues/1645",
       "quote": "Graphiti's temporal model marks old facts as invalid when new information contradicts them, but the search tools still return those stale facts ranked equally with current ones. An agent asking \"where does X work?\" shouldn't have to guess which of three answers is the live one.",
@@ -1550,7 +1550,7 @@
       "claim": "Unrelated still-true facts are silently retired (forgotten) because edge invalidation searches the whole group with no endpoint scoping, a regression introduced in PR #906",
       "kind": "issue",
       "url": "https://github.com/getzep/graphiti/issues/1728",
-      "quote": "Saving a memory that merely mentions an entity can retire an unrelated, still-true fact about that entity. The retired fact stays in the graph but is stamped with an invalid_at date, so searches downrank or drop it and the knowledge is effectively gone \u2014 silently, with no signal that anything was lost.",
+      "quote": "Saving a memory that merely mentions an entity can retire an unrelated, still-true fact about that entity. The retired fact stays in the graph but is stamped with an invalid_at date, so searches downrank or drop it and the knowledge is effectively gone — silently, with no signal that anything was lost.",
       "locator": "Problem section",
       "confidence": "medium",
       "label": "inferred"
@@ -1592,7 +1592,7 @@
       "label": "inferred"
     },
     {
-      "claim": "A new fact about a person's side project can retire the fact recording their job title \u2014 a continuity failure where a correct persistent fact is silently overwritten",
+      "claim": "A new fact about a person's side project can retire the fact recording their job title — a continuity failure where a correct persistent fact is silently overwritten",
       "kind": "issue",
       "url": "https://github.com/getzep/graphiti/issues/1728",
       "quote": "without this, any semantically similar edge in the group is eligible, and a new fact about a person's side project can retire the fact recording their job.",
@@ -1604,7 +1604,7 @@
       "claim": "The LLM contradiction judge on small non-reasoning models is unreliable in both directions: it misses genuine contradictions (per issue #1666) and generates false positives that retire unrelated facts",
       "kind": "issue",
       "url": "https://github.com/getzep/graphiti/issues/1728",
-      "quote": "#1666 measures how unreliable that judge is on non-reasoning small models, reporting the opposite symptom \u2014 genuine contradictions missed. Both failures point at the same place, and a structural check helps in a way a better prompt cannot: it bounds what a wrong answer can destroy.",
+      "quote": "#1666 measures how unreliable that judge is on non-reasoning small models, reporting the opposite symptom — genuine contradictions missed. Both failures point at the same place, and a structural check helps in a way a better prompt cannot: it bounds what a wrong answer can destroy.",
       "locator": "Why it happens, point 2",
       "confidence": "medium",
       "label": "inferred"
@@ -1613,7 +1613,7 @@
       "claim": "Facts wrongly retired before a fix cannot be automatically recovered; determining whether each invalid_at reflects real change or a bad match requires per-edge review",
       "kind": "issue",
       "url": "https://github.com/getzep/graphiti/issues/1728",
-      "quote": "This change stops further collateral but does not undo any that has already happened. Facts wrongly retired before the fix stay retired, and any deployment that has been ingesting for a while will have some. Identifying and reviving them means deciding, per edge, whether its invalid_at reflects real change or a bad match \u2014 separate work, with its own risk of clearing dates that were correct.",
+      "quote": "This change stops further collateral but does not undo any that has already happened. Facts wrongly retired before the fix stay retired, and any deployment that has been ingesting for a while will have some. Identifying and reviving them means deciding, per edge, whether its invalid_at reflects real change or a bad match — separate work, with its own risk of clearing dates that were correct.",
       "locator": "Out of scope section",
       "confidence": "medium",
       "label": "inferred"
@@ -1676,7 +1676,7 @@
       "claim": "Graphiti supports delete operations at the node level and at the group_id (bulk) level",
       "kind": "issue",
       "url": "https://github.com/getzep/graphiti/issues/1781",
-      "quote": "Node CRUD (6 tests) \u2014 save, get_by_uuid, get_by_uuids, get_by_group_ids, delete, delete_by_group_id, embedding roundtrip",
+      "quote": "Node CRUD (6 tests) — save, get_by_uuid, get_by_uuids, get_by_group_ids, delete, delete_by_group_id, embedding roundtrip",
       "locator": "Test Results",
       "confidence": "medium",
       "label": "inferred"
@@ -1730,7 +1730,7 @@
       "claim": "A HNSW index path was introduced in PR #859 then removed in PR #894 with no recorded rationale; as of commit 993e081 / v0.29.2 the brute-force path is the only option on Neo4j.",
       "kind": "issue",
       "url": "https://github.com/getzep/graphiti/issues/1793",
-      "quote": "I could not find a recorded rationale for the removal, so this issue is written as a question as much as a report: **was the HNSW path dropped intentionally \u2026 or did it fall out as collateral during cleanup?**",
+      "quote": "I could not find a recorded rationale for the removal, so this issue is written as a question as much as a report: **was the HNSW path dropped intentionally … or did it fall out as collateral during cleanup?**",
       "locator": "## This was implemented once and then removed",
       "confidence": "medium",
       "label": "inferred"
@@ -1757,7 +1757,7 @@
       "claim": "The same O(N) brute-force retrieval problem also affects the FalkorDB backend, per related issues #1335 and #1287.",
       "kind": "issue",
       "url": "https://github.com/getzep/graphiti/issues/1793",
-      "quote": "**#1335** (open since 2026-03-20) \u2014 `feat(falkordb): Use HNSW vector index procedures for similarity search`. Same root cause, FalkorDB driver. Reports 6-8 s per query on 3072-dim embeddings.",
+      "quote": "**#1335** (open since 2026-03-20) — `feat(falkordb): Use HNSW vector index procedures for similarity search`. Same root cause, FalkorDB driver. Reports 6-8 s per query on 3072-dim embeddings.",
       "locator": "## Related work",
       "confidence": "medium",
       "label": "inferred"
@@ -1766,7 +1766,7 @@
       "claim": "The isolation failure was confirmed live: a get_episodes call for group 'quarantine' executed its graph query against the 'helpscout-sync' graph after that group had written last.",
       "kind": "issue",
       "url": "https://github.com/getzep/graphiti/issues/1795",
-      "quote": "GRAPH.QUERY \"helpscout-sync\" \"MATCH (e:Episodic) WHERE e.group_id IN $group_ids ...\" \u2014 the Episodic query for group `quarantine` executed against the `helpscout-sync` graph.",
+      "quote": "GRAPH.QUERY \"helpscout-sync\" \"MATCH (e:Episodic) WHERE e.group_id IN $group_ids ...\" — the Episodic query for group `quarantine` executed against the `helpscout-sync` graph.",
       "locator": "Evidence",
       "confidence": "high",
       "label": "inferred"
@@ -1775,7 +1775,7 @@
       "claim": "The workaround (pinning FalkorDriver.clone() to a no-op) restores correct isolation semantics using the group_id property filters already present in every query.",
       "kind": "issue",
       "url": "https://github.com/getzep/graphiti/issues/1795",
-      "quote": "We deployed the single-graph variant locally (make `FalkorDriver.clone()` a no-op so `_database` stays fixed) and all semantics \u2014 scalar reads after interleaved writes, list searches, isolation between groups \u2014 behave correctly since.",
+      "quote": "We deployed the single-graph variant locally (make `FalkorDriver.clone()` a no-op so `_database` stays fixed) and all semantics — scalar reads after interleaved writes, list searches, isolation between groups — behave correctly since.",
       "locator": "Workaround",
       "confidence": "medium",
       "label": "inferred"
@@ -1802,7 +1802,7 @@
       "claim": "Memory is isolated per group_id at both index write and query time.",
       "kind": "issue",
       "url": "https://github.com/getzep/graphiti/issues/1851",
-      "quote": "`(@group_id:\"...\") (@search_text:(\uac80\uc0c9\ud300 | \uc774\ub04c | \uc0ac\ub78c))`",
+      "quote": "`(@group_id:\"...\") (@search_text:(검색팀 | 이끌 | 사람))`",
       "locator": "Proposal, item 3",
       "confidence": "medium",
       "label": "inferred"
@@ -1826,10 +1826,10 @@
       "label": "inferred"
     },
     {
-      "claim": "Silent failure: memory appears to work (ingestion succeeds, no error on read) but past episodes are not returned \u2014 a continuity failure indistinguishable from misconfiguration",
+      "claim": "Silent failure: memory appears to work (ingestion succeeds, no error on read) but past episodes are not returned — a continuity failure indistinguishable from misconfiguration",
       "kind": "issue",
       "url": "https://github.com/getzep/graphiti/issues/1876",
-      "quote": "Ingestion reports success, the data is genuinely persisted, and the read returns an empty result rather than an error \u2014 so it presents as \"memory not working\" rather than as a misconfiguration.",
+      "quote": "Ingestion reports success, the data is genuinely persisted, and the read returns an empty result rather than an error — so it presents as \"memory not working\" rather than as a misconfiguration.",
       "locator": "## Why this is easy to miss",
       "confidence": "high",
       "label": "inferred"
@@ -1853,7 +1853,7 @@
       "label": "inferred"
     },
     {
-      "claim": "Graph compaction pressure can cause relationship collapse \u2014 an intermediary person (e.g., 'colleague') is dropped and the relationship is incorrectly attributed directly to the primary User entity, a continuity/identity failure.",
+      "claim": "Graph compaction pressure can cause relationship collapse — an intermediary person (e.g., 'colleague') is dropped and the relationship is incorrectly attributed directly to the primary User entity, a continuity/identity failure.",
       "kind": "issue",
       "url": "https://github.com/getzep/graphiti/issues/1880",
       "quote": "accidentally collapsing a relationship through a \"colleague\" directly into the primary User entity",
@@ -1874,7 +1874,7 @@
       "claim": "In a real agent-memory deployment the oscillating community assignments caused the server to stall during initial ingestion of a code structure, producing over 30 logged iterations with 16/96 nodes still changing at each step.",
       "kind": "issue",
       "url": "https://github.com/getzep/graphiti/issues/402",
-      "quote": "2025-04-26 19:16:58,988 - graphiti_core.utils.maintenance.community_operations - INFO - \ud83e\udde9 Label snapshot: {'iteration': 30, 'changed': 16/96 (16.7%)",
+      "quote": "2025-04-26 19:16:58,988 - graphiti_core.utils.maintenance.community_operations - INFO - 🧩 Label snapshot: {'iteration': 30, 'changed': 16/96 (16.7%)",
       "locator": "Issue body, example log output",
       "confidence": "medium",
       "label": "inferred"
@@ -1928,7 +1928,7 @@
       "claim": "Graphiti includes temporal understanding so that stale information can be identified.",
       "kind": "blog",
       "url": "https://www.falkordb.com/blog/implementing-agentic-memory-graphiti/",
-      "quote": "Without that context, your agent can never make good recommendations. And without temporal understanding, yesterday's relevant information might be stale today \u2013 but your agent doesn't know that.",
+      "quote": "Without that context, your agent can never make good recommendations. And without temporal understanding, yesterday's relevant information might be stale today – but your agent doesn't know that.",
       "locator": "intro section",
       "confidence": "medium",
       "label": "inferred"
@@ -1955,7 +1955,7 @@
       "claim": "Temporal invalidation: old facts are marked superseded with an end timestamp, not deleted, so both old and new states are queryable by time",
       "kind": "blog",
       "url": "https://dev.to/clawbase/your-ai-agent-forgets-everything-after-every-session-graphiti-fixes-that-3163",
-      "quote": "A fact in Graphiti looks like: 'Kendra prefers Adidas shoes (as of March 2026).' If she switches to Nike in June, the old fact gets invalidated \u2014 not deleted \u2014 and the new one takes its place. Both are queryable. You can ask 'what does Kendra prefer now?' and 'what did Kendra prefer in March?'",
+      "quote": "A fact in Graphiti looks like: 'Kendra prefers Adidas shoes (as of March 2026).' If she switches to Nike in June, the old fact gets invalidated — not deleted — and the new one takes its place. Both are queryable. You can ask 'what does Kendra prefer now?' and 'what did Kendra prefer in March?'",
       "locator": "What Graphiti Actually Is",
       "confidence": "medium",
       "label": "inferred"
@@ -1964,7 +1964,7 @@
       "claim": "Graph-based retrieval uses roughly 1.6K tokens versus ~115K tokens for full-context approach, with 90% lower latency per Zep benchmarks",
       "kind": "blog",
       "url": "https://dev.to/clawbase/your-ai-agent-forgets-everything-after-every-session-graphiti-fixes-that-3163",
-      "quote": "Zep's benchmarks show their graph-based approach uses ~1.6K tokens for the same queries \u2014 roughly 2% of the baseline \u2014 with 90% lower latency.",
+      "quote": "Zep's benchmarks show their graph-based approach uses ~1.6K tokens for the same queries — roughly 2% of the baseline — with 90% lower latency.",
       "locator": "Why This Matters More Than You Think",
       "confidence": "medium",
       "label": "inferred"
@@ -1973,7 +1973,7 @@
       "claim": "On LongMemEval (500 human-curated temporal reasoning questions), Zep hit 63.8% accuracy vs full-context baseline's 55.4% with GPT-4o-mini, using 2% of tokens and 90% less latency",
       "kind": "blog",
       "url": "https://dev.to/clawbase/your-ai-agent-forgets-everything-after-every-session-graphiti-fixes-that-3163",
-      "quote": "on LongMemEval \u2014 a much harder benchmark with 500 human-curated temporal reasoning questions \u2014 Zep hit 63.8% accuracy versus the full-context baseline's 55.4% with GPT-4o-mini. And it did it with 2% of the tokens and 90% less latency.",
+      "quote": "on LongMemEval — a much harder benchmark with 500 human-curated temporal reasoning questions — Zep hit 63.8% accuracy versus the full-context baseline's 55.4% with GPT-4o-mini. And it did it with 2% of the tokens and 90% less latency.",
       "locator": "The Benchmarks Tell a Clear Story",
       "confidence": "medium",
       "label": "inferred"
@@ -2001,7 +2001,7 @@
       "kind": "blog",
       "url": "https://dev.to/gaodalie_ai/langgraph-graphiti-long-term-memory-powerful-agentic-memory-1iag",
       "quote": "Graphiti updates the solution status of [Clear Background Apps] from [Solution] to [Unresolved] since the problem remains.",
-      "locator": "Section: How does it work? \u2014 step 5: Dynamic Information Update",
+      "locator": "Section: How does it work? — step 5: Dynamic Information Update",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2010,7 +2010,7 @@
       "kind": "blog",
       "url": "https://dev.to/gaodalie_ai/langgraph-graphiti-long-term-memory-powerful-agentic-memory-1iag",
       "quote": "Graphiti will record [Turn off 5G] as a valid solution for [Overheating Problem] and update the timestamps of related entities and relationships for future cases.",
-      "locator": "Section: How does it work? \u2014 step 8: Knowledge Update",
+      "locator": "Section: How does it work? — step 8: Knowledge Update",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2028,7 +2028,7 @@
       "kind": "blog",
       "url": "https://dev.to/gaodalie_ai/langgraph-graphiti-long-term-memory-powerful-agentic-memory-1iag",
       "quote": "add the response to the graphiti graph. this will allow us to use the graphiti search later in the conversation",
-      "locator": "Code: chatbot function \u2014 post-response episode write comment",
+      "locator": "Code: chatbot function — post-response episode write comment",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2046,7 +2046,7 @@
       "kind": "blog",
       "url": "https://dev.to/gaodalie_ai/langgraph-graphiti-long-term-memory-powerful-agentic-memory-1iag",
       "quote": "The system organises all information about the Samsung Galaxy S23 into a community to make future retrieval faster and more accurate.",
-      "locator": "Section: How does it work? \u2014 step 4: Community Detection",
+      "locator": "Section: How does it work? — step 4: Community Detection",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2064,7 +2064,7 @@
       "kind": "docs",
       "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
       "quote": "Graph edges include temporal metadata to record relationship lifecycles.",
-      "locator": "Overview, Why Graphiti? \u2014 Temporal Awareness",
+      "locator": "Overview, Why Graphiti? — Temporal Awareness",
       "confidence": "medium",
       "label": "measured"
     },
@@ -2073,7 +2073,7 @@
       "kind": "docs",
       "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
       "quote": "Contradiction Handling: Temporal edge invalidation",
-      "locator": "Overview, comparison table \u2014 Contradiction Handling row",
+      "locator": "Overview, comparison table — Contradiction Handling row",
       "confidence": "medium",
       "label": "measured"
     },
@@ -2082,7 +2082,7 @@
       "kind": "docs",
       "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
       "quote": "Episodic Processing: Ingests data as discrete episodes, maintaining data provenance and allowing incremental entity and relationship extraction.",
-      "locator": "Overview, Why Graphiti? \u2014 Episodic Processing",
+      "locator": "Overview, Why Graphiti? — Episodic Processing",
       "confidence": "medium",
       "label": "measured"
     },
@@ -2091,7 +2091,7 @@
       "kind": "docs",
       "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
       "quote": "Combines vector similarity, BM25 full-text, and graph traversal into a single ranked answer, with no LLM-in-the-loop reranking. Results can be reranked by distance from a central node e.g. 'Kendra'.",
-      "locator": "Overview, Why Graphiti? \u2014 Hybrid Search",
+      "locator": "Overview, Why Graphiti? — Hybrid Search",
       "confidence": "medium",
       "label": "measured"
     },
@@ -2100,7 +2100,7 @@
       "kind": "docs",
       "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
       "quote": "On the LoCoMo benchmark, Graphiti-based retrieval reaches 94.7% accuracy at 155ms retrieval latency. On LongMemEval, it reaches 90.2% accuracy at 162ms.",
-      "locator": "Overview, Why Graphiti? \u2014 Performance",
+      "locator": "Overview, Why Graphiti? — Performance",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2108,7 +2108,7 @@
       "claim": "Graphiti is open-source and builds/queries a single Context Graph per subject locally.",
       "kind": "docs",
       "url": "https://help.getzep.com/graphiti/getting-started/overview.md",
-      "quote": "Graphiti is the open-source temporal knowledge graph framework. Use it to build and query a single Context Graph per subject locally \u2014 entity and edge extraction, the bi-temporal model, fact invalidation, and hybrid retrieval.",
+      "quote": "Graphiti is the open-source temporal knowledge graph framework. Use it to build and query a single Context Graph per subject locally — entity and edge extraction, the bi-temporal model, fact invalidation, and hybrid retrieval.",
       "locator": "Overview, Graphiti and Zep",
       "confidence": "medium",
       "label": "measured"
@@ -2117,7 +2117,7 @@
       "claim": "Graphiti retrieval combines vector search, BM25, and graph traversal without LLM calls at query time, achieving sub-second p95 latency per Zep's own reporting.",
       "kind": "blog",
       "url": "https://theneuralmaze.substack.com/p/building-agent-memory-with-knowledge",
-      "quote": "Retrieval is fast because it avoids LLM calls at query time. Instead it combines vector (semantic) search, BM25 (keyword) search, and graph traversal into one hybrid query \u2014 Zep reports retrieval latencies low enough (sub-second at the 95th percentile) to sit comfortably behind a voice assistant.",
+      "quote": "Retrieval is fast because it avoids LLM calls at query time. Instead it combines vector (semantic) search, BM25 (keyword) search, and graph traversal into one hybrid query — Zep reports retrieval latencies low enough (sub-second at the 95th percentile) to sit comfortably behind a voice assistant.",
       "locator": "section: How graphs are quietly replacing RAG (in some places)",
       "confidence": "medium",
       "label": "inferred"
@@ -2136,7 +2136,7 @@
       "kind": "blog",
       "url": "https://theneuralmaze.substack.com/p/building-agent-memory-with-knowledge",
       "quote": "Every episode you ingest costs an LLM call (entity + relationship extraction), which means real latency (roughly half a second to a couple of seconds per episode) and real money at volume.",
-      "locator": "section: When to use each \u2014 A fair warning before we build",
+      "locator": "section: When to use each — A fair warning before we build",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2153,7 +2153,7 @@
       "claim": "Conflict/supersession: when a fact changes, the old edge is invalidated (preserved as history) rather than deleted, and the new fact becomes current state.",
       "kind": "docs",
       "url": "https://www.getzep.com/platform/graphiti/",
-      "quote": "Outdated facts are invalidated by temporal logic \u2014 preserved as history, removed from current state.",
+      "quote": "Outdated facts are invalidated by temporal logic — preserved as history, removed from current state.",
       "locator": "Dynamic updates",
       "confidence": "medium",
       "label": "inferred"
@@ -2180,8 +2180,8 @@
       "claim": "LoCoMo benchmark: 94.7% accuracy, 155 ms retrieval latency, 5,760 token context size.",
       "kind": "docs",
       "url": "https://www.getzep.com/platform/graphiti/",
-      "quote": "94.7% Accuracy \u2014 Retrieval latency 155 ms \u2014 Context size 5,760 tokens",
-      "locator": "BENCHMARK \u00b7 LOCOMO",
+      "quote": "94.7% Accuracy — Retrieval latency 155 ms — Context size 5,760 tokens",
+      "locator": "BENCHMARK · LOCOMO",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2189,8 +2189,8 @@
       "claim": "LongMemEval benchmark: 90.2% accuracy, 162 ms retrieval latency, 4,408 token context size.",
       "kind": "docs",
       "url": "https://www.getzep.com/platform/graphiti/",
-      "quote": "90.2% Accuracy \u2014 Retrieval latency 162 ms \u2014 Context size 4,408 tokens",
-      "locator": "BENCHMARK \u00b7 LONGMEMEVAL",
+      "quote": "90.2% Accuracy — Retrieval latency 162 ms — Context size 4,408 tokens",
+      "locator": "BENCHMARK · LONGMEMEVAL",
       "confidence": "medium",
       "label": "inferred"
     },
@@ -2538,22 +2538,8 @@
   ],
   "consensus": [],
   "contested": [],
-  "copy": [
-    {
-      "text": "Copy bi-temporal edges: when facts change, invalid_at/expired_at retire the old edge instead of deleting it, so current vs historical queries can diverge."
-    },
-    {
-      "text": "Copy episode (raw ingest) vs entity/community (curated) as two retrieval surfaces under a group_id partition."
-    }
-  ],
-  "refuse": [
-    {
-      "text": "Refuse assuming group_id is tenant-safe on every backend; FalkorDB issue #1795 shows a shared driver can run later reads against the last-written graph."
-    },
-    {
-      "text": "Refuse the bulk ingest path as a conflict design: the audit notes bulk does not run the edge-invalidation used on the normal write path."
-    }
-  ],
+  "copy": [],
+  "refuse": [],
   "unknowns": [
     {
       "text": "Explicit delete/forget API: the page does not describe how to remove a fact or node from the graph once stored",
@@ -2571,7 +2557,7 @@
       "kind": "community"
     },
     {
-      "text": "No description of isolation model \u2014 whether graph state is per-user, per-session, per-agent, or shared",
+      "text": "No description of isolation model — whether graph state is per-user, per-session, per-agent, or shared",
       "url": "https://www.reddit.com/r/LLMDevs/comments/1f8u0xk/graphiti_llmpowered_temporal_knowledge_graphs/",
       "kind": "community"
     },
@@ -2591,7 +2577,7 @@
       "kind": "community"
     },
     {
-      "text": "No description of retrieval policy \u2014 when and how stored graph nodes are selected into a turn context.",
+      "text": "No description of retrieval policy — when and how stored graph nodes are selected into a turn context.",
       "url": "https://www.reddit.com/r/LocalLLaMA/comments/1hft9va/graphiti_temporal_knowledge_graph_with_local_llms/",
       "kind": "community"
     },
@@ -2601,7 +2587,7 @@
       "kind": "community"
     },
     {
-      "text": "No description on this page of forget or delete behavior \u2014 whether stale or explicitly contradicted nodes are removed or hidden",
+      "text": "No description on this page of forget or delete behavior — whether stale or explicitly contradicted nodes are removed or hidden",
       "url": "https://www.reddit.com/r/Rag/comments/1kjgd8j/lightgraph_vs_graphitizep_or_else/",
       "kind": "community"
     },
@@ -2686,17 +2672,17 @@
       "kind": "docs"
     },
     {
-      "text": "Write path details \u2014 how facts are extracted from episodes, how conflicts or supersessions are handled, and whether old facts are deleted or marked invalid \u2014 are not described on this welcome page but should be covered in core architecture docs.",
+      "text": "Write path details — how facts are extracted from episodes, how conflicts or supersessions are handled, and whether old facts are deleted or marked invalid — are not described on this welcome page but should be covered in core architecture docs.",
       "url": "https://help.getzep.com/graphiti/getting-started/welcome.md",
       "kind": "docs"
     },
     {
-      "text": "Forget / deletion mechanics \u2014 whether facts can be removed from the graph and under what conditions \u2014 are absent from this page.",
+      "text": "Forget / deletion mechanics — whether facts can be removed from the graph and under what conditions — are absent from this page.",
       "url": "https://help.getzep.com/graphiti/getting-started/welcome.md",
       "kind": "docs"
     },
     {
-      "text": "Retrieve policy \u2014 whether retrieval is always-on, adaptive, or caller-driven, and how retrieved nodes are scaffolded into the agent prompt \u2014 is not described here.",
+      "text": "Retrieve policy — whether retrieval is always-on, adaptive, or caller-driven, and how retrieved nodes are scaffolded into the agent prompt — is not described here.",
       "url": "https://help.getzep.com/graphiti/getting-started/welcome.md",
       "kind": "docs"
     },
@@ -2741,7 +2727,7 @@
       "kind": "issue"
     },
     {
-      "text": "The page does not describe how group_id is defined or documented as a namespace/isolation key \u2014 whether it scopes memory per user, session, agent, or character is not stated",
+      "text": "The page does not describe how group_id is defined or documented as a namespace/isolation key — whether it scopes memory per user, session, agent, or character is not stated",
       "url": "https://github.com/getzep/graphiti/issues/1465",
       "kind": "issue"
     },
@@ -2791,22 +2777,22 @@
       "kind": "issue"
     },
     {
-      "text": "No description of how memories/facts are extracted from episodes or how the knowledge graph is updated on write \u2014 the page covers only routing, not the extraction or conflict/supersession logic.",
+      "text": "No description of how memories/facts are extracted from episodes or how the knowledge graph is updated on write — the page covers only routing, not the extraction or conflict/supersession logic.",
       "url": "https://github.com/getzep/graphiti/issues/1795",
       "kind": "issue"
     },
     {
-      "text": "The page does not describe Graphiti's conflict/supersession logic for facts \u2014 how a new episode overwrites or invalidates a prior fact in the store \u2014 despite this being a core memory write-path behavior for an architecture RFC on the same write path.",
+      "text": "The page does not describe Graphiti's conflict/supersession logic for facts — how a new episode overwrites or invalidates a prior fact in the store — despite this being a core memory write-path behavior for an architecture RFC on the same write path.",
       "url": "https://github.com/getzep/graphiti/issues/1851",
       "kind": "issue"
     },
     {
-      "text": "The page does not describe Graphiti's forget or delete path \u2014 whether facts or episodes can be removed from the store, hidden at retrieve time, or suppressed at generation time.",
+      "text": "The page does not describe Graphiti's forget or delete path — whether facts or episodes can be removed from the store, hidden at retrieve time, or suppressed at generation time.",
       "url": "https://github.com/getzep/graphiti/issues/1851",
       "kind": "issue"
     },
     {
-      "text": "Whether group_id is architecturally intended to name a distinct database or to partition within a single database \u2014 the page flags this as unresolved design ambiguity",
+      "text": "Whether group_id is architecturally intended to name a distinct database or to partition within a single database — the page flags this as unresolved design ambiguity",
       "url": "https://github.com/getzep/graphiti/issues/1876",
       "kind": "issue"
     },
@@ -2831,12 +2817,12 @@
       "kind": "blog"
     },
     {
-      "text": "Retrieve policy \u2014 this page does not describe when or how Graphiti selects stored facts into a turn context (always vs. adaptive retrieval).",
+      "text": "Retrieve policy — this page does not describe when or how Graphiti selects stored facts into a turn context (always vs. adaptive retrieval).",
       "url": "https://www.falkordb.com/blog/implementing-agentic-memory-graphiti/",
       "kind": "blog"
     },
     {
-      "text": "Forget / delete mechanism \u2014 the page describes invalidation (marking invalid) but does not clarify whether records are deleted from the store or only hidden at retrieval.",
+      "text": "Forget / delete mechanism — the page describes invalidation (marking invalid) but does not clarify whether records are deleted from the store or only hidden at retrieval.",
       "url": "https://www.falkordb.com/blog/implementing-agentic-memory-graphiti/",
       "kind": "blog"
     },
@@ -2851,7 +2837,7 @@
       "kind": "blog"
     },
     {
-      "text": "No description of explicit delete / forget mechanism \u2014 this is a canonical memory architecture concern and the page is silent on it",
+      "text": "No description of explicit delete / forget mechanism — this is a canonical memory architecture concern and the page is silent on it",
       "url": "https://dev.to/gaodalie_ai/langgraph-graphiti-long-term-memory-powerful-agentic-memory-1iag",
       "kind": "blog"
     },
@@ -2886,7 +2872,7 @@
       "kind": "docs"
     },
     {
-      "text": "Retrieve policy \u2014 adaptive vs always: the page describes the hybrid mechanism but does not state whether retrieval is always performed or conditionally triggered per turn.",
+      "text": "Retrieve policy — adaptive vs always: the page describes the hybrid mechanism but does not state whether retrieval is always performed or conditionally triggered per turn.",
       "url": "https://www.getzep.com/platform/graphiti/",
       "kind": "docs"
     }
