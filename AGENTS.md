@@ -37,6 +37,9 @@ docs/EVAL-INVENTORY.md     # one benchmark, what it scores
 docs/EVAL-GRID.md          # which question that score touches
 docs/EVALS.md              # how those benchmarks cluster
 docs/PIPELINE.md           # how an audit is produced
+docs/AUDIT.md              # per-product notes for all 61 audited products, with synthesis
+docs/AUDIT-ANALYSIS.md     # one-shot model analysis of the full audit
+docs/AUDIT-PROMPT.md       # prompt used for the one-shot analysis
 docs/decisions/            # ADRs, only after Decide gate (may not exist yet)
 research/pipeline/         # harvest / extract / fold / apply
 research/output/           # audit.json records. See docs/PIPELINE.md

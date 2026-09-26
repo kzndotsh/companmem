@@ -18,5 +18,8 @@ Docs for companmem. Agent instructions are in [`AGENTS.md`](../AGENTS.md).
 | [Eval grid](EVAL-GRID.md) | Which question that score touches |
 | [Evals](EVALS.md) | How those benchmarks cluster |
 | [Pipeline](PIPELINE.md) | How an audit is produced |
+| [Audit](AUDIT.md) | Per-product notes for all 61 audited products, with synthesis |
+| [Audit analysis](AUDIT-ANALYSIS.md) | One-shot model analysis of the full audit |
+| [Audit prompt](AUDIT-PROMPT.md) | Prompt used for the one-shot analysis |
 
 Roadmap and ideas are at the repo root: [`TODO.md`](../TODO.md), [`IDEA.md`](../IDEA.md).

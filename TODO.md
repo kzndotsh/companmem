@@ -6,23 +6,14 @@ The mission is to build the memory technology that makes the most human-like com
 
 ## Pending
 
-### Phase 1. Map the field
-
-- [ ] Harvest and write an audit for each seed product
-- [ ] Record what each product persists, what it retrieves, and what users say breaks
-- [ ] Separate products we can score in a bakeoff from closed apps we can only watch
-- [ ] Synthesize what recurs and what is missing
-
-Audits explain the field. They do not prove we are better.
-
-Done when we can describe the field with quotes, and we know which products we can score versus which we can only observe.
-
 ### Phase 2. Name what "more human" is
 
 - [ ] Name the behaviors that would make someone say this knows me
 - [ ] Write them so an eval author could turn them into tasks
 
 Phase 1 and Phase 2 can overlap. Papers, companion HCI, and live complaints are sources. Do not harvest papers as if they were products.
+
+Working list is in [`docs/BEHAVIORS.md`](docs/BEHAVIORS.md). Five behaviors are named. "Cannot edit/correct" and the speak/silent task still have no pass/fail script.
 
 ### Phase 3. Invent the exam
 
@@ -31,6 +22,8 @@ Phase 1 and Phase 2 can overlap. Papers, companion HCI, and live complaints are 
 - [ ] Run it once
 
 Draft tasks and the failures they still miss are in [`docs/EXAM.md`](docs/EXAM.md). Nothing has been run. A borrowed probe is not the exam. A score that only checks whether something came back cannot close this phase.
+
+The behavioral continuity test design is in EXAM.md: 20–30 turn scripted history establishing specific facts, 10 emotionally-charged follow-up prompts, human judge scoring recall appropriateness, fabrication, and relationship coherence. Run against CharacterAI, Replika, and the system under test.
 
 Done when we would bet on that number as ahead, and we can point at a score for at least one other product.
 
@@ -60,4 +53,11 @@ Blocked on Phase 4. Product code at the repo root stays blocked until questions 
 
 ## Done
 
-Nothing on the exam has been run.
+### Phase 1. Map the field ✓
+
+- [x] Harvest and write an audit for each seed product — 61 products audited, per-product notes in [`docs/AUDIT.md`](docs/AUDIT.md)
+- [x] Record what each product persists, what it retrieves, and what users say breaks — covered in AUDIT.md per-product entries and synthesis
+- [x] Separate products we can score in a bakeoff from closed apps we can only watch — field map in [`docs/FIELD.md`](docs/FIELD.md)
+- [x] Synthesize what recurs and what is missing — synthesis section at top of AUDIT.md, one-shot model analysis in [`docs/AUDIT-ANALYSIS.md`](docs/AUDIT-ANALYSIS.md)
+
+Key findings: silent failure is the median behavior of deployed memory systems. Static lore outperforms dynamic memory on every platform that has both. Speaker misattribution is systemic. The benchmark that matters (behavioral continuity, emotional context recall) does not exist yet. No product in the field has an architecture that survives model updates with continuity intact.
