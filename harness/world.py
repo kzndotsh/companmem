@@ -62,7 +62,7 @@ class World:
         """Load a World from fixture files.
 
         Args:
-            world_dir: path to the world directory (e.g. fixture/environment/world/).
+            world_dir: path to the world directory (e.g. fixture/world/).
                 The method reads only from this directory — no parent traversal.
             solution_dir: optional path to the solution directory.
                 The method reads only from this directory — no parent traversal.

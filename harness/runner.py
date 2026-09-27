@@ -133,7 +133,7 @@ def _run_trial(
     artifacts = Artifacts(art_dir)
     artifacts_path = art_dir.relative_to(results_root.parent).as_posix()
 
-    world_dir = fixtures_root / fixture_id / "environment" / "world"
+    world_dir = fixtures_root / fixture_id / "world"
     solution_dir = fixtures_root / fixture_id / "solution"
 
     world = World.from_path(world_dir, solution_dir=solution_dir)
