@@ -8,6 +8,7 @@ members as their .value strings.
 from __future__ import annotations
 
 import json
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import Enum
@@ -63,6 +64,7 @@ class TrialResult:
     artifacts_path: str  # relative path, for regrading
     error: str | None
     behavior: str | None = None  # populated from FixtureMeta; None for old reports
+    run_index: int = 0  # 0-based; default keeps existing single-run reports valid
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -84,6 +86,7 @@ class TrialResult:
             "artifacts_path": self.artifacts_path,
             "error": self.error,
             "behavior": self.behavior,
+            "run_index": self.run_index,
         }
 
     @classmethod
@@ -107,6 +110,7 @@ class TrialResult:
             artifacts_path=str(d["artifacts_path"]),
             error=d.get("error"),
             behavior=d.get("behavior"),
+            run_index=int(d.get("run_index", 0)),
         )
 
 
@@ -123,6 +127,9 @@ class BaselineResult:
     total_tokens_out: int
     total_memory_tokens: int
     tokens_per_resolved: int | None  # (total_tokens_in + total_tokens_out) // resolved_count
+    resolved_by_behavior: dict[str, list[int]]  # code → [resolved, runnable] fixture-level counts
+    pass_at_k: float | None  # None when n == 1
+    pass_k: float | None  # None when n == 1
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -137,6 +144,9 @@ class BaselineResult:
             "total_tokens_out": self.total_tokens_out,
             "total_memory_tokens": self.total_memory_tokens,
             "tokens_per_resolved": self.tokens_per_resolved,
+            "resolved_by_behavior": self.resolved_by_behavior,
+            "pass_at_k": self.pass_at_k,
+            "pass_k": self.pass_k,
         }
 
     @classmethod
@@ -152,6 +162,73 @@ class BaselineResult:
         total_in = sum(t.tokens_in for t in ok)
         total_out = sum(t.tokens_out for t in ok)
         tokens_per_resolved = (total_in + total_out) // len(resolved) if resolved else None
+
+        # --- per-behavior fixture-level counts and pass@k / pass^k ---
+
+        # Group all runs for each fixture; track the behavior per fixture.
+        # Unconditionally overwrite with non-None so a SKIPPED/INFRA_ERROR trial
+        # with behavior=None arriving before the OK trial doesn't win.
+        fixture_runs: dict[str, list[TrialResult]] = defaultdict(list)
+        fixture_behavior: dict[str, str | None] = {}
+        for t in trials:
+            fixture_runs[t.fixture_id].append(t)
+            if t.behavior is not None:
+                fixture_behavior[t.fixture_id] = t.behavior  # always overwrite; prefer non-None
+            else:
+                fixture_behavior.setdefault(t.fixture_id, None)  # only if not yet set
+
+        # Fixture-level resolution: a fixture is resolved iff every OK run resolved.
+        beh_resolved: dict[str, int] = defaultdict(int)
+        beh_runnable: dict[str, int] = defaultdict(int)
+        for fid, runs in fixture_runs.items():
+            beh = fixture_behavior.get(fid)
+            if beh is None:
+                continue
+            ok_runs = [r for r in runs if r.status == TrialStatus.OK]
+            if not ok_runs:
+                continue  # no OK trial → not in denominator
+            beh_runnable[beh] += 1
+            if all(r.resolved for r in ok_runs):
+                beh_resolved[beh] += 1
+
+        resolved_by_behavior: dict[str, list[int]] = {
+            beh: [beh_resolved[beh], beh_runnable[beh]]
+            for beh in beh_runnable
+        }
+
+        # Determine N from trial data (inference source, not manifest).
+        n = max((t.run_index for t in trials), default=0) + 1
+
+        if n == 1:
+            pass_at_k: float | None = None
+            pass_k: float | None = None
+        else:
+            eligible = {
+                fid for fid, runs in fixture_runs.items()
+                if any(r.status == TrialStatus.OK for r in runs)
+            }
+            denom = len(eligible)
+            if denom == 0:
+                pass_at_k = None
+                pass_k = None
+            else:
+                at_k_count = sum(
+                    1 for fid in eligible
+                    if any(
+                        r.resolved for r in fixture_runs[fid]
+                        if r.status == TrialStatus.OK
+                    )
+                )
+                k_count = sum(
+                    1 for fid in eligible
+                    if all(
+                        r.resolved for r in fixture_runs[fid]
+                        if r.status == TrialStatus.OK
+                    )
+                )
+                pass_at_k = at_k_count / denom
+                pass_k = k_count / denom
+
         return cls(
             baseline_id=baseline_id,
             title=title,
@@ -167,6 +244,9 @@ class BaselineResult:
             total_tokens_out=total_out,
             total_memory_tokens=sum(t.memory_tokens for t in ok),
             tokens_per_resolved=tokens_per_resolved,
+            resolved_by_behavior=resolved_by_behavior,
+            pass_at_k=pass_at_k,
+            pass_k=pass_k,
         )
 
 
@@ -194,12 +274,6 @@ class RunReport:
 
     def print_summary(self) -> None:
         """Print a human-readable summary table to stdout."""
-        # Collect all (baseline_id, trial) pairs
-        all_pairs: list[tuple[str, TrialResult]] = [
-            (bl.baseline_id, t)
-            for bl in self.baselines
-            for t in bl.trials
-        ]
 
         def _row(baseline_id: str, t: TrialResult) -> None:
             if t.status == TrialStatus.OK:
@@ -215,29 +289,52 @@ class RunReport:
                 f"wall_ms={t.wall_ms} flags={flags}"
             )
 
-        # If no trial carries a behavior, fall back to flat output
-        if not any(t.behavior is not None for _, t in all_pairs):
-            for baseline_id, t in all_pairs:
-                _row(baseline_id, t)
-            return
+        for bl in self.baselines:
+            pairs: list[tuple[str, TrialResult]] = [
+                (bl.baseline_id, t) for t in bl.trials
+            ]
 
-        # Group by behavior, preserving defined order; None group last
-        groups: dict[str | None, list[tuple[str, TrialResult]]] = {}
-        for beh in _BEHAVIOR_ORDER:
-            groups[beh] = []
-        groups[None] = []
+            # If no trial carries a behavior, fall back to flat output
+            if not any(t.behavior is not None for _, t in pairs):
+                for baseline_id, t in pairs:
+                    _row(baseline_id, t)
+            else:
+                # Group by behavior, preserving defined order; None group last
+                groups: dict[str | None, list[tuple[str, TrialResult]]] = {}
+                for beh in _BEHAVIOR_ORDER:
+                    groups[beh] = []
+                groups[None] = []
 
-        for baseline_id, t in all_pairs:
-            key = t.behavior if t.behavior in groups else None
-            groups[key].append((baseline_id, t))
+                for baseline_id, t in pairs:
+                    key = t.behavior if t.behavior in groups else None
+                    groups[key].append((baseline_id, t))
 
-        for beh in [*_BEHAVIOR_ORDER, None]:
-            rows = sorted(groups[beh], key=lambda p: (p[0], p[1].fixture_id))
-            if not rows:
-                continue
-            print(_behavior_header(beh))
-            for baseline_id, t in rows:
-                _row(baseline_id, t)
+                for beh in [*_BEHAVIOR_ORDER, None]:
+                    rows = sorted(groups[beh], key=lambda p: (p[0], p[1].fixture_id))
+                    if not rows:
+                        continue
+                    print(_behavior_header(beh))
+                    for baseline_id, t in rows:
+                        _row(baseline_id, t)
+
+            # Summary line — branch on pass_at_k is not None rather than recomputing N
+            beh_parts = "  ".join(
+                f"{code}: {bl.resolved_by_behavior[code][0]}/{bl.resolved_by_behavior[code][1]}"
+                for code in _BEHAVIOR_ORDER
+                if code in bl.resolved_by_behavior
+            )
+            if bl.pass_at_k is None:
+                # N == 1: per-behavior counts + total
+                total_part = f"total: {bl.resolved_count}/{bl.runnable_count}"
+                parts = f"{beh_parts}  {total_part}" if beh_parts else total_part
+                print(parts)
+            else:
+                # N > 1: combined pass^k line; N inferred only for label formatting
+                n = max((t.run_index for t in bl.trials), default=0) + 1
+                pak = f"pass@{n}={bl.pass_at_k:.2f}"
+                pk = f"pass^{n}={bl.pass_k:.2f}" if bl.pass_k is not None else f"pass^{n}=n/a"
+                parts = f"{bl.baseline_id}   {pak}  {pk}  {beh_parts}"
+                print(parts.strip())
 
     @classmethod
     def rescore(cls, artifacts_root: Path, fixtures_root: Path) -> RunReport:
@@ -267,13 +364,15 @@ class RunReport:
             msg = f"report.json is malformed: {exc}"
             raise ValueError(msg) from exc
 
-        # Index original trials by (baseline_id, fixture_id) for O(1) lookup
-        original_trials: dict[tuple[str, str], dict[str, Any]] = {}
+        # Index original trials by (baseline_id, fixture_id, run_index) for O(1) lookup.
+        # run_index defaults to 0 so existing single-run reports round-trip correctly.
+        original_trials: dict[tuple[str, str, int], dict[str, Any]] = {}
         for bl_dict in old_report.get("baselines", []):
             bid = str(bl_dict["baseline_id"])
             for t_dict in bl_dict.get("trials", []):
                 fid = str(t_dict["fixture_id"])
-                original_trials[(bid, fid)] = t_dict
+                run_idx = int(t_dict.get("run_index", 0))
+                original_trials[(bid, fid, run_idx)] = t_dict
 
         cost_budgets: dict[str, int] = manifest.get("cost_budgets", {})
 
@@ -283,8 +382,15 @@ class RunReport:
             title = str(bl_entry.get("title", bid))
             new_trials: list[TrialResult] = []
 
-            for fid in old_report.get("fixture_ids", []):
-                key = (bid, str(fid))
+            # Collect all (bid, fid, run_index) keys for this baseline, sorted for determinism
+            keys_for_baseline = sorted(
+                (bid2, fid2, ri)
+                for (bid2, fid2, ri) in original_trials
+                if bid2 == bid
+            )
+
+            for _, fid, run_idx in keys_for_baseline:
+                key = (bid, fid, run_idx)
                 orig = original_trials.get(key)
                 if orig is None:
                     continue
@@ -296,8 +402,12 @@ class RunReport:
                     new_trials.append(orig_trial)
                     continue
 
-                # Re-score from disk artifacts
-                art_dir = artifacts_root / bid / str(fid)
+                # Reconstruct artifact directory from stored path.
+                # artifacts_path is relative to results_root.parent.
+                # artifacts_root = results_root / run_id, so:
+                #   artifacts_root.parent         = results_root
+                #   artifacts_root.parent.parent  = results_root.parent  ← correct base
+                art_dir = artifacts_root.parent.parent / orig_trial.artifacts_path
                 artifacts = Artifacts(art_dir)
                 pred_path = fixtures_root / str(fid) / "tests" / "predicates.json"
                 scorer = Scorer(pred_path)
@@ -329,6 +439,7 @@ class RunReport:
                     artifacts_path=orig_trial.artifacts_path,
                     error=orig_trial.error,
                     behavior=orig_trial.behavior,
+                    run_index=orig_trial.run_index,
                 )
                 new_trials.append(new_trial)
 

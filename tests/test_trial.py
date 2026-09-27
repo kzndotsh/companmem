@@ -17,6 +17,8 @@ def _make_trial(
     resolved: bool = True,
     tokens_in: int = 10,
     tokens_out: int = 5,
+    run_index: int = 0,
+    behavior: str | None = None,
 ) -> TrialResult:
     return TrialResult(
         fixture_id=fixture_id,
@@ -36,6 +38,8 @@ def _make_trial(
         cost_flags=[],
         artifacts_path="results/run/base/f1",
         error=None,
+        run_index=run_index,
+        behavior=behavior,
     )
 
 
@@ -180,3 +184,203 @@ def test_rescore_missing_report_raises(tmp_path: Path) -> None:
     (tmp_path / "run_manifest.json").write_text(json.dumps({"run_id": "x", "baselines": [], "fixture_ids": []}))
     with pytest.raises(FileNotFoundError):
         RunReport.rescore(tmp_path, tmp_path)
+
+
+# ── run_index serialization ───────────────────────────────────────────────────
+
+
+def test_run_index_default_zero() -> None:
+    t = _make_trial()
+    assert t.run_index == 0
+    assert t.to_dict()["run_index"] == 0
+
+
+def test_run_index_serializes() -> None:
+    t = _make_trial(run_index=2)
+    d = t.to_dict()
+    assert d["run_index"] == 2
+    t2 = TrialResult.from_dict(d)
+    assert t2.run_index == 2
+
+
+def test_from_dict_missing_run_index_defaults_zero() -> None:
+    t = _make_trial()
+    d = t.to_dict()
+    del d["run_index"]
+    t2 = TrialResult.from_dict(d)
+    assert t2.run_index == 0
+
+
+# ── resolved_by_behavior ─────────────────────────────────────────────────────
+
+
+def test_resolved_by_behavior_all_pass() -> None:
+    trials = [_make_trial(f"b0-{i}", resolved=True, behavior="b0") for i in range(4)]
+    bl = BaselineResult.from_trials("base", "Base", trials)
+    assert bl.resolved_by_behavior == {"b0": [4, 4]}
+
+
+def test_resolved_by_behavior_partial() -> None:
+    trials = [
+        _make_trial("b0-0", resolved=True, behavior="b0"),
+        _make_trial("b0-1", resolved=True, behavior="b0"),
+        _make_trial("b0-2", resolved=False, behavior="b0"),
+    ]
+    bl = BaselineResult.from_trials("base", "Base", trials)
+    assert bl.resolved_by_behavior == {"b0": [2, 3]}
+
+
+def test_resolved_by_behavior_excludes_none_behavior() -> None:
+    trials = [
+        _make_trial("f1", resolved=True, behavior=None),
+        _make_trial("f2", resolved=True, behavior=None),
+    ]
+    bl = BaselineResult.from_trials("base", "Base", trials)
+    assert bl.resolved_by_behavior == {}
+
+
+def test_resolved_by_behavior_none_trial_before_behavior_trial() -> None:
+    """A behavior=None trial arriving before a behavior='b0' trial must not shadow it."""
+    trials = [
+        _make_trial("f1", status=TrialStatus.SKIPPED, resolved=False, behavior=None, run_index=0),
+        _make_trial("f1", resolved=True, behavior="b0", run_index=1),
+    ]
+    bl = BaselineResult.from_trials("base", "Base", trials)
+    assert "b0" in bl.resolved_by_behavior
+    assert bl.resolved_by_behavior["b0"] == [1, 1]
+
+
+# ── pass@k / pass^k ──────────────────────────────────────────────────────────
+
+
+def test_pass_at_k_none_when_n1() -> None:
+    trials = [_make_trial("f1", resolved=True, behavior="b0")]
+    bl = BaselineResult.from_trials("base", "Base", trials)
+    assert bl.pass_at_k is None
+    assert bl.pass_k is None
+
+
+def test_pass_at_k_computed_n3() -> None:
+    # 3 fixtures × 3 runs; fixtures f1 and f2 resolve all 3 runs; f3 fails all
+    trials: list[TrialResult] = []
+    for fid, resolves in [("f1", True), ("f2", True), ("f3", False)]:
+        for ri in range(3):
+            trials.append(_make_trial(fid, resolved=resolves, behavior="b0", run_index=ri))
+    bl = BaselineResult.from_trials("base", "Base", trials)
+    assert bl.pass_at_k == pytest.approx(2 / 3)
+    assert bl.pass_k == pytest.approx(2 / 3)
+
+
+def test_pass_at_k_partial_resolve() -> None:
+    # 1 fixture × 2 runs; run 0 resolves, run 1 does not
+    trials = [
+        _make_trial("f1", resolved=True, behavior="b0", run_index=0),
+        _make_trial("f1", resolved=False, behavior="b0", run_index=1),
+    ]
+    bl = BaselineResult.from_trials("base", "Base", trials)
+    assert bl.pass_at_k == pytest.approx(1.0)
+    assert bl.pass_k == pytest.approx(0.0)
+
+
+def test_infra_error_within_multirun_excluded_from_denominator_when_all_error() -> None:
+    # 1 fixture × 2 runs, both INFRA_ERROR → denom == 0 → both None
+    trials = [
+        _make_trial("f1", status=TrialStatus.INFRA_ERROR, resolved=False, run_index=0),
+        _make_trial("f1", status=TrialStatus.INFRA_ERROR, resolved=False, run_index=1),
+    ]
+    bl = BaselineResult.from_trials("base", "Base", trials)
+    assert bl.pass_at_k is None
+    assert bl.pass_k is None
+
+
+# ── to_dict emits new fields ──────────────────────────────────────────────────
+
+
+def test_to_dict_emits_three_new_fields() -> None:
+    bl = BaselineResult.from_trials("b", "B", [_make_trial()])
+    d = bl.to_dict()
+    assert "resolved_by_behavior" in d
+    assert "pass_at_k" in d
+    assert "pass_k" in d
+
+
+# ── rescore() multi-run keying ────────────────────────────────────────────────
+
+
+def test_rescore_multirun_keying(tmp_path: Path) -> None:
+    """rescore() on a 9-fixture × 3-run report must return 27 trials."""
+    from unittest.mock import MagicMock, patch
+
+    from harness.trial import RunReport
+
+    artifacts_root = tmp_path / "results" / "run1"
+    artifacts_root.mkdir(parents=True)
+    fixtures_root = tmp_path / "fixtures"
+    fixtures_root.mkdir()
+
+    fixture_ids = [f"f{i}" for i in range(9)]
+
+    # Build a report with 27 trials (9 fixtures × 3 run_index values)
+    trials: list[TrialResult] = []
+    for fid in fixture_ids:
+        for ri in range(3):
+            art_path = f"results/run1/oracle/{fid}/run_{ri}"
+            trials.append(TrialResult(
+                fixture_id=fid,
+                fixture_hash="abc",
+                status=TrialStatus.OK,
+                resolved=True,
+                fail_to_pass=True,
+                pass_to_pass=True,
+                predicate_details=[],
+                judge_score=None,
+                judge_model=None,
+                wall_ms=10,
+                tokens_in=1,
+                tokens_out=1,
+                memory_tokens=0,
+                export_tokens_approx=0,
+                cost_flags=[],
+                artifacts_path=art_path,
+                error=None,
+                behavior="b0",
+                run_index=ri,
+            ))
+
+    bl = BaselineResult.from_trials("oracle", "Oracle", trials)
+    report = RunReport(
+        run_id="run1",
+        observed_at="2025-01-01T00:00:00+00:00",
+        scored_at="2025-01-01T00:01:00+00:00",
+        git_sha="abc",
+        fixture_ids=fixture_ids,
+        baselines=[bl],
+    )
+    (artifacts_root / "report.json").write_text(report.to_json())
+    manifest: dict[str, Any] = {
+        "run_id": "run1",
+        "runs": 3,
+        "observed_at": "2025-01-01T00:00:00+00:00",
+        "git_sha": "abc",
+        "fixture_ids": fixture_ids,
+        "cost_budgets": {},
+        "baselines": [{"baseline_id": "oracle", "title": "Oracle",
+                       "class": "harness.adapters.naive.OracleAdapter", "needs_docker": False}],
+    }
+    (artifacts_root / "run_manifest.json").write_text(json.dumps(manifest))
+
+    # Patch Scorer so no real artifact files are needed
+    mock_result = MagicMock()
+    mock_result.resolved = True
+    mock_result.fail_to_pass = True
+    mock_result.pass_to_pass = True
+    mock_result.predicate_details = []
+    mock_result.judge_score = None
+    mock_result.judge_model = None
+
+    with patch("harness.trial.Scorer") as mock_scorer_cls:
+        mock_scorer_cls.return_value.score.return_value = mock_result
+        new_report = RunReport.rescore(artifacts_root, fixtures_root)
+
+    assert len(new_report.baselines) == 1
+    assert len(new_report.baselines[0].trials) == 27
