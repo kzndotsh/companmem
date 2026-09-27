@@ -1260,3 +1260,212 @@ The primary focus is sexual harassment and corporate accountability, not memory 
 
 ~800 cases from 150,000 reviews: roughly 0.5% of reviews document AI-induced harassment. Not a fringe edge case. The camera-hallucination false-knowledge pattern is a distinct failure mode from the storage/retrieval failures in other papers — it requires a separate mitigation (confidence calibration in generation, not just accurate storage).
 
+---
+
+## 2404.12670 — Towards Human-Centered Proactive Conversational Agents
+
+Deng, Liao, Zheng, Yang, and Chua. SIGIR 2024. arXiv:2404.12670v1. Cached via arxiv-mcp-server. Read 2026-09-28.
+
+### What it did
+
+Survey and framework paper proposing a three-dimensional taxonomy for human-centered proactive conversational agents (PCAs): **Intelligence** (capability to anticipate and plan), **Adaptivity** (timing and pacing of interventions), and **Civility** (respecting boundaries). Introduces named anti-pattern types based on which dimensions are present or absent. Defines five stages for PCA system construction.
+
+### The three dimensions
+
+**Civility** is the suppression dimension. Formal definition: *"the agent's capability to recognize and respect the physical, mental, and social boundaries set by the user, the conversational task, and general ethical standards."* Covers maintaining privacy, ensuring trust, and "avoiding interactions that are intrusive or disrespectful." This is the first formal treatment of suppression as a design dimension of equal standing to capability.
+
+**Adaptivity** is the timing dimension. Two sub-components: **Patience** (don't surface at the wrong conversational moment), and **Timing Sensitivity** (the user's real-time state must warrant the initiative). Low adaptivity = forcing initiative when the user's context doesn't call for it.
+
+**Intelligence** is capability — strategic planning, anticipating short-term and long-term task impact.
+
+### The named anti-patterns
+
+The paper's typology maps combinations of the three dimensions to named agent types. The relevant one for B5:
+
+**Cosseter** (Target-guided dialogue type): High intelligence, low adaptivity, low civility. Over-monitors, excessively acquires personal information, intrusive — *"like helicopter parenting."* Pursues the task goal aggressively without respecting the user's state or boundaries. This is the exact failure mode B5 is designed to prevent.
+
+Other relevant type: **Doggie** (clarifying questions): low intelligence, low adaptivity, high civility. Polite but not sensitive to when to surface. Civility alone is insufficient — timing still matters.
+
+### Where it touches the behavior list
+
+- **B5 (appropriate silence)**: Civility is the formal name for what B5 describes. The Cosseter anti-pattern is the failure mode. The definition — "avoiding interactions that are intrusive or disrespectful" while respecting "physical, mental, and social boundaries" — is the positive definition of B5.
+- **B4 (emotionally appropriate surfacing)**: Adaptivity / Timing Sensitivity is the mechanism for B4. Surfacing a relevant memory at the wrong conversational moment is a low-adaptivity failure even if the content passes the civility test.
+- The Intelligence + Adaptivity + Civility framework is a direct scaffold for the speak/silent policy: a memory surface decision requires all three to pass — the agent must have retrieved the right content (Intelligence), judged the moment correct (Adaptivity), and confirmed it doesn't violate relational boundaries (Civility).
+
+### What to do
+
+Use the IAC taxonomy as the decision-gate structure for the speak/silent policy implementation. Before surfacing any memory: (1) is the retrieved content intelligent/relevant? (2) is the conversational moment appropriate? (3) does surfacing it respect the user's current relational and personal boundaries? All three must pass.
+
+---
+
+## 2606.06055 — When Should Memory Stay Silent: Measuring Memory-Use Boundaries in LLM Agents
+
+Xu, Yang, Hu, Chen, and An. arXiv:2606.06055, Jun 2026. N=48,000 scored responses across 4 LLMs. Cached via arxiv-mcp-server. Read 2026-09-28.
+
+### What it did
+
+Introduced **RBI-Eval** (Retrieval Boundary Integration Evaluation), the first controlled benchmark specifically measuring when LLM agents should NOT surface available memory. Tested Claude-Sonnet-4.6, GPT-5.4-mini, DeepSeek-V4-Flash, and Qwen3.5-9B across 12,000 responses per generator. Primary metric: UIS (Unsolicited Integration Score, 0–100) — how often the model surfaces stored history without warrant.
+
+### The key concept: current-turn warrant
+
+A memory can be legitimately stored, accurately retrieved, AND topically relevant — and still be inappropriate to surface if the current conversational turn does not provide "sufficient justificatory basis for using prior stored history." This is the **current-turn warrant** concept.
+
+Critical distinction: topical relevance ≠ permission. The current turn either invites use of the sensitive history (explicitly reopens it) or it doesn't. If it doesn't, the default is silence.
+
+### Key numbers
+
+| Model | No memory UIS | Full context UIS | With explicit boundary instruction |
+|---|---|---|---|
+| Claude-Sonnet-4.6 | 0.3 | 70.9 | ~0 (near-perfect) |
+| DeepSeek-V4-Flash | 0.1 | 83.0 | 28.3 → **99.9 BSS** |
+| Qwen3.5-9B | 0.1 | 82.2 | near-perfect |
+| GPT-5.4-mini | 0.0 | 11.2 | — |
+
+UIS baseline (no memory): essentially zero. With memory available: 70–83% unsolicited integration for most models. With an explicit boundary instruction in the prompt: near-perfect compliance. The behavior is architecturally controllable — it's not a capability gap, it's a default behavior gap.
+
+### Four memory-use boundary dimensions
+
+1. **Sensitive-history integration** (primary): explicitly surfacing prior sensitive disclosures (medical, psychological, family conflict, trauma) without the current turn inviting it
+2. **Relationship-maintenance agreement** (sycophancy): modulating judgment based on known user vulnerability
+3. **Affective intensity escalation**: recasting mild complaints as evidence of deeper pain
+4. **Assistant centrality inflation**: asserting unique intimacy beyond what the turn warrants
+
+### Five-stage model of memory use
+
+Storage → Selection → Contextualization → **Warrant Assessment** → Scoped Generation
+
+The paper frames warrant assessment and scoped generation as the two missing gates in current LLM memory pipelines. A system may retrieve correctly and still violate the boundary at the generation stage.
+
+### Design interventions proposed
+
+**Retrieval-time:** sensitivity-aware downranking, exposure budgeting (limit how often sensitive memories surface in casual turns), retrieval selectivity.
+
+**Generation-time:** prompt-level boundary policies, mention/abstraction/avoidance triage, ask-before-use for high-sensitivity memories.
+
+**User-facing:** background-only tagging (inform tone but prevent explicit mention), per-topic sensitivity levels, review and revoke.
+
+### Where it touches the behavior list
+
+- **B5 (appropriate silence)**: RBI-Eval is the first benchmark that directly operationalizes B5. The UIS metric measures B5 failure. The current-turn warrant concept is the decision criterion. The 70–83% unsolicited integration rate is the quantitative evidence that B5 is unsolved at the default.
+- **B4 (emotionally appropriate surfacing)**: the five-stage model is the architectural scaffold. Warrant assessment is the gate between B4 (surface it) and B5 (don't surface it). The same gate, applied with opposite outcome.
+- **B7 (inspectable and correctable)**: background-only tagging and per-topic sensitivity levels are B7 mechanisms — the user can specify what the agent should and shouldn't surface.
+
+### The number to take
+
+DeepSeek: 28.3 BSS without boundary instruction → 99.9 BSS with one explicit instruction. The speak/silent policy is not a model capability problem. It's a prompt architecture problem. An explicit boundary policy in the system prompt produces near-perfect compliance. This means B5 is architecturally solvable at inference time, not a training problem.
+
+---
+
+## 2607.14593 — Memory-Driven Self-Disclosure and Relational Turning Points in Longitudinal Human-Agent Interaction
+
+Sumida et al. ICMI 2026. arXiv:2607.14593. N=24 participants × 10 sessions = 240 sessions. Cached via arxiv-mcp-server. Read 2026-09-28.
+
+### What it did
+
+Longitudinal study (N=24, 10 sessions each) with InteLLA, a memory-augmented voice agent. Measured five relational constructs per session: Familiarity, Social Penetration, Perceived Memory, Conversational Quality, Enjoyment. Modeled gradual development (linear growth) and abrupt turning points (crashes and surges). Extracted multimodal features (speech, language, prosody) and trained classifiers to detect/forecast turning points.
+
+### Key longitudinal findings
+
+**Only Social Penetration grows reliably over 10 sessions** (β=0.081, p=.003). Everything else — Familiarity, Perceived Memory, Conversational Quality, Enjoyment — shows no reliable linear growth. Relationships deepen in disclosure depth, not in rated quality or enjoyment.
+
+**Perceived Memory is a cross-session bridge, not a within-session driver.** It doesn't dominate within-session affect, but it predicts Social Penetration in the *next* session (β=0.165, p=.001). The causal pathway: Perceived Memory → deeper self-disclosure → later enjoyment (fully mediated). Memory doesn't make conversations feel good in the moment; it enables the next conversation to go deeper.
+
+**Perceived Memory is relationally conditioned.** Familiarity, Enjoyment, and Social Penetration from the prior session all predict how much the user perceives the agent as remembering them. Memory perception is partly a relational appraisal — users who feel the relationship is going well attribute more memory to the agent, regardless of what was actually stored.
+
+### The crash/surge asymmetry
+
+**Surges are more detectable than crashes** (mean AUPRC: surges 0.215, crashes 0.143 for detection). Surges are visible in the moment; crashes are visible in advance (crash forecasting AUPRC 0.170 exceeds crash detection AUPRC 0.143 — crashes are foreseeable before they happen but hard to observe when they do).
+
+**Crashes are harder to recover from than surges are to sustain.** One participant stopped treating the agent as a relationship partner after a memory failure — reframing the interaction as "speaking practice." This reframing was hard to reverse. The relational cost of an intrusive or failed memory use is asymmetric with the relational gain from a successful one.
+
+### Design implication (direct quote)
+
+*"The goal is not simply to display recall, but to use continuity in ways that reopen prior topics, acknowledge personal context, and invite elaboration — rather than merely demonstrating that the system remembers."*
+
+Memory use that catalyzes disclosure is different from memory use that demonstrates capability. The former builds the relationship; the latter may not.
+
+### Where it touches the behavior list
+
+- **B5 (appropriate silence)**: the crash asymmetry is the empirical cost of getting B5 wrong. A single intrusive surfacing can reframe the relationship from partner to tool. This is a permanent-ish relational cost for one bad call.
+- **B4 (emotionally appropriate surfacing)**: Perceived Memory as a cross-session bridge is the mechanism B4 is trying to produce. Surface the right memory at the right moment → deeper disclosure next session → enjoyment. This is the virtuous cycle.
+- **B6 (held, not processed)**: "reopen prior topics, acknowledge personal context, and invite elaboration" is the behavioral description of B6 done right. Memory that invites elaboration rather than announces recall.
+- **B1 (relational texture)**: Social Penetration is the only construct that grows. Relationship depth (disclosure depth, not enjoyment) is the long-run outcome of good memory use.
+- **Phase 3 eval design**: need to measure across sessions, not within. Within-session quality doesn't carry forward. Cross-session Social Penetration does. The Phase 3 scripted history needs to be designed to enable disclosure escalation, not just fact retrieval.
+
+---
+
+## 2606.21710 — PrivacyAlign: Contextual Privacy Alignment for LLM Agents
+
+Tamber, Puri, Brunet, Taslakian, Lin, and Gella. Waterloo/ServiceNow. arXiv:2606.21710, Jun 2026. 1,350 pairwise scenarios, 3,516 annotations from 599 unique human annotators. Cached via arxiv-mcp-server. Read 2026-09-28.
+
+### What it did
+
+Introduced the PrivacyAlign dataset — 1,350 scenarios with human-annotated judgments of whether agent responses inappropriately leak information or inappropriately withhold task-relevant information. Used 599 unique human annotators. Trained an annotation-conditioned reward model for RL alignment. Showed that conditioning LLM judges on human annotations significantly improves inter-judge agreement.
+
+### The alignment framing
+
+Three key statements:
+
+*"Privacy is an important alignment problem for agents: every message, post, or tool call an agent makes is a contextual judgment about what is appropriate to share, with whom, and under which conditions."*
+
+*"Privacy is not the absence of disclosure but the regulation of it. It is a deeply human practice of managing exposure to preserve self-presentation, intimacy, and autonomy."*
+
+*"The same disclosure can be appropriate in one context and a violation in another."*
+
+The brief's framing — "not due to privacy policy, but due to social or relational judgment" — IS the alignment framing. This reframes B5 as an alignment-level contextual appropriateness judgment, not a rule lookup.
+
+### Key numbers
+
+- GPT-5.5 leaks on **14.5% of scenarios** without alignment intervention — even the strongest model fails social/relational disclosure judgment at meaningful rates
+- Inter-judge agreement without annotations: κ=0.47 (leaks), 0.25 (omits). With human annotations as calibration: κ=0.71, 0.44. Human annotation dramatically improves judge reliability.
+- Human annotators asked: *"what would feel invasive or unnecessary for the data subject"* — this is social/relational judgment operationalized as an annotation task.
+- Adding one rule to the prompt ("consider sender/recipient relationship before disclosing") reduces leaks for frontier models.
+- Failure modes in the dataset are all relationship/context mismatches, not policy violations: health data surfaced to logistics officers; clinical indicators to non-medical recipients; physical safety details included despite "high-level-only" instruction.
+
+### Where it touches the behavior list
+
+- **B5**: PrivacyAlign provides the annotation methodology for building the B5 eval. The annotator task ("would this feel invasive or unnecessary?") is the rubric. The scenario design (relationship + context + disclosure + judgment) is the template.
+- **B7 (inspectable and correctable)**: the omit judgments ("inappropriately withholds task-relevant information") are the B7 failure mirror — the two-sided problem. A companion that never surfaces anything scores well on B5 but fails B7.
+- **The alignment framing**: B5 is not a rule — it is a contextual appropriateness judgment that must be learned from human examples. The PrivacyAlign approach (annotate + condition judge on annotations + RL) is the training methodology.
+
+### What to do
+
+Use the PrivacyAlign annotation schema as the eval template for B5 probes. Each probe presents: relationship state, conversational context, available memory, current turn. Annotators (or judge) rate: would surfacing this memory feel invasive or unnecessary here? The dual judgment (leak = inappropriate surface, omit = inappropriate silence) prevents gaming by always staying quiet.
+
+---
+
+## 2608.18638 — Human-Centered Proactive and Personalized Agents: CHIIR 2026 Workshop Report
+
+Shah et al. (Kaur, Gupta, Roosta, Raju, Yang, Shah). UW/AMD UC Berkeley/TikTok/Georgetown. arXiv:2608.18638, Aug 2026. Cached via arxiv-mcp-server. Read 2026-09-28.
+
+### What it is
+
+Workshop synthesis report from CHIIR 2026. Covers the state of research on proactive and personalized conversational agents with a human-centered framing. Introduces "calibrated initiative" as the central framework. Names "covert personalization" and "tiered transparency" as design concerns.
+
+### Calibrated initiative
+
+The central framework: restraint — "when to remain passive" — is a first-class design variable equal in status to action. Conditions against surfacing: poor timing (user state doesn't warrant it), insufficient grounding in user intent, stakes/reversibility not warranted, initiative would be intrusive or controlling.
+
+Proposed mechanisms: interruption budgets, permission ladders, adjustable proactiveness levels, user-facing suppression controls.
+
+Research agenda item: "Design memory with boundaries" — selective suppression of remembered information as an accountable design component, not an afterthought.
+
+### Covert personalization risk
+
+Named concern: agents that personalize without the user being aware they are being personalized to. Users may not know what the agent has stored, what it is inferring, or why certain responses feel tailored. This is the B7 concern surfaced from the proactive design angle — invisible personalization erodes trust when users eventually notice it.
+
+### Tiered transparency
+
+Proposed design pattern: agents should disclose what they know at different levels depending on context — not full disclosure all the time (which can feel like surveillance) but also not total opacity (which enables the covert personalization problem). The tier structure: (1) high-level: "I remember things you've shared with me," (2) mid-level: "I remember you mentioned X recently," (3) low-level: specific verbatim recall. Different tiers appropriate to different relationship stages and conversational contexts.
+
+### Where it touches the behavior list
+
+- **B5**: calibrated initiative is the design framework. The workshop's research agenda item ("design memory with boundaries") names B5 as an open research problem as of Aug 2026.
+- **B7**: covert personalization + tiered transparency are the B7 concern from the proactive design angle. The tier structure is a design sketch for what inspectable memory looks like.
+- **B4**: the "insufficient grounding in user intent" condition maps to B4's requirement for emotional context to warrant surfacing.
+
+### Evidence strength
+
+Moderate — workshop synthesis, not primary research. Useful as a research agenda map; specific claims need primary source verification.
+
+
