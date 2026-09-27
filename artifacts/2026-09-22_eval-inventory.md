@@ -6,7 +6,7 @@ What each of the 25 evals in `research/pipeline/seed.json` tests, one section pe
 
 A second pass checked the harvested pages in `.cache/by-eval/<slug>/docs`. Rows below include tests those pages state. A few of them are missing from `audit.json`. Those rows say so in the score cell.
 
-Counts across these tables are in [`EVAL-GRID.md`](EVAL-GRID.md).
+Counts across these tables are in [eval-grid](2026-09-22_eval-grid.md).
 
 ## locomo
 

@@ -155,7 +155,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
   - Field default is to search and inject a block ([Mem0 README](https://github.com/mem0ai/mem0): `User Memories:`).
   - One profile store stays quiet unless the fact is relevant ([Memobase README](https://github.com/memodb-io/memobase)).
   - Saying a true fact at the wrong time is its own failure ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827) ⚠️ *planned study, no results*).
-  - The 25 evals score whether the fact came back. They do not score whether it should have been said ([EVAL-GRID.md](EVAL-GRID.md)).
+  - The 25 evals score whether the fact came back. They do not score whether it should have been said ([eval-grid](../artifacts/2026-09-22_eval-grid.md)).
   - LoCoMo's adversarial questions ask the model to recognize an unanswerable query. A-MEM still scores them with F1 and BLEU. The baseline that puts the whole conversation in the prompt scores higher there. The paper credits "robust pre-trained knowledge in simple fact retrieval," not a decision to stay silent ([A-MEM](https://arxiv.org/abs/2502.12110)).
   - **Status:** open
 
@@ -224,7 +224,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
 - Should the companion **raise** a memory without being asked?
   - Unprompted preference use is one Assistant Benchmark anchor ([memory dimension](https://assistantbenchmark.com/dimensions/memory)).
   - Generative Agents bring memories back through reflection, not only when queried ([Park et al., 2023](https://arxiv.org/abs/2304.03442)).
-  - Raising the right fact unasked is not the same as answering a quiz about it ([EVAL-GRID.md](EVAL-GRID.md)).
+  - Raising the right fact unasked is not the same as answering a quiz about it ([eval-grid](../artifacts/2026-09-22_eval-grid.md)).
   - **Status:** open
 
 - Can the user **see and correct** what was stored?

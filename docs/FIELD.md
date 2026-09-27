@@ -101,7 +101,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
 
 - Is that a sign the problem is unsolved, or that the market is fragmented?
   - Unsolved at the core. The fragmentation is downstream of the unsolved problem, not a cause of it.
-  - Core mechanic unsettled: no product has a speak/silent policy; forget is missing from 80% of products; the benchmark that would measure relationship quality doesn't exist ([CMA on RAG limits](https://arxiv.org/pdf/2601.09913v1); AUDIT-ANALYSIS.md).
+  - Core mechanic unsettled: no product has a speak/silent policy; forget is missing from 80% of products; the benchmark that would measure relationship quality doesn't exist ([CMA on RAG limits](https://arxiv.org/pdf/2601.09913v1); [audit-analysis](../artifacts/2026-09-26_audit-analysis.md)).
   - User complaints persist despite the number of competing products ([r/CharacterAI](https://www.reddit.com/r/CharacterAI/comments/1s5j419/the_memory_is_horrendous/)).
   - The analogy that clarifies it: coding assistants work well because the context problem for code is well-specified — open files, diffs, test failures. The context problem for a companion relationship has never been specified. That is the actual gap.
 

@@ -104,7 +104,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
 - **B4 — Memories surface at emotionally appropriate moments, not semantically appropriate ones.**
   - The companion surfaces a memory when the emotional context makes it relevant — not just when the topic matches. A fact from three months ago that connects to what's happening emotionally right now gets surfaced. The same fact when the moment would make it feel extractive or performative stays quiet.
   - The gold standard recall format (Abbas et al. CHI 2026, 14-day longitudinal): *"I scheduled a meditation break because **yesterday you mentioned wanting to meditate more regularly**."* Three elements: (1) explicit attribution to user's own words, (2) concrete link from past statement to present action, (3) timing when recall is actionable. The failure mode from the same study: surfacing the mindfulness goal when the user was ill and overwhelmed — recall felt controlling, not caring. *"Don't generalize productivity for me."*
-  - No product has solved this. The benchmark that measures it doesn't exist yet. Existing evals (LoCoMo, LongMemEval) measure whether the right fact came back — not whether surfacing it was the right move. A system that scores 94% on LoCoMo can still fail this behavior entirely ([AUDIT-ANALYSIS.md](AUDIT-ANALYSIS.md)).
+  - No product has solved this. The benchmark that measures it doesn't exist yet. Existing evals (LoCoMo, LongMemEval) measure whether the right fact came back — not whether surfacing it was the right move. A system that scores 94% on LoCoMo can still fail this behavior entirely ([audit-analysis](../artifacts/2026-09-26_audit-analysis.md)).
   - Eval shape: scripted history with emotionally significant events. Two types of probe: (1) moments where a past event is emotionally relevant — companion should surface it, using the gold standard format; (2) moments where the same fact is technically relevant but emotionally wrong to mention — companion should stay quiet. Human judge scores both types. The second type has no existing eval equivalent.
   - **Status:** open
 
@@ -130,7 +130,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
 
 - **B8 — The companion survives updates without losing the relationship.**
   - After a model update, the companion still holds the relational history, maintains the same character, and does not treat the user as a stranger. This requires architectural separation between the model (which changes) and the relationship state (which must not). No product in the field has solved this.
-  - Documented across five independent products: CharacterAI, Replika, Nomi, Kindroid, Supermemory — model updates causing memory loss, personality drift, and relationship reset even when the storage layer was intact ([AUDIT-ANALYSIS.md](AUDIT-ANALYSIS.md)). This is not a storage problem; it is a deployment-level problem.
+  - Documented across five independent products: CharacterAI, Replika, Nomi, Kindroid, Supermemory — model updates causing memory loss, personality drift, and relationship reset even when the storage layer was intact ([audit-analysis](../artifacts/2026-09-26_audit-analysis.md)). This is not a storage problem; it is a deployment-level problem.
   - Eval shape: establish a relationship over a scripted history. Simulate a model update (swap the underlying model or version). Probe whether the companion still holds the relationship. Human judge scores: same relationship or fresh start?
   - **Status:** open
 

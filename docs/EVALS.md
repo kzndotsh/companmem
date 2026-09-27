@@ -4,7 +4,7 @@ Synthesis across **25** benchmarks in [`research/pipeline/seed.json`](../researc
 
 **Status:** exploratory notes, not settled research. Do not treat as scores or leaderboard truth. Refresh when audits are re-run.
 
-Per-eval list of what each benchmark tests: [`EVAL-INVENTORY.md`](EVAL-INVENTORY.md).
+Per-eval list of what each benchmark tests: [`EVAL-INVENTORY.md`](../artifacts/2026-09-22_eval-inventory.md).
 
 **Protocol axes:** [`research/output/by-eval/PROTOCOL.md`](../research/output/by-eval/PROTOCOL.md) (RQ-E1 tasks, RQ-E2 graders, RQ-E3 what metrics miss, RQ-E4 remembering-as-behavior, RQ-E5 rerunnability).
 
