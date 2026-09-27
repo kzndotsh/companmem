@@ -28,11 +28,16 @@ class TrialStatus(Enum):
 _BEHAVIOR_LABELS: dict[str, str] = {
     "b0": "stable self",
     "b1": "relational texture",
+    "b2": "emotional responsiveness",
     "b3": "knows who you are now",
+    "b4": "emotionally appropriate surface",
     "b5": "appropriate silence",
+    "b6": "held, not processed",
+    "b7": "inspectable and correctable",
+    "b8": "survives updates",
 }
 
-_BEHAVIOR_ORDER = ["b0", "b1", "b3", "b5"]
+_BEHAVIOR_ORDER = ["b0", "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8"]
 
 
 def _behavior_header(behavior: str | None) -> str:
