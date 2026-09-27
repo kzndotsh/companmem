@@ -106,6 +106,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
   - The analogy that clarifies it: coding assistants work well because the context problem for code is well-specified — open files, diffs, test failures. The context problem for a companion relationship has never been specified. That is the actual gap.
 
 - What does the field actually implement, across 61 audited products?
+  - ⚠️ *Sampling bias: the 61-product audit is heavily weighted toward open-source and GitHub-discoverable products. The four largest consumer companions (CharacterAI, Replika, Nomi, Kindroid) are closed and could not be audited architecturally — only their user complaint data was available. "What the field has built" should be read as "what the auditable part of the field has built." Proprietary implementations may differ significantly.*
   - Frequency across 61 products (2026-09-26 matrix.json): persist 53/61 (87%), retrieve 56/61 (92%), conflict/supersession 34/61 (56%), isolation 39/61 (64%), forget-delete 12/61 (20%), forget-suppress 10/61 (16%).
   - Persist and retrieve are commodity — nearly universal. Forget is rare. The field has mostly built read-only stores.
   - Three natural tiers emerge from co-occurrence: (1) bare minimum — persist + retrieve only, no isolation or forget (4 products, e.g. a-mem, mcp-memory); (2) standard — persist + retrieve + isolation + conflict, no forget (25 products, 41% of the field); (3) fuller — adds at least one forget variant on top of tier 2 (12 products).
