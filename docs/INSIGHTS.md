@@ -767,3 +767,46 @@ Oracle retrieval as a pipeline to copy. It is a ceiling, 91% strict, used to sho
 
 ---
 
+## 2609.03467 — When Users Don't Ask: Benchmarking Context-Driven Memory Retrieval in Conversational Agents
+
+Chang and Chen (NTU). Accepted EMNLP 2026 Findings. Cached via arxiv-mcp-server. Read 2026-09-28.
+
+### What it did
+
+Took the LoCoMo QA dataset and rewrote each question into four first-person conversational query styles: **dialog** (direct ask, "do you remember when I...?"), **implicit** (situational utterance with no explicit question — the assistant must infer that a memory should be surfaced), **counterfactual** (user states a false premise — assistant must correct it), **composed** (requires synthesizing multiple source facts). Evaluated five memory systems (AnchorMem, A-MEM, mem0, Memora, NaiveRAG) on both retrieval recall and end-to-end response quality. Released `supportive_memory` annotations: context that helped responses even when it wasn't the gold-evidence answer.
+
+### Key numbers
+
+- Implicit queries are the hardest retrieval style across every system. AnchorMem: 0.659 recall on dialog, 0.368 on implicit. The drop is consistent across all systems.
+- Strong retrieval does not guarantee strong responses. mem0 achieves competitive retrieval but "performs noticeably worse on downstream generation, particularly on dialog and counterfactual queries."
+- **Silent grounding**: 332 implicit-query cases where oracle retrieval still scored fact_used = 0.0 (the gold fact was never explicitly stated). On those cases, oracle memory still beat no-memory by **+55.1pt on faithfulness** and **+31.0pt on engagement**. Memory shaped the response quality without explicit citation.
+- CoT (model selects memories before generating) beats oracle by **+37–40pt on engagement** on implicit queries, while faithfulness and relevance stay within ±7pt.
+- Hallucination on unanswerable conversational queries: implicit framing substantially increases hallucination when reasoning is disabled. "Hallucination rates remain high across all settings."
+
+### What it names
+
+**Silent grounding** is their term for what B4 and B6 describe: memory improves contextual grounding, appropriate tone, and relevant follow-up without explicitly surfacing the gold fact. Their fact_used metric misses this entirely. A strict fact-recall metric "underestimates the value of retrieval on implicit queries."
+
+The four query styles are directly usable as an eval scaffold. Implicit is exactly the companion scenario: the user says something situational and the companion must decide whether a past memory is relevant and worth surfacing. Counterfactual is B3 territory: the companion's stored model of the user conflicts with what the user is now saying.
+
+### Where it touches the behavior list
+
+- **B4 (emotionally appropriate surfacing)**: implicit query style is the closest existing eval analog. It measures whether the system surfaces a memory when the user hasn't asked. It does not measure emotional appropriateness — only topical/situational relevance. But the architecture of the eval (situational prompt, gold evidence that should be inferred, response quality judged on faithfulness/relevance/engagement) is a direct template.
+- **B5 (appropriate silence)**: not covered. Every implicit query is assumed to require a memory-informed response. There is no category where the correct answer is to not surface the memory at all.
+- **B6 (held, not processed)**: silent grounding is exactly this. The +55.1pt faithfulness and +31.0pt engagement gains from oracle memory — even when the gold fact is never stated — show that memory held well shapes response quality in ways that strict fact-recall metrics cannot measure.
+- **B3 (knows who you are now)**: counterfactual style is the closest analog — the companion must correct a false premise using its stored model of the user.
+- **The precision criterion**: their `supportive_memory` annotation operationalizes it — broader context that helps beyond the exact gold answer. Grounded responses require detail that lossy compression removes, even when retrieval recall is high.
+
+### What it does not cover
+
+- No speak/silent policy. Every implicit query assumes the right answer involves using memory. Silence is not a valid response class.
+- No emotional context. Implicit queries are situational but not emotionally weighted. The gap between "user mentions they're birthday shopping for mom" and "user is in crisis" is not in the eval.
+- Built on LoCoMo (10 conversations, simulated, fictional personas). Not companion data.
+
+### The number to take
+
+Fact_used is the wrong metric for implicit companion memory. Silent grounding (+55.1pt faithfulness) shows that memory value is substantially invisible to fact-recall scoring. Any eval for B4 or B6 that only checks whether the gold fact was stated will miss the majority of the signal. The Phase 3 exam needs a multi-dimension response-quality judge (faithfulness + engagement + relationship coherence), not just a fact-presence check.
+
+### What to do
+
+The four query styles (dialog, implicit, counterfactual, composed) are a concrete scaffolding layer for the Phase 3 behavioral continuity test. Implicit maps to B4. Counterfactual maps to B3. Composed maps to multi-fact synthesis cases in the 20–30 turn scripted history. Do not copy their benchmark — their conversations are simulated and their gold answers are factual QA. But their query-rewriting methodology (take a scripted history, rewrite moments into implicit situational prompts, judge response quality with a multi-dimension rubric) is directly applicable.
