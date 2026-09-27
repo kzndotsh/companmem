@@ -35,7 +35,7 @@ Copying HippoRAG's top-5 passages, A-MEM's LoCoMo k sweep, Sophia's "vector data
 
 ## 2405.07987 — The Platonic Representation Hypothesis
 
-Huh, Cheung, Wang, and Isola. Local file: `sandbox/research/papers/arxiv/2405.07987.md`. Read 2026-09-22.
+Huh, Cheung, Wang, and Isola. Local file: `third-party/arxiv/2405.07987.md`. Read 2026-09-22.
 
 ### What it did
 
@@ -67,7 +67,7 @@ VTAB transfer rank, Hellaswag, and GSM8K are other people's leaderboards. Stitch
 
 ## 2405.14831 — HippoRAG
 
-Gutiérrez, Shu, Gu, Yasunaga, and Su. Local file: `sandbox/research/papers/arxiv/2405.14831.md`. Read 2026-09-22.
+Gutiérrez, Shu, Gu, Yasunaga, and Su. Local file: `third-party/arxiv/2405.14831.md`. Read 2026-09-22.
 
 ### What it did
 
@@ -109,7 +109,7 @@ The benchmark list, the retriever list, and the reader that stuffs the top 5 pas
 
 ## 2501.00663 — Titans
 
-Behrouz, Zhong, and Mirrokni. Local file: `sandbox/research/papers/arxiv/2501.00663.md`. Read 2026-09-22.
+Behrouz, Zhong, and Mirrokni. Local file: `third-party/arxiv/2501.00663.md`. Read 2026-09-22.
 
 ### What it did
 
@@ -149,7 +149,7 @@ WikiText perplexity, PIQA, HellaSwag, and the rest of the commonsense table. DNA
 
 ## 2502.12110 — A-MEM
 
-Xu, Liang, Mei, Gao, Tan, and Zhang. Local file: `sandbox/research/papers/arxiv/2502.12110.md`. Read 2026-09-22.
+Xu, Liang, Mei, Gao, Tan, and Zhang. Local file: `third-party/arxiv/2502.12110.md`. Read 2026-09-22.
 
 ### What it did
 
@@ -187,7 +187,7 @@ The k sweep from 10 to 50 is fit per category on LoCoMo. Copying those k values 
 
 ## 2504.07992 — Neural howlround
 
-Drake. Local file: `sandbox/research/papers/arxiv/2504.07992.md`. Read 2026-09-22.
+Drake. Local file: `third-party/arxiv/2504.07992.md`. Read 2026-09-22.
 
 ### What it did
 
@@ -219,7 +219,7 @@ The formula as something to drop into an API. They never say how the heaviest we
 
 ## 2504.13173 — Test-time memorization (Miras)
 
-Behrouz, Razaviyayn, Zhong, and Mirrokni. Local file: `sandbox/research/papers/arxiv/2504.13173.md`. Read 2026-09-22.
+Behrouz, Razaviyayn, Zhong, and Mirrokni. Local file: `third-party/arxiv/2504.13173.md`. Read 2026-09-22.
 
 ### What it did
 
@@ -251,7 +251,7 @@ The training recipe, 15B to 100B tokens of web text, and the baseline list. They
 
 ## 2506.15841 — MEM1
 
-Zhou, Qu, Wu, and others. Local file: `sandbox/research/papers/arxiv/2506.15841.md`. Read 2026-09-23.
+Zhou, Qu, Wu, and others. Local file: `third-party/arxiv/2506.15841.md`. Read 2026-09-23.
 
 ### What it did
 
@@ -283,7 +283,7 @@ The Wikipedia retrieval stack, and the leaderboard against Search-R1 and DeepRes
 
 ## 2507.02097 — Agentic recommender systems
 
-Maragheh and Deldjoo. Local file: `sandbox/research/papers/arxiv/2507.02097.md`. Read 2026-09-22.
+Maragheh and Deldjoo. Local file: `third-party/arxiv/2507.02097.md`. Read 2026-09-22.
 
 ### What it did
 
@@ -315,7 +315,7 @@ Copying the profiler, the debate, or the planner-plus-three-rankers because they
 
 ## 2507.14805 — Subliminal learning
 
-Cloud, Le, and others. Local file: `sandbox/research/papers/arxiv/2507.14805.md`. Read 2026-09-23. The Nature article is the journal version of this preprint.
+Cloud, Le, and others. Local file: `third-party/arxiv/2507.14805.md`. Read 2026-09-23. The Nature article is the journal version of this preprint.
 
 ### What it did
 
@@ -349,7 +349,7 @@ The favorite-animal prompt as a leaderboard, and the insecure-code recipe. Those
 
 ## 2507.21509 — Persona vectors
 
-Chen, Arditi, Sleight, Evans, and Lindsey. Local file: `sandbox/research/papers/arxiv/2507.21509.md`. Read 2026-09-22.
+Chen, Arditi, Sleight, Evans, and Lindsey. Local file: `third-party/arxiv/2507.21509.md`. Read 2026-09-22.
 
 ### What it did
 
@@ -379,7 +379,7 @@ The LoRA settings, the MMLU check, and the finetuning datasets. Those are a safe
 
 ## 2510.26493 — Context Engineering 2.0
 
-Hua et al. Local file: `sandbox/research/papers/arxiv/2510.26493.md`. Read 2026-09-22.
+Hua et al. Local file: `third-party/arxiv/2510.26493.md`. Read 2026-09-22.
 
 ### What it did
 
@@ -409,7 +409,7 @@ The section that describes vector search, chunking, and reranking as the current
 
 ## 2511.16997 — MirrorMind
 
-Local file: `sandbox/research/papers/arxiv/2511.16997.md`. Read 2026-09-22.
+Local file: `third-party/arxiv/2511.16997.md`. Read 2026-09-22.
 
 ### What it did
 
@@ -441,7 +441,7 @@ The OpenAlex tools for searching concepts and finding expert authors. Those are 
 
 ## 2512.01797 — H-Neurons
 
-Gao et al. Local file: `sandbox/research/papers/arxiv/2512.01797.md`. Read 2026-09-22.
+Gao et al. Local file: `third-party/arxiv/2512.01797.md`. Read 2026-09-22.
 
 ### What it did
 
@@ -471,7 +471,7 @@ Building the TriviaQA probe and reporting accuracy on NQ and BioASQ. That is a c
 
 ## 2512.02472 — Guided self-evolving models
 
-Local file: `sandbox/research/papers/arxiv/2512.02472.md`. Read 2026-09-22.
+Local file: `third-party/arxiv/2512.02472.md`. Read 2026-09-22.
 
 ### What it did
 
@@ -501,7 +501,7 @@ The leaderboard against MATH, GSM8K, MMLU-Pro, and GPQA. Closing the gap to a mo
 
 ## 2512.18202 — Sophia
 
-Sun, Hong, and Zhang. Local file: `sandbox/research/papers/arxiv/2512.18202.md`. Read 2026-09-22.
+Sun, Hong, and Zhang. Local file: `third-party/arxiv/2512.18202.md`. Read 2026-09-22.
 
 ### What it did
 
@@ -529,7 +529,7 @@ The sentence that the memory "can be achieved by Retrieval-Augmented Generation 
 
 ## 2512.21110 — Beyond Context
 
-Local file: `sandbox/research/papers/arxiv/2512.21110.md`. Read 2026-09-22.
+Local file: `third-party/arxiv/2512.21110.md`. Read 2026-09-22.
 
 ### What it did
 
@@ -559,7 +559,7 @@ Section VI's architecture list (hierarchical attention, memory-augmented models,
 
 ## 2512.24695 — Nested Learning
 
-Behrouz, Razaviyayn, Zhong, and Mirrokni. Local file: `sandbox/research/papers/arxiv/2512.24695.md`. Read 2026-09-22.
+Behrouz, Razaviyayn, Zhong, and Mirrokni. Local file: `third-party/arxiv/2512.24695.md`. Read 2026-09-22.
 
 ### What it did
 
@@ -597,7 +597,7 @@ The needle table is planted-fact retrieval. The language-model leaderboard is a 
 
 ## 2601.05280 — Limits of self-improvement
 
-Zenil. Local file: `sandbox/research/papers/arxiv/2601.05280.md`. Read 2026-09-22.
+Zenil. Local file: `third-party/arxiv/2601.05280.md`. Read 2026-09-22.
 
 ### What it did
 
@@ -629,7 +629,7 @@ Coding an LLM into a universal mixture, and the CTM / BDM program search. Those 
 
 ## 2601.09113 — The AI Hippocampus
 
-Jia, Li, Kang, and others. Local file: `sandbox/research/papers/arxiv/2601.09113.md`. Read 2026-09-23.
+Jia, Li, Kang, and others. Local file: `third-party/arxiv/2601.09113.md`. Read 2026-09-23.
 
 ### What it did
 
@@ -665,7 +665,7 @@ The taxonomy of LangChain, LlamaIndex, Haystack, Mem0, Zep, and MemGPT as someth
 
 ## 2601.10387 — The Assistant Axis
 
-Lu, Gallagher, Michala, Fish, and Lindsey. Local file: `sandbox/research/papers/arxiv/2601.10387.md`. Read 2026-09-23.
+Lu, Gallagher, Michala, Fish, and Lindsey. Local file: `third-party/arxiv/2601.10387.md`. Read 2026-09-23.
 
 ### What it did
 
@@ -697,7 +697,7 @@ IFEval, MMLU, GSM8K, and EQ-Bench as targets. The 275-role extraction pipeline a
 
 ## 2601.19062 — Who's in Charge?
 
-Sharma, McCain, Douglas, and Duvenaud. Local file: `sandbox/research/papers/arxiv/2601.19062.md`. Read 2026-09-22.
+Sharma, McCain, Douglas, and Duvenaud. Local file: `third-party/arxiv/2601.19062.md`. Read 2026-09-22.
 
 ### What it did
 
@@ -733,7 +733,7 @@ The preference-model result on 360 synthetic prompts as a training recipe. It sh
 
 ## 2601.19897 — SDFT
 
-Shenfeld, Damani, Hübotter, and Agrawal. Local file: `sandbox/research/papers/arxiv/2601.19897.md`. Read 2026-09-23.
+Shenfeld, Damani, Hübotter, and Agrawal. Local file: `third-party/arxiv/2601.19897.md`. Read 2026-09-23.
 
 ### What it did
 
