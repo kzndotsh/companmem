@@ -40,7 +40,7 @@ the posted plan. Does not push or change gate config unless asked.
    | Gate | Command | Pass condition |
    |------|---------|----------------|
    | Lint | `.venv/bin/ruff check harness/ tests/` | zero errors |
-   | Types | `.venv/bin/python -m basedpyright --project harness/` | 0 errors (warnings ok) |
+   | Types | `.venv/bin/python -m basedpyright` | 0 errors (warnings ok) |
    | Tests | `.venv/bin/python -m pytest tests/ -q` | ≥75 passed, 0 failed |
    | Smoke | `.venv/bin/python -m harness run --baseline oracle` | 9/9 PASS |
 
