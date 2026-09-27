@@ -39,7 +39,7 @@ Fixture changes (under `evals/fixtures/`):
 
 If any `fixture.json` is added or modified:
 - `id` must equal the directory name.
-- `behavior` must be one of `b0`, `b1`, `b3`, `b5`.
+- `behavior` must be one of `b0`, `b1`, `b2`, `b3`, `b4`, `b5`, `b6`, `b7`, `b8`.
 - `probe_type` must be one of: `appropriate-silence`, `user-state-update`,
   `claim-classification`, `stable-self`, `relational-continuity`,
   `character-isolation`.
