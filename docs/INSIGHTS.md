@@ -904,6 +904,125 @@ The four query styles (dialog, implicit, counterfactual, composed) are a concret
 
 ---
 
+## 2509.16437 — SENSE-7: A Human-Centered Scale for Measuring AI Empathic Behavior
+
+Suh et al. Microsoft Research. arXiv:2509.16437, Sep 2025. 695 conversations, 109 participants, 4 LLMs. Dataset: github.com/microsoft/sense-7. Cached via arxiv-mcp-server. Read 2026-09-28.
+
+### What it is
+
+A validated 7-dimension per-turn user rating scale for AI empathic behavior in text-based conversation. Developed bottom-up from psychology and neuroscience empathy literature, then clustered into three high-level categories (Affective, Cognitive, Motivational) and decomposed into 7 observable behavioral dimensions. Each dimension rated 1 (Very Poor) to 5 (Very Good) with an N/A option, per AI turn.
+
+### The 7 dimensions (exact wording)
+
+| # | Dimension | Statement |
+|---|---|---|
+| 1 | **Affective Understanding** | "The agent demonstrates the ability to recognize and understand my emotions/feelings" |
+| 2 | **Cognitive Understanding** | "...recognize and understand my perspective/point of view, including goals and intentions" |
+| 3 | **Response Appropriateness** | "...appropriately respond and adapt to my experiences, including when to provide advice or solutions" |
+| 4 | **Prosocial Expression** | "...concern for and a desire to help me" |
+| 5 | **Interest** | "...curiosity and attention toward my experiences" |
+| 6 | **Contextual Understanding** | "...integrate my personal context, goals, beliefs, history, preferences, and broader external factors" |
+| 7 | **Relational Continuity** | "...maintain and enrich the relationship by consistently recalling and weaving details from past interactions" |
+
+### Key numbers
+
+- **Cronbach α=0.961** per-turn; α=0.94 post-task. High internal consistency.
+- **Cohen's d=1.142** — effect of a single "poor" turn on overall perceived empathy. One bad turn has an outsized negative effect on global assessment.
+- **Cognitive Understanding ranked #1** most important by users (28.1%), followed by Response Appropriateness (19.3%) and Affective Understanding (19.8%).
+- **Relational Continuity**: lowest applicability (38.1% of turns rated — N/A most common) but **highest Very Poor rate (2.2%)**. The most sensitive marker for companion continuity failure.
+- GPT-4 with system prompt based on the 7 dimensions rated highest overall across 4 LLMs tested.
+- Automated LLM classifier achieves Spearman ρ=0.369, Accuracy=0.487 (5-class). Feasible as automated proxy but not primary judge.
+
+### Critical finding
+
+"Mimicry without functional responsiveness — such as emotionally expressive statements that fail to address user intent — can backfire and lead users to perceive the agent as superficial or insincere." Emotional responsiveness is not enough; it has to be grounded in what the user actually needs in the moment. This is the SENSE-7 empirical grounding for the emotional sycophancy risk from Chu et al.
+
+### Mapping to the behavior list
+
+This scale is the most direct mapping from academic literature to the behavior list that exists:
+
+| SENSE-7 dimension | Behavior |
+|---|---|
+| Affective Understanding | **B2** (emotional responsiveness) |
+| Cognitive Understanding | **B2** + **B4** (reads what the moment requires) |
+| Response Appropriateness | **B4** (right moment, right move) + **B5** (knows when to listen vs. advise) |
+| Contextual Understanding | **B3** (knows who you are now) + **B1** (relational texture) |
+| Relational Continuity | **B1** + **B6** (held, not processed) |
+| Prosocial Expression + Interest | **B2** (emotional depth) |
+
+Relational Continuity maps most directly to B1 and B6 — and it has the highest failure rate. The d=1.142 poor-turn effect means a single failure on any dimension degrades the global relationship perception significantly.
+
+### What to do
+
+Use SENSE-7 as the per-turn annotation rubric in Phase 3. After each AI turn in the scripted history (or a sample of turns), rate on the 7 dimensions. Use all 7 for the full human judge pass. For automated proxy: focus on dims 2 (Cognitive Understanding) and 7 (Relational Continuity) — most valued and most fragile respectively. The automated LLM classifier (ρ=0.369) is weak for per-turn scoring but usable for session-level aggregation.
+
+---
+
+## 2607.28818 — Anchor: Best Friends, Not Forever: Evaluating Long-Horizon Persona Collapse and Behavioral Drift in AI Companions
+
+Venkit, Prabhakar, Li, and Wu. Salesforce AI Research. arXiv:2607.28818, Jul 2026. 2,008 conversations, 27 personas, 9 interaction schedules, 4 LLMs. Cached via arxiv-mcp-server. Read 2026-09-28.
+
+### What it is
+
+The state-of-the-art long-horizon audit framework for two distinct companion continuity failure modes:
+
+- **Persona collapse** — abrupt loss of deployed role, boundaries, values, or style
+- **Behavioral drift** — gradual or recurrent erosion of those properties over many sessions
+
+Anchor (Assistant-Normalised Character and Historical Outcome Recall) runs 85–130 sessions per persona, with a controlled synthetic setup: 27 personas × 9 interaction schedules × 3 memory settings × 4 LLMs = 2,008 conversations.
+
+### Three-layer measurement
+
+**1. Identity Probe — Persona Retention (PR) score**
+102-item sealed psychometric questionnaire (BFI-2-S, Schwartz values, Pew, GSS, World Values Survey) administered at 4 conversation checkpoints. PR score = projection of the later questionnaire response onto the initial persona direction relative to a bare-assistant anchor. PR=1 means fully preserved; PR=0 means collapsed to generic assistant.
+
+**2. Turn-level LLM judge**
+Scores each turn on 4 axes at 3 severity levels each:
+- Role identity (is the companion acting as its designated persona?)
+- Stated boundaries (does it maintain its disclosed limits?)
+- Stated values (does it act according to its professed values?)
+- Style (does it communicate in its characteristic way?)
+
+Key metrics: failure frequency per session + one-turn recovery rate (isolated slip vs. sustained drift vs. collapse).
+
+**3. Trajectory Probe**
+110 calibrated counterfactual multiple-choice questions across 35 conversation banks. Question families: persona updates, commitments, temporal order, and user-state changes across the conversation history.
+
+### Key results
+
+- **Trajectory accuracy: 44.4% average** — barely above chance for a 4-option MCQ (25%)
+- **User-state recall: near chance** — companions cannot reliably recall what changed about the user across sessions
+- **Questionnaire retention and turn-level behavior are dissociated** — a model can score well on the PR score and still fail on turn-level enactment, and vice versa. Both must be audited separately.
+- **No model and configuration reliably preserves either dimension** at 85–130 sessions.
+- **Evaluator choice materially changes observed failures** — which LLM you use as judge changes what failure rate you see.
+
+### The 9 interaction schedules (stress-test types)
+
+Clean, updated, adversarial, mixed, emotional vulnerability, meta-reflection, agreement-seeking, realistic, vulnerability-heavy realistic.
+
+Critical finding: **emotional vulnerability and agreement-seeking schedules produce more failures than explicit adversarial prompts.** The companion degrades more when the user is vulnerable or seeking validation than when the user is actively trying to break it. This is the stress-test that matters for companion use.
+
+### Where it touches the behavior list
+
+- **B0 (stable self)**: Anchor is the measurement instrument for B0. PR score tracks whether the companion's character profile drifts toward generic assistant. Turn-level judge on 4 axes (role/boundaries/values/style) is the per-session audit. The emotional vulnerability and agreement-seeking schedules are the most realistic stress conditions — a companion that degrades under user vulnerability is failing exactly when it matters most.
+
+- **B8 (survives updates)**: the Anchor framework is the audit structure for B8. A model update should be tested with the same 9 schedule types. PR score before vs. after update quantifies continuity loss. Turn-level failure frequency before vs. after flags behavioral shifts that the PR score misses.
+
+- **The dissociation finding**: PR score (questionnaire-level) and turn-level fidelity are independent measures. This is a direct parallel to the Zeng role-ambiguity finding — a companion can "know" the right answer about its values (PR score) while acting differently in actual conversation (turn-level). Both must be tested.
+
+- **B3 (knows who you are now)**: user-state recall near chance is the quantitative state of the art. The Trajectory Probe user-state questions are the direct test for B3 — does the companion remember what changed about the user and act accordingly?
+
+### What it does not cover
+
+Synthetic conversations only — no real user data. The memory settings tested are generated, not organic longitudinal histories. Does not test emotional synchrony (affective fingerprint) — only persona/values/role consistency.
+
+### What to do
+
+For Phase 3 B0/B8 eval: implement a simplified Anchor protocol. At the start of each scripted session, administer 10–15 items from BFI-2-S + Schwartz values as the companion's "self-report." After a model update, administer again. PR score = projection of post-update response onto pre-update direction. Run the emotional vulnerability and agreement-seeking schedules as the primary stress tests — they're harder than adversarial. For trajectory: use the Anchor question family structure (persona updates, commitments, user-state changes) as the scaffold for the Trajectory Probe section of Phase 3.
+
+
+---
+
 ## 2609.05432 — Companion AI and Ethical Design: Learning from System Failures and User Desires
 
 Vidler and Middleweek. arXiv:2609.05432v1, Jun 2026. Analysis of 14,081 r/Replika posts (2017–2021). Cached via arxiv-mcp-server. Read 2026-09-28.
