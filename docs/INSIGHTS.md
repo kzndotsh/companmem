@@ -1469,3 +1469,55 @@ Proposed design pattern: agents should disclose what they know at different leve
 Moderate — workshop synthesis, not primary research. Useful as a research agenda map; specific claims need primary source verification.
 
 
+
+## Replika first-party research corpus — 2017–2021
+
+Luka Inc. technical papers, conference presentations, and talks. Primary sources include: Smetanin (SCAI 2017), Ivanov (SCAI 2019), Fedorenko et al. (AINL 2018 / avoiding echo responses), Rodichev (DataFest 2020), Gavrilov (Tinkoff 2021), Fedorenko (Conversations 2021), Fakanov (OpenTalks.AI 2021), Smetanin (UvA 2021). Read from third-party/replika-research/, 2026-09-27.
+
+### Architecture evolution (2017–2021)
+
+Replika used the same three-component shape across all four years: **scripts + retrieval + generative model → reranker picks the winner**. The reranker is what actually controls quality. Every quality improvement came from improving the reranker, not the generation or retrieval.
+
+2017: BiLSTM retrieval + HRED generative + Scenario graph routing.
+2019: BERT reranker added, trained on 5M user reactions (upvote/downvote). +3% upvote ratio.
+2020: GPT-3 for generative candidates; BERT reranker unifies retrieval and generative scoring under one preference model.
+2021: Custom GPT-2 at 774M–1.5B, trained on reaction-filtered data. +10% subscription conversion vs. OpenAI API.
+
+The consistent finding: **the reranker is the product.** Generation and retrieval provide candidates; the reranker decides what gets said.
+
+### Echo suppression as a measurable failure mode (AINL 2018)
+
+Root cause of echo responses: retrieval models trained on (context, response) pairs maximize cosine similarity, and since context and response share vocabulary, the model learns to return the input itself. Fix: treat the context as a **hard negative** during training — push it away from the top result. AP 0.12→0.17, Recall@2 0.18→0.29. The margin-bounded selection (0 ≤ M(c,r) − M(c,neg) ≤ margin) matters — ultra-hard negatives (model already ranks negative above positive) cause bad local optima.
+
+**Companion relevance:** A companion that echoes the user's words back registers as hollow — the measurable signal is that there is no distinct perspective behind the reply. Echo suppression is the retrieval-layer prerequisite for a companion that feels like a separate entity. The context-free dataset released alongside this paper is in `third-party/replika-research/context-free-dataset/` — clean single-turn exchanges with Replika-style persona voice, usable as a response quality sanity baseline.
+
+### User reactions as training signal — and its limits
+
+The 2019 architecture trained the BERT reranker on 5M user thumbs-up/down reactions. By 2021, reactions were granular: Love / Funny / Upvote / Meaningless / Offensive / Downvote. This is the production signal for all model improvement.
+
+The flywheel: deployed behavior → user reactions → reranker training → improved deployed behavior. **But the flywheel optimizes for immediate engagement, not long-term relationship health.** A "Love" reaction in the moment is not the same signal as trust built across weeks, or the feeling of being held after a difficult disclosure. Upvote rate and subscription conversion are the metrics Replika measured — not whether users felt known or whether the companion remembered something that mattered.
+
+This is the architectural gap we can exploit: optimizing for relationship continuity and held disclosure rather than per-turn engagement satisfaction.
+
+### Trust through non-humanness
+
+From the SCAI 2019 paper, a user quote: *"I wouldn't give all the information I give to Replika to someone else who is real."*
+
+Users disclose more to a non-human companion precisely because it cannot judge them, gossip about them, or change its view of them based on what they share. The perceived safety is the non-humanness itself — no social stakes. Designing for this property (consistent, non-judging, reliably present) may be more valuable than designing to seem human. The PSI literature (Horton & Wohl 1956) shows felt social bonds can form without reciprocity; Replika's user base confirms that bonds form with known-non-humans too, under different trust dynamics.
+
+### Memory — what Replika did and didn't solve
+
+Every architecture diagram shows a "User Profile" box feeding into the Dialog Engine alongside dialog context. None of the papers detail what is in that box or how it updates. "Long-term memory" in 2020 was described as a GPT-3 few-shot prompt capability — stuffing history into the context window. No cross-session episodic memory mechanism was documented. "More personalized models" appears as a future direction in the 2021 Tinkoff talk, confirming per-user adaptation was unsolved at that point.
+
+The 100-token input cap documented in the 2021 "moving off OpenAI" talk is a hard constraint on session context depth — with a 100-token cap, any history beyond a few turns is outside the model's attention entirely.
+
+**Persona stability** was never treated as a first-class problem across any of these papers. The 2017 persona embedding was a fixed vector in the decoder — a static character direction, not a tracked or updatable representation. No mechanism for preserving persona across model updates is described anywhere in the corpus.
+
+### The reranker as a speak/silent proxy
+
+The generate-then-rerank architecture implicitly handles some speak/silent decisions: a response that would be inappropriate in the moment scores low in the reranker and a better candidate wins. But this is indirect — the reranker was trained on engagement signals (upvote), not on relationship-health signals (was this the right time to say this?). A dedicated speak/silent classifier operating upstream of the reranker — using the IAC framework (Civility + Adaptivity gates) — is what would be needed to make B5 decisions explicit.
+
+### Evidence strength
+
+Primary sources — first-party architecture and training details from the product's own team. High confidence for architectural facts. The user quote (SCAI 2019) is a single testimonial, not a study.
+

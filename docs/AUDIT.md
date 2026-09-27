@@ -1490,6 +1490,8 @@ Pioneer consumer AI companion platform. Closed/commercial. Nine-year history. Re
 
 **Companion relevance:** Very high as a negative reference. The most widely known AI companion product, documented in production at scale, with years of community data on memory failure modes. The Memory tab hallucination, backstory-outperforms-memories pattern, contradiction accumulation without resolution, and post-update personality drift are the canonical companion memory failure modes. Every architecture decision in a companion memory system should be evaluated against: "does this prevent what happened to Replika?"
 
+First-party technical papers (2017–2021) reveal the production architecture: scripts + retrieval + generative model → BERT reranker, with the reranker trained on user thumbs-up/down reactions. This is the core flywheel — user reactions improve reranker quality, improving deployment quality, generating more reactions. **The flywheel optimizes for immediate engagement, not relationship health.** A "Love" reaction on a single turn is not the same signal as trust built across weeks. No paper in the corpus describes a mechanism for measuring or optimizing for long-term relationship continuity. The reranker implicitly handles some speak/silent decisions (low-scoring responses lose to better candidates) but was never trained on relationship-health signals. ([Smetanin, SCAI 2017](third-party/replika-research/scai2017/replika_ai.pdf); [Ivanov, SCAI 2019](third-party/replika-research/scai2019/replika_scai_19.pdf); [Rodichev, DataFest 2020](third-party/replika-research/datafest2020/Replika_Artem_R.pdf))
+
 ---
 
 ## risuai
