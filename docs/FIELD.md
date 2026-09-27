@@ -162,11 +162,11 @@ Answers are working notes. Citations are inline links. A question stays `open` u
   - **Open — not decided yet.** Direction: memory for realistic human/companion communication, not generic RAG leaderboard ([LoCoMo ≠ companion social eval](https://aclanthology.org/2024.acl-long.747/)).
 
 - How would we prove it?
-  - Reproducible evals on companion-relevant failures ([Heilmeier #8](https://www.darpa.mil/about/heilmeier-catechism); [Harbor third-party runs](https://www.harborframework.com/docs/run-jobs/run-evals)).
+  - Reproducible evals on companion-relevant failures ([Heilmeier #8](https://www.darpa.mil/about/heilmeier-catechism)).
   - Third party can run harness and get same ranking.
 
 - Who is the first user?
-  - **Open.** Candidates: builders ([Mem0 audience](https://doi.org/10.48550/arxiv.2504.19413)), roleplayers ([r/CharacterAI](https://www.reddit.com/r/CharacterAI/)), agent platforms ([Harbor agents](https://www.harborframework.com/docs/agents)).
+  - **Open.** Candidates: builders ([Mem0 audience](https://doi.org/10.48550/arxiv.2504.19413)), roleplayers ([r/CharacterAI](https://www.reddit.com/r/CharacterAI/)), agent platforms.
 
 - What would we refuse to optimize for?
   - **Candidates:** raw LoCoMo score alone ([Maharana et al. task scope](https://aclanthology.org/2024.acl-long.747/)), infinite recall ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827) ⚠️ *planned study, no results*), latency over relationship quality.

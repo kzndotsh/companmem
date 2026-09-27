@@ -19,7 +19,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
 
 - How do we structure the repo so research and code don't blur together?
   - Separate `docs/` from implementation; keep throwaway spikes out of git.
-  - Harbor pattern: task = instruction + environment + verifier, kept distinct ([Harbor](https://www.harborframework.com/docs/run-jobs/run-evals)).
+  - Task shape: instruction + environment + verifier, kept distinct.
 
 - What belongs in version control vs notes vs throwaway experiments?
   - **Git:** code, fixtures, specs, decisions.
@@ -75,7 +75,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
   - `policy_version` + replayable runs ([verify-first](https://www.theaioperator.net/p/coding-with-agents-the-verify-first)).
 
 - When is a screenshot or log output required as evidence?
-  - Non-deterministic UI, long runs, baseline comparisons ([Harbor trial artifacts](https://www.harborframework.com/docs/run-jobs/run-evals)).
+  - Non-deterministic UI, long runs, baseline comparisons — attach `report.json` or test output.
 
 ### Process and discipline
 
@@ -103,7 +103,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
 
 - What tests are worth writing at each stage?
   - **Spike:** one script proving hypothesis.
-  - **Product:** unit + integration on memory read/write ([Harbor verifier pattern](https://www.harborframework.com/docs/run-jobs/run-evals)).
+  - **Product:** unit + integration on memory read/write.
   - Tests before implementation to avoid sycophantic tests ([SE-ML TDD note](https://se-ml.github.io/agentic_patterns/07-verification-first/)).
 
 - How do we keep dependencies and tooling boring and reproducible?

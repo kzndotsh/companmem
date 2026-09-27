@@ -22,8 +22,8 @@ Answers are working notes. Citations are inline links. A question stays `open` u
   - Reasoning happens *inside* the call; memory is what you fetch *into* the call from outside ([Pathak](https://ninadpathak.com/blog/context-windows-vs-memory/); [Generative Agents planning loop](https://arxiv.org/abs/2304.03442)).
 
 - What is a harness?
-  - A controlled runner that feeds fixed tasks to a system and records outputs, rewards, cost, and errors ([Harbor docs](https://www.harborframework.com/docs/run-jobs/run-evals); [Harbor GitHub](https://github.com/harbor-framework/harbor)).
-  - Separates agent + environment + verifier so comparisons stay fair ([Harbor task model](https://www.harborframework.com/docs/run-jobs/run-evals): instruction, environment, test script).
+  - A controlled runner that feeds fixed tasks to a system and records outputs, scores, cost, and errors.
+  - Separates task definition, environment, and verifier so comparisons stay fair.
   - Context-engineering changes need eval pipelines to measure whether prompt/RAG tweaks actually work ([PEG: context engineering guide](https://www.promptingguide.ai/guides/context-engineering-guide)).
 
 - What is the difference between **remembering** and **retrieving**?

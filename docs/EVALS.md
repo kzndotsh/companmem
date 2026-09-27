@@ -178,11 +178,9 @@ Audit depth varies (`ledger` size, `unknowns`). Thin rows need re-harvest or mor
 
 | Slug | Role |
 |------|------|
-| **harbor** | Agent eval **orchestration** (Docker/Modal/…), not a memory dataset. **ATIF** v1.6+ trajectories; v1.7 `context_management` for compaction boundaries (issue **#3078**). Per-benchmark adapters normalize to Harbor task shape; trials write `reward.json` + optional `VerifierResult`. Audit flags: SHARED multi-step **#1960** (agent can read prior `test.sh` / reward), progress metric chosen by **alphabetical** reward keys (**#2396**, **#2782**), infra failures mis-tagged as task fail (**#2317**), reasoning token undercount (**#2831**). Use for **rerunnable** bakeoffs, not as a memory score. |
+| **harbor** | Agent eval **orchestration** (Docker/Modal/…), not a memory dataset. **ATIF** v1.6+ trajectories; v1.7 `context_management` for compaction boundaries (issue **#3078**). Per-benchmark adapters normalize to Harbor task shape; trials write `reward.json` + optional `VerifierResult`. Audit flags: SHARED multi-step **#1960** (agent can read prior `test.sh` / reward), progress metric chosen by **alphabetical** reward keys (**#2396**, **#2782**), infra failures mis-tagged as task fail (**#2317**), reasoning token undercount (**#2831**). |
 | **lmeb** | **Long-horizon Memory Embedding Benchmark** via `mteb.get_benchmark('LMEB')`; episodic/dialogue/semantic/procedural qrels; instruction prefix `Instruct: …\nQuery:` (wo/ w inst ablation). Reuses many **same-named** chat benchmarks as retrieval-only—does not score generation or abstention behavior. |
 | **assistant-benchmark** | End-user assistant rubric; Memory is one dimension among 15 (restraint, proactive, …). |
-
-Use Harbor when we need **fair reruns** of a chosen task set; use LMEB when the product bet is **retrieval quality**, not generation.
 
 ---
 
@@ -216,7 +214,7 @@ Hypotheses only—promote to [`docs/QUESTIONS.md`](QUESTIONS.md) with citations 
 | Agent ingest | MemoryAgentBench chunk feed; MemBench observation vs participation; **Mem2ActBench** tool-grounding levels | Mem2ActBench headline % without custom scorer | MemBench MC without noise length + memory config declared |
 | Latency | **LME-V2 LAFS** (multi operating points); **DialSim** sleep_time / timeout-as-wrong | Raw LME-V2 accuracy without latency tier | |
 | Retrieval layer | LMEB R_cap@k when product is embed+RAG | LMEB as whole-product score | |
-| Harness | Harbor task model + ATIF for agent/memory **instrumentation** (context_management) | Harbor leaderboard reward as “memory quality”; SHARED-mode runs before **#1960** fix | HaluMem extraction F1 without pinning judge + adapter recall limits |
+| Harness | HaluMem stage metrics (extraction → update → QA pipeline debugging) | Harbor leaderboard reward as “memory quality” | HaluMem extraction F1 without pinning judge + adapter recall limits |
 
 ---
 

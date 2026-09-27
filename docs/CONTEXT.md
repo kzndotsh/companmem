@@ -25,7 +25,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
   - **Store:** persists facts across sessions (vector DB, files, graph).
   - **Reader:** policy that selects, orders, and formats what enters context this turn.
   - **Scaffold:** system prompt + instructions + tool defs that tell the model how to use what it sees ([PEG: layered context — system / task / tool / memory](https://www.promptingguide.ai/agents/context-engineering)).
-  - Fair eval must hold scaffold + reader constant when comparing stores ([Harbor task model](https://www.harborframework.com/docs/run-jobs/run-evals)).
+  - Fair eval must hold scaffold + reader constant when comparing stores.
 
 - Does **where** retrieved text sits in the prompt matter?
   - Yes. LLMs attend more to start and end of long context; middle gets lost ([Liu et al., *lost in the middle*](https://arxiv.org/abs/2307.03172); [PEG RAG survey](https://www.promptingguide.ai/research/rag): relocate relevant chunks to edges).
