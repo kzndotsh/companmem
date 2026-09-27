@@ -767,7 +767,62 @@ Oracle retrieval as a pipeline to copy. It is a ceiling, 91% strict, used to sho
 
 ---
 
-## 10.1145/3768310.3807827 — Creepy or Not: When AI Remember Too Much
+## 2304.03442 — Generative Agents: Interactive Simulacra of Human Behavior
+
+Park, O'Brien, Cai, Morris, Liang, and Bernstein (Stanford). UIST 2023. Cached via arxiv-mcp-server. Read 2026-09-28.
+
+### What it did
+
+Populated a Sims-like sandbox with 25 agents, each given a character description (name, traits, backstory). Agents ran for two game days, forming relationships, spreading information, coordinating events — starting from a single user-seeded notion that one agent wanted to throw a Valentine's Day party. Evaluated believability via human judges in controlled ablations and end-to-end emergent behavior measurements.
+
+### Architecture
+
+Three-component memory system:
+
+**Memory stream:** comprehensive append-only log of observations as natural language strings, each with a creation timestamp, a last-accessed timestamp, and an LLM-scored importance weight (1–10 "poignancy" — "brushing teeth" = 2, "breakup" = 9+).
+
+**Retrieval:** weighted combination of three scores — recency (exponential decay, factor 0.995 per game hour since last access), importance (stored at write time), relevance (semantic similarity to current situation). Final score = α·recency + β·importance + γ·relevance. Top-K retrieved memories are passed to the LLM.
+
+**Reflection:** periodically triggered when the sum of importance scores for recent events exceeds a threshold (150). The agent queries itself — "what are the 3 most salient questions I can ask given my recent experiences?" — retrieves memories for each question, and synthesizes higher-level insights ("Klaus is dedicated to his research on gentrification"). Reflections are stored back in the memory stream alongside observations and are retrievable like facts.
+
+**Planning:** top-down daily plan generation, recursively decomposed. Plans stored in the memory stream and included in retrieval.
+
+### Key numbers
+
+Full architecture (memory + planning + reflection) vs. no-memory baseline: Cohen's d = 8.16 — eight standard deviations on believability. Every ablation was significant. Removing reflection caused the largest single drop after removing memory entirely. Information diffusion worked: a party known only by one agent spread to most of the 25 agents across two days.
+
+### What it gives the behavior list
+
+**Reflection is the mechanism for knowing someone vs. knowing facts about them.** Without reflection, the agent with the most interactions with Klaus was his dorm neighbor Wolfgang — frequent but shallow. With reflection, the agent inferred that Klaus is passionate about research and chose Maria (who shares that interest) instead. The distinction between B1 (relational texture) and a pure fact store is exactly this: synthesis over time produces a model of the person, not just a list of observations. This is the closest architectural implementation of what B2 and B6 describe.
+
+**Importance weighting at write time is an early implementation of emotional weighting.** They ask the LLM to score poignancy when a memory is stored. High-importance memories stay more retrievable under recency decay. This is not B4 (emotionally appropriate surfacing at the right moment) but it's the same architectural insight: not all memories should be weighted equally, and emotional significance should influence retrieval. The gap between their approach and B4 is the speak/silent policy — they retrieve what's important and surface it; there's no case where the right answer is silence.
+
+**Memory embellishments = the precision requirement in action.** "Generative agents remember, but with embellishments." Agents retrieved incomplete memory fragments and filled them with plausible-sounding details — "I'm not sure if there is a Valentine's Day party, but I do remember that I need to discuss the election with Isabella at the party, if one is happening." This is exactly what the community data called out as confabulation that users can detect. The paper acknowledges it as a failure mode with no solution in this architecture.
+
+**Memory hacking = the B7 concern stated explicitly.** "A carefully crafted conversation could convince an agent of the existence of a past event that never occurred." The paper names this as a robustness risk and defers it to future work. This is the aelios case — fabricated memory with realistic texture, no way for the user to verify. B7 (inspectable and correctable) is the mitigation.
+
+**B3 (knows who you are now) is not solved.** The memory stream is append-only. Old observations persist indefinitely. Recency decay helps retrieval but doesn't resolve contradictions — an agent that was anxious about something still has those high-importance memories competing with newer ones. The architecture has no mechanism for marking a prior state as superseded. This is the core gap B3 addresses.
+
+**B0 (stable self) is handled statically, not dynamically.** The agent's character traits are in the initial setup and carried in every prompt. This works for a 2-day simulation but doesn't address what happens when the underlying model is updated — the B8 concern. The paper doesn't discuss model updates at all.
+
+### What the evaluation gives Phase 3
+
+The interview method — probing agents on self-knowledge, memory retrieval, plans, reactions, and reflections — is a direct analogue to the Phase 3 behavioral continuity test. Their five question categories map to B1/B2/B3/B7. The failure modes they document (incomplete retrieval, embellishments, memory hacking vulnerability) are exactly the failure modes Phase 3 needs to score.
+
+Their believability metric is human judgment, not a formal score. They had crowdworkers compare agent responses across conditions. That's the right evaluation approach for companion memory — not fact-recall but human assessment of whether the response is coherent with the relationship history.
+
+### What it does not cover
+
+- All simulated agents, no human-AI pair. No user disclosing real personal information.
+- 2-game-day simulation. No months-long relationship arc.
+- No speak/silent policy. Retrieval surfaces what's important; silence is not a valid output class.
+- No emotional context conditioning. Importance is scored at write time, not conditioned on the emotional context of the retrieval moment.
+- No mechanism for a model update to preserve relationship state (B8).
+
+### What to do
+
+The reflection architecture (observation → importance-weighted aggregation → periodic higher-level synthesis → stored back alongside observations) is the starting point for implementing B2 and B3. The key departure from their approach: trigger reflection on emotional significance (a high-importance personal disclosure, a resolved conflict, a changed circumstance) rather than a raw importance-score threshold. The threshold approach produces reflections about mundane accumulations; the emotional trigger produces reflections about the relationship.
+: When AI Remember Too Much
 
 Zeng, Yu, and Tian (UW–Whitewater, Citibank, Northern State). SIGMIS-CPR '26, May 2026. Read 2026-09-28.
 
