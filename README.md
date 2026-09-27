@@ -16,11 +16,9 @@ Build the memory technology that makes a companion feel like it actually knows y
 
 The real test is not a benchmark score. It's someone using the companion over months and noticing, unprompted, that it remembered something at exactly the right moment. It's a relationship that feels continuous. A number can't fully capture that — but we need one anyway, because without an external check you drift toward optimizing your own intuitions. The number is a compass during build, not the destination.
 
-The working compass: a behavioral continuity test run against CharacterAI, Replika, and our system on the same scripted history. Human judge scores relationship coherence, appropriate recall, and fabrication. Not LoCoMo — that measures whether the right fact came back, not whether surfacing it was the right move. We don't know yet exactly what that test looks like. Phase 3 figures it out.
+The working compass: a behavioral continuity test run against the best products in the field on the same scripted history. Human judge scores relationship coherence, appropriate recall, and fabrication. Not LoCoMo — that measures whether the right fact came back, not whether surfacing it was the right move.
 
 Path: [`TODO.md`](TODO.md). Docs: [`docs/INDEX.md`](docs/INDEX.md).
-
-We still do not know what we are shipping. That answer comes from Phase 3, not before.
 
 ## How we work
 
