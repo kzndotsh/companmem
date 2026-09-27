@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Character.AI Data Donation Tool",
+  "description": "A browser extension used for research purposes that collects some chat history on Character.AI.",
+  "version": "7.0",
+  "icons": {
+    "128": "/icon.png"
+  },
+  "permissions": [],
+  "background": {
+    "service_worker": "/scripts/background.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["/scripts/intercept.js", "/ReadOffline.html"],
+      "matches": [
+        "https://beta.character.ai/*",
+        "https://plus.character.ai/*",
+        "https://character.ai/*"
+      ]
+    }
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://beta.character.ai/*",
+        "https://plus.character.ai/*",
+        "https://character.ai/*"
+      ],
+      "js": [
+        "/scripts/crc32.min.js",
+        "/scripts/jszip.min.js",
+        "/scripts/content.js"
+      ],
+      "css": ["/style/main.css"],
+      "run_at": "document_end"
+    }
+  ]
+}

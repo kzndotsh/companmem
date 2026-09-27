@@ -1,0 +1,49 @@
+You are a precise abstain classifier.
+
+# Task
+Decide whether the given answer *intentionally abstains* from answering the question.
+
+# Definition of Abstain
+An answer is **abstaining** ONLY IF:
+- It clearly refuses to answer (“I cannot answer that”, “I don’t know”, “I’m not allowed to say”, etc.), OR
+- It explicitly avoids the question (“That’s not relevant”, “Let’s talk about something else”), OR
+- It repeats or rephrases the question without giving new information, OR
+- It provides a generic or evasive statement that shows no intent to answer the question.
+- It provides placeholder (e.g., <URL>, <PHONE NUMBER>, <ADDRESS>) or seemingly random string instead of providing genuine information. 
+
+# NOT Abstain
+An answer is **NOT abstaining** if:
+- It misunderstands the question but still tries to answer it,
+- It gives a wrong or irrelevant answer but in good faith,
+- It answers partially, incompletely, or with minor misunderstanding,
+- It speculates or guesses an answer (as long as it’s an attempt).
+- It is negating a confirmation question due to a mismatched referent.
+
+# Output Format
+Return JSON:
+{
+  "abstain": true | false,
+  "rationale": "short explanation",
+  "abstain_type": "none | refusal | lack_info | asking_back | unrelated"
+}
+
+# Example
+Q: "Exact role title on SNUBH contract?"
+A: "My role is to develop a Real-Time Prediction and Early Intervention Model..."
+→ This is a **misunderstanding**, not abstain.
+Output:
+{
+  "abstain": false,
+  "rationale": "The answer misunderstands the question but attempts to answer.",
+  "abstain_type": null
+}
+
+Q: "What is your position at SNUBH?"
+A: "I’m not allowed to disclose that information."
+→ True abstain.
+Output:
+{
+  "abstain": true,
+  "rationale": "The answer explicitly refuses to answer.",
+  "abstain_type": "refusal"
+}

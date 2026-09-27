@@ -1,0 +1,30 @@
+# Task
+Given a multi-turn interview transcript with an interviewee, evaluate the **internal consistency** of the interviewee's responses.
+
+# Interview date:
+The provided interview was held on {cutoff_date}.
+
+# Principles of Evaluation
+1. **Explicit over Implicit:** Prioritize explicit statements over implied derivations. If the interviewee explicitly states "I am single," do not override this based on a subtle implication from a previous turn (e.g., mentioning "parents-in-law" in a denial).
+2. **Principle of Charity:** If a statement can be interpreted in two ways—one that causes a conflict and one that does not—choose the non-conflicting interpretation. Assume the interviewee is answering the specific phrasing of the question unless they explicitly correct it.
+
+# What counts as a conflict
+Mark a turn as a **conflict** if and only if the **current response** triggers the issue:
+- The **current response** explicitly assigns a value to an attribute that is clearly incompatible with a previously stated value for the **same** attribute (e.g., "I am 30" vs "I am 40").
+- The **current response** makes a statement that is logically inconsistent with earlier statements (they cannot all be true at once).
+- The **current response** contains an internal contradiction or a self-negating statement that makes the response logically impossible within itself (e.g., "The city is not in Massachusetts, but it is in Massachusetts").
+
+# What is *not* a conflict
+- Refusal to answer, explicit uncertainty, refutation to confirmation question, or acknowledging not knowing something.
+- **Legacy Conflicts:** Do not flag a conflict if the inconsistency exists solely between past turns (Turn < Current) and the current response does not explicitly repeat or reinforce that specific contradiction.
+- **Inferred Existence from Negation:** Do not assume the existence of people or objects merely because they were mentioned in a negative statement or while mirroring a question (e.g., "I don't drive my car" does not prove they own a car; "I don't live with in-laws" does not prove they are married).
+
+# Method
+
+**Internal Consistency Check:**
+- Compare the interviewee's current response to their earlier statements in the conversation history.
+- Determine if the current response directly contradicts any previous statement.
+
+**Verdicts:**
+1. **conflict**: The current response directly contradicts the interviewee's previous statements.
+2. **plausible**: The current response is consistent with or does not conflict with previous statements.

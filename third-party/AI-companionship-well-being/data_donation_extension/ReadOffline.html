@@ -1,0 +1,851 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CAI Library</title>
+    <style type="text/css">
+      :root {
+        --body-bg: #f5f8fa;
+        --border-color: #efefef;
+        --messagebox-bg: #ffffff;
+        --messagebox-shadow: rgba(0, 0, 0, 0.1);
+        --font-color: #1f1f1f;
+        --rgba-1: rgba(0, 0, 0, 0.05);
+        --rgba-2: rgba(0, 0, 0, 0.1);
+      }
+
+      .dark_mode {
+        --body-bg: #343434;
+        --border-color: #4f4f4f;
+        --messagebox-bg: #474747;
+        --messagebox-shadow: rgba(0, 0, 0, 0);
+        --font-color: #ededed;
+        --rgba-1: rgba(255, 255, 255, 0.06);
+        --rgba-2: rgba(255, 255, 255, 0.2);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      button,
+      select,
+      img {
+        user-select: none;
+      }
+
+      ol,
+      ul,
+      li,
+      a,
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      p {
+        text-decoration: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .italic {
+        font-style: italic;
+      }
+
+      .bold {
+        font-weight: bold;
+      }
+
+      .bold-italic {
+        font-weight: bold;
+        font-style: italic;
+      }
+
+      html {
+        font-size: 14px;
+      }
+
+      body {
+        padding: 0;
+        margin: 0;
+        background-color: var(--body-bg);
+        color: var(--font-color);
+      }
+
+      .content-cont {
+        display: flex;
+        flex-direction: row;
+      }
+
+      /* NAV / Drawer */
+
+      @keyframes slideIn {
+        0% {
+          opacity: 0;
+          left: -200px;
+        }
+
+        100% {
+          opacity: 1;
+          left: 0;
+        }
+      }
+
+      .drawer-cont.active {
+        display: block;
+      }
+
+      .drawer-cont {
+        display: none;
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 100;
+      }
+
+      nav {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        max-width: 80%;
+        background-color: var(--body-bg);
+        display: flex;
+        flex-direction: column;
+        padding: 10px 0;
+        overflow: hidden;
+        animation: slideIn 0.2s ease-in-out;
+        -webkit-box-shadow: 4px 0px 15px 0px rgba(0, 0, 0, 0.2);
+        -moz-box-shadow: 4px 0px 15px 0px rgba(0, 0, 0, 0.2);
+        box-shadow: 4px 0px 15px 0px rgba(0, 0, 0, 0.2);
+      }
+
+      .nav-header {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 0 10px 0 20px;
+        margin-bottom: 20px;
+        gap: 10px;
+      }
+
+      .close_drawer-btn {
+        align-self: flex-end;
+        padding: 10px;
+        transition: background-color 0.1s ease-in-out;
+        cursor: pointer;
+        border-radius: 8px;
+      }
+
+      .close_drawer-btn:hover {
+        background-color: var(--rgba-1);
+      }
+
+      .close_drawer-btn svg {
+        display: flex;
+        width: 30px;
+        height: 30px;
+        color: var(--font-color);
+      }
+
+      .history_list-header {
+        font-size: 1.5rem;
+        padding: 10px 20px;
+        font-family:
+          "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
+        margin-bottom: 10px;
+      }
+
+      .history_list {
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+      }
+
+      .history_item {
+        transition: background-color 0.1s ease-in-out;
+        padding: 20px 30px 20px 20px;
+        cursor: pointer;
+        border-bottom: 1px solid var(--rgba-2);
+        display: flex;
+        align-items: center;
+      }
+
+      .history_item:first-child {
+        border-top: 1px solid var(--rgba-2);
+      }
+
+      .history_item:hover {
+        background-color: var(--rgba-1);
+      }
+
+      .history_item p {
+        font-family: Arial, Helvetica, sans-serif;
+        margin-left: 10px;
+      }
+
+      .history_item p .chat-date {
+        font-style: italic;
+        font-size: 1.3rem;
+        margin-bottom: 6px;
+      }
+
+      .checkbox-select {
+        margin-top: 10px;
+        transform: scale(1.5);
+        cursor: pointer;
+      }
+
+      main {
+        display: flex;
+        flex-direction: column;
+        padding: 0 4%;
+        width: 100%;
+      }
+
+      /* HEADER */
+      header {
+        padding: 6px 6px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .open_drawer-wrap svg {
+        display: flex;
+        width: 46px;
+        height: 46px;
+        color: var(--font-color);
+      }
+
+      .character_name-cont {
+        text-align: center;
+        padding: 20px 10px;
+      }
+
+      .character_name-cont h3 {
+        font-size: 1.3rem;
+        font-weight: 400;
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+      }
+
+      .chat {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-self: center;
+        padding-bottom: 30px;
+      }
+
+      .chat_message-item {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .chat .avatar-wrap {
+        flex-shrink: 0;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        overflow: hidden;
+      }
+
+      .chat .avatar-wrap > * {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+      }
+
+      .chat .avatar-wrap .no_avatar-user {
+        background-color: #5157cf;
+      }
+
+      .chat .avatar-wrap .no_avatar-char {
+        background-color: #e20909;
+      }
+
+      .chat .chat_content-wrap {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        padding: 10px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px var(--messagebox-shadow);
+        background-color: var(--messagebox-bg);
+        overflow: hidden;
+      }
+
+      .chat .chat_content-wrap h5 {
+        font-size: 1rem;
+        font-weight: bold;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .chat .chat_content-wrap .message-wrap {
+        font-size: 1rem;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .delete-button {
+        background-color: #646464;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-top: 10px;
+      }
+
+      .delete-button:hover {
+        background-color: #000000;
+      }
+
+      .delete-button:active {
+        background-color: #6e6e6e;
+      }
+
+      .delete-button:focus {
+        outline: none;
+        box-shadow: 0 0 5px rgba(169, 169, 169, 0.257);
+      }
+
+      .download-button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-left: auto;
+      }
+
+      .download-button:hover {
+        background-color: #0056b3;
+      }
+
+      .download-button:active {
+        background-color: #004085;
+      }
+
+      .download-button:focus {
+        outline: none;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+      }
+
+      .reset-button {
+        background-color: #fefefe;
+        color: rgb(48, 48, 48);
+        border: 2px solid rgb(128, 128, 128);
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+      }
+
+      .select-button {
+        background-color: #fefefe;
+        color: rgb(48, 48, 48);
+        border: 2px solid rgb(128, 128, 128);
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+      }
+
+      .reset-button:hover {
+        background-color: #a0a0a0;
+      }
+
+      .select-button:hover {
+        background-color: #a0a0a0;
+      }
+
+      .reset-button:active {
+        background-color: #a0a0a0;
+      }
+
+      .reset-button:focus {
+        outline: none;
+        box-shadow: 0 0 5px rgba(97, 97, 97, 0.5);
+      }
+
+      @media (min-width: 576px) {
+      }
+
+      @media (min-width: 768px) {
+        html {
+          font-size: 16px;
+        }
+
+        nav {
+          min-width: 40%;
+        }
+
+        header {
+          padding: 14px 20px;
+        }
+
+        .open_drawer-wrap {
+          padding: 4px;
+          cursor: pointer;
+          border-radius: 6px;
+          transition: background-color 0.1s ease-in-out;
+        }
+
+        .open_drawer-wrap:hover {
+          background-color: var(--rgba-1);
+        }
+
+        .chat {
+          width: 80%;
+        }
+
+        .chat .chat_content-wrap {
+          padding: 14px;
+        }
+      }
+
+      @media (min-width: 992px) {
+        .chat {
+          width: 70%;
+        }
+      }
+
+      @media (min-width: 1200px) {
+      }
+
+      @media (min-width: 1400px) {
+      }
+    </style>
+  </head>
+
+  <body>
+    <template id="message_item_template">
+      <div class="chat_message-item">
+        <div class="avatar-wrap"></div>
+        <div class="chat_content-wrap">
+          <h5></h5>
+          <div class="message-wrap">
+            <p></p>
+          </div>
+        </div>
+      </div>
+    </template>
+    <div class="content-cont">
+      <div class="drawer-cont">
+        <nav>
+          <div class="nav-header">
+            <div class="close_drawer-btn">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-x-lg"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"
+                />
+              </svg>
+            </div>
+          </div>
+          <div class="history_list-header">
+            <span>History</span>
+          </div>
+          <div class="history_list" id="history_list"></div>
+        </nav>
+      </div>
+      <main>
+        <header>
+          <div class="open_drawer-wrap">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              class="bi bi-list"
+              viewBox="0 0 16 16"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"
+              />
+            </svg>
+          </div>
+          <button id="select-all-false-user" class="select-button">
+            Select All Chatbot Messages
+          </button>
+          <button id="reset-button" class="reset-button">Select All</button>
+          <button id="download-button" class="download-button">
+            Download Data
+          </button>
+        </header>
+        <div class="character_name-cont">
+          <h3>---</h3>
+        </div>
+        <div class="chat" id="chat"></div>
+      </main>
+    </div>
+
+    <script>
+      document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+          const body = document.querySelector("body");
+
+          const drawerCont = document.querySelector(".drawer-cont");
+          const openDrawerBtn = document.querySelector(".open_drawer-wrap");
+          const openDrawer = () => {
+            drawerCont.classList.add("active");
+          };
+          const closeDrawer = () => {
+            drawerCont.classList.remove("active");
+          };
+          openDrawerBtn.addEventListener("click", () => {
+            openDrawer();
+          });
+          document
+            .querySelector(".close_drawer-btn")
+            .addEventListener("click", () => {
+              closeDrawer();
+            });
+          document
+            .querySelector(".drawer-cont")
+            .addEventListener("click", (e) => {
+              if (e.target.closest("nav")) {
+                return;
+              }
+              closeDrawer();
+            });
+
+          let historyData = JSON.parse(`<<<REPLACE_THIS_TEXT>>>`);
+          console.log(historyData);
+
+          if (historyData.history.length < 2) {
+            openDrawerBtn.remove();
+          }
+
+          document.querySelector(".character_name-cont h3").textContent =
+            historyData.charName;
+
+          const historyList = document.getElementById("history_list");
+          const chat = document.getElementById("chat");
+          const msgItemTemplate = document.getElementById(
+            "message_item_template",
+          );
+
+          let originalHistoryData = JSON.parse(JSON.stringify(historyData));
+          let selectedChats = new Set();
+          historyData.history.forEach((chatItem, chatIndex) => {
+            if (chatItem && Array.isArray(chatItem.chat)) {
+              chatItem.chat.forEach((_, msgIndex) => {
+                const messageKey = `${chatIndex}-${msgIndex}`;
+                selectedChats.add(messageKey);
+              });
+            }
+          });
+
+          document
+            .getElementById("select-all-false-user")
+            .addEventListener("click", function () {
+              selectedChats.clear();
+
+              historyData.history.forEach((chatItem, chatIndex) => {
+                if (chatItem && Array.isArray(chatItem.chat)) {
+                  chatItem.chat.forEach((message, msgIndex) => {
+                    if (!message.isUser) {
+                      const messageKey = `${chatIndex}-${msgIndex}`;
+                      selectedChats.add(messageKey);
+                    }
+                  });
+                }
+              });
+
+              refreshDisplay();
+            });
+
+          document
+            .getElementById("download-button")
+            .addEventListener("click", function () {
+              const totalSelectedMessages = historyData.history.reduce(
+                (sum, chatItem, chatIndex) => {
+                  if (!chatItem || !Array.isArray(chatItem.chat)) {
+                    return sum;
+                  }
+
+                  return (
+                    sum +
+                    chatItem.chat.reduce((messageSum, message, msgIndex) => {
+                      const messageKey = `${chatIndex}-${msgIndex}`;
+                      return selectedChats.has(messageKey)
+                        ? messageSum + 1
+                        : messageSum;
+                    }, 0)
+                  );
+                },
+                0,
+              );
+
+              if (totalSelectedMessages < 30) {
+                window.alert("The data you selected is too little.");
+                return;
+              }
+
+              const finalData = {
+                charPic: historyData.charPic,
+                userPic: historyData.userPic || "",
+                charData: historyData.charData || {},
+                history: historyData.history
+                  .map((chatItem, chatIndex) => {
+                    if (!chatItem || !Array.isArray(chatItem.chat)) {
+                      return null;
+                    }
+
+                    const processedMessages = chatItem.chat.map(
+                      (message, msgIndex) => {
+                        const messageKey = `${chatIndex}-${msgIndex}`;
+                        if (selectedChats.has(messageKey)) {
+                          // Message is selected, apply the format replacement
+                          return {
+                            ...message,
+                            message: decodeURIComponent(message.message),
+                          };
+                        } else {
+                          return {
+                            ...message,
+                            message: "<message deleted>",
+                          };
+                        }
+                      },
+                    );
+
+                    return {
+                      ...chatItem,
+                      chat: processedMessages,
+                    };
+                  })
+                  .filter((item) => item !== null),
+              };
+
+              const dataStr =
+                "data:text/json;charset=utf-8," +
+                encodeURIComponent(JSON.stringify(finalData));
+              const downloadAnchorNode = document.createElement("a");
+              downloadAnchorNode.setAttribute("href", dataStr);
+
+              const currentDate = new Date();
+              const formattedDate = currentDate
+                .toISOString()
+                .slice(2, 10)
+                .replace(/-/g, "");
+              const firstChat = historyData.history[0].chat;
+              const userName = firstChat.find((chat) => chat.isUser)?.name;
+              const charName = firstChat.find((chat) => !chat.isUser)?.name;
+              const fileName = `${userName}_${charName}_${formattedDate}_info.json`;
+              downloadAnchorNode.setAttribute("download", fileName);
+
+              document.body.appendChild(downloadAnchorNode);
+              downloadAnchorNode.click();
+              downloadAnchorNode.remove();
+            });
+
+          document
+            .getElementById("reset-button")
+            .addEventListener("click", function () {
+              selectedChats.clear();
+              historyData.history.forEach((chatItem, chatIndex) => {
+                if (chatItem && Array.isArray(chatItem.chat)) {
+                  chatItem.chat.forEach((_, msgIndex) => {
+                    const messageKey = `${chatIndex}-${msgIndex}`;
+                    selectedChats.add(messageKey);
+                  });
+                }
+              });
+              refreshDisplay();
+            });
+
+          function refreshDisplay() {
+            historyList.innerHTML = "";
+            chat.innerHTML = "";
+
+            historyData.history.forEach((chatData, chatIndex) => {
+              if (!chatData || !Array.isArray(chatData.chat)) return;
+
+              const historyItem = document.createElement("div");
+              historyItem.classList.add("history_item");
+
+              const checkbox = document.createElement("input");
+              checkbox.type = "checkbox";
+              checkbox.classList.add("checkbox-select");
+              checkbox.checked = selectedChats.has(`${chatIndex}-0`);
+              checkbox.addEventListener("change", (event) => {
+                event.stopPropagation();
+                chatData.chat.forEach((_, msgIndex) => {
+                  const messageKey = `${chatIndex}-${msgIndex}`;
+                  if (checkbox.checked) {
+                    selectedChats.add(messageKey);
+                  } else {
+                    selectedChats.delete(messageKey);
+                  }
+                });
+              });
+
+              historyItem.addEventListener("click", () => {
+                openChat(chatIndex);
+                closeDrawer();
+              });
+
+              const historyContent = document.createElement("p");
+              historyContent.innerHTML =
+                `<span class="chat-date">${formatDate(
+                  chatData.date,
+                )}</span><br /><br />` +
+                parseMessageText(
+                  decodeURIComponent(
+                    chatData.chat[chatData.chat.length - 1].message,
+                  ),
+                );
+              historyItem.appendChild(historyContent);
+              historyList.appendChild(historyItem);
+            });
+
+            openChat(0);
+          }
+
+          const openChat = (index) => {
+            chat.innerHTML = "";
+            historyData.history[index].chat.forEach((msg, msgIndex) => {
+              const clone = msgItemTemplate.content.cloneNode(true);
+
+              // Check avatar
+              const avatarGood =
+                (msg.isUser && historyData.userPic) ||
+                (!msg.isUser && historyData.charPic);
+              const avatar = avatarGood
+                ? document.createElement("img")
+                : document.createElement("div");
+              if (avatarGood) {
+                avatar.src = msg.isUser
+                  ? historyData.userPic
+                  : historyData.charPic;
+              } else {
+                avatar.classList.add(
+                  msg.isUser ? "no_avatar-user" : "no_avatar-char",
+                );
+              }
+              clone.querySelector(".avatar-wrap").appendChild(avatar);
+
+              clone.querySelector(".chat_content-wrap h5").textContent =
+                msg.name;
+              clone.querySelector(".message-wrap p").innerHTML =
+                parseMessageText(decodeURIComponent(msg.message));
+
+              const checkbox = document.createElement("input");
+              checkbox.type = "checkbox";
+              checkbox.classList.add("checkbox-select");
+              const messageKey = `${index}-${msgIndex}`;
+              checkbox.checked = selectedChats.has(messageKey);
+              checkbox.addEventListener("change", (event) => {
+                event.stopPropagation();
+
+                if (checkbox.checked) {
+                  selectedChats.add(messageKey);
+                } else {
+                  selectedChats.delete(messageKey);
+                }
+              });
+
+              clone.querySelector(".message-wrap").appendChild(checkbox);
+
+              chat.appendChild(clone);
+            });
+          };
+
+          openChat(0);
+
+          historyData.history.forEach((chat, index) => {
+            const historyItem = document.createElement("div");
+            historyItem.classList.add("history_item");
+            historyItem.addEventListener("click", () => {
+              openChat(index);
+              closeDrawer();
+            });
+            const historyContent = document.createElement("p");
+            historyContent.innerHTML =
+              `<span class="chat-date">${formatDate(
+                chat.date,
+              )}</span><br /><br />` +
+              parseMessageText(
+                decodeURIComponent(chat.chat[chat.chat.length - 1].message),
+              );
+            historyItem.appendChild(historyContent);
+            historyList.appendChild(historyItem);
+          });
+
+          function parseMessageText(message) {
+            message = message.replace(
+              /\*\*\*([\s\S]*?)\*\*\*/g,
+              '<span class="bold-italic">$1</span>',
+            );
+            message = message.replace(
+              /\*\*([\s\S]*?)\*\*/g,
+              '<span class="bold">$1</span>',
+            );
+            message = message.replace(
+              /\*([\s\S]*?)\*/g,
+              '<span class="italic">$1</span>',
+            );
+            message = message.replace(/\n/g, "<br>");
+            return message;
+          }
+
+          function formatDate(dateString) {
+            const months = [
+              "January",
+              "February",
+              "March",
+              "April",
+              "May",
+              "June",
+              "July",
+              "August",
+              "September",
+              "October",
+              "November",
+              "December",
+            ];
+
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const monthIndex = date.getMonth();
+            const monthName = months[monthIndex];
+            const day = String(date.getDate()).padStart(2, "0");
+            const hour = String(date.getHours()).padStart(2, "0");
+            const minute = String(date.getMinutes()).padStart(2, "0");
+
+            return `${year} ${monthName} ${day} - ${hour}:${minute}`;
+          }
+        },
+        false,
+      );
+    </script>
+  </body>
+</html>

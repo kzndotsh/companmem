@@ -1,0 +1,235 @@
+---
+title: "AI_companionship_analysis"
+author: "Yutong Zhang"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(psych)
+library(ggplot2)
+library(readr)
+library(car)
+library(pwr)
+library(tidyr)
+library(lavaan)
+library(dplyr)
+library(sjPlot)
+library(patchwork)
+library(interactions)
+library(mediation)
+library(ggeffects)
+library(broom)
+library(sampleSelection)
+library(tidyverse)
+library(psych)
+library(sampleSelection)
+```
+
+```{r data_import, echo=TRUE}
+data <- read_csv("./data.csv", show_col_types = FALSE)
+```
+
+
+# interaction ~ social network
+
+## interaction intensity ~ social network
+```{r}
+model <- lm(intensity ~ social_network_scale
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+## companionship ~ social network
+```{r}
+model <- lm(companionship_prim ~ social_network_scale
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+```{r}
+model <- lm(companionship_desc ~ social_network_scale
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+```{r}
+model <- selection(
+  selection = donated ~ tenure_of_activity + male + non_binary + age + single,
+  outcome   = companionship_chat ~ social_network_scale + tenure_of_activity + male + non_binary + age + single,
+  data = data,
+  method = "2-stage"
+)
+summary(model)
+```
+
+## self-disclosure ~ social network
+```{r}
+model <- lm(self_disclosure ~ social_network_scale
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+
+# intensity + companionship
+```{r}
+model <- lm(well_being ~ intensity + companionship_prim
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+```{r}
+model <- lm(well_being ~ intensity + companionship_desc
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+```{r}
+model <- selection(
+  selection = donated ~ tenure_of_activity + male + non_binary + age + single,
+  outcome   = well_being ~ intensity + companionship_chat + tenure_of_activity + male + non_binary + age + single,
+  data = data,
+  method = "2-stage"
+)
+summary(model)
+```
+
+
+# intensity * companionship
+```{r}
+model <- lm(well_being ~ intensity * companionship_prim
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+```{r}
+model <- lm(well_being ~ intensity * companionship_desc
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+```{r}
+model <- selection(
+  selection = donated ~ tenure_of_activity + male + non_binary + age + single,
+  outcome   = well_being ~ intensity * companionship_chat + tenure_of_activity + male + non_binary + age + single,
+  data = data,
+  method = "2-stage"
+)
+summary(model)
+```
+
+
+# companionship * self-disclosure
+```{r}
+model <- lm(well_being ~ companionship_prim * self_disclosure
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+```{r}
+model <- lm(well_being ~ companionship_desc * self_disclosure
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+
+# social network * intensity
+```{r}
+model <- lm(well_being ~ intensity * social_network_scale
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+# social network * companionship
+```{r}
+model <- lm(well_being ~ companionship_prim * social_network_scale
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+```{r}
+model <- lm(well_being ~ companionship_desc * social_network_scale
+            + tenure_of_activity
+            + male
+            + non_binary
+            + age
+            + single,
+            data = data)
+summary(model)
+```
+
+```{r}
+model <- selection(
+  selection = donated ~ tenure_of_activity + male + non_binary + age + single,
+  outcome   = well_being ~ companionship_chat * social_network_scale + tenure_of_activity + male + non_binary + age + single,
+  data = data,
+  method = "2-stage"
+)
+summary(model)
+```
+
+
+
+
+
+
+
