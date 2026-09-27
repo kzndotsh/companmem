@@ -1,6 +1,10 @@
 # Questions
 
-The mission is to build the memory technology that makes the most human-like companion we can, then show it with a number someone else can rerun. We still do not know what we are shipping, and we still do not know what that number measures. The field map exists so we do not copy everyone else's extract-and-search pipeline. The missing piece is a number we would bet the company on. We get it by running the same situation on our companion and on other products, then reading a result someone else can run again. That number is what tells us the product.
+The mission is to build the memory technology that makes the most human-like companion we can, then show it with a number someone else can rerun. The field map exists so we do not copy everyone else's extract-and-search pipeline.
+
+**What we are shipping:** a memory system that produces B0–B8 behaviors — the nine named things a companion does that produce the feeling of being known. See [Behaviors](BEHAVIORS.md).
+
+**What the number measures:** the behavioral continuity score — a SENSE-7-based human judge rating on a scripted multi-session history, run against CharacterAI, Replika, and the system under test with identical input. The comparison is the number. See [Exam](EXAM.md).
 
 These docs are the source of truth. No order or priority yet. An example in `TODO.md` or `README.md` is not the assignment.
 

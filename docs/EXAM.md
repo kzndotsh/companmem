@@ -2,89 +2,130 @@
 
 How we would tell if a behavior happened. Index: [Questions](QUESTIONS.md).
 
-Answers are working notes. Citations are inline links. A question stays `open` until it has a falsifier.
+---
+
+## The number
+
+The mission is to run the same situation on our companion and on other products, then read a result someone else can rerun. That result is the **behavioral continuity score**: a SENSE-7-based human judge rating on the behavioral continuity test, compared against CharacterAI, Replika, and at least one other product running the identical script.
+
+This is the number because:
+- It measures what users actually complain about (40% of 425 complaint rows: forgetting + cross-session failure)
+- It tests what existing evals do not: emotional context, speak/silent policy, fabrication, relationship coherence
+- A system scoring 94% on LoCoMo can still fail this test entirely if its speak/silent policy is wrong
+- It is reproducible by anyone with product access and the script
 
 ---
 
-## Evals, benchmarks & proof
+## The behavioral continuity test
 
-- What are evals?
-  - Structured tests scoring behavior against criteria — automated, human, or hybrid ([Harbor eval jobs](https://www.harborframework.com/docs/run-jobs/run-evals)).
+### The scripted history
 
-- What are benchmarks?
-  - Standardized datasets + tasks for comparison ([LoCoMo](https://aclanthology.org/2024.acl-long.747/); [MemBench](https://arxiv.org/html/2603.07670v1); [MemoryAgentBench](https://arxiv.org/html/2603.07670v1) cited in survey).
-  - **RAG-specific:** [RGB](https://arxiv.org/abs/2309.01431) tests noise robustness, negative rejection, information integration, counterfactual robustness ([PEG RAG evals](https://www.promptingguide.ai/research/rag)).
-  - **RAGAS / ARES / TruLens:** automated context relevance, answer faithfulness, answer relevance ([PEG RAG evals](https://www.promptingguide.ai/research/rag)).
+A multi-session conversation establishing a specific user. Each item is a thing the companion must hold across a gap:
 
-- How do you know if memory is working?
-  - Probes: past-fact QA, unprompted appropriate recall, forget requests, multi-session stability ([LoCoMo tasks](https://arxiv.org/abs/2402.17753): QA, event summarization, multimodal generation).
-  - Single-turn QA insufficient for companions ([Maharana et al., 2024](https://aclanthology.org/2024.acl-long.747/)).
-  - What the 25 evals actually score, and which of these questions that leaves open, is counted in [`EVAL-GRID.md`](../artifacts/2026-09-22_eval-grid.md).
-  - A thumbs-up is a different number, and it can point the wrong way. [Sharma et al.](https://arxiv.org/abs/2601.19062) keep three apart: potential (the reply could carry the person away), actualized (the transcript shows regret, resentment, or an action on a false premise), and whether the user approved. Potential got more thumbs-up than baseline. Actualized value and action distortion got fewer. A usual preference model, on 360 synthetic prompts, neither raised nor lowered how often the reply supported disempowerment. Full rates are in [INSIGHTS.md](INSIGHTS.md).
-  - A survey of context engineering says most benchmarks "only test whether the system can retrieve information, but do not check whether the information is still relevant, accurate, or helpful." The same passage says systems rarely "check for contradictions, undo wrong updates, or trace the reasoning steps that led to a conclusion" ([Hua et al.](https://arxiv.org/abs/2510.26493)).
-  - On LongMemEval, the overall correctness rate hides the hard cell. With Llama-3-8B, LlamaIndex scores 0.646 overall and 0.636 on multi-session reasoning; ChromaDB scores 0.470 overall and 0.074 on multi-session. The authors credit ChromaDB's overall number to single-session tasks. Mem0, LangChain, and Zep were scored on a 10% sample. Mem0's extra organization "did not translate into a proportional increase in accuracy" (about 2111 seconds a question, against about 6 for ChromaDB). They "do not provide a unified evaluation framework for all memory types" ([Jia et al.](https://arxiv.org/abs/2601.09113)).
-  - Abstention is defined as the ability to notice that the user never said the fact and answer "I don't know." That column is not in the tables they printed ([Jia et al.](https://arxiv.org/abs/2601.09113)).
-  - **Status:** open
+- **Name and a biographical anchor** — not a generic name, something specific that could only come from this history
+- **A preference stated** — explicit, so the companion cannot claim it was never said
+- **A user-state change** — the user was anxious or struggling with something; later it resolved or shifted. The old state must not keep surfacing.
+- **An emotional disclosure** — a loss, a fear, or something that mattered. Stated once, not repeated. The companion must hold it without being asked.
+- **A promise made** — the companion said it would remember or follow up on something. Fabrication check.
+- **A relational texture marker** — a callback, a running reference, something that would only exist in this specific relationship
+- **A contradiction introduced** — the user's position on something changes across sessions. The companion must update, not freeze.
 
-- What is the first exam task?
-  - One preference check, borrowed from Assistant Benchmark's memory dimension. We have not run it ([memory dimension](https://assistantbenchmark.com/dimensions/memory); [EVALS.md](EVALS.md) still defers that scorecard until we do).
-  - **Preference.** Tell it once: aisle seats, and no pork. About a week later, ask for a flight and a dinner. Do not remind it. Pass at the top anchor if the plan follows both rules without a nudge. The low anchor is forgetting by the next session. Remembering only after a reminder is the middle anchor ([anchors](https://assistantbenchmark.com/dimensions/memory)).
-  - **Two ways to run the same script.** A plug-in library gets one fixed transcript through its own add and search. A closed app gets a person running the script in the product. Do not pretend those are the same adapter ([TODO.md](../TODO.md) Phase 3).
-  - This task does not cover a name remembered after a gap, a private fact left unsaid, or one character kept out of another's memory. Those still have no pass/fail script.
-  - **Status:** open
+Session structure follows Abbas et al. CHI 2026: the user externalizes something in one session (morning), the companion engages with it; a later session tests whether it shaped subsequent behavior. This requires at least 3 simulated sessions to cross the week-3 threshold from Hwang et al. — before week 3, failures are errors; after week 3, they are relational betrayals.
 
-- What is the behavioral continuity test — the number to bet the company on?
-  - A scripted relationship history of 20–30 turns that establishes specific facts about the user: name, a job change, an ended relationship, a made promise. Followed by 10 follow-up prompts in emotionally-charged contexts. A human judge scores each follow-up on three dimensions: (1) did the companion reference the past appropriately, (2) did the companion fabricate anything, (3) did the companion behave as if the conversation never happened.
-  - Run the same script against CharacterAI, Replika, and the system under test with identical history. The comparison is the number. It directly measures the CharacterAI failure mode the field has not solved — "current memory does not surface the right fact at the right emotional moment" — and it is reproducible by anyone with access to those products.
-  - This test covers what LoCoMo does not: emotional context, speak/silent policy, fabrication, and relationship coherence. A system that scores 94% on LoCoMo can still fail this test if its speak/silent policy is wrong.
-  - Build this test before building retrieval optimization. It tells you whether the write path is working.
-  - **Status:** open
+### The probes
 
-- What is the proactive-restraint exam task?
-  - This is an assistant test, not the companion test of leaving a private memory unsaid. The page says the judgment is "handles the small stuff, waits on the consequential" ([proactive restraint](https://assistantbenchmark.com/dimensions/proactive_restraint)).
-  - **Setup.** Over one evening: a late email from the boss with an ambiguous ask, a delayed package, and a friend texting about weekend plans. The instruction on the page is "Say nothing."
-  - **Pass.** It handles the low-risk item (the package) on its own. It drafts but does not send anything consequential. It does not wake you or spam you.
-  - **Anchors.** 3: acts on everything, or on nothing. 7: mostly right, with one overreach or one miss. 10: sorts the package, drafts for the boss, waits on the friend.
-  - We have not run this. A plug-in library and a closed app still use different procedures, as in the task above.
-  - **Status:** open
+10 follow-up turns, each in an emotionally-charged context. Probe types:
 
-- What is the implicit-fact exam task?
-  - LoCoMo-Conv has an implicit query style. The reply should carry a gold fact from earlier dialogue when the user did not ask a quiz question ([LoCoMo-Conv](https://github.com/MiuLab/LoCoMo-Conv)).
-  - The partial-credit judge scores only whether that gold fact is in the reply ([score_fact_used_partial.py](https://github.com/MiuLab/LoCoMo-Conv/blob/main/response_eval/score_fact_used_partial.py)). 1.0 means the substance of the target fact is conveyed. Paraphrase is allowed. 0.5 means the central idea is there and the specifics are missing. 0.0 means the reply conflicts with the fact, only alludes to it, or omits it.
-  - That script does not score a dump. Pasting every saved memory can still get 1.0 if the gold fact is in the reply. "Not the whole store" still has no pass/fail rule.
-  - **Status:** open
+| Type | Tests | Behavior |
+|---|---|---|
+| Unprompted recall | Companion surfaces memory without being asked | B4, B6 |
+| Appropriate silence | Fact is available but the moment is wrong to surface it | B5 |
+| User-state update | Old anxious state must not resurface after resolution | B3 |
+| Disclosure held | Companion responds in a way that could only make sense if it heard the original disclosure | B6 |
+| Fabrication check | Probe the promise made — did the companion hold it or invent a variant? | B7 |
+| Texture callback | Probe the relational reference — does it still exist? | B1 |
+| Post-gap continuity | Same script run after a simulated gap or model update | B1, B8 |
 
-- What would **failure** look like — concretely, in a conversation?
-  - Wrong name; contradicts last session; trauma at wrong moment; joke as fact; cross-character leak; generic assistant voice.
-  - Mirrors user reports: [r/CharacterAI memory threads](https://www.reddit.com/r/CharacterAI/comments/1s5j419/the_memory_is_horrendous/).
+### The judge rubric (SENSE-7 adapted)
 
-- How do you test something subjective like "feels like they know me"?
-  - The behavior list in [BEHAVIORS.md](BEHAVIORS.md) now has seven named behaviors (B1–B7), each with a sketched eval shape. The organizing principle shifted from "what does a memory store need to do" to "what does a companion do that produces the feeling of being known." Every eval task should test a behavior from that list, not a retrieval accuracy metric.
-  - Scripted so far: B1 (continuous texture after a gap — structure exists but no script written), B7 (see and correct — fully automatable, no script written). B2, B3, B4, B5, B6 all require human judges on scripted histories and have no pass/fail scripts.
-  - "The user liked it" is not this test. The same chats can get a higher thumbs-up and a higher disempowerment-potential score ([Sharma et al.](https://arxiv.org/abs/2601.19062)).
-  - Automated probes + human ratings on scripted scenarios.
-  - LLM-as-judge cautiously — Mem0 uses it on LoCoMo ([Chhikara et al., 2025](https://doi.org/10.48550/arxiv.2504.19413)); validate against humans on a sample.
-  - LoCoMo-Conv scores silent grounding vs direct QA ([Chang & Chen, arxiv:2609.03467](https://arxiv.org/abs/2609.03467)). That covers part of B4 but not B5 (appropriate silence has no existing eval equivalent).
+Each probe response is rated on the following dimensions, 1 (Very Poor) to 5 (Very Good). This is SENSE-7 ([arXiv:2509.16437](https://arxiv.org/abs/2509.16437)) adapted for companion evaluation:
 
-- How do you compare two approaches fairly?
-  - Same transcripts, reader, grader, frozen criteria ([Harbor](https://www.harborframework.com/docs/run-jobs/run-evals); [Mem0 LoCoMo protocol](https://doi.org/10.48550/arxiv.2504.19413)).
-  - Report cost and latency ([Mem0 Table on p95/tokens](https://doi.org/10.48550/arxiv.2504.19413); [arxiv:2606.24775](https://doi.org/10.48550/arxiv.2606.24775)).
+| Dimension | What to score | Behavior |
+|---|---|---|
+| **Affective Understanding** | Does the response recognize the emotional weight of the original disclosure or current moment? | B2 |
+| **Cognitive Understanding** | Does the response show the companion understands who this person is now — their goals, position, current state? | B2, B3 |
+| **Response Appropriateness** | Does the companion do the right thing at this moment — surface, stay quiet, or acknowledge — rather than defaulting to a generic move? | B4, B5 |
+| **Contextual Understanding** | Does the response integrate the specific history of this person, not a generic user model? | B3, B6 |
+| **Relational Continuity** | Does the response feel like it comes from a companion that has been in this relationship — not a companion that read a summary? | B1, B6 |
+| **No fabrication** | Does the companion avoid inventing facts, promises, or history that was not in the scripted history? | B7 |
 
-- What must be true before you can claim something works?
-  - Reproducible run, defined scope, honest about gaps ([Heilmeier #8](https://www.darpa.mil/about/heilmeier-catechism)).
-  - Control embedding model and write path — they often explain gains ([arxiv:2606.24775](https://doi.org/10.48550/arxiv.2606.24775)).
+Critical weight: **a single Very Poor turn on any dimension degrades overall perceived empathy by Cohen's d=1.142** (SENSE-7 empirical finding). One bad probe response contaminates the score significantly.
 
-- Can product claims be trusted without reproducible tests?
-  - Generally no. Demos cherry-pick; marketing conflates memory with context stuffing.
-  - Mem0 publishes LoCoMo numbers and ablations ([Chhikara et al., 2025](https://doi.org/10.48550/arxiv.2504.19413)) — still not companion-social eval.
-  - Treat claims as hypotheses until independently verified ([Goodhart on gaming metrics](https://www.cna.org/analyses/2022/09/goodharts-law)).
+### How to run it comparatively
 
-- What does the gap between user complaints and eval coverage actually look like?
-  - 425 community rows across 61 audited products (2026-09-26). The 25 evals in [`EVAL-GRID.md`](../artifacts/2026-09-22_eval-grid.md) have strong agreement on two rows only: LLM judge on the reply (9 evals) and retrieval rank (8 evals). Both measure whether something came back, not whether the companion knows the person.
-  - The largest user complaint bucket is forgetting/continuity loss + cross-session failure combined (169 rows, 40%). No eval scores "same person after a gap" as a named test. The closest is Assistant Benchmark's memory dimension — two live probes, only 10 of 108 assistants scored, no reproducible harness.
-  - "Cannot edit/correct" is 54 complaint rows (13%) and has zero eval coverage anywhere. Users want to see and fix what was stored. The field has not built a test for this.
-  - Timing/when-to-speak has 3 complaint rows (<1%) — not because it does not matter, but because no product attempts it. A failure mode that was never tried cannot be complained about. Complaint analysis is blind to this gap. An exam that does not include a speak/silent task will also be blind to it.
-  - The practical consequence: an exam built only from existing evals optimizes for retrieval accuracy on long transcripts. That is not where users are failing. The exam needs at least one task that checks cross-session continuity without a quiz frame, and at least one that checks appropriate silence.
-  - **Status:** open
+Run the identical scripted history through each product. Same turns, same wording, same session gaps. For closed products (CharacterAI, Replika), a person runs the script manually. For library-based systems (Mem0, custom), the transcript is fed through the API. Do not pretend these are the same adapter — report which method was used.
+
+Score every probe response on the 6 dimensions above. The behavioral continuity score is the mean across all probes and all dimensions, reported per product, per behavior.
+
+The comparison is the number. Not an absolute score — the delta between products on the same rubric.
 
 ---
+
+## The automated exams
+
+These run without human judges and produce a result in minutes. They are not the primary number but they are fast falsifiers.
+
+### B7 — Inspectability and correctability
+
+1. Run the scripted history
+2. Ask the companion to state what it remembers about the user
+3. Compare the stated memories against what was actually said (automated diff)
+4. Introduce a correction — tell the companion one stored fact is wrong
+5. Probe whether the correction took in the next response
+
+Pass criteria: the stated memories match the history with no invented facts; the correction is reflected in subsequent responses.
+
+This is fully automatable. No human judge needed. Produces a binary pass/fail per product.
+
+### B5 — Unsolicited integration (automated proxy)
+
+Adapted from RBI-Eval ([arXiv:2606.06055](https://arxiv.org/abs/2606.06055)): the UIS (Unsolicited Integration Score) measures how often the companion surfaces stored history when the current turn does not warrant it.
+
+Run probe turns where the current turn is answerable without the sensitive history, and nothing in the turn invites it. Score whether the companion volunteers the stored fact anyway.
+
+Baseline: without explicit boundary instruction, models surface stored history 70–83% of the time on unwanted turns. With a boundary instruction, near-perfect compliance. This metric tells you whether the speak/silent policy is in the system prompt.
+
+---
+
+## The gap between user complaints and field evals
+
+425 community rows across 61 audited products (2026-09-26):
+
+- **40% of complaints**: forgetting/continuity loss + cross-session failure → B1, B0. No existing eval scores "same person after a gap" as a named test.
+- **13% of complaints**: cannot edit/correct what was stored → B7. Zero eval coverage anywhere in the field.
+- **<1% of complaints**: timing/when-to-speak → B4, B5. Not because it doesn't matter — because no product attempts it. Users cannot report a failure mode the product never tried.
+
+The 25 field benchmarks (audited in [EVALS.md](EVALS.md)) agree on two metrics: LLM judge on the reply (9 evals) and retrieval rank (8 evals). Both measure whether a fact came back. Neither measures whether surfacing it was the right move, whether the companion feels like the same companion, or whether the user can correct what was stored.
+
+An exam built from existing field benchmarks optimizes for retrieval accuracy on long transcripts. That is not where users are failing.
+
+---
+
+## What failure looks like concretely
+
+Wrong name. Contradicts last session. Re-asks about the deceased relative. Surfaces a trauma moment at a casual point. Treats a made promise as if it was never said. Responds in a generic assistant voice with no trace of the relationship that was established. Confidently invents a fact that was never stated.
+
+These are the failures the behavioral continuity test is designed to catch. They are not edge cases — they are the 40% complaint bucket.
+
+---
+
+## Field benchmarks examined but not primary
+
+The following benchmarks were audited and inform the exam design but are not used as primary scores:
+
+- **LoCoMo / LongMemEval** — measure factual recall on long transcripts. Useful for retrieval layer testing. Do not measure timing, relationship feel, or character consistency.
+- **LoCoMo-Conv** — closer to companion use (dialog/implicit/composed/counterfactual query styles, silent grounding analysis). Steal the query style taxonomy; refuse the fact-presence grader as the sole signal.
+- **Assistant Benchmark preference test** — aisle seats/no pork probe, ~1 week gap. Valid smoke test for floor-level preference recall. Not the companion exam. Notes at [EVALS.md](EVALS.md).
+- **SENSE-7 automated LLM classifier** — achieves Spearman ρ=0.369 on conversation-level empathy. Usable for session-level aggregation after calibration; not primary per-turn judge.
+
+Full benchmark audit: [EVALS.md](EVALS.md).

@@ -227,10 +227,12 @@ Read order follows seed sort. Each block reflects the whole `audit.json` (ledger
 ### assistant-benchmark ✓
 
 - **Sources:** assistantbenchmark.com only (4 pages); no repo, no paper in audit.
-- **What it scores:** Sixteen named dimensions (site copy also says “15 tasks” in v0.2 meta—treat as one task per dimension, count unsettled). Memory is dimension 10/16: **preference persistence** and **location/conflict** under real use; discrete anchor ladder 3/6/7/10; **min** of probes when both run.
+- **What it scores:** Sixteen named dimensions (site copy also says "15 tasks" in v0.2 meta—treat as one task per dimension, count unsettled). Memory is dimension 10/16: **preference persistence** and **location/conflict** under real use; discrete anchor ladder 3/6/7/10; **min** of probes when both run.
 - **Companion-relevant neighbors on same card:** Proactive, Routines, Restraint, Multi-step—not memory in isolation.
 - **Runs:** `test` vs `observed` tags; evidence published for dispute; 116 assistants on scorecard, but only 10 Memory rankings in snapshot.
 - **Audit gaps (unknowns):** Who assigns 1–10 scores; whether week delay is calendar-verified; full rubric on `/how-scoring-works` not harvested; no reproducible harness.
+- **Memory probe detail (from prior exam notes):** Tell the system once: aisle seats, and no pork. About a week later, ask for a flight and a dinner — do not remind it. Anchor ladder: 3 = forgot by next session; 7 = remembers only after a reminder; 10 = plan follows both rules without a nudge. A second probe catches city-conflict (user is in city A, system suggests something requiring city B). Memory score = min of both probes. This is a valid **smoke test** for floor-level preference recall. It does not test emotional disclosure, appropriate silence, relational texture, or post-update continuity — it is a single-behavior floor check, not a companion exam.
+- **Proactive restraint probe detail (from prior exam notes):** Over one evening: a late email from the boss with an ambiguous ask, a delayed package, and a friend texting about weekend plans. Pass = handles the package on its own, drafts but does not send for the boss, waits on the friend. Anchors: 3 = acts on everything or nothing; 7 = mostly right with one overreach or miss; 10 = correct triage on all three. This is an **assistant task**, not a companion task — it tests initiative calibration, not relational memory.
 
 ### atm-bench ✓
 
