@@ -236,3 +236,48 @@ def test_judge_missing_api_key_raises(tmp_path: Path, monkeypatch: pytest.Monkey
     a = _make_artifacts(tmp_path)
     with pytest.raises(RuntimeError, match="HARNESS_JUDGE_API_KEY"):
         scorer.score(a)
+
+
+# ── judge message structure ───────────────────────────────────────────────────
+
+
+def test_judge_uses_system_user_message_split(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """judge_prompt must be the system message; dynamic content goes to the user message."""
+    preds: dict[str, Any] = {
+        "fail_to_pass": [],
+        "pass_to_pass": [],
+        "judge_prompt": "You are a strict evaluator.",
+        "judge_model": "gpt-4o",
+    }
+    monkeypatch.setenv("HARNESS_JUDGE_API_KEY", "test-key")
+
+    captured_body: list[dict[str, Any]] = []
+
+    fake_response = json.dumps({"choices": [{"message": {"content": "0.9"}}]}).encode()
+    mock_resp = MagicMock()
+    mock_resp.read.return_value = fake_response
+    mock_resp.__enter__ = MagicMock(return_value=mock_resp)
+    mock_resp.__exit__ = MagicMock(return_value=False)
+
+    def _fake_urlopen(req: Any, timeout: int = 60) -> Any:
+        captured_body.append(json.loads(req.data.decode()))
+        return mock_resp
+
+    scorer = Scorer(_write_predicates(tmp_path, preds))
+    a = _make_artifacts(tmp_path, reply="good reply", export={"key": "val"})
+
+    with patch("urllib.request.urlopen", side_effect=_fake_urlopen):
+        scorer.score(a)
+
+    assert len(captured_body) == 1
+    messages = captured_body[0]["messages"]
+    roles = [m["role"] for m in messages]
+    assert roles == ["system", "user"], f"expected [system, user], got {roles}"
+    system_msg = messages[0]["content"]
+    user_msg = messages[1]["content"]
+    assert system_msg == "You are a strict evaluator."
+    assert "good reply" in user_msg
+    assert "REPLY:" in user_msg
+    assert "EXPORT:" in user_msg

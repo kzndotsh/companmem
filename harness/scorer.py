@@ -143,8 +143,10 @@ def _run_judge(
 
     base_url = os.environ.get("HARNESS_JUDGE_BASE_URL", "https://api.openai.com/v1")
 
-    prompt = (
-        f"{judge_prompt}\n\n"
+    # Split into system (stable, cache-eligible) + user (dynamic per-trial).
+    # OpenAI caches system prefixes ≥1024 tokens automatically; keeps judge
+    # prompt cost near-zero across repeated eval runs.
+    user_content = (
         f"REPLY:\n{reply}\n\n"
         f"EXPORT:\n{json.dumps(export, ensure_ascii=True)}\n\n"
         "Respond with a single float between 0.0 and 1.0 only."
@@ -154,7 +156,10 @@ def _run_judge(
         {
             "model": model,
             "temperature": 0,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": [
+                {"role": "system", "content": judge_prompt},
+                {"role": "user", "content": user_content},
+            ],
         }
     ).encode()
 
