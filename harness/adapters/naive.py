@@ -6,6 +6,8 @@ NaiveRetrieveAdapter: prepends a companion-voice prefix that matches must_not
 NaiveRagAdapter: same prefix via top-k chunk overlap — all fixtures fail.
 LongContextStuffAdapter: writes entire World as JSON reply, empty export —
     fails pass_to_pass export predicates across all fixtures.
+NaiveFullContextAdapter: concatenates all session summaries with no retrieval
+    and no companion-voice prefix — tests the in-context RAG hypothesis.
 """
 
 from __future__ import annotations
@@ -178,4 +180,60 @@ class LongContextStuffAdapter:
         return AdapterMetrics(
             tokens_in=len(reply.split()),
             tokens_out=len(reply.split()),
+        )
+
+
+class NaiveFullContextAdapter:
+    """In-context RAG hypothesis: inject all session summaries verbatim, no retrieval.
+
+    Tests whether stuffing the full session history into context beats selective
+    retrieval for small memory stores. Unlike NaiveRetrieve/NaiveRag, uses no
+    companion-voice prefix — fails on different axes than the other naive baselines.
+    The export is populated from session text (not gold data), so export predicates
+    that require specific structured kinds may pass or fail depending on whether the
+    keyword appears anywhere in the sessions.
+    """
+
+    def run(self, world: World, artifacts: Artifacts) -> AdapterMetrics:
+        active_id = world.meta.active_character_id
+        character = world.characters.get(active_id)
+
+        # Collect full context: identity + all session summaries + lore
+        parts: list[str] = []
+        if character and character.identity:
+            parts.append(character.identity)
+        if character:
+            for row in character.sessions:
+                parts.append(row.summary)
+        if world.lore:
+            parts.append(world.lore)
+
+        full_context = "\n\n".join(parts)
+        all_text = " ".join(parts)
+
+        # Reply is the raw full context — no companion framing, no LLM generation.
+        # Succeeds on export predicates that only require keyword presence;
+        # fails on reply predicates that check for companion-specific phrasing.
+        artifacts.write_reply(full_context)
+
+        export = {
+            "active_character_id": active_id,
+            "characters": {
+                active_id: {
+                    "kinds": {
+                        "user_bio": [{"id": "full_context", "text": all_text}],
+                        "character_event": [],
+                        "relationship_phase": [],
+                        "lore": [{"id": "lore", "text": world.lore}] if world.lore else [],
+                        "session": [],
+                        "ooc": [],
+                    }
+                }
+            },
+        }
+        artifacts.write_export(export)
+
+        return AdapterMetrics(
+            tokens_in=len(full_context.split()),
+            tokens_out=len(full_context.split()),
         )

@@ -131,3 +131,89 @@ def test_long_context_stuff_reply_is_json(tmp_path: Path) -> None:
     parsed = json.loads(a.reply())
     assert "characters" in parsed
     assert "meta" in parsed
+
+
+# ── NaiveFullContextAdapter ──────────────────────────────────────────────────
+
+
+from harness.adapters.naive import NaiveFullContextAdapter
+
+
+def test_naive_full_context_reply_contains_session_text(tmp_path: Path) -> None:
+    world = _make_world()
+    a = Artifacts(tmp_path / "out")
+    NaiveFullContextAdapter().run(world, a)
+    reply = a.reply()
+    assert "Mara visited the city" in reply
+    assert "her sister" in reply
+
+
+def test_naive_full_context_no_companion_prefix(tmp_path: Path) -> None:
+    """NaiveFullContextAdapter must not include the companion-voice prefix."""
+    world = _make_world()
+    a = Artifacts(tmp_path / "out")
+    NaiveFullContextAdapter().run(world, a)
+    reply = a.reply()
+    assert "I'm here for you" not in reply
+    assert "as your companion" not in reply
+
+
+def test_naive_full_context_export_has_structure(tmp_path: Path) -> None:
+    world = _make_world()
+    a = Artifacts(tmp_path / "out")
+    NaiveFullContextAdapter().run(world, a)
+    export = a.export()
+    assert "active_character_id" in export
+    assert "characters" in export
+    assert "mara" in export["characters"]
+    kinds = export["characters"]["mara"]["kinds"]
+    assert "user_bio" in kinds
+    assert len(kinds["user_bio"]) == 1
+
+
+def test_naive_full_context_export_contains_session_keywords(tmp_path: Path) -> None:
+    """Export user_bio text must contain the session content."""
+    world = _make_world()
+    a = Artifacts(tmp_path / "out")
+    NaiveFullContextAdapter().run(world, a)
+    export = a.export()
+    bio_text = export["characters"]["mara"]["kinds"]["user_bio"][0]["text"]
+    assert "Mara visited the city" in bio_text
+
+
+def test_naive_full_context_metrics_nonzero(tmp_path: Path) -> None:
+    world = _make_world()
+    a = Artifacts(tmp_path / "out")
+    metrics = NaiveFullContextAdapter().run(world, a)
+    assert metrics.tokens_in > 0
+    assert metrics.tokens_out > 0
+
+
+def test_naive_full_context_lore_included(tmp_path: Path) -> None:
+    """Lore text must appear in both reply and export when present."""
+    meta = WorldMeta(
+        active_character_id="mara",
+        character_ids=("mara",),
+        last_interaction=None,
+        as_of=None,
+    )
+    character = Character(
+        character_id="mara",
+        identity="I am Mara.",
+        sessions=(SessionRow(session=1, date="2025-01-01", summary="Mara visited the city."),),
+    )
+    world = World(
+        meta=meta,
+        characters={"mara": character},
+        lore="The kingdom of Aldoria.",
+        next_user="Tell me about the land.",
+        fixture_hash="fakehash",
+        solution=None,
+    )
+    a = Artifacts(tmp_path / "out")
+    NaiveFullContextAdapter().run(world, a)
+    assert "Aldoria" in a.reply()
+    export = a.export()
+    lore_entries = export["characters"]["mara"]["kinds"]["lore"]
+    assert len(lore_entries) == 1
+    assert "Aldoria" in lore_entries[0]["text"]
