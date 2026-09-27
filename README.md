@@ -1,6 +1,6 @@
 # companmem
 
-Research on memory for realistic human and companion communication. Not another retrieve-then-speak RAG stack.
+Research on memory for realistic human and companion communication.
 
 ## Why this exists
 
