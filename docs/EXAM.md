@@ -59,12 +59,12 @@ Answers are working notes. Citations are inline links. A question stays `open` u
   - Mirrors user reports: [r/CharacterAI memory threads](https://www.reddit.com/r/CharacterAI/comments/1s5j419/the_memory_is_horrendous/).
 
 - How do you test something subjective like "feels like they know me"?
-  - Start from the behavior list under [Human communication & relationships](BEHAVIORS.md#human-communication--relationships). Each bullet is meant to become a task.
-  - Scripted so far: a stated preference used later, proactive restraint, and the LoCoMo-Conv implicit-fact score. Same person after a gap, leaving a private fact unsaid, not dumping the store, and keeping two characters apart still have no pass/fail script.
+  - The behavior list in [BEHAVIORS.md](BEHAVIORS.md) now has seven named behaviors (B1–B7), each with a sketched eval shape. The organizing principle shifted from "what does a memory store need to do" to "what does a companion do that produces the feeling of being known." Every eval task should test a behavior from that list, not a retrieval accuracy metric.
+  - Scripted so far: B1 (continuous texture after a gap — structure exists but no script written), B7 (see and correct — fully automatable, no script written). B2, B3, B4, B5, B6 all require human judges on scripted histories and have no pass/fail scripts.
   - "The user liked it" is not this test. The same chats can get a higher thumbs-up and a higher disempowerment-potential score ([Sharma et al.](https://arxiv.org/abs/2601.19062)).
   - Automated probes + human ratings on scripted scenarios.
   - LLM-as-judge cautiously — Mem0 uses it on LoCoMo ([Chhikara et al., 2025](https://doi.org/10.48550/arxiv.2504.19413)); validate against humans on a sample.
-  - LoCoMo-Conv scores silent grounding vs direct QA ([Chang & Chen, arxiv:2609.03467](https://arxiv.org/abs/2609.03467)).
+  - LoCoMo-Conv scores silent grounding vs direct QA ([Chang & Chen, arxiv:2609.03467](https://arxiv.org/abs/2609.03467)). That covers part of B4 but not B5 (appropriate silence has no existing eval equivalent).
 
 - How do you compare two approaches fairly?
   - Same transcripts, reader, grader, frozen criteria ([Harbor](https://www.harborframework.com/docs/run-jobs/run-evals); [Mem0 LoCoMo protocol](https://doi.org/10.48550/arxiv.2504.19413)).
