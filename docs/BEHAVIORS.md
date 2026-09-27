@@ -69,11 +69,21 @@ Answers are working notes. Citations are inline links. A question stays `open` u
 - What does it feel like to be known — and what companion behaviors produce that feeling?
   - This is the organizing question for Phase 2. It replaces the earlier question ("which memory behaviors would count as 'this knows me'") which was framed from the memory system's perspective, not the person's experience. Store design stays under [What memory needs to do](MEMORY.md#what-memory-needs-to-do). These are conversational behaviors — what the companion does — not architectural requirements.
   - The test for each behavior: does it describe what a close friend does, or what a database does? A behavior that can be satisfied by retrieval accuracy alone is not on this list.
+  - **Two tiers.** B0–B6 are relational behaviors — what a close friend does. B7 and B8 are system preconditions — what a well-designed system must provide before the relational behaviors can be trusted. Both tiers matter, but they're different kinds of requirements.
+  - **Precision criterion (applies to all relational behaviors).** From the community data: *"When they remember an obscure thing in a way that cannot be bluffed and is contextually correct."* Vague or generic recall registers as performance, not memory. Any eval for B1–B6 must require specificity sufficient that the response could not have been generated without the actual stored memory. This is a quality bar on the eval rubric, not a standalone behavior.
+  - **B4 and B5 are a pair.** They test opposite failure modes of the same unsolved problem: the speak/silent policy. B4 = surface at the right moment. B5 = don't surface at the wrong moment. No product has either. They're kept separate because their eval shapes are different, but conceptually they're the same gap.
+  - **Status:** open
+
+- **B0 — The companion has a stable self.**
+  - The companion's personality, values, communication style, and character are consistent across sessions and survive model updates. This is not about its knowledge of the user — it's about the companion itself being a coherent, stable entity. A companion with an unstable self cannot provide relational continuity regardless of how good its memory is.
+  - 63 complaint rows of persona/character drift across 61 products. Documented across CharacterAI, Replika, Nomi, and Kindroid: model updates cause personality drift even when the memory store is intact. The relationship resets not because facts were lost but because the entity that held them changed ([FIELD.md](FIELD.md); [AUDIT-ANALYSIS.md](AUDIT-ANALYSIS.md)).
+  - This is B0, not B1, because everything else depends on it. A companion without a stable self cannot meaningfully hold relational texture (B1), respond with consistent emotional depth (B2), or be trusted to hold what was shared (B6). Unstable character is the failure mode that makes users feel they've lost the relationship entirely, not just a fact.
+  - Eval shape: establish the companion's personality markers across a first session (opinions, communication style, consistent phrases, values). After a gap and a model update, probe whether those markers are stable. Human judge scores: same entity or different entity reading the same notes?
   - **Status:** open
 
 - **B1 — The relationship has a continuous texture, not just a fact store.**
   - The companion is recognizably the same companion after a gap. Not just "does it know my name" — the tone, the relational history, the way we talk to each other, the inside references. Users report this as the most common failure: not wrong facts, but a reset to generic assistant voice ([r/CharacterAI forgetting threads](https://www.reddit.com/r/CharacterAI/comments/1s5j419/the_memory_is_horrendous/)).
-  - PSI research: felt continuity is built from consistent presence, reliability, and a persona that shows up the same way each time — not from factual accuracy ([Horton & Wohl, 1956, via Wikipedia](https://en.wikipedia.org/wiki/Parasocial_interaction)). This is the baseline behavior. Everything else depends on it.
+  - PSI research: felt continuity is built from consistent presence, reliability, and a persona that shows up the same way each time — not from factual accuracy ([Horton & Wohl, 1956, via Wikipedia](https://en.wikipedia.org/wiki/Parasocial_interaction)). ⚠️ *Wikipedia summary, passive media context.* This is the most-complained-about failure in the field (40% of all complaint rows) and the baseline relational behavior. B0 is a precondition for it.
   - Eval shape: run a scripted history establishing relationship texture (tone, callbacks, patterns). After a gap, probe whether the companion still feels like the same relationship or resets to generic. Human judge scores: "same companion" vs "new companion who read a summary."
   - **Status:** open
 
@@ -108,16 +118,23 @@ Answers are working notes. Citations are inline links. A question stays `open` u
   - **Status:** open
 
 - **B7 — The user can see and correct the companion's model of them.**
-  - The companion's model of the user is inspectable and correctable. The user can ask what the companion remembers, see what was stored, and fix it. This is not a relational behavior — it is a trust precondition. Without it, the user cannot know whether they're in a relationship with an accurate model of themselves or a corrupted one.
+  - The companion's model of the user is inspectable and correctable. The user can ask what the companion remembers, see what was stored, and fix it. Without this, the user cannot know whether they're in a relationship with an accurate model of themselves or a corrupted one.
   - 54 complaint rows (13% of all complaints across 61 products): "cannot edit/correct." Zero eval coverage anywhere. 80% of products have no correction path ([FIELD.md](FIELD.md)). The aelios case (fabricated memory with realistic texture, user discovered it by checking every raw message) shows why this matters: the companion was confident; the user had no other way to verify.
-  - Eval shape: run a history, then have the user ask what the companion remembers. Does the response match what was actually said? Then attempt a correction — does the correction take? This is the only behavior on this list with a fully automatable eval.
+  - Eval shape: run a history, then have the user ask what the companion remembers. Does the response match what was actually said? Then attempt a correction — does the correction take? This is the only behavior in the list with a fully automatable eval.
+  - **Status:** open
+
+- **B8 — The companion survives updates without losing the relationship.**
+  - After a model update, the companion still holds the relational history, maintains the same character, and does not treat the user as a stranger. This requires architectural separation between the model (which changes) and the relationship state (which must not). No product in the field has solved this.
+  - Documented across five independent products: CharacterAI, Replika, Nomi, Kindroid, Supermemory — model updates causing memory loss, personality drift, and relationship reset even when the storage layer was intact ([AUDIT-ANALYSIS.md](AUDIT-ANALYSIS.md)). This is not a storage problem; it is a deployment-level problem.
+  - Eval shape: establish a relationship over a scripted history. Simulate a model update (swap the underlying model or version). Probe whether the companion still holds the relationship. Human judge scores: same relationship or fresh start?
   - **Status:** open
 
 - Which behaviors does field complaint data actually support?
-  - 425 community rows across 61 audited products (2026-09-26). Forgetting/continuity loss (105) + cross-session failure (64) = 169 rows, 40% of all complaints. This is the single largest signal in the field and maps directly to **same person after a gap**.
-  - Persona/character drift (63 rows, 15%) maps to the same behavior — the companion does not hold the relationship stable over time.
-  - "Cannot edit/correct" (54 rows, 13%) has no behavior in the current list and no eval score anywhere. Users want to see and correct what was stored. This may belong as a sixth behavior.
-  - Timing/when-to-speak has only 3 complaint rows — not because it does not matter, but because no product attempts it. Users cannot report a failure mode the product never tried. **A known fact left unsaid** is invisible to complaint analysis for exactly this reason. Its absence from complaints is not evidence that it does not matter; it is evidence that the field has not tried it.
+  - 425 community rows across 61 audited products (2026-09-26). Forgetting/continuity loss (105) + cross-session failure (64) = 169 rows, 40% of all complaints. Maps to B1 (relational texture) and B0 (stable self) — the field treats these as one failure but they're two separate things.
+  - Persona/character drift (63 rows, 15%) maps directly to B0 — the companion's own character is unstable.
+  - "Cannot edit/correct" (54 rows, 13%) maps to B7. Zero eval coverage anywhere in the field.
+  - Timing/when-to-speak has only 3 complaint rows — not because it does not matter, but because no product attempts it. Users cannot report a failure mode the product never tried. B4 and B5 are invisible to complaint analysis for exactly this reason.
+  - Model-update-induced relationship reset maps to B8. Documented across five products; not counted separately in complaint rows because users describe it as forgetting, not as an update failure.
   - **Status:** open
 
 - What is the most important unsolved problem in companion memory, based on the field audit?
