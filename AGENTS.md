@@ -26,7 +26,7 @@ mise.toml                  # Python 3.11 + venv (.venv/) managed by mise
 pyproject.toml             # pytest config (root-level, scoped to tests/)
 pyrightconfig.json         # basedpyright config pointing at harness/ + tests/
 harness/                   # eval harness package (runner, scorer, trial, world, adapters)
-tests/                     # unit tests for harness (75 tests; pytest --import-mode=importlib)
+tests/                     # unit tests for harness (92 tests; pytest --import-mode=importlib)
 evals/fixtures/            # 9 behavior-coded eval fixtures (b0/b1/b3/b5 prefix convention)
 evals/results/             # run output — gitignored, ephemeral
 experiments/               # time-boxed pilots. Not maintained product code
@@ -82,7 +82,8 @@ Pipeline: harvest (no LLM) → one-shot extract (Kiro, no tools) → fold → ap
 .venv/bin/python -m harness run --baseline oracle          # 9/9 PASS smoke test
 .venv/bin/python -m harness run --baseline naive-retrieve  # 9/9 FAIL baseline
 .venv/bin/python -m harness run --baseline <id> --behavior <b0|b1|b3|b5>
-.venv/bin/python -m pytest tests/ -q                       # 75 unit tests
+.venv/bin/python -m harness run --baseline <id> --runs 3   # multi-run pass@k / pass^k
+.venv/bin/python -m pytest tests/ -q                       # 92 unit tests
 .venv/bin/ruff check harness/ tests/                       # lint
 .venv/bin/pip install -e "harness/[dev]"                   # first-time venv setup
 
