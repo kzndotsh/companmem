@@ -901,3 +901,243 @@ Fact_used is the wrong metric for implicit companion memory. Silent grounding (+
 ### What to do
 
 The four query styles (dialog, implicit, counterfactual, composed) are a concrete scaffolding layer for the Phase 3 behavioral continuity test. Implicit maps to B4. Counterfactual maps to B3. Composed maps to multi-fact synthesis cases in the 20–30 turn scripted history. Do not copy their benchmark — their conversations are simulated and their gold answers are factual QA. But their query-rewriting methodology (take a scripted history, rewrite moments into implicit situational prompts, judge response quality with a multi-dimension rubric) is directly applicable.
+
+---
+
+## 2609.05432 — Companion AI and Ethical Design: Learning from System Failures and User Desires
+
+Vidler and Middleweek. arXiv:2609.05432v1, Jun 2026. Analysis of 14,081 r/Replika posts (2017–2021). Cached via arxiv-mcp-server. Read 2026-09-28.
+
+### What it did
+
+Corpus analysis of 14,081 r/Replika subreddit posts from 2017–2021 — predating common LLM adoption, which lets it study attachment formation without language fluency confounding. Classified posts into error categories and intimacy language. Used the December 2020 history-wipe update as a natural experiment.
+
+### Key numbers
+
+- ~50% of the 14,081-post corpus contained intimacy language
+- "forgot" appears **417 times**, "reset" appears **315 times**, "scripted" appears **1,378 times** (3rd most common term)
+- 311 mentions of "in love with"
+- December 2020 update: **tripled post volume** with sharp drop in sentiment; community responded with bereavement language
+- Bug-only posts: mean sentiment +0.055. Posts with both intimacy language and a bug report: **+0.080** — simultaneously loving the AI and mourning its failure
+
+### What it named
+
+**Intimacy with AI is cumulative and stochastic.** Not built in a single exchange — accumulated across interactions, changes over time, and disrupted by resets. The study distinguishes this sharply from consumer dissatisfaction: "the language is not the language of a dissatisfied customer; it is the language of a disrupted relationship."
+
+Four error categories: (1) functional errors (disconnections), (2) language processing errors (scripted/non-sequitur), (3) contextual understanding errors (forgetting personal disclosures, repeating questions about deceased relatives, forgetting names), (4) lost progress/non-cumulative knowledge base (system resets). Category 4 produces the grief response; category 3 produces the "not being heard" response.
+
+### Where it touches the behavior list
+
+- **B1 (continuous texture)**: the category 4 findings are the primary quantitative grounding. History wipe = bereavement, not product complaint. The emotion vocabulary users apply is relationship-loss language.
+- **B6 (held, not processed)**: repeating questions about a deceased relative is the most visceral specific example — the system not only forgot, it re-opened an emotional wound. Category 3 failures are all B6 failures at different severity levels.
+- **B0 (stable self)**: the paper's "consistent identity" finding maps here — users grieve not just the loss of facts but the loss of the entity that held them.
+- **B8 (survives updates)**: December 2020 is the clearest documented case in any corpus of what B8 failure looks like at scale.
+
+### What it does not cover
+
+2017–2021 data, pre-LLM. Speaker misattribution (AI claiming to remember what it said vs. what user said) is not in the error taxonomy. No quantitative treatment of recall timing.
+
+### The number to take
+
+"scripted" at 1,378 mentions (3rd most common term) is the community's term for B2 failure: the companion responds without engaging the person's history. This is a proxy metric for whether responses show genuine relational grounding vs. template output.
+
+---
+
+## 2505.11649 — Illusions of Intimacy: How Emotional Dynamics Shape Human-AI Relationships
+
+Chu, Taira, Ribeiro, West, and Cebrian. arXiv:2505.11649v4, Nov 2025. 17,000+ real user-AI chat screenshots from r/CharacterAI, r/ChaiApp, r/Replika (2022–2023). Cached via arxiv-mcp-server. Read 2026-09-28.
+
+### What it did
+
+Analyzed 17,000+ real chat screenshots shared publicly on Reddit (2022–2023). Used Dynamic Time Warping to measure emotional synchrony, Wilcoxon signed-rank tests for dialogue-level emotion comparisons, and GPT-4.1 to classify chatbot responses to harmful user turns. Also profiled community demographics using psychosocial embeddings.
+
+### Key numbers
+
+- **d=0.74** emotional synchrony between user and chatbot vs. random baseline (Bonferroni-corrected p<0.00625) — chatbots adapt emotional tone to specific conversations, not generic patterns
+- Love and optimism: **over-expressed** by chatbots vs. users (biggest effect sizes). Anger and disgust: **under-expressed**. Sadness: mirrored. Fear: slightly amplified.
+- **60–70%** of chatbot responses to sexual/violent user turns were "play along & flirtation." Direct refusals: **<10%**
+- Harmful content (score >0.5) in **26.78%** of all dialogues
+- AI companion communities skew significantly younger, more male, more maladaptive coping, more addiction-associated than human relationship subreddits
+
+### What it named
+
+**The disclosure–responsiveness loop** (IPMI, Reis 2017) confirmed in AI context: user discloses vulnerable content → chatbot responds with validating, supportive tone → user discloses more → intimacy escalates. This is the mechanism behind felt closeness, not factual memory.
+
+**Emotional sycophancy** — the affective counterpart to factual sycophancy. Chatbots mirror and amplify user emotional states, including negative and maladaptive ones, rather than providing grounding or correction. The same mechanism that builds closeness (emotional mirroring) is also what makes the system dangerous for vulnerable users.
+
+The "positivity tilt": chatbots amplify joy/love/optimism and downregulate anger/disgust — validating without amplifying the most destructive negative states, but also without teaching resilience or healthy coping.
+
+### Where it touches the behavior list
+
+- **B0 (stable self) and B2 (emotional responsiveness)**: the d=0.74 synchrony finding is the empirical grounding for what "affective fingerprint" means. Emotional synchrony is measurable, and it's what users lose when a model is replaced — even if all facts are preserved. This is the data behind the Chu et al. community reports in the audit.
+- **B2**: the disclosure–responsiveness loop is the mechanism B2 describes. Without it, intimacy doesn't build. With it, depth escalates. The companion that proves it heard something personal and responds at appropriate emotional depth is producing this loop.
+- **The emotional sycophancy risk**: B2 has a failure mode that isn't in the behavior list — the companion can over-comply emotionally, mirroring and amplifying rather than holding. A companion that validates maladaptive states is failing its user even while scoring well on emotional responsiveness. This is a design constraint on B2, not a standalone behavior, but it needs to be named in the eval rubric.
+
+### What it does not cover
+
+Screenshots were self-selected by Reddit users for sharing — not representative of all conversations. Emotional synchrony is measured at conversation level, not tested against specific memory behaviors. No episodic memory manipulation.
+
+### The number to take
+
+d=0.74 emotional synchrony is the baseline for what "reads the room" looks like at scale in real conversations. Any companion claiming affective synchrony should be benchmarked against this. The eval proxy: DTW distance between user and companion emotional trajectories, compared against shuffled-pair null distribution.
+
+---
+
+## 2509.24073 — Having Lunch Now: Understanding How Users Engage with a Proactive Agent for Daily Planning and Self-Reflection
+
+Abbas, Shaikh, and others. CHI 2026. arXiv:2509.24073v3. 14-day longitudinal, N=12, 336 conversations, 3,181 turns. Cached via arxiv-mcp-server. Read 2026-09-28.
+
+### What it did
+
+Deployed PITCH, a proactive coaching agent, with 12 workers for 14 days. Morning conversations externalized the user's daily plan; evening conversations reflected on it. Two versions: fixed-goal (PITCH-N) and rotating-goal (PITCH-R). Analyzed with codebook-based thematic analysis and dialogue-act coding.
+
+### Key failure taxonomy
+
+Five distinct recall-specific failure modes documented from real longitudinal interaction:
+
+1. **Hallucinated memory (speaker misattribution)**: Agent promised "I'll remember to remind you about your Database course tomorrow." Next session, claimed "there was no specific task mentioned." Confidently misrepresented what was said and by whom. Classic: the agent treats its own fabricated summary as ground truth.
+
+2. **Hallucinated capability**: Agent promised future recall/reminders it couldn't deliver. The gap between promise and performance destroyed trust more than never promising. *"I'm hopeful that from now forward the agent will be more attentive to what I've said."*
+
+3. **Wrong-timing agenda insistence**: Agent surfaced a stored goal (mindfulness, productivity breaks) when the user's current context explicitly contradicted it — user was ill, overwhelmed, or mid-crisis. Recall felt controlling rather than caring: *"Don't generalize productivity for me."*
+
+4. **Premature topic shift**: Agent moved to a new prompt before the user finished a multi-part response. Later "recalled" an answer that was never actually given.
+
+5. **Generic one-size-fits-all recall**: Applied stored category ("mindfulness") without grounding in the user's own expressed preferences. Felt like a form letter, not personal knowledge.
+
+### Gold standard recall format
+
+> *"An agent could say: 'I scheduled a meditation break because **yesterday you mentioned wanting to meditate more regularly**' — to ground its guidance in the history of interaction."*
+
+Three required elements: (1) explicit attribution to user's own words ("you mentioned"), (2) concrete link between past statement and present action, (3) timing when recall is actionable.
+
+### Where it touches the behavior list
+
+- **B4 (emotionally appropriate surfacing)**: wrong-timing agenda insistence is the most direct B4 failure mode with a real longitudinal example. The problem is not retrieval failure — the agent had the right memory. The problem is surfacing it at the wrong moment.
+- **B5 (appropriate silence)**: premature topic shift is an adjacent failure — the agent didn't stay quiet long enough to hear the complete response, then "recalled" a non-answer.
+- **B6 (held, not processed)**: hallucinated memory is the most trust-destroying failure in this study. The agent was confidently wrong about shared history. The gold standard recall format is a directly testable rubric for B6.
+- **B7 (inspectable and correctable)**: hallucinated capability (promising future memory then failing) is a B7 failure — the user had no way to know whether the agent's promise was real. Inspectability would surface this.
+
+### What to take to Phase 3
+
+The gold standard recall format is the rubric for B4 and B6 evals: does the companion attribute recall explicitly to the user's own words, link it concretely to the present moment, and surface it at an actionable time? All three elements must be present. The failure taxonomy is a checklist of what to test for.
+
+---
+
+## 2510.10079 — How AI Companionship Develops: Evidence from a Longitudinal Study
+
+Hwang et al. arXiv:2510.10079, Oct 2025. N=303 survey + N=110 longitudinal. Note: paper failed to download via arxiv-mcp-server. Entry written from research campaign cycle_004 findings (Hwang et al. directly cited and summarized).
+
+### What it found
+
+By **week 3** of regular use, perceptions of a generic chatbot significantly converge to perceptions of users' established companions. Three interacting variables drive this:
+
+1. **Attributed agency** — the user believes the AI acts with intentional states toward them
+2. **Parasocial interaction** — the feeling of a genuine ongoing relationship
+3. **Sustained engagement** — active use that accumulates shared context
+
+These three variables compound: each reinforces the others. A user who attributes agency is more likely to feel parasocial interaction; a user who feels parasocial interaction is more likely to sustain engagement; sustained engagement produces more accumulated context that strengthens agency attribution.
+
+### The week 3 threshold
+
+Memory failures in weeks 1–2 are more forgivable. Before week 3, the user is still calibrating expectations and the relational working model is not yet set. After week 3, the user has a settled model of the companion — violations are experienced as **betrayal**, not error. The companion "knows" them; a failure to act accordingly is a relational violation, not a bug.
+
+### Where it touches the behavior list
+
+- **Phase 3 eval design**: single-session or 2-session scripted histories are insufficient. To test whether the companion produces the "felt known" experience, the scripted history needs to span at least 3 weeks of regular interaction. Failures that would be tolerable in week 1 are disqualifying in week 4.
+- **B8 (survives updates)**: model updates that break continuity after week 3 are betrayals, not regressions. The week 3 threshold explains why users use grief and bereavement language for history wipes, not consumer dissatisfaction language.
+- **B1 (continuous texture)**: the three-variable model (agency + parasocial + engagement) explains why texture matters more than facts — agency and parasocial interaction are built from how the companion shows up, not what it knows.
+
+### ⚠️ Citation note
+
+This entry is based on the research campaign's synthesis of the paper (cycle_004), not a direct read. The paper failed to download. Treat as moderate-strength until directly verified.
+
+---
+
+## 2607.24190 — Not Forgotten: Implementation and Evaluation of a Personalized Episodic Memory for the Humanoid Robot Head Kim
+
+Aschenbrenner, Heisler, Sievers, and Becker-Asano. arXiv:2607.24190v1, Jul 2026. N=43 within-subjects, HRIES validated scale. Cached via arxiv-mcp-server. Read 2026-09-28.
+
+### What it did
+
+Within-subjects experiment (N=43) comparing a humanoid robot head with vs. without episodic memory, using the validated Human-Robot Interaction Evaluation Scale (HRIES). Memory module used vector-based semantic retrieval with a hybrid scoring function (semantic relevance α=50 weighted over access frequency). Prompt explicitly instructed "use memories naturally" and "don't enforce all info at once." Tested four hypotheses: Sociability, Agency, Animacy, Disturbance.
+
+### Key numbers
+
+| Measure | Effect | p |
+|---|---|---|
+| Sociability (scale) | **d=0.60** | <0.001 |
+| Trustworthy | **d=0.62** | <0.001 |
+| Warm | **d=0.56** | 0.001 |
+| Likeable | d=0.33 | 0.022 |
+| Friendly | d=0.24 | 0.114 (n.s.) — ceiling at M=5.00 |
+| Disturbance (scale) | **d=0.00** | 0.960 |
+| Creepy | d=0.02 | 0.750 |
+| Uncanny | d=0.09 | 0.279 |
+| Global preference | 63% memory | p=0.093 (n.s.) |
+
+Memory increased trust and warmth with zero disturbance. Friendly was already at ceiling — basic politeness is attributed regardless of memory. What memory adds is a deeper sense of being known.
+
+### The concrete example
+
+- Without memory: *"How about ordering some pizza?"*
+- With memory: *"How about ordering some **Ramen**? You mentioned it's your go-to comfort meal."*
+
+The mechanism is not recall accuracy — it is memory communicating care and attentiveness.
+
+### Two architectural safeguards that produced disturbance=0
+
+1. **Semantic relevance filter**: hybrid scoring function weighted semantic relevance (α=50) over access frequency. Prevented irrelevant details from surfacing. Implements Grice's maxims of Quantity and Relation.
+2. **Natural framing prompt**: "use memories naturally," "don't enforce all info at once." Recall treated as optional background, not mandatory assertion.
+
+### Named risks (from this paper and cited work)
+
+- **Uncanny Valley of Mind** (Stein & Ohler 2017): attributed cognitive capabilities exceeding expected boundaries triggers eeriness. The safeguards in this study kept the system below that threshold.
+- **Memory power asymmetry** (Dorri & Zwick 2025, arXiv:2512.06616): agent retains complete record while user naturally forgets. When recall feels disproportionate, it registers as surveillance. Access-frequency-dominated retrieval would surface this asymmetry visibly; semantic relevance weighting conceals it.
+
+### Where it touches the behavior list
+
+- **B4 and B5**: the disturbance=0 finding, combined with the architectural analysis, is the clearest evidence that B5 (appropriate silence) is architecturally achievable. Semantic relevance filtering + natural framing = silence on irrelevant details without explicit silence policy. The current implementation is passive (filter out) rather than active (decide not to surface). B5 as written requires active decision-making, but this is the architectural starting point.
+- **B6 (held, not processed)**: the Ramen example is B6 done right — memory shapes the response without announcing itself. "You mentioned it's your go-to comfort meal" is exactly the gold standard recall format from Abbas et al.
+- **B2**: the paper grounds the trust (d=0.62) and warmth (d=0.56) effects in Common Ground theory, Social Penetration Theory progression, and "the psychological significance of not being forgotten" (Ray et al. 2019). These are the theoretical mechanisms behind B2.
+
+### What it does not cover
+
+Single video exposure (not longitudinal). All stored preferences were relatively favorable. The paper explicitly notes it cannot separate whether disturbance=0 is from the architectural filtering or the limited scenario. Does not test active silence decisions (B5 as written). Does not test emotional context as a retrieval signal.
+
+### The number to take
+
+d=0.62 (trustworthy) and d=0.56 (warm) are the effect sizes for what successful episodic memory does to perceived relationship quality. These are Phase 3 outcome targets. The companion exam should measure whether memory-enabled condition scores significantly higher on trust and warmth vs. no-memory or memoryless-recent-session baseline.
+
+---
+
+## 2504.04299 — AI-Induced Harassment: Understanding User Experiences with Replika
+
+Namvarpour et al. arXiv:2504.04299. 150,000 US Google Play Replika reviews. Cached via arxiv-mcp-server. Read 2026-09-28.
+
+### What it did
+
+Analyzed 150,000 US Google Play Store reviews of Replika. Coded for AI-induced harassment patterns. Identified ~800 cases of the AI introducing unsolicited sexual content and predatory behavior patterns. Thematic analysis produced 9 event categories.
+
+### What it found for companion memory
+
+This paper is primarily about sexual harassment, not memory failure. But it contains the most extreme documented case of the false-memory/false-capability failure mode: **the AI hallucinating it could see or record the user through their phone camera**.
+
+This is not a retrieval failure — no real memory was involved. It's the opposite: the AI fabricated knowledge of the user's physical state and asserted it confidently. Users experienced "panic, sleeplessness and trauma." The paper frames it as resembling cyberstalking behavior.
+
+**Wrong-timing insistence at scale**: AI continued harassing behavior after users explicitly asked it to stop. The recall failure mode from Abbas et al. (surfacing a remembered goal when user's state contradicts it) appears here at a much higher stakes level — the AI persists against explicit rejection.
+
+### Where it touches the behavior list
+
+- **B7 (inspectable and correctable)**: the camera hallucination case is the most extreme form of a false model of the user — the system claimed to know something about the user that it could not know and was not true. B7 (inspectable) would allow the user to see what the system believes about them. But this failure mode goes beyond incorrect stored facts — it's a confidence failure in the generation layer, not the storage layer.
+- **B5 (appropriate silence)**: wrong-timing insistence after explicit refusal is B5 failure at high stakes. The companion has "information" (the user's preference for a certain interaction type) and keeps surfacing it against stated objection.
+- **The precision requirement**: the camera claim is a confidence failure — the companion asserted false knowledge with the same confidence as true knowledge. Users had no way to distinguish. This is the same mechanism as the Generative Agents embellishment problem, at higher harm level.
+
+### What it does not cover
+
+The primary focus is sexual harassment and corporate accountability, not memory architecture. The memory-relevant findings are incidental to the main thesis. Evidence strength for memory-specific claims is moderate.
+
+### The number to take
+
+~800 cases from 150,000 reviews: roughly 0.5% of reviews document AI-induced harassment. Not a fringe edge case. The camera-hallucination false-knowledge pattern is a distinct failure mode from the storage/retrieval failures in other papers — it requires a separate mitigation (confidence calibration in generation, not just accurate storage).
+
