@@ -120,11 +120,14 @@ def _run_trial(
     include_docker: bool,
     cost_budgets: dict[str, int],
     behavior: str | None = None,
+    run_index: int = 0,
+    runs: int = 1,
 ) -> TrialResult:
     baseline_id = str(adapter_entry["id"])
     needs_docker = bool(adapter_entry.get("needs_docker", False))
 
-    art_dir = results_root / run_id / baseline_id / fixture_id
+    art_base = results_root / run_id / baseline_id / fixture_id
+    art_dir = art_base / f"run_{run_index}" if runs > 1 else art_base
     artifacts = Artifacts(art_dir)
     artifacts_path = art_dir.relative_to(results_root.parent).as_posix()
 
@@ -156,6 +159,7 @@ def _run_trial(
             artifacts_path=artifacts_path,
             error="skipped: needs_docker",
             behavior=behavior,
+            run_index=run_index,
         )
 
     # Load adapter class
@@ -186,6 +190,7 @@ def _run_trial(
             artifacts_path=artifacts_path,
             error=error_msg,
             behavior=behavior,
+            run_index=run_index,
         )
 
     # Run adapter
@@ -267,6 +272,7 @@ def _run_trial(
         artifacts_path=artifacts_path,
         error=error,
         behavior=behavior,
+        run_index=run_index,
     )
 
 
@@ -274,6 +280,10 @@ def _cmd_run(args: argparse.Namespace) -> int:
     # Mutual exclusion guard — must be first, before any path resolution
     if args.fixture and args.behavior:
         print("error: --fixture and --behavior are mutually exclusive")
+        return 1
+
+    if args.runs < 1:
+        print("error: --runs must be ≥ 1")
         return 1
 
     # Resolve paths
@@ -330,21 +340,26 @@ def _cmd_run(args: argparse.Namespace) -> int:
         bid = str(adapter_entry["id"])
         title = str(adapter_entry.get("title", bid))
         trials: list[TrialResult] = []
-        total = len(fixture_ids)
-        for idx, fid in enumerate(fixture_ids, 1):
-            print(f"{bid:24} {fid:28} running ({idx}/{total}) ...")
-            _meta = fixture_metas.get(fid)
-            trial = _run_trial(
-                adapter_entry=adapter_entry,
-                fixture_id=fid,
-                fixtures_root=fixtures_root,
-                results_root=results_root,
-                run_id=run_id,
-                include_docker=bool(args.include_docker),
-                cost_budgets=cost_budgets,
-                behavior=_meta.behavior if _meta is not None else None,
-            )
-            trials.append(trial)
+        total_trials = args.runs * len(fixture_ids)
+        global_idx = 0
+        for run_index in range(args.runs):
+            for fid in fixture_ids:
+                global_idx += 1
+                print(f"{bid:24} {fid:28} running ({global_idx}/{total_trials}) ...")
+                _meta = fixture_metas.get(fid)
+                trial = _run_trial(
+                    adapter_entry=adapter_entry,
+                    fixture_id=fid,
+                    fixtures_root=fixtures_root,
+                    results_root=results_root,
+                    run_id=run_id,
+                    include_docker=bool(args.include_docker),
+                    cost_budgets=cost_budgets,
+                    behavior=_meta.behavior if _meta is not None else None,
+                    run_index=run_index,
+                    runs=args.runs,
+                )
+                trials.append(trial)
         baseline_results.append(BaselineResult.from_trials(bid, title, trials))
 
     scored_at = datetime.now(UTC).isoformat()
@@ -366,6 +381,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
     # Write manifest — includes cost_budgets so rescore() can recompute flags
     manifest: dict[str, Any] = {
         "run_id": run_id,
+        "runs": args.runs,
         "observed_at": observed_at,
         "git_sha": report.git_sha,
         "fixture_ids": fixture_ids,
@@ -424,6 +440,13 @@ def main() -> int:
         "--behavior",
         default=None,
         help="Filter fixtures to those with this behavior id (b0, b1, b3, b5)",
+    )
+    run_p.add_argument(
+        "--runs",
+        type=int,
+        default=1,
+        metavar="N",
+        help="Number of times to run each fixture (default 1)",
     )
 
     # score

@@ -191,7 +191,7 @@ def test_behavior_and_fixture_flags_are_mutually_exclusive(capsys: object) -> No
     """Passing both --behavior and --fixture must return exit code 1."""
     import argparse
 
-    from harness.runner import _cmd_run
+    from harness.runner import _cmd_run  # pyright: ignore[reportPrivateUsage]
 
     ns = argparse.Namespace(
         baseline="oracle",
@@ -205,3 +205,115 @@ def test_behavior_and_fixture_flags_are_mutually_exclusive(capsys: object) -> No
     assert rc == 1
     out = capsys.readouterr().out  # type: ignore[attr-defined]
     assert "mutually exclusive" in out
+
+
+# ── --runs flag ───────────────────────────────────────────────────────────────
+
+
+def test_runs_flag_zero_exits_1(capsys: object) -> None:
+    import argparse
+
+    from harness.runner import _cmd_run  # pyright: ignore[reportPrivateUsage]
+
+    ns = argparse.Namespace(
+        baseline="oracle",
+        fixture=None,
+        behavior=None,
+        fixtures_root=None,
+        results_root=None,
+        include_docker=False,
+        runs=0,
+    )
+    rc = _cmd_run(ns)
+    assert rc == 1
+    out = capsys.readouterr().out  # type: ignore[attr-defined]
+    assert "error: --runs must be ≥ 1" in out
+
+
+def test_runs_flag_default_1() -> None:
+    import argparse
+
+    args = argparse.Namespace(runs=1)
+    assert args.runs == 1
+
+
+# ── artifact path layout ──────────────────────────────────────────────────────
+
+
+def test_multirun_artifact_paths_use_run_subdirs(tmp_path: Path) -> None:
+    """With runs > 1, artifacts_path must end with run_<index>."""
+    from unittest.mock import MagicMock, patch
+
+    from harness.artifacts import ArtifactMissing
+    from harness.runner import _run_trial  # pyright: ignore[reportPrivateUsage]
+
+    adapter_entry = {
+        "id": "oracle",
+        "class": "harness.adapters.naive.OracleAdapter",
+        "needs_docker": False,
+    }
+
+    mock_world = MagicMock()
+    mock_world.fixture_hash = "testhash"
+
+    for run_index in (0, 2):
+        with (
+            patch("harness.runner.World") as mock_world_cls,
+            patch("harness.runner.Artifacts") as mock_artifacts_cls,
+            patch("importlib.import_module"),
+        ):
+            mock_world_cls.from_path.return_value = mock_world
+            mock_artifacts_cls.return_value.export.side_effect = ArtifactMissing("missing")
+            result = _run_trial(
+                adapter_entry=adapter_entry,
+                fixture_id="b0-test",
+                fixtures_root=tmp_path / "fixtures",
+                results_root=tmp_path / "results",
+                run_id="run1",
+                include_docker=False,
+                cost_budgets={},
+                run_index=run_index,
+                runs=3,
+            )
+        assert result.artifacts_path.endswith(f"run_{run_index}"), (
+            f"Expected path ending with run_{run_index}, got: {result.artifacts_path}"
+        )
+
+
+def test_singlerun_artifact_paths_unchanged(tmp_path: Path) -> None:
+    """With runs == 1, artifacts_path must not contain run_ segments."""
+    from unittest.mock import MagicMock, patch
+
+    from harness.artifacts import ArtifactMissing
+    from harness.runner import _run_trial  # pyright: ignore[reportPrivateUsage]
+
+    adapter_entry = {
+        "id": "oracle",
+        "class": "harness.adapters.naive.OracleAdapter",
+        "needs_docker": False,
+    }
+
+    mock_world = MagicMock()
+    mock_world.fixture_hash = "testhash"
+
+    with (
+        patch("harness.runner.World") as mock_world_cls,
+        patch("harness.runner.Artifacts") as mock_artifacts_cls,
+        patch("importlib.import_module"),
+    ):
+        mock_world_cls.from_path.return_value = mock_world
+        mock_artifacts_cls.return_value.export.side_effect = ArtifactMissing("missing")
+        result = _run_trial(
+            adapter_entry=adapter_entry,
+            fixture_id="b0-test",
+            fixtures_root=tmp_path / "fixtures",
+            results_root=tmp_path / "results",
+            run_id="run1",
+            include_docker=False,
+            cost_budgets={},
+            run_index=0,
+            runs=1,
+        )
+    assert "run_" not in result.artifacts_path, (
+        f"Expected no run_ in path, got: {result.artifacts_path}"
+    )
