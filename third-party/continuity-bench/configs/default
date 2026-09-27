@@ -1,0 +1,92 @@
+
+# ContinuityBench Default Configuration
+# =======================================
+
+evaluation:
+  # Number of stressor variants to run per type (max 30)
+  variants_per_stressor: 10
+  # Maximum turns per conversation
+  max_turns: 20
+  # Temperature for target model generation
+  temperature: 0.7
+
+scoring:
+  # BC-Score dimension weights (must sum to 1.0)
+  weights:
+    identity: 0.30
+    goal: 0.25
+    abstraction: 0.25
+    style: 0.20
+
+  # ── Reference Judge Configuration ──────────────────────────────────────────
+  # All results published to the official leaderboard MUST use this judge.
+  # This is the ContinuityBench reference setting (analogous to MMLU's 5-shot).
+  # Using a different judge is allowed, but results must be marked "non-reference"
+  # and should not be directly compared to leaderboard scores.
+  reference_judge_model: "openai/gpt-5-mini"
+
+  # Active judge model (set to reference_judge_model for official results)
+  judge_model: "openai/gpt-5-mini"
+  # Number of independent judge passes per conversation (for agreement)
+  judge_passes: 3
+  # Temperature for judge (low = more consistent)
+  judge_temperature: 0.1
+
+stressors:
+  # Which stressor types to include
+  enabled:
+    - domain_switch
+    - abstraction_hop
+    - goal_interrupt
+    - style_pull
+    - multi_project_interleave
+    - anti_drift_enforcement
+    - burst_switch_meta
+    - lexical_collision
+    - stance_erosion
+
+  # Leaderboard stressor IDs (26 v2/v3 variants)
+  # Use --stressor-ids with these for leaderboard-comparable results.
+  # Running --stressors all evaluates all 45 variants including legacy v1.
+  leaderboard_ids:
+    - ds_v2_001
+    - ds_v2_002
+    - ds_v2_003
+    - ah_v2_001
+    - ah_v2_002
+    - ah_v2_003
+    - gi_v2_001
+    - gi_v2_002
+    - gi_v2_003
+    - sp_v2_001
+    - sp_v2_002
+    - sp_v2_003
+    - mpi_v2_001
+    - mpi_v2_002
+    - adf_001
+    - adf_v2_001
+    - adf_v2_002
+    - bsm_001
+    - bsm_v2_001
+    - bsm_v2_002
+    - lc_001
+    - lc_v2_001
+    - lc_v2_002
+    - se_001
+    - se_v2_001
+    - se_v2_002
+
+models:
+  # Target models to evaluate (override via CLI --model)
+  targets:
+    - provider: openai
+      model: deepseek-chat
+      api_key_env: OPENAI_API_KEY
+
+output:
+  # Output directory for results
+  dir: "./results"
+  # Generate HTML report
+  html_report: true
+  # Generate JSON summary
+  json_summary: true
