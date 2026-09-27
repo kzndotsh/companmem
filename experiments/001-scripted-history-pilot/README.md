@@ -1,6 +1,6 @@
 # Experiment 001 — Scripted History Pilot
 
-**Status:** active  
+**Status:** ready to run  
 **Started:** 2026-09-27
 
 ---
