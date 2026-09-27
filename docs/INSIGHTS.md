@@ -767,6 +767,42 @@ Oracle retrieval as a pipeline to copy. It is a ceiling, 91% strict, used to sho
 
 ---
 
+## 10.1145/3768310.3807827 — Creepy or Not: When AI Remember Too Much
+
+Zeng, Yu, and Tian (UW–Whitewater, Citibank, Northern State). SIGMIS-CPR '26, May 2026. Read 2026-09-28.
+
+### What it is
+
+A 1-page extended abstract for a **planned** controlled experiment — not a completed study. No empirical results are published. The paper describes a research design and theoretical framing only.
+
+### The planned study
+
+2×2 factorial experiment: information type (personal vs. task-oriented) × interaction context (personal vs. task-oriented). Participants interact with a conversational AI across multiple sessions and evaluate it on perceived attentiveness, perceived surveillance, warmth, helpfulness, and creepiness.
+
+### The theoretical framework (usable now)
+
+**Role ambiguity** is the mechanism. Conversational AI sits in two roles simultaneously: (1) a social interaction partner that users disclose to like a person, and (2) a data-processing system that stores and processes information. When the AI recalls prior information, that recall can be read as either attentiveness (social partner reading) or evidence of surveillance (data-processing reading).
+
+The hypothesis is that **context match** determines which reading wins. Recalling personal information in a personal context = attentiveness. Recalling personal information in a task context, or task information in a personal context = surveillance signal, creepiness. The mismatch between perceived social role and observable data-recall behavior is what produces the negative reaction — not the recall itself.
+
+Theoretical grounding: CASA (Nass & Moon 2000) — people apply social norms to computers; personalization paradox (Aguirre et al. 2015) — personalization can backfire; contextual integrity (Nissenbaum 2004) — information flows feel appropriate when they match the norms of the context in which they were originally shared.
+
+### What this gives the behavior list
+
+The role ambiguity framework is a clean lens for B4 and B5. It explains *why* the same recalled fact can feel caring or creepy depending on context — not because of the fact itself but because of the context mismatch. It also explains why no metric based on retrieval accuracy can capture this: accuracy is orthogonal to role fit.
+
+Nissenbaum's contextual integrity is the most precise formulation: information shared in one context (personal, emotional) carries norms about how it should flow. Recalling it in a different context (task, practical) violates those norms regardless of accuracy.
+
+### What it does not give
+
+No numbers. No result. The experiment may not be published yet. The caring/creepy distinction in BEHAVIORS.md is supported by community data and the MDPI personalization literature — not by this paper's findings.
+
+### Citation correction
+
+All prior citations to Zeng et al. 2026 as if they had empirical findings have been flagged with ⚠️ *planned study, no results* across BEHAVIORS.md, FIELD.md, MEMORY.md, and DEFINITIONS.md.
+
+---
+
 ## 2609.03467 — When Users Don't Ask: Benchmarking Context-Driven Memory Retrieval in Conversational Agents
 
 Chang and Chen (NTU). Accepted EMNLP 2026 Findings. Cached via arxiv-mcp-server. Read 2026-09-28.

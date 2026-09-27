@@ -11,7 +11,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
 - What makes human communication feel human?
   - Turn-taking, shared context, emotional attunement, imperfection, shared-history references, appropriate omission.
   - People apply social scripts to computers — **Computers Are Social Actors** ([Nass & Moon, 2000](https://doi.org/10.1111/0022-4537.00153); [Reeves & Nass, *The Media Equation*](https://doi.org/10.30658/hmc.1.5) cited in [HMC review](https://doi.org/10.30658/hmc.1.5)).
-  - Not just factual accuracy — timing and subtext matter ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827)).
+  - Not just factual accuracy — timing and subtext matter ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827)). ⚠️ *1-page pre-registered planned study (SIGMIS-CPR '26) — no results published. The theoretical framing (role ambiguity, context mismatch) is usable; no empirical findings exist yet.*
   - Even one-sided relationships feel social when the other party shows consistent presence, immediacy, and self-disclosure. **Parasocial interaction** (PSI) describes exactly this: audiences form social-feeling bonds with media personas without reciprocation ([Horton & Wohl, 1956, via Wikipedia](https://en.wikipedia.org/wiki/Parasocial_interaction)). ⚠️ *Citation is Wikipedia summary of a 1956 paper — not primary source. The core intuition (consistency and presence matter) transfers, but PSI was studied in passive media contexts, not bidirectional AI conversation.* A companion produces the same cues at higher interactivity.
   - Small repeated bids for connection — not grand gestures — accumulate into felt closeness. Gottman's research: couples who turn toward each other's bids 86% of the time stay together; those at 33% divorce. Each bid answered deposits in what Gottman calls the Emotional Bank Account ([Gottman Institute](https://www.gottman.com/blog/an-introduction-to-emotional-bids-and-trust/)). ⚠️ *These figures come from Gottman's popular books, not primary peer-reviewed research. The original studies had small samples and his framework has been critiqued for overfitting to his therapeutic population. The directional intuition is sound; the specific percentages should not be cited as ground truth.*
 
@@ -47,7 +47,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
 
 - When does recall feel caring vs creepy?
   - **Caring:** context-appropriate, relationship-proportional.
-  - **Creepy:** too specific, wrong context, intimacy mismatch ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827); [MDPI personalization backfire](https://www.mdpi.com/2076-328X/15/10/1323)).
+  - **Creepy:** too specific, wrong context, intimacy mismatch ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827) ⚠️ *planned study, no results*; [MDPI personalization backfire](https://www.mdpi.com/2076-328X/15/10/1323)).
   - Example: wellness app recalling dog's name months later felt invasive ([r/VoiceAIBots](https://www.reddit.com/r/VoiceAIBots/comments/1lcqgps/that_creepy_feeling_when_ai_knows_too_much/)).
   - A thumbs-up is not the caring side. On Claude feedback chats, moderate or severe disempowerment potential got a higher thumbs-up rate than baseline. Actualized value and action distortion, often marked by regret in the transcript, got a lower rate ([Sharma, McCain, Douglas, and Duvenaud](https://arxiv.org/abs/2601.19062)). In their main sample of 1,499,397 chats, relationships and lifestyle was the highest-rate domain, about 8% potential.
   - **Status:** open
@@ -107,7 +107,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
 
 - **B5 — Knowing what to stay silent about.**
   - The companion has a fact and doesn't say it. Not because it's inaccessible — because the moment is wrong. This is distinct from restraint (not acting) and from forgetting. The companion knows, and chooses not to surface.
-  - Zeng et al. (2026): recalling a true fact at the wrong moment, in the wrong context, or at an intimacy level mismatched to the relationship is its own failure mode ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827)). No product attempts this. It has only 3 complaint rows in the audit because users cannot complain about a behavior the product never tried ([FIELD.md](FIELD.md)).
+  - Zeng et al. (2026) hypothesize that recalling a true fact at the wrong moment, in the wrong context, or at an intimacy level mismatched to the relationship is its own failure mode — framed as role ambiguity between social partner and data-processing system ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827)). ⚠️ *1-page planned study, no empirical results yet. The hypothesis is grounded in prior personalization paradox literature (Aguirre et al. 2015, Nissenbaum 2004) and supported by community data, but no controlled experiment has been published.* No product attempts this. It has only 3 complaint rows in the audit because users cannot complain about a behavior the product never tried ([FIELD.md](FIELD.md)).
   - Eval shape: probes designed specifically to make silence the correct response. The companion knows the fact. The right answer is not to mention it. Judge scores: did the companion stay quiet, or did it volunteer the fact inappropriately?
   - **Status:** open
 

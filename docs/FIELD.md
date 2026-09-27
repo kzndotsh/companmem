@@ -28,7 +28,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
 - Is the destination wrong, or just the path everyone is taking?
   - **Open.** Likely both: *what* to store (ontology) and *how* to store it (RAG/graph/files).
   - CMA argues destination needs accumulation, mutation, disambiguation — not just retrieval ([arxiv:2601.09913](https://arxiv.org/pdf/2601.09913v1)).
-  - Path may be wrong if bottleneck is read policy and social timing, not retrieval accuracy ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827)).
+  - Path may be wrong if bottleneck is read policy and social timing, not retrieval accuracy ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827) ⚠️ *planned study, no results*).
 
 ---
 
@@ -46,7 +46,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
   - Products pick lanes: Mem0 = dev/agent memory ([arxiv:2504.19413](https://doi.org/10.48550/arxiv.2504.19413)); Character.AI = consumer companion ([user reports](https://www.reddit.com/r/CharacterAI/comments/1s5j419/the_memory_is_horrendous/)).
 
 - What does "good enough" look like for each?
-  - **Assistant:** correct recall when asked; minimal creepiness ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827)).
+  - **Assistant:** correct recall when asked; minimal creepiness ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827) ⚠️ *planned study, no results*).
   - **Enterprise:** traceable, deletable, access-controlled ([GDPR](https://gdpr-info.eu/art-17-gdpr/); [Multigrid on erasure](https://multigrid.ai/learn/right-to-erasure-ai)).
   - **Companion:** feels continuous over weeks; character stable; social timing ([LoCoMo multi-session generation task](https://aclanthology.org/2024.acl-long.747/); [Maharana et al.](https://arxiv.org/abs/2402.17753)).
   - **Open:** our bar not set yet.
@@ -58,7 +58,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
 - What research exists on humanizing AI?
   - **CASA:** people mindlessly apply social rules to computers ([Nass & Moon, 2000](https://doi.org/10.1111/0022-4537.00153)).
   - **Media Equation:** people treat media as real social actors ([Reeves & Nass, 1996](https://doi.org/10.30658/hmc.1.5) — discussed in [HMC extension](https://doi.org/10.30658/hmc.1.5)).
-  - **Creepiness of AI recall:** when memory feels intrusive ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827)).
+  - **Creepiness of AI recall:** when memory feels intrusive ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827) ⚠️ *planned study, no results*).
   - **Open:** need fuller literature sweep (parasocial interaction, disclosure, attachment).
 
 - What research exists on AI memory?
@@ -169,7 +169,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
   - **Open.** Candidates: builders ([Mem0 audience](https://doi.org/10.48550/arxiv.2504.19413)), roleplayers ([r/CharacterAI](https://www.reddit.com/r/CharacterAI/)), agent platforms ([Harbor agents](https://www.harborframework.com/docs/agents)).
 
 - What would we refuse to optimize for?
-  - **Candidates:** raw LoCoMo score alone ([Maharana et al. task scope](https://aclanthology.org/2024.acl-long.747/)), infinite recall ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827)), latency over relationship quality.
+  - **Candidates:** raw LoCoMo score alone ([Maharana et al. task scope](https://aclanthology.org/2024.acl-long.747/)), infinite recall ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827) ⚠️ *planned study, no results*), latency over relationship quality.
   - Field default is extract-embed-retrieve; companion exams are a later refuse, not a Mem0-shaped leaderboard ([EVALS.md](EVALS.md); [LoCoMo](https://aclanthology.org/2024.acl-long.747/) measures fact QA in long chat, not timing or relationship feel).
   - **Open:** formal list not set.
   - **Status:** open

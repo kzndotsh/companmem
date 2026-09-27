@@ -28,7 +28,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
 
 - What is the difference between **remembering** and **retrieving**?
   - **Retrieving:** pulling stored text/facts into context (mechanical) — standard RAG pipeline ([Lewis et al., 2020](https://proceedings.neurips.cc/paper/2020/file/6b493230205f780e1bc26945df7481e5-Paper.pdf)).
-  - **Remembering** (what users mean): the agent *acts as if* the past matters — right fact, right time, right tone ([LoCoMo-Conv / in-situ use](https://github.com/MiuLab/LoCoMo-Conv); [Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827) on inappropriate recall).
+  - **Remembering** (what users mean): the agent *acts as if* the past matters — right fact, right time, right tone ([LoCoMo-Conv / in-situ use](https://github.com/MiuLab/LoCoMo-Conv); [Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827) on inappropriate recall ⚠️ *planned study, no results*).
   - You can retrieve without remembering (wrong fact, creepy timing, generic reply).
 
 - What belongs in memory vs what belongs only in the active turn?

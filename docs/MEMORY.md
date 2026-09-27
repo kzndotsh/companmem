@@ -88,7 +88,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
   - **Delete** from store ([Mem0 DELETE op](https://doi.org/10.48550/arxiv.2504.19413); [GDPR Art. 17](https://gdpr-info.eu/art-17-gdpr/)).
   - **Suppress** at retrieve time (not surfaced): Mem0 hides `expiration_date` rows unless `show_expired` ([add docs](https://docs.mem0.ai/core-concepts/memory-operations/add)).
   - **Invalidate, keep history:** Graphiti marks old facts invalid rather than deleting them ([README](https://github.com/getzep/graphiti): "old facts are invalidated — not deleted").
-  - **Omit** in generation (know but don't say) — [Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827) on inappropriate recall.
+  - **Omit** in generation (know but don't say) — [Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827) on inappropriate recall ⚠️ *planned study, no results*.
   - Users may mean any of the three.
   - A retention gate can weight a past state down without deleting it. Behrouz et al. rename the forget gate for that reason, and cite the claim that the brain "does not erase memories but they might become inaccessible due to retrieval failures" ([Miras](https://arxiv.org/abs/2504.13173)). Their experiments score needle retrieval and perplexity, not a person.
   - A different gate can wipe the store. In Titans, α_t near 1 "can clear the entire memory" ([Behrouz, Zhong, and Mirrokni](https://arxiv.org/abs/2501.00663)). That is a deletion, not a failure to retrieve. The score is still a needle and a language-model loss, not a person.
@@ -115,7 +115,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
 
 - Is **perfect recall** desirable?
   - Usually no. Humans forget and reconstruct ([Schuck & Doeller, 2024](https://www.nature.com/articles/s41562-023-01799-z)).
-  - Total recall can feel uncanny ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827)).
+  - Total recall can feel uncanny ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827) ⚠️ *planned study, no results*).
 
 - When someone says "you forgot" — what are they usually upset about?
   - Broken continuity (plot, name, relationship) — [r/CharacterAI](https://www.reddit.com/r/CharacterAI/comments/1s5j419/the_memory_is_horrendous/).
@@ -154,7 +154,7 @@ Answers are working notes. Citations are inline links. A question stays `open` u
 - When is a stored fact **spoken**, and when does it stay silent?
   - Field default is to search and inject a block ([Mem0 README](https://github.com/mem0ai/mem0): `User Memories:`).
   - One profile store stays quiet unless the fact is relevant ([Memobase README](https://github.com/memodb-io/memobase)).
-  - Saying a true fact at the wrong time is its own failure ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827)).
+  - Saying a true fact at the wrong time is its own failure ([Zeng et al., 2026](https://doi.org/10.1145/3768310.3807827) ⚠️ *planned study, no results*).
   - The 25 evals score whether the fact came back. They do not score whether it should have been said ([EVAL-GRID.md](EVAL-GRID.md)).
   - LoCoMo's adversarial questions ask the model to recognize an unanswerable query. A-MEM still scores them with F1 and BLEU. The baseline that puts the whole conversation in the prompt scores higher there. The paper credits "robust pre-trained knowledge in simple fact retrieval," not a decision to stay silent ([A-MEM](https://arxiv.org/abs/2502.12110)).
   - **Status:** open
