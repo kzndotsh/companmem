@@ -97,11 +97,13 @@ Answers are working notes. Citations are inline links. A question stays `open` u
   - LLMs made chat companions cheap to ship ([Park et al., 2023](https://arxiv.org/abs/2304.03442) showed believable multi-day agent behavior).
   - Memory is hard and differentiated ([arxiv:2606.24775](https://doi.org/10.48550/arxiv.2606.24775)).
   - Open-source libs lower barrier ([Mem0](https://doi.org/10.48550/arxiv.2504.19413), [Letta](https://github.com/letta-ai/letta)).
+  - The volume of competing products is itself a signal: if any one of them had cracked it, the others would not keep appearing. The complaint data confirms it — 40% of all user complaints across 61 products are forgetting and continuity failures, and the field has not converged on a solution.
 
 - Is that a sign the problem is unsolved, or that the market is fragmented?
-  - Both. Core mechanics unsettled ([CMA on RAG limits](https://arxiv.org/pdf/2601.09913v1)).
-  - User complaints persist ([r/CharacterAI](https://www.reddit.com/r/CharacterAI/comments/1s5j419/the_memory_is_horrendous/)).
-  - UX and monetization also fragment the market.
+  - Unsolved at the core. The fragmentation is downstream of the unsolved problem, not a cause of it.
+  - Core mechanic unsettled: no product has a speak/silent policy; forget is missing from 80% of products; the benchmark that would measure relationship quality doesn't exist ([CMA on RAG limits](https://arxiv.org/pdf/2601.09913v1); AUDIT-ANALYSIS.md).
+  - User complaints persist despite the number of competing products ([r/CharacterAI](https://www.reddit.com/r/CharacterAI/comments/1s5j419/the_memory_is_horrendous/)).
+  - The analogy that clarifies it: coding assistants work well because the context problem for code is well-specified — open files, diffs, test failures. The context problem for a companion relationship has never been specified. That is the actual gap.
 
 - What does the field actually implement, across 61 audited products?
   - Frequency across 61 products (2026-09-26 matrix.json): persist 53/61 (87%), retrieve 56/61 (92%), conflict/supersession 34/61 (56%), isolation 39/61 (64%), forget-delete 12/61 (20%), forget-suppress 10/61 (16%).

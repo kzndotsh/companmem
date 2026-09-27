@@ -2,9 +2,19 @@
 
 Research on memory for realistic human and companion communication. Not another retrieve-then-speak RAG stack.
 
-The mission is to build the memory technology that makes the most human-like companion we can, then show it with a number someone else can rerun. We still do not know what we are shipping, and we still do not know what that number measures. The field map exists so we do not copy everyone else's extract-and-search pipeline. The missing piece is a number we would bet the company on. We get it by running the same situation on our companion and on other products, then reading a result someone else can run again. That number is what tells us the product. Path: [`TODO.md`](TODO.md). Docs: [`docs/INDEX.md`](docs/INDEX.md).
+## Why this exists
 
-Most agent-memory products follow the same pipeline: extract facts, embed, retrieve, stuff into context, generate. That pipeline is what the field map is here to keep us from copying. Examples of how a companion can still feel wrong, such as timing, wording, or a relationship that fades after weeks, are examples. They are not the mission.
+This started from direct frustration with AI companion apps — the slopping memory, the reset personalities, the sense that the AI never actually learned anything about you. The natural question was: why are there 60+ memory products competing in this space without anyone clearly winning? The answer the field audit gave back: the problem isn't solved. Most products are just database CRUD with memory branding. Nobody has a proper speak/silent policy. Forget is missing from 80% of products. The benchmark that would tell you whether a companion actually knows you doesn't exist yet.
+
+The observation that matters: coding assistants work well partly because the context problem for code is well-specified — what files are open, what's the diff, what tests failed. The context problem for a companion relationship is completely unspecified. Nobody has written the equivalent of "what does a relationship harness need to track." That's what this project is building toward.
+
+The specific failure the field hasn't solved: surfacing the right memory at the right emotional moment — not when the topic matches, but when the emotional context calls for it. No product has a speak/silent policy that reflects this. The benchmark that would measure it doesn't exist. Building that benchmark is what unlocks the product decision.
+
+## The mission
+
+Build the memory technology that makes the most human-like companion possible, then prove it with a number someone else can rerun. The field map exists so we don't copy the extract-embed-retrieve pipeline everyone else already built. The missing piece is a behavioral continuity score we would bet the company on — run against CharacterAI, Replika, and our system on the same scripted history. That number is what tells us the product. Path: [`TODO.md`](TODO.md). Docs: [`docs/INDEX.md`](docs/INDEX.md).
+
+We still do not know what we are shipping, and we still do not know what that number measures. Both answers come from Phase 3, not before.
 
 ## How we work
 

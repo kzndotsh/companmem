@@ -4,6 +4,8 @@ Ideas that are not work yet live in [`IDEA.md`](IDEA.md). Docs live in [`docs/IN
 
 The mission is to build the memory technology that makes the most human-like companion we can, then show it with a number someone else can rerun. We still do not know what we are shipping, and we still do not know what that number measures. An example in this file or in [`README.md`](README.md) is not the assignment. A single borrowed probe is not the exam.
 
+The product decision is deliberately deferred to Phase 4. The hypothesis going in: a companion-first memory engine that solves the speak/silent problem the field hasn't touched, proved by a behavioral continuity benchmark that doesn't exist yet. Phase 3 either validates or revises that hypothesis.
+
 ## Pending
 
 ### Phase 2. Name what "more human" is
