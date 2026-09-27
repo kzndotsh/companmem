@@ -40,7 +40,7 @@ def testenumerate_fixtures_empty_dir(tmp_path: Path) -> None:
 
 def test_registry_loads_14_adapters() -> None:
     registry = load_registry()
-    assert len(registry["adapters"]) == 14
+    assert len(registry["adapters"]) == 15
 
 
 def test_registry_all_ids_unique() -> None:
@@ -50,7 +50,7 @@ def test_registry_all_ids_unique() -> None:
 
 
 def test_registry_all_classes_resolve() -> None:
-    """All 14 adapter class paths must importable without error."""
+    """All adapter class paths must be importable without error."""
     registry = load_registry()
     for entry in registry["adapters"]:
         class_path = str(entry["class"])
@@ -62,7 +62,7 @@ def test_registry_all_classes_resolve() -> None:
 
 def test_registry_baseline_all_includes_all_adapters() -> None:
     registry = load_registry()
-    assert len(registry["adapters"]) >= 14
+    assert len(registry["adapters"]) >= 15
 
 
 def test_registry_oracle_baseline_exists() -> None:
@@ -185,6 +185,68 @@ def test_behavior_filter_no_match_returns_empty(tmp_path: Path) -> None:
         and meta.behavior == "b9"
     ]
     assert filtered == []
+
+
+# ── split filter logic ────────────────────────────────────────────────────────
+
+
+def _make_fixture_dir(root: Path, fid: str, behavior: str = "b0", split: str = "dev") -> None:
+    d = root / fid
+    d.mkdir()
+    (d / "fixture.json").write_text(json.dumps({
+        "id": fid, "behavior": behavior, "title": "T", "description": "D.",
+        "probe_type": "stable-self", "pass_proves": "P.", "fail_reveals": "F.",
+        "why_naive_fails": "W.", "split": split,
+    }))
+
+
+def test_split_filter_dev_returns_only_dev(tmp_path: Path) -> None:
+    """--split dev must include only fixtures tagged split=dev."""
+    _make_fixture_dir(tmp_path, "b0-dev-a", split="dev")
+    _make_fixture_dir(tmp_path, "b0-dev-b", split="dev")
+    _make_fixture_dir(tmp_path, "b0-test-a", split="test")
+    all_ids = enumerate_fixtures(tmp_path)
+    filtered = [
+        fid for fid in all_ids
+        if (meta := load_fixture_meta(tmp_path / fid)) is not None
+        and meta.split == "dev"
+    ]
+    assert sorted(filtered) == ["b0-dev-a", "b0-dev-b"]
+
+
+def test_split_filter_test_returns_only_test(tmp_path: Path) -> None:
+    """--split test must include only fixtures tagged split=test."""
+    _make_fixture_dir(tmp_path, "b0-dev-x", split="dev")
+    _make_fixture_dir(tmp_path, "b0-test-x", split="test")
+    all_ids = enumerate_fixtures(tmp_path)
+    filtered = [
+        fid for fid in all_ids
+        if (meta := load_fixture_meta(tmp_path / fid)) is not None
+        and meta.split == "test"
+    ]
+    assert filtered == ["b0-test-x"]
+
+
+def test_split_defaults_to_dev_when_field_absent(tmp_path: Path) -> None:
+    """A fixture.json without a split field must default to 'dev'."""
+    d = tmp_path / "b0-no-split"
+    d.mkdir()
+    (d / "fixture.json").write_text(json.dumps({
+        "id": "b0-no-split", "behavior": "b0", "title": "T", "description": "D.",
+        "probe_type": "stable-self", "pass_proves": "P.", "fail_reveals": "F.",
+        "why_naive_fails": "W.",
+    }))
+    meta = load_fixture_meta(tmp_path / "b0-no-split")
+    assert meta is not None
+    assert meta.split == "dev"
+
+
+def test_load_fixture_meta_parses_split_field(tmp_path: Path) -> None:
+    """split field is loaded correctly when present."""
+    _make_fixture_dir(tmp_path, "b0-held", split="test")
+    meta = load_fixture_meta(tmp_path / "b0-held")
+    assert meta is not None
+    assert meta.split == "test"
 
 
 def test_behavior_and_fixture_flags_are_mutually_exclusive(capsys: object) -> None:

@@ -50,6 +50,7 @@ class FixtureMeta:
     pass_proves: str
     fail_reveals: str
     why_naive_fails: str
+    split: str  # "dev" or "test"; fixtures without the field default to "dev"
 
 
 def load_fixture_meta(fixture_dir: Path) -> FixtureMeta | None:
@@ -68,6 +69,7 @@ def load_fixture_meta(fixture_dir: Path) -> FixtureMeta | None:
             pass_proves=str(d["pass_proves"]),
             fail_reveals=str(d["fail_reveals"]),
             why_naive_fails=str(d["why_naive_fails"]),
+            split=str(d.get("split", "dev")),
         )
     except (KeyError, json.JSONDecodeError):
         return None
@@ -304,13 +306,17 @@ def _cmd_run(args: argparse.Namespace) -> int:
             return 1
         all_fixture_ids = [args.fixture]
 
-    # Single pass: build fixture_metas and filter by --behavior when set
+    # Single pass: build fixture_metas and filter by --behavior and --split when set
     fixture_metas: dict[str, FixtureMeta | None] = {}
     fixture_ids: list[str] = []
+    split_filter: str = getattr(args, "split", "all")
     for fid in all_fixture_ids:
         meta = load_fixture_meta(fixtures_root / fid)
         fixture_metas[fid] = meta
-        if args.behavior is None or (meta is not None and meta.behavior == args.behavior):
+        behavior_ok = args.behavior is None or (meta is not None and meta.behavior == args.behavior)
+        meta_split = meta.split if meta is not None else "dev"
+        split_ok = split_filter == "all" or meta_split == split_filter
+        if behavior_ok and split_ok:
             fixture_ids.append(fid)
 
     if args.behavior and not fixture_ids:
@@ -447,6 +453,12 @@ def main() -> int:
         default=1,
         metavar="N",
         help="Number of times to run each fixture (default 1)",
+    )
+    run_p.add_argument(
+        "--split",
+        default="all",
+        choices=["dev", "test", "all"],
+        help="Filter fixtures by split tag: dev, test, or all (default all)",
     )
 
     # score
