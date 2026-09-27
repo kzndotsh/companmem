@@ -34,6 +34,11 @@ Agent skills in [`.agents/skills/`](.agents/skills/) back this up: research, sum
 | --- | --- |
 | [`TODO.md`](TODO.md) | Roadmap. Pending and done |
 | [`IDEA.md`](IDEA.md) | Not work yet |
+| [`mise.toml`](mise.toml) | Python 3.11 + venv managed by mise |
+| [`harness/`](harness/) | Eval harness package: runner, scorer, adapters |
+| [`tests/`](tests/) | Unit tests for the harness (75 tests) |
+| [`evals/fixtures/`](evals/fixtures/) | 9 behavior-coded eval fixtures (`b0/b1/b3/b5` prefix) |
+| [`experiments/`](experiments/) | Time-boxed pilots. Not maintained product code |
 | [`docs/INDEX.md`](docs/INDEX.md) | Which doc owns what |
 | [`research/pipeline/`](research/pipeline/) | Harvest / extract / fold / apply |
 | [`research/output/`](research/output/) | Product `audit.json` records; see `by-product/PROTOCOL.md` |
@@ -54,3 +59,4 @@ When working in this repo:
 - Cite sources; do not invent claims
 - Do not commit unless asked
 - Attach `companmem-research-gate` for edits to the question docs
+- Attach `finalize` when closing a work chunk to run gates and draft commits

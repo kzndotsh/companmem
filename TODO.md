@@ -23,9 +23,11 @@ Working list is in [`docs/BEHAVIORS.md`](docs/BEHAVIORS.md). Five behaviors are 
 - [ ] Keep plug-in products and closed apps on different protocols
 - [ ] Run it once
 
-Draft tasks and the failures they still miss are in [`docs/EXAM.md`](docs/EXAM.md). Nothing has been run. A borrowed probe is not the exam. A score that only checks whether something came back cannot close this phase.
+Draft tasks and the failures they still miss are in [`docs/EXAM.md`](docs/EXAM.md). A borrowed probe is not the exam. A score that only checks whether something came back cannot close this phase.
 
 The behavioral continuity test design is in EXAM.md: 20–30 turn scripted history establishing specific facts, 10 emotionally-charged follow-up prompts, human judge scoring recall appropriateness, fabrication, and relationship coherence. Run against CharacterAI, Replika, and the system under test.
+
+An automated harness exists in [`harness/`](harness/) with 9 behavior-coded regression fixtures in [`evals/fixtures/`](evals/fixtures/) covering B0, B1, B3, B5. A scripted history pilot is in [`experiments/001-scripted-history-pilot/`](experiments/001-scripted-history-pilot/) — ready to run. The human-judge behavioral continuity test (B2, B4, B6) has not been run yet.
 
 Done when we would bet on that number as ahead, and we can point at a score for at least one other product.
 

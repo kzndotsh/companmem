@@ -22,28 +22,34 @@ An example in [`TODO.md`](TODO.md) or [`README.md`](README.md) is not the assign
 ```
 TODO.md                    # roadmap. Pending and done
 IDEA.md                    # not work yet
+mise.toml                  # Python 3.11 + venv (.venv/) managed by mise
+pyproject.toml             # pytest config (root-level, scoped to tests/)
+pyrightconfig.json         # basedpyright config pointing at harness/ + tests/
+harness/                   # eval harness package (runner, scorer, trial, world, adapters)
+tests/                     # unit tests for harness (75 tests; pytest --import-mode=importlib)
+evals/fixtures/            # 9 behavior-coded eval fixtures (b0/b1/b3/b5 prefix convention)
+evals/results/             # run output — gitignored, ephemeral
+experiments/               # time-boxed pilots. Not maintained product code
 docs/INDEX.md              # which doc owns what
 docs/QUESTIONS.md          # index of the question docs
 docs/PROCESS.md            # how we run the research
 docs/DEFINITIONS.md        # what the words mean
 docs/CONTEXT.md            # prompt versus memory
 docs/MEMORY.md             # what a store has to do
-docs/BEHAVIORS.md          # what would count as knowing a person
+docs/BEHAVIORS.md          # what would count as knowing a person (B0–B8)
 docs/FIELD.md              # what already exists, and who it is for
 docs/EXAM.md               # how we would tell if a behavior happened
 docs/BUILDING.md           # how the work would get built, once settled
 docs/INSIGHTS.md           # checked paper reads
-docs/EVAL-INVENTORY.md     # one benchmark, what it scores
-docs/EVAL-GRID.md          # which question that score touches
 docs/EVALS.md              # how those benchmarks cluster
 docs/PIPELINE.md           # how an audit is produced
 docs/AUDIT.md              # per-product notes for all 61 audited products, with synthesis
-docs/AUDIT-ANALYSIS.md     # one-shot model analysis of the full audit
-docs/AUDIT-PROMPT.md       # prompt used for the one-shot analysis
+artifacts/                 # one-off outputs: eval grids, audit analysis, artifact documents
 docs/decisions/            # ADRs, only after Decide gate (may not exist yet)
 research/pipeline/         # harvest / extract / fold / apply
 research/output/           # audit.json records. See docs/PIPELINE.md
 .agents/skills/            # git-tracked agent skills
+.kiro/specs/               # Kiro spec files (requirements → design → tasks)
 .cache/                    # harvest clones and extracts. gitignored + cursorignored
 ```
 
@@ -56,7 +62,7 @@ research/output/           # audit.json records. See docs/PIPELINE.md
 | Settle | `settled` | Cited + **Falsifier:** |
 | Decide | ADR in `docs/decisions/` | `settled` and user agrees |
 
-Skills: `research`, `evidence-driven-research`, `research-summarizer`, `grill-with-docs`, `adr-drafting`. Versions: [`skills-lock.json`](skills-lock.json).
+Skills: `research`, `evidence-driven-research`, `research-summarizer`, `grill-with-docs`, `adr-drafting`, `finalize`. Versions: [`skills-lock.json`](skills-lock.json).
 
 ## Audit records (when present)
 
@@ -72,6 +78,15 @@ Pipeline: harvest (no LLM) → one-shot extract (Kiro, no tools) → fold → ap
 ## Commands
 
 ```bash
+# Harness
+.venv/bin/python -m harness run --baseline oracle          # 9/9 PASS smoke test
+.venv/bin/python -m harness run --baseline naive-retrieve  # 9/9 FAIL baseline
+.venv/bin/python -m harness run --baseline <id> --behavior <b0|b1|b3|b5>
+.venv/bin/python -m pytest tests/ -q                       # 75 unit tests
+.venv/bin/ruff check harness/ tests/                       # lint
+.venv/bin/pip install -e "harness/[dev]"                   # first-time venv setup
+
+# Research pipeline
 just harvest mem0
 just harvest-all         # every product in seed.json
 just harvest-eval locomo
@@ -95,6 +110,6 @@ Env: `KIRO_GATEWAY_URL`, `KIRO_GATEWAY_API_KEY` (fallback `PROXY_API_KEY`). Harv
 
 ## Style
 
-- Conventional commits: `type(scope): subject` (no trailing period). Types: `docs`, `feat`, `fix`, `chore`, `ci`, `refactor`. Scope when useful: `research`, `pipeline`
+- Conventional commits: `type(scope): subject` (no trailing period). Types: `docs`, `feat`, `fix`, `chore`, `ci`, `refactor`. Scope when useful: `harness`, `evals`, `tests`, `specs`, `research`, `pipeline`
 - Python (when added): Ruff, 4-space, typed, `Type | None`, no bare `except`, no inline imports, no `any`
 - Nested `AGENTS.md` files stay thin. Do not duplicate the question docs or schema here

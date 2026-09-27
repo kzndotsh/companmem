@@ -9,7 +9,7 @@ Docs for companmem. Agent instructions are in [`AGENTS.md`](../AGENTS.md).
 | [Definitions](DEFINITIONS.md) | What the words mean |
 | [Context and scaffolding](CONTEXT.md) | What sits in the prompt, separate from memory |
 | [Memory](MEMORY.md) | What a store has to do |
-| [Behaviors](BEHAVIORS.md) | What would count as knowing a person |
+| [Behaviors](BEHAVIORS.md) | What would count as knowing a person (B0–B8) |
 | [Field](FIELD.md) | What already exists, and who it is for |
 | [Exam](EXAM.md) | How we would tell if a behavior happened |
 | [Building](BUILDING.md) | How the work would get built, once a question is settled |
@@ -23,3 +23,5 @@ Docs for companmem. Agent instructions are in [`AGENTS.md`](../AGENTS.md).
 | [Audit prompt](../artifacts/2026-09-26_audit-prompt.md) | Prompt used for the one-shot analysis |
 
 Roadmap and ideas are at the repo root: [`TODO.md`](../TODO.md), [`IDEA.md`](../IDEA.md).
+
+Harness and evals: [`harness/`](../harness/) (package), [`evals/fixtures/`](../evals/fixtures/) (9 behavior-coded fixtures), [`tests/`](../tests/) (unit tests). Run: `.venv/bin/python -m harness run --baseline oracle`.
